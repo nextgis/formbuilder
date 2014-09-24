@@ -1,0 +1,18 @@
+<RCC>
+    <qresource prefix="/img">
+        <file alias="back">img/back.png</file>
+        <file alias="back_hor">img/back_hor.png</file>
+        <file alias="bottom">img/bottom.png</file>
+        <file alias="bottom_hor">img/bottom_hor.png</file>
+        <file alias="checkbox">img/checkbox.png</file>
+        <file alias="combobox">img/combobox.png</file>
+        <file alias="date">img/date.png</file>
+        <file alias="radiobutton">img/radiobutton.png</file>
+        <file alias="space">img/space.png</file>
+        <file alias="text">img/text.png</file>
+        <file alias="textfield">img/textfield.png</file>
+        <file alias="time">img/time.png</file>
+        <file alias="top">img/top.png</file>
+        <file alias="top_hor">img/top_hor.png</file>
+    </qresource>
+</RCC>
