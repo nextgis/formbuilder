@@ -6,13 +6,25 @@
         <file alias="bottom_hor">img/bottom_hor.png</file>
         <file alias="checkbox">img/checkbox.png</file>
         <file alias="combobox">img/combobox.png</file>
-        <file alias="date">img/date.png</file>
         <file alias="radiobutton">img/radiobutton.png</file>
-        <file alias="space">img/space.png</file>
         <file alias="text">img/text.png</file>
         <file alias="textfield">img/textfield.png</file>
-        <file alias="time">img/time.png</file>
         <file alias="top">img/top.png</file>
         <file alias="top_hor">img/top_hor.png</file>
+        <file alias="down">img/down.png</file>
+        <file alias="up">img/up.png</file>
+        <file alias="delete">img/delete.png</file>
+        <file alias="button">img/button.png</file>
+        <file alias="compass">img/compass.png</file>
+        <file alias="date_date">img/date_date.png</file>
+        <file alias="date_time">img/date_time.png</file>
+        <file alias="doublelist_1">img/doublelist_1.png</file>
+        <file alias="doublelist_2">img/doublelist_2.png</file>
+        <file alias="photo_but">img/photo_but.png</file>
+        <file alias="photo_targ">img/photo_targ.png</file>
+        <file alias="radiobutton_void">img/radiobutton_void.png</file>
+        <file alias="void">img/void.png</file>
+        <file alias="group_end">img/group_end.png</file>
+        <file alias="group_start">img/group_start.png</file>
     </qresource>
 </RCC>

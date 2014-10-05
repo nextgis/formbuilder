@@ -13,11 +13,9 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        formbuilder.cpp \
-    elements.cpp
+        formbuilder.cpp
 
-HEADERS  += formbuilder.h \
-    elements.h
+HEADERS  += formbuilder.h
 
 LIBS += D:\GitHub\gdal-build\gdal20.lib
 
