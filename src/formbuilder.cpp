@@ -1,6 +1,8 @@
 #include "formbuilder.h"
 #include "ui_formbuilder.h"
 
+#include "json/json.h"
+
 
 // ************************************************************************** //
 // ******************************* FBElem *********************************** //
@@ -482,10 +484,6 @@ void FBTabWidget::mousePressEvent(QMouseEvent *event)
 // ******************************* FormBuilder ****************************** //
 // ************************************************************************** //
 
-
-//-----------------------------------------------------------------------//
-//                             Деструктор                                //
-//-----------------------------------------------------------------------//
 FormBuilder::~FormBuilder()
 {
     if (poDS != NULL)
@@ -494,9 +492,6 @@ FormBuilder::~FormBuilder()
     delete ui;
 }
 
-//-----------------------------------------------------------------------//
-//                             Конструктор                               //
-//-----------------------------------------------------------------------//
 FormBuilder::FormBuilder(QWidget *parent) :QWidget(parent),ui(new Ui::FormBuilder)
 {
     ui->setupUi(this);
@@ -513,8 +508,10 @@ FormBuilder::FormBuilder(QWidget *parent) :QWidget(parent),ui(new Ui::FormBuilde
       menuFile->addMenu(menuNew);
         actionNewVoid = new QAction(QString::fromUtf8("Пустая форма"),menuBar);
         menuNew->addAction(actionNewVoid);
-        actionNewDataset = new QAction(QString::fromUtf8("Выбрать источник данных"),menuBar);
+        actionNewDataset = new QAction(QString::fromUtf8("Источник данных"),menuBar);
         menuNew->addAction(actionNewDataset);
+        actionNewNGW = new QAction(QString::fromUtf8("NextGIS Web"),menuBar);
+        menuNew->addAction(actionNewNGW);
       actionOpen = new QAction(QString::fromUtf8("Открыть"),menuBar);
       menuFile->addAction(actionOpen);
       actionSave = new QAction(QString::fromUtf8("Сохранить"),menuBar);
@@ -535,6 +532,7 @@ FormBuilder::FormBuilder(QWidget *parent) :QWidget(parent),ui(new Ui::FormBuilde
 
     connect(actionNewVoid, SIGNAL(triggered()), this, SLOT(OnActionNewVoid()));
     connect(actionNewDataset, SIGNAL(triggered()), this, SLOT(OnActionNewDataset()));
+    connect(actionNewNGW, SIGNAL(triggered()), this, SLOT(OnActionNewNGW()));
     connect(actionOpen, SIGNAL(triggered()), this, SLOT(OnActionOpen()));
     connect(actionSave, SIGNAL(triggered()), this, SLOT(OnActionSave()));
     connect(actionOrtnPrt, SIGNAL(triggered()), this, SLOT(OnActionOrtnPrt()));
@@ -710,9 +708,11 @@ void FormBuilder::CreateElemTypes ()
     elemType->vParams.append(QPair<QString,QString>(FBPARAM_field,
                                QString::fromUtf8("Целевое поле")));
     elemType->vParams.append(QPair<QString,QString>(FBPARAM_values_sets,
-                             QString::fromUtf8("Значения через \'|\' и \';\'")));
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_defaults,
-                             QString::fromUtf8("Значения по умолчанию через \';\'")));
+                             QString::fromUtf8("Значения через \':\' и \';\'")));
+    elemType->vParams.append(QPair<QString,QString>(FBPARAM_default,
+                             QString::fromUtf8("Значение по умолчанию для списка 1")));
+    elemType->vParams.append(QPair<QString,QString>(FBPARAM_default,
+                             QString::fromUtf8("Значения по умолчанию для списков 2")));
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
@@ -750,8 +750,10 @@ void FormBuilder::CreateElemTypes ()
                 this, SLOT(OnElemTypePressed()));
     }
 
+    QVBoxLayout *twoButtonLayout = new QVBoxLayout();
+
     pElemTypeGroupStart = new FBElemType(ui->groupBox_5);
-    ui->horizontalLayout_5->addWidget(pElemTypeGroupStart);
+    //ui->horizontalLayout_5->addWidget(pElemTypeGroupStart);
     pElemTypeGroupStart->caption = QString::fromUtf8("Начало группы");
     pElemTypeGroupStart->type = FBGroupEnd;
     pElemTypeGroupStart->imgPaths.append(":/img/void");
@@ -767,7 +769,7 @@ void FormBuilder::CreateElemTypes ()
             this, SLOT(OnElemTypePressed()));
 
     pElemTypeGroupEnd = new FBElemType(ui->groupBox_5);
-    ui->horizontalLayout_5->addWidget(pElemTypeGroupEnd);
+    //ui->horizontalLayout_5->addWidget(pElemTypeGroupEnd);
     pElemTypeGroupEnd->caption = QString::fromUtf8("Конец группы");
     pElemTypeGroupEnd->type = FBGroupEnd;
     pElemTypeGroupEnd->imgPaths.append(":/img/group_end");
@@ -779,6 +781,10 @@ void FormBuilder::CreateElemTypes ()
     pElemTypeGroupEnd->setIconSize(QSize(80,31));
     connect(pElemTypeGroupEnd, SIGNAL(elemTypePressed()),
             this, SLOT(OnElemTypePressed()));
+
+    twoButtonLayout->addWidget(pElemTypeGroupEnd);
+    twoButtonLayout->addWidget(pElemTypeGroupStart);
+    ui->horizontalLayout_5->addLayout(twoButtonLayout);
 }
 
 
@@ -1612,6 +1618,89 @@ void FormBuilder::OnActionNewDataset ()
 }
 
 
+// Новый с NGW.
+void FormBuilder::OnActionNewNGW ()
+{
+    QMessageBox msgBox;
+    msgBox.setText(QString::fromUtf8("Это сотрёт текущую форму. Продолжить?"));
+    msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+    int ret = msgBox.exec();
+    if (ret != QMessageBox::Ok)
+        return;
+
+    QDialog dialogNgw(this);
+    QVBoxLayout *dialogLayout = new QVBoxLayout(&dialogNgw);
+    dialogNgw.setWindowTitle(QString::fromUtf8("Установите доступ к NextGIS Web"));
+
+    QLabel* label;
+    QHBoxLayout *hLayout;
+
+    hLayout = new QHBoxLayout();
+    label = new QLabel(&dialogNgw);
+    label->setText(QString::fromUtf8("URL: "));
+    hLayout->addWidget(label);
+    QLineEdit* lineEdit1 = new QLineEdit(&dialogNgw);
+    lineEdit1->setText(QString::fromUtf8(FB_DEFAULT_NGW_URL));
+    hLayout->addWidget(lineEdit1);
+    dialogLayout->addLayout(hLayout);
+
+     hLayout = new QHBoxLayout();
+     label = new QLabel(&dialogNgw);
+     label->setText(QString::fromUtf8("Логин: "));
+     hLayout->addWidget(label);
+     QLineEdit* lineEdit2 = new QLineEdit(&dialogNgw);
+     lineEdit2->setText(QString::fromUtf8(FB_DEFAULT_NGW_LOGIN));
+     hLayout->addWidget(lineEdit2);
+     dialogLayout->addLayout(hLayout);
+
+      hLayout = new QHBoxLayout();
+      label = new QLabel(&dialogNgw);
+      label->setText(QString::fromUtf8("Пароль: "));
+      hLayout->addWidget(label);
+      QLineEdit* lineEdit3 = new QLineEdit(&dialogNgw);
+      lineEdit3->setText(QString::fromUtf8(FB_DEFAULT_NGW_PASSWORD));
+      hLayout->addWidget(lineEdit3);
+      dialogLayout->addLayout(hLayout);
+
+    QHBoxLayout *cancelLayout = new QHBoxLayout();
+    QLabel *statusLabel = new QLabel(&dialogNgw);
+    statusLabel->setText("                                        ");
+    QProgressBar *progBar = new QProgressBar(&dialogNgw);
+    progBar->setValue(0);
+    progBar->setMaximum(100);
+    progBar->setTextVisible(false);
+    QPushButton *button3 = new QPushButton(&dialogNgw);
+    button3->setText(QString::fromUtf8("Отменить"));
+    button3->setEnabled(false);
+    cancelLayout->addWidget(statusLabel);
+    cancelLayout->addWidget(progBar);
+    cancelLayout->addWidget(button3);
+
+    QTreeWidget *treeWidget = new QTreeWidget(&dialogNgw);
+    treeWidget->setColumnCount(1);
+    FBConnectButton *button1 = new FBConnectButton(&dialogNgw,lineEdit1,lineEdit2,
+                                                   lineEdit3,treeWidget,button3,
+                                                   progBar,statusLabel);
+    button1->setText(QString::fromUtf8("Соединить"));
+    connect(button1, SIGNAL(clicked()), button1, SLOT(OnClicked()));
+    QPushButton *button2 = new QPushButton(&dialogNgw);
+    button2->setText(QString::fromUtf8("Выбрать"));
+    connect(button2, SIGNAL(clicked()), &dialogNgw, SLOT(accept()));
+
+    dialogLayout->addWidget(button1);
+    dialogLayout->addLayout(cancelLayout);
+    dialogLayout->addWidget(treeWidget);
+    dialogLayout->addWidget(button2);
+
+    if (dialogNgw.exec())
+    {
+        // Диалог завершился (по нажатию кнопки "Выбрать"), но не удалился,
+        // поэтому мы можем считать данные из его полей.
+
+    }
+}
+
+
 // Открыть.
 void FormBuilder::OnActionOpen ()
 {
@@ -1948,6 +2037,8 @@ void FormBuilder::OnActionSave ()
         QDomElement root = doc.createElement(QString(FBXML_Root_Form));
         doc.appendChild(root);
 
+        root.setAttribute(FBXML_Attr_Version,FBXML_Value_CURRENTVERSION);
+
         if (poDS != NULL)
             root.setAttribute(FBXML_Attr_Dataset,FBXML_Value_DatasetYes);
         else
@@ -2057,5 +2148,280 @@ void FormBuilder::OnActionSave ()
 }
 
 
+// ************************************************************************** //
+// *************************** FBConnectButton ****************************** //
+// ************************************************************************** //
 
+FBConnectButton::FBConnectButton(QWidget *Parent,
+                 QLineEdit* inUrl, QLineEdit* inLog,
+                 QLineEdit* inPas, QTreeWidget *outTree,
+                 QPushButton *cancelButton, QProgressBar *progBar, QLabel* statusLabel):
+    QPushButton (Parent)
+{
+    _inUrl = inUrl;
+    _inLog = inLog;
+    _inPas = inPas;
+    _outTree = outTree;
+    _cancelButton = cancelButton;
+    _progBar = progBar;
+    _statusLabel = statusLabel;
+
+    connect(_outTree, SIGNAL(itemExpanded(QTreeWidgetItem*)),
+            this, SLOT(HttpOnItemExpended(QTreeWidgetItem*)));
+
+    _itemToExpand = NULL;
+
+// TEST -------------------------------------
+//    _testEdit = new QTextEdit(Parent);
+//    QLayout *l = Parent->layout();
+//    l->addWidget(_testEdit);
+// ------------------------------------------
+}
+
+
+// Выполнить соединение с NGW.
+void FBConnectButton::OnClicked ()
+{
+    _outTree->clear();
+    _statusLabel->setText(QString::fromUtf8("Идёт соединение..."));
+    _progBar->setValue(25);
+    _cancelButton->setEnabled(true);
+
+    // Обнуляем строку, т.к. дальше будет не единственное считывание, а несколько
+    // считываний с конкатенацией (по мере прихода ответов с сервера).
+    receivedJson = "";
+
+    QNetworkRequest logPasRequest(QUrl(_inUrl->text()+"/login"));
+    QByteArray barr = QString("login=%1&password=%2")
+       .arg(_inLog->text()).arg(_inPas->text()).toUtf8();
+    logPasRequest.setHeader(QNetworkRequest::ContentTypeHeader,
+                            //QVariant(QString("text/plain;charset=utf-8")));
+                            QVariant(QString("application/x-www-form-urlencoded")));
+                            // Обязательно поставить именно этот хедер!
+    httpAuthReply = httpManager.post(logPasRequest,barr);
+    connect(httpAuthReply, SIGNAL(finished()),
+            this, SLOT(HttpAuthFinished()));
+    connect(httpAuthReply, SIGNAL(readyRead()),
+            this, SLOT(HttpReadyAuthRead()));
+}
+
+
+// Раскрыть элемент дерева для просмотра дочерних ресурсов данного ресурса.
+void FBConnectButton::HttpOnItemExpended (QTreeWidgetItem *treeItem)
+{
+    QList<QTreeWidgetItem*> childrenToDel = treeItem->takeChildren();
+    for (int i=0; i<childrenToDel.size(); i++) delete childrenToDel[i];
+
+    _itemToExpand = treeItem;
+
+    _statusLabel->setText(QString::fromUtf8("Идёт соединение..."));
+    _progBar->setValue(50);
+    _cancelButton->setEnabled(true);
+
+    // Обнуляем строку, т.к. дальше будет не единственное считывание, а несколько
+    // считываний с конкатенацией (по мере прихода ответов с сервера).
+    receivedJson = "";
+
+    // Отправляем запрос на выдачу дочерних ресурсов для данного ресурса.
+    QNetworkRequest request(QUrl(_inUrl->text()+"/resource/"
+                         + treeItem->data(0,Qt::UserRole).toString() + "/child/"));
+    httpResourceReply = httpManager.get(request);
+    connect(httpResourceReply, SIGNAL(finished()),
+            this, SLOT(HttpResourceFinished()));
+    connect(httpResourceReply, SIGNAL(readyRead()),
+            this, SLOT(HttpReadyResourceRead()));
+}
+
+
+void FBConnectButton::HttpReadyAuthRead()
+{
+    QByteArray barr;
+    barr = httpAuthReply->readAll();
+}
+
+
+void FBConnectButton::HttpReadyRead()
+{
+    QByteArray barr;
+    barr = httpReply->readAll();
+    receivedJson += QString(barr).toStdString();
+}
+
+
+void FBConnectButton::HttpReadyResourceRead()
+{
+    QByteArray barr;
+    barr = httpResourceReply->readAll();
+    receivedJson += QString(barr).toStdString();
+}
+
+
+void FBConnectButton::HttpAuthFinished()
+{
+    if (httpAuthReply->error() == QNetworkReply::NoError)
+    {
+        httpAuthReply->deleteLater();
+
+        _progBar->setValue(50);
+
+        QNetworkRequest request(QUrl(_inUrl->text()+"/resource/0/child/"));
+        //QNetworkRequest request(QUrl(_inUrl->text()+"/resource/store/"));
+        httpReply = httpManager.get(request);
+        connect(httpReply, SIGNAL(finished()),
+                this, SLOT(HttpFinished()));
+        connect(httpReply, SIGNAL(readyRead()),
+                this, SLOT(HttpReadyRead()));
+    }
+    else
+    {
+        _statusLabel->setText(QString::fromUtf8("Ошибка соединения"));
+        _progBar->setValue(0);
+    }
+}
+
+
+void FBConnectButton::HttpFinished()
+{
+    QList<QTreeWidgetItem*> newItems = _ParseJsonReply(httpReply);
+    if (!newItems.isEmpty())
+    {
+        _outTree->insertTopLevelItems(0,newItems);
+        _statusLabel->setText(QString::fromUtf8("Соединение успешно"));
+        _progBar->setValue(100);
+    }
+    httpReply->deleteLater();
+    _cancelButton->setEnabled(false);
+}
+
+
+void FBConnectButton::HttpResourceFinished()
+{
+    QList<QTreeWidgetItem*> newItems = _ParseJsonReply(httpResourceReply);
+    if (!newItems.isEmpty())
+    {
+        _itemToExpand->insertChildren(0,newItems);
+        _statusLabel->setText(QString::fromUtf8("Соединение успешно"));
+        _progBar->setValue(100);
+    }
+    _itemToExpand = NULL;
+    httpResourceReply->deleteLater();
+    _cancelButton->setEnabled(false);
+}
+
+
+QList<QTreeWidgetItem*> FBConnectButton::_ParseJsonReply(QNetworkReply *reply)
+{
+    QList<QTreeWidgetItem*> newItems;
+
+    if (reply->error() == QNetworkReply::NoError)
+    {
+        if (!receivedJson.empty())
+        {
+            Json::Value jResources; // will contains the root value after parsing.
+            Json::Reader jReader;
+
+// TEST -------------------------------------
+//            _testEdit->setText(QString::fromStdString(receivedJson));
+// ------------------------------------------
+
+            if (jReader.parse(receivedJson, jResources, false))
+            {
+                //  return a 'null' value if
+                // there is no such member.
+                for (int index = 0; index < jResources.size(); ++index)
+                {
+                    Json::Value jResource = jResources[index];
+                    if (jResource.isNull())
+                        continue;
+
+                    Json::Value jRes = jResource["resource"];
+                    if (jRes.isNull())
+                        continue;
+
+                    Json::Value jCls = jRes["cls"];
+                    if (jCls.isNull())
+                        continue;
+
+                    if (jCls.asString() == "resource_group" ||
+                            jCls.asString() == "postgis_layer" ||
+                            jCls.asString() == "vector_layer")
+                    {
+                        Json::Value jId = jRes["id"];
+                        if (jId.isNull())
+                            continue;
+
+                        QString sDispName;
+                        Json::Value jDispName = jRes["display_name"];
+                        if (jDispName.isNull())
+                        {
+                            sDispName = QString("<resource-no-name>");
+                        }
+                        else
+                        {
+                            sDispName = QString::fromUtf8(jDispName.asString().data());
+                            // Делаем именно так, т.к. fromStdString использует ASCII
+                            // преобразование.
+                        }
+
+                        QString res_type = "";
+                        if (jCls.asString() == "postgis_layer")
+                            res_type = " [PostGIS]";
+                        else if (jCls.asString() == "vector_layer")
+                            res_type = " [Vector]";
+
+                        QTreeWidgetItem *treeItem;
+                        //treeItem = new QTreeWidgetItem(_outTree);
+                        treeItem = new QTreeWidgetItem();
+                        treeItem->setText(0,sDispName + res_type);
+                        treeItem->setData(0,Qt::UserRole,jId.asInt());
+                        newItems.append(treeItem);
+
+                        Json::Value jChildren = jRes["children"];
+                        if (!jChildren.isNull() && jChildren.asString()=="true")
+                        {
+                            // Для того, чтобы в дальнейшем можно было раскрыть этот
+                            // список.
+                            treeItem->addChild(new QTreeWidgetItem(QStringList("to_delete")));
+                        }
+                    }
+                }
+
+                //_outTree->insertTopLevelItems(0, treeItems);
+            }
+            else
+            {
+                _statusLabel->setText(QString::fromUtf8("Ошибка соединения"));
+                _progBar->setValue(0);
+            }
+
+        }
+        else
+        {
+            _statusLabel->setText(QString::fromUtf8("Ошибка соединения"));
+            _progBar->setValue(0);
+        }
+
+        //reply->deleteLater();
+    }
+    else
+    {
+        _statusLabel->setText(QString::fromUtf8("Ошибка соединения"));
+        _progBar->setValue(0);
+    }
+
+    return newItems;
+}
+
+
+/*
+void FBConnectButton::HttpCancel()
+{
+
+}
+
+void FBConnectButton::HttpSslErrors(QNetworkReply*,const QList<QSslError> &errors)
+{
+
+}
+*/
 

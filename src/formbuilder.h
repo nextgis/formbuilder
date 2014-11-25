@@ -11,18 +11,30 @@
 #include <QPushButton>
 #include <QTabWidget>
 #include <QAction>
-#include <QMouseEvent>
+//#include <QMouseEvent>
 #include <QFileDialog>
+#include <QComboBox>
+#include <QListWidget>
+#include <QMessageBox>
+#include <QTextEdit>
+#include <QTreeWidget>
+#include <QProgressBar>
+
 #include <QFile>
 #include <QTextStream>
-#include <QComboBox>
-#include <QMessageBox>
+
 #include <QMap>
+
 #include <QDomDocument>
 #include <QDomElement>
 #include <QDomText>
 #include <QDomComment>
 #include <QDomNode>
+
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QAuthenticator>
+#include <QUrl>
 
 #include "ogrsf_frmts.h"
 
@@ -51,7 +63,9 @@
 #define FBPARAM_field_datetime "field_datetime"
 
 // Теги для XML файла.
+#define FBXML_Value_CURRENTVERSION "1.0"
 #define FBXML_Root_Form "Form"
+#define FBXML_Attr_Version "Version"
 #define FBXML_Attr_Dataset "Dataset"
 #define FBXML_Value_DatasetYes "Yes"
 #define FBXML_Value_DatasetNo "No"
@@ -65,6 +79,12 @@
 #define FBXML_Attr_Name "Name"
 #define FBXML_Attr_Alias "Alias"
 #define FBXML_Attr_Value "Value"
+
+//#define FB_DEFAULT_NGW_URL "https://demo.nextgis.ru/rekod/"
+//#define FB_DEFAULT_NGW_URL "http://demo.nextgis.ru/rekod"
+#define FB_DEFAULT_NGW_URL "http://bishop.gis.to"
+#define FB_DEFAULT_NGW_LOGIN "administrator"
+#define FB_DEFAULT_NGW_PASSWORD "admin"
 
 // Константы состояний.
 enum FBParentLabelAction
@@ -263,6 +283,7 @@ class FormBuilder : public QWidget
        QMenu *menuNew;
          QAction *actionNewVoid;
          QAction *actionNewDataset;
+         QAction *actionNewNGW;
        QAction *actionOpen;
        QAction *actionSave;
      QMenu *menuScreen;
@@ -325,6 +346,7 @@ class FormBuilder : public QWidget
 
      void OnActionNewVoid ();
      void OnActionNewDataset ();
+     void OnActionNewNGW ();
      void OnActionOpen ();
      void OnActionSave ();
      void OnActionOrtnPrt ();
@@ -335,6 +357,61 @@ class FormBuilder : public QWidget
      void on_toolButton_3_clicked();
 
      void DeselectElement ();
+
+     //void OnNgwConnect (QString url, QString login, QString password);
+     //void OnNgwSelect (QString inLayer, QString &outJson);
+};
+
+
+class FBConnectButton : public QPushButton
+{
+    Q_OBJECT
+
+    public:
+
+     FBConnectButton(QWidget *Parent,
+             QLineEdit* inUrl, QLineEdit* inLog,
+                     QLineEdit* inPas, QTreeWidget *outTree,
+                     QPushButton *cancelButton,QProgressBar* progBar,QLabel* statusLabel);
+
+    private:
+     QLineEdit *_inUrl;
+     QLineEdit *_inLog;
+     QLineEdit *_inPas;
+     QTreeWidget *_outTree;
+     QPushButton *_cancelButton;
+     QProgressBar* _progBar;
+     QLabel* _statusLabel;
+
+// TEST ---------------------------------------
+//     QTextEdit* _testEdit;
+// --------------------------------------------
+
+     QNetworkAccessManager httpManager;
+     QNetworkReply *httpAuthReply;
+     QNetworkReply *httpReply;
+     QNetworkReply *httpResourceReply;
+
+     std::string receivedJson;
+
+     QTreeWidgetItem *_itemToExpand;
+
+     QList<QTreeWidgetItem*> _ParseJsonReply(QNetworkReply *reply);
+
+    public slots:
+
+     void OnClicked ();
+     void HttpOnItemExpended (QTreeWidgetItem *treeItem);
+
+     void HttpReadyAuthRead ();
+     void HttpReadyRead ();
+     void HttpReadyResourceRead ();
+
+     void HttpAuthFinished ();
+     void HttpFinished ();
+     void HttpResourceFinished ();
+
+
 };
 
 #endif // FORMBUILDER_H

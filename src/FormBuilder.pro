@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui xml
+QT       += core gui xml network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -13,7 +13,8 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        formbuilder.cpp
+        formbuilder.cpp\
+D:\libs\jsoncpp-master\dist\jsoncpp.cpp
 
 HEADERS  += formbuilder.h
 
@@ -28,6 +29,8 @@ INCLUDEPATH += D:\GitHub\gdal\gdal\gnm
 
 INCLUDEPATH += D:\GitHub\gdal-build\port # пришлось добавить т.к. почему-то в /port теперь
                                          # отсутствует cpl_congig.h
+
+#INCLUDEPATH += D:\libs\jsoncpp-master\dist
 
 FORMS    += formbuilder.ui
 
