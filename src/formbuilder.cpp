@@ -85,7 +85,8 @@ FBElem *FBElemType::CreateElem ()
 
     int totalHeight = 0;
 
-    newElem->caption = this->caption;
+    //newElem->caption = this->caption;
+    newElem->elemType = this;
 
     // Создаём компоненты элемента.
     for (int i=0; i<imgPaths.size(); i++)
@@ -619,7 +620,10 @@ void FormBuilder::CreateElemTypes ()
     FBElemType* elemType;
 
     elemType = new FBElemType(ui->groupBox);
-    elemType->caption = QString::fromUtf8("Статический текст");
+    //elemType->caption = QString::fromUtf8("Статический текст");
+    elemType->name = QString::fromUtf8("text_label");
+    elemType->alias_ru = QString::fromUtf8("Статический текст");
+    elemType->alias_eng = QString::fromUtf8("Text label");
     elemType->type = FBText;
     elemType->imgPaths.append(":/img/text");
     elemType->vParams.append(QPair<QString,QString>(FBPARAM_caption,
@@ -627,7 +631,10 @@ void FormBuilder::CreateElemTypes ()
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
-    elemType->caption = QString::fromUtf8("Текстовое поле");
+    //elemType->caption = QString::fromUtf8("Текстовое поле");
+    elemType->name = QString::fromUtf8("text_edit");
+    elemType->alias_ru = QString::fromUtf8("Текстовое поле");
+    elemType->alias_eng = QString::fromUtf8("Text edit");
     elemType->type = FBTextedit;
     elemType->imgPaths.append(":/img/textfield");
     elemType->vParams.append(QPair<QString,QString>(FBPARAM_field,
@@ -641,7 +648,10 @@ void FormBuilder::CreateElemTypes ()
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
-    elemType->caption = QString::fromUtf8("Кнопка");
+    //elemType->caption = QString::fromUtf8("Кнопка");
+    elemType->name = QString::fromUtf8("button");
+    elemType->alias_ru = QString::fromUtf8("Кнопка");
+    elemType->alias_eng = QString::fromUtf8("Button");
     elemType->type = FBButton;
     elemType->imgPaths.append(":/img/button");
     elemType->vParams.append(QPair<QString,QString>(FBPARAM_caption,
@@ -649,7 +659,10 @@ void FormBuilder::CreateElemTypes ()
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
-    elemType->caption = QString::fromUtf8("Выпадающий список");
+    //elemType->caption = QString::fromUtf8("Выпадающий список");
+    elemType->name = QString::fromUtf8("combobox");
+    elemType->alias_ru = QString::fromUtf8("Выпадающий список");
+    elemType->alias_eng = QString::fromUtf8("Combobox");
     elemType->type = FBCombobox;
     elemType->imgPaths.append(":/img/combobox");
     elemType->vParams.append(QPair<QString,QString>(FBPARAM_field,
@@ -661,7 +674,10 @@ void FormBuilder::CreateElemTypes ()
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
-    elemType->caption = QString::fromUtf8("Флажок");
+    //elemType->caption = QString::fromUtf8("Флажок");
+    elemType->name = QString::fromUtf8("checkbox");
+    elemType->alias_ru = QString::fromUtf8("Флажок");
+    elemType->alias_eng = QString::fromUtf8("Checkbox");
     elemType->type = FBCheckbox;
     elemType->imgPaths.append(":/img/checkbox");
     elemType->vParams.append(QPair<QString,QString>(FBPARAM_field,
@@ -671,7 +687,10 @@ void FormBuilder::CreateElemTypes ()
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
-    elemType->caption = QString::fromUtf8("Радио-группа");
+    //elemType->caption = QString::fromUtf8("Радио-группа");
+    elemType->name = QString::fromUtf8("radio_group");
+    elemType->alias_ru = QString::fromUtf8("Радио-группа");
+    elemType->alias_eng = QString::fromUtf8("Radio-group");
     elemType->type = FBRadiogroup;
     elemType->imgPaths.append(":/img/radiobutton");
     elemType->imgPaths.append(":/img/radiobutton_void");
@@ -684,7 +703,10 @@ void FormBuilder::CreateElemTypes ()
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
-    elemType->caption = QString::fromUtf8("Компас");
+    //elemType->caption = QString::fromUtf8("Компас");
+    elemType->name = QString::fromUtf8("compass");
+    elemType->alias_ru = QString::fromUtf8("Компас");
+    elemType->alias_eng = QString::fromUtf8("Compass");
     elemType->type = FBCompass;
     elemType->imgPaths.append(":/img/compass");
     elemType->vParams.append(QPair<QString,QString>(FBPARAM_field,
@@ -692,7 +714,10 @@ void FormBuilder::CreateElemTypes ()
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
-    elemType->caption = QString::fromUtf8("Дата-Время");
+    //elemType->caption = QString::fromUtf8("Дата-Время");
+    elemType->name = QString::fromUtf8("date_time");
+    elemType->alias_ru = QString::fromUtf8("Дата-Время");
+    elemType->alias_eng = QString::fromUtf8("Date-time");
     elemType->type = FBDateTime;
     elemType->imgPaths.append(":/img/date_date");
     elemType->imgPaths.append(":/img/date_time");
@@ -701,7 +726,10 @@ void FormBuilder::CreateElemTypes ()
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
-    elemType->caption = QString::fromUtf8("Двухуровневый список");
+    //elemType->caption = QString::fromUtf8("Двухуровневый список");
+    elemType->name = QString::fromUtf8("double_combobox");
+    elemType->alias_ru = QString::fromUtf8("Двухуровневый список");
+    elemType->alias_eng = QString::fromUtf8("Double combobox");
     elemType->type = FBDoubleList;
     elemType->imgPaths.append(":/img/doublelist_1");
     elemType->imgPaths.append(":/img/doublelist_2");
@@ -716,7 +744,10 @@ void FormBuilder::CreateElemTypes ()
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
-    elemType->caption = QString::fromUtf8("Фото");
+    //elemType->caption = QString::fromUtf8("Фото");
+    elemType->name = QString::fromUtf8("photo");
+    elemType->alias_ru = QString::fromUtf8("Фото");
+    elemType->alias_eng = QString::fromUtf8("Photo");
     elemType->type = FBPhoto;
     elemType->imgPaths.append(":/img/photo_targ");
     elemType->imgPaths.append(":/img/photo_but");
@@ -729,7 +760,10 @@ void FormBuilder::CreateElemTypes ()
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
-    elemType->caption = QString::fromUtf8("Пробел");
+    //elemType->caption = QString::fromUtf8("Пробел");
+    elemType->name = QString::fromUtf8("space");
+    elemType->alias_ru = QString::fromUtf8("Пробел");
+    elemType->alias_eng = QString::fromUtf8("Space");
     elemType->type = FBSpace;
     elemType->imgPaths.append(":/img/void");
     vElemTypes.append(elemType);
@@ -745,7 +779,7 @@ void FormBuilder::CreateElemTypes ()
         vElemTypes[i]->setIconSize(QSize(100,21));
         vElemTypes[i]->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
         vElemTypes[i]->setMinimumHeight(50);
-        vElemTypes[i]->setToolTip(vElemTypes[i]->caption);
+        vElemTypes[i]->setToolTip(vElemTypes[i]->alias_ru);
         connect(vElemTypes[i], SIGNAL(elemTypePressed()),
                 this, SLOT(OnElemTypePressed()));
     }
@@ -754,7 +788,10 @@ void FormBuilder::CreateElemTypes ()
 
     pElemTypeGroupStart = new FBElemType(ui->groupBox_5);
     //ui->horizontalLayout_5->addWidget(pElemTypeGroupStart);
-    pElemTypeGroupStart->caption = QString::fromUtf8("Начало группы");
+    //pElemTypeGroupStart->caption = QString::fromUtf8("Начало группы");
+    pElemTypeGroupStart->name = QString::fromUtf8("group_start");
+    pElemTypeGroupStart->alias_ru = QString::fromUtf8("Начало группы");
+    pElemTypeGroupStart->alias_eng = QString::fromUtf8("Group start");
     pElemTypeGroupStart->type = FBGroupEnd;
     pElemTypeGroupStart->imgPaths.append(":/img/void");
     pElemTypeGroupStart->imgPaths.append(":/img/group_start");
@@ -770,7 +807,10 @@ void FormBuilder::CreateElemTypes ()
 
     pElemTypeGroupEnd = new FBElemType(ui->groupBox_5);
     //ui->horizontalLayout_5->addWidget(pElemTypeGroupEnd);
-    pElemTypeGroupEnd->caption = QString::fromUtf8("Конец группы");
+    //pElemTypeGroupEnd->caption = QString::fromUtf8("Конец группы");
+    pElemTypeGroupEnd->name = QString::fromUtf8("group_end");
+    pElemTypeGroupEnd->alias_ru = QString::fromUtf8("Конец группы");
+    pElemTypeGroupEnd->alias_eng = QString::fromUtf8("Group end");
     pElemTypeGroupEnd->type = FBGroupEnd;
     pElemTypeGroupEnd->imgPaths.append(":/img/group_end");
     pElemTypeGroupEnd->imgPaths.append(":/img/void");
@@ -1272,7 +1312,7 @@ void FormBuilder::OnElemPressed ()
         }
     }
     ui->groupBox_4->setTitle(QString::fromUtf8("Редактирование элемента: ") +
-                         FBElem::CURRENT->caption);
+                         FBElem::CURRENT->elemType->alias_ru);
 }
 
 
@@ -1678,14 +1718,16 @@ void FormBuilder::OnActionNewNGW ()
 
     QTreeWidget *treeWidget = new QTreeWidget(&dialogNgw);
     treeWidget->setColumnCount(1);
-    FBConnectButton *button1 = new FBConnectButton(&dialogNgw,lineEdit1,lineEdit2,
-                                                   lineEdit3,treeWidget,button3,
-                                                   progBar,statusLabel);
-    button1->setText(QString::fromUtf8("Соединить"));
-    connect(button1, SIGNAL(clicked()), button1, SLOT(OnClicked()));
+    treeWidget->setHeaderLabel(QString::fromUtf8("Доступные ресурсы:"));
     QPushButton *button2 = new QPushButton(&dialogNgw);
     button2->setText(QString::fromUtf8("Выбрать"));
     connect(button2, SIGNAL(clicked()), &dialogNgw, SLOT(accept()));
+    button2->setEnabled(false);
+    FBConnectButton *button1 = new FBConnectButton(&dialogNgw,lineEdit1,lineEdit2,
+                                                   lineEdit3,treeWidget,button3,
+                                                   progBar,statusLabel,button2);
+    button1->setText(QString::fromUtf8("Соединить"));
+    connect(button1, SIGNAL(clicked()), button1, SLOT(OnClicked()));
 
     dialogLayout->addWidget(button1);
     dialogLayout->addLayout(cancelLayout);
@@ -1696,8 +1738,33 @@ void FormBuilder::OnActionNewNGW ()
     {
         // Диалог завершился (по нажатию кнопки "Выбрать"), но не удалился,
         // поэтому мы можем считать данные из его полей.
+/*
+        QString logPas = lineEdit2->text() + ":" + lineEdit3->text();
+        QByteArray logPasBa = logPas.toUtf8();
+
+        CPLSetConfigOption("GDAL_HTTP_USERPWD", logPasBa.data());
+
+        QString finalUrl = lineEdit1->text() + "/resource/"
+                + treeWidget->currentItem()->data(0,Qt::UserRole).toString()
+                + "/geojson/";
+        QByteArray finalUrlBa = finalUrl.toUtf8();
+
+        poDS = (GDALDataset*) GDALOpenEx(finalUrlBa.data(), GDAL_OF_VECTOR, NULL, NULL, NULL);
+        if(poDS == NULL)
+        {
+            ShowMsgBox(QString::fromUtf8("Ошибка! Невозможно открыть выбранный источник данных."));
+            return;
+        }
+
+        _openGdalDataset(); */
 
     }
+}
+
+
+void FormBuilder::_openGdalDataset (char *datasetName)
+{
+
 }
 
 
@@ -1900,18 +1967,18 @@ void FormBuilder::OnActionOpen ()
                         // Задаём текщий тип элемента, как будто выбираем из
                         // правой колонки.
                         FBElemType::CURRENT = NULL;
-                        if (pElemTypeGroupStart->caption == atType.nodeValue())
+                        if (pElemTypeGroupStart->name == atType.nodeValue())
                         {
                             FBElemType::CURRENT = pElemTypeGroupStart;
                         }
-                        else if (pElemTypeGroupEnd->caption == atType.nodeValue())
+                        else if (pElemTypeGroupEnd->name == atType.nodeValue())
                         {
                             FBElemType::CURRENT = pElemTypeGroupEnd;
                         }
                         else
                             for (int kk=0; kk<vElemTypes.size(); kk++)
                             {
-                                if (vElemTypes[kk]->caption == atType.nodeValue())
+                                if (vElemTypes[kk]->name == atType.nodeValue())
                                 {
                                     FBElemType::CURRENT = vElemTypes[kk];
                                     break;
@@ -2082,7 +2149,7 @@ void FormBuilder::OnActionSave ()
                     curOrntElem->appendChild(elemElem);
 
                     elemElem.setAttribute(QString(FBXML_Attr_Type),
-                       parentLabel->elements[k]->caption);
+                       parentLabel->elements[k]->elemType->name);
 
                     QList<QPair<QPair<QString,QString>, QString> > params;
                     params = parentLabel->elements[k]->vParamValues;
@@ -2155,7 +2222,8 @@ void FormBuilder::OnActionSave ()
 FBConnectButton::FBConnectButton(QWidget *Parent,
                  QLineEdit* inUrl, QLineEdit* inLog,
                  QLineEdit* inPas, QTreeWidget *outTree,
-                 QPushButton *cancelButton, QProgressBar *progBar, QLabel* statusLabel):
+                 QPushButton *cancelButton, QProgressBar *progBar, QLabel* statusLabel,
+                 QPushButton *selectButton):
     QPushButton (Parent)
 {
     _inUrl = inUrl;
@@ -2165,9 +2233,14 @@ FBConnectButton::FBConnectButton(QWidget *Parent,
     _cancelButton = cancelButton;
     _progBar = progBar;
     _statusLabel = statusLabel;
+    _selectButton = selectButton;
 
     connect(_outTree, SIGNAL(itemExpanded(QTreeWidgetItem*)),
             this, SLOT(HttpOnItemExpended(QTreeWidgetItem*)));
+    connect(_outTree, SIGNAL(itemCollapsed(QTreeWidgetItem*)),
+            this, SLOT(HttpOnItemCollapsed(QTreeWidgetItem*)));
+    connect(_outTree, SIGNAL(itemClicked(QTreeWidgetItem*,int)),
+            this, SLOT(HttpOnItemClicked(QTreeWidgetItem*,int)));
 
     _itemToExpand = NULL;
 
@@ -2209,14 +2282,22 @@ void FBConnectButton::OnClicked ()
 // Раскрыть элемент дерева для просмотра дочерних ресурсов данного ресурса.
 void FBConnectButton::HttpOnItemExpended (QTreeWidgetItem *treeItem)
 {
+    // Очищаем весь элемент дерева, чтобы затем наполнить его заного.
     QList<QTreeWidgetItem*> childrenToDel = treeItem->takeChildren();
-    for (int i=0; i<childrenToDel.size(); i++) delete childrenToDel[i];
+    for (int i=0; i<childrenToDel.size(); i++)
+    {
+        // Удаляем из словаря соотвествующий итем по ключу - его айдишнику.
+        _itemTypes.erase(childrenToDel[i]->data(0,Qt::UserRole).toInt());
+        delete childrenToDel[i];
+    }
 
     _itemToExpand = treeItem;
 
     _statusLabel->setText(QString::fromUtf8("Идёт соединение..."));
     _progBar->setValue(50);
     _cancelButton->setEnabled(true);
+
+    //_selectButton->setEnabled(false);
 
     // Обнуляем строку, т.к. дальше будет не единственное считывание, а несколько
     // считываний с конкатенацией (по мере прихода ответов с сервера).
@@ -2230,6 +2311,28 @@ void FBConnectButton::HttpOnItemExpended (QTreeWidgetItem *treeItem)
             this, SLOT(HttpResourceFinished()));
     connect(httpResourceReply, SIGNAL(readyRead()),
             this, SLOT(HttpReadyResourceRead()));
+}
+
+
+void FBConnectButton::HttpOnItemCollapsed (QTreeWidgetItem *treeItem)
+{
+    _selectButton->setEnabled(false);
+}
+
+
+void FBConnectButton::HttpOnItemClicked(QTreeWidgetItem *treeItem, int treeItemColumn)
+{
+    int itemId = treeItem->data(0,Qt::UserRole).toInt();
+
+    if (_itemTypes[itemId] == FB_NGW_ITEM_TYPE_VECTORLAYER
+        || _itemTypes[itemId] == FB_NGW_ITEM_TYPE_POSTGISLAYER)
+    {
+        _selectButton->setEnabled(true);
+    }
+    else
+    {
+        _selectButton->setEnabled(false);
+    }
 }
 
 
@@ -2363,11 +2466,22 @@ QList<QTreeWidgetItem*> FBConnectButton::_ParseJsonReply(QNetworkReply *reply)
                             // преобразование.
                         }
 
+                        int itemType = FB_NGW_ITEM_TYPE_UNDEFINED;
                         QString res_type = "";
                         if (jCls.asString() == "postgis_layer")
+                        {
                             res_type = " [PostGIS]";
+                            itemType = FB_NGW_ITEM_TYPE_POSTGISLAYER;
+                        }
                         else if (jCls.asString() == "vector_layer")
+                        {
                             res_type = " [Vector]";
+                            itemType = FB_NGW_ITEM_TYPE_VECTORLAYER;
+                        }
+                        else if (jCls.asString() == "resource_group")
+                        {
+                            itemType = FB_NGW_ITEM_TYPE_RESOURCEGROUP;
+                        }
 
                         QTreeWidgetItem *treeItem;
                         //treeItem = new QTreeWidgetItem(_outTree);
@@ -2376,8 +2490,15 @@ QList<QTreeWidgetItem*> FBConnectButton::_ParseJsonReply(QNetworkReply *reply)
                         treeItem->setData(0,Qt::UserRole,jId.asInt());
                         newItems.append(treeItem);
 
+                        // Добавляем в словарь айдишник и тип итема, чтобы потом
+                        // можно была разрешить/запретить выбор этого итема в качестве
+                        // источника данных при работе с NGW-диалогом.
+                        _itemTypes.insert(std::make_pair(jId.asInt(),itemType));
+
                         Json::Value jChildren = jRes["children"];
-                        if (!jChildren.isNull() && jChildren.asString()=="true")
+                        if (!jChildren.isNull()
+                                && jChildren.asString() == "true"
+                                && jCls.asString() == "resource_group")
                         {
                             // Для того, чтобы в дальнейшем можно было раскрыть этот
                             // список.

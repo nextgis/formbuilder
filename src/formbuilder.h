@@ -75,6 +75,8 @@
 #define FBXML_Node_Alb "Album"
 #define FBXML_Node_Elem "Element"
 #define FBXML_Attr_Type "Type"
+#define FBXML_Attr_NameRus "NameRus"
+#define FBXML_Attr_NameEng "NameEng"
 #define FBXML_Node_Prop "Property"
 #define FBXML_Attr_Name "Name"
 #define FBXML_Attr_Alias "Alias"
@@ -82,9 +84,17 @@
 
 //#define FB_DEFAULT_NGW_URL "https://demo.nextgis.ru/rekod/"
 //#define FB_DEFAULT_NGW_URL "http://demo.nextgis.ru/rekod"
-#define FB_DEFAULT_NGW_URL "http://bishop.gis.to"
+//#define FB_DEFAULT_NGW_URL "http://bishop.gis.to"
+#define FB_DEFAULT_NGW_URL "http://demo.nextgis.ru/ngw"
 #define FB_DEFAULT_NGW_LOGIN "administrator"
 #define FB_DEFAULT_NGW_PASSWORD "admin"
+
+// Следующие константы используются для выбора ресурса в древе доступных ресурсов,
+// полученного с сервера NGW.
+#define FB_NGW_ITEM_TYPE_UNDEFINED 0
+#define FB_NGW_ITEM_TYPE_RESOURCEGROUP 1
+#define FB_NGW_ITEM_TYPE_VECTORLAYER 2
+#define FB_NGW_ITEM_TYPE_POSTGISLAYER 3
 
 // Константы состояний.
 enum FBParentLabelAction
@@ -123,6 +133,7 @@ namespace Ui
 class FBParentLabel;
 
 
+class FBElemType;
 
 // Общий лейбл для отрисовки всего элемента на "экране" телефона - в нём располагаются
 // его пользовательское название и компоненты.
@@ -136,7 +147,9 @@ class FBElem: public QLabel
 
      static long idCounter;
 
-     QString caption;
+     //QString caption;
+     FBElemType *elemType; // Указатель на тип, чтобы достать имена,  алиасы, ...
+
      // их порядковые номера в вертикальной раскладке, т.к. без этого при считывании
      // элементов родительского лейбла - они считаются в порядке добавления.
      QList<QLabel*> images; // Изображения компонентов элемента.
@@ -173,7 +186,10 @@ class FBElemType: public QPushButton//QLabel
     public:
      static FBElemType* CURRENT;
      FBType type;
-     QString caption;
+     //QString caption;
+      QString name;
+      QString alias_ru;
+      QString alias_eng;
      QList<QString> imgPaths;
      QList<QPair<QString,QString> > vParams; // name, alias
 
@@ -347,6 +363,7 @@ class FormBuilder : public QWidget
      void OnActionNewVoid ();
      void OnActionNewDataset ();
      void OnActionNewNGW ();
+     void _openGdalDataset (char *datasetName);
      void OnActionOpen ();
      void OnActionSave ();
      void OnActionOrtnPrt ();
@@ -372,9 +389,11 @@ class FBConnectButton : public QPushButton
      FBConnectButton(QWidget *Parent,
              QLineEdit* inUrl, QLineEdit* inLog,
                      QLineEdit* inPas, QTreeWidget *outTree,
-                     QPushButton *cancelButton,QProgressBar* progBar,QLabel* statusLabel);
+                     QPushButton *cancelButton,QProgressBar* progBar,QLabel* statusLabel,
+                     QPushButton *selectButton);
 
     private:
+
      QLineEdit *_inUrl;
      QLineEdit *_inLog;
      QLineEdit *_inPas;
@@ -382,6 +401,7 @@ class FBConnectButton : public QPushButton
      QPushButton *_cancelButton;
      QProgressBar* _progBar;
      QLabel* _statusLabel;
+     QPushButton *_selectButton;
 
 // TEST ---------------------------------------
 //     QTextEdit* _testEdit;
@@ -398,10 +418,14 @@ class FBConnectButton : public QPushButton
 
      QList<QTreeWidgetItem*> _ParseJsonReply(QNetworkReply *reply);
 
+     std::map<int,int> _itemTypes; // <item_id, item_type>
+
     public slots:
 
      void OnClicked ();
      void HttpOnItemExpended (QTreeWidgetItem *treeItem);
+     void HttpOnItemCollapsed(QTreeWidgetItem *treeItem);
+     void HttpOnItemClicked(QTreeWidgetItem *treeItem, int treeItemColumn);
 
      void HttpReadyAuthRead ();
      void HttpReadyRead ();
