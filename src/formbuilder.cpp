@@ -1,8 +1,55 @@
+/******************************************************************************
+ *
+ * Name:     formbuilder.cpp
+ * Project:  NextGIS Form Builder
+ * Purpose:  General classes implementation
+ * Author:   NextGIS
+ *
+ ******************************************************************************
+ * Copyright (c) 2014, NextGIS
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ ****************************************************************************/
+
 #include "formbuilder.h"
 #include "ui_formbuilder.h"
-
 #include "json/json.h"
 
+
+// ************************************************************************** //
+// ******************************* FBProject ******************************** //
+// ************************************************************************** //
+
+FBProject::FBProject()
+{
+    path = QDir::currentPath();
+    name_base = "form";
+    poDS = NULL;
+    NGWConnection = "";
+    //availableFields
+}
+
+FBProject::~FBProject()
+{
+    if (poDS != NULL)
+        OGRDataSource::DestroyDataSource(poDS);
+}
 
 // ************************************************************************** //
 // ******************************* FBElem *********************************** //
@@ -39,24 +86,8 @@ void FBElem::mousePressEvent (QMouseEvent *event)
     this->select();
     CURRENT = this;
 
-    //FBParentLabel::currentAction = FBActionMoving;
-
     emit elemPressed();
 }
-
-/*
-void FBElem::mouseMoveEvent (QMouseEvent *event)
-{
-    // Событие должно передаваться родителю - родительскому лейблу.
-    event->ignore();
-}
-
-void FBElem::mouseReleaseEvent (QMouseEvent *event)
-{
-    // Событие должно передаваться родителю - родительскому лейблу.
-    event->ignore();
-}
-*/
 
 void FBElem::select ()
 {
@@ -137,51 +168,19 @@ void FBElemType::mousePressEvent (QMouseEvent *event)
 {
     CURRENT = this;
 
-    //FBParentLabel::currentAction = FBActionCreating;
-
     emit elemTypePressed();
-
-    //grabMouse();
-    //releaseMouse();
 }
 
-
-/*
-void FBElemType::mouseMoveEvent (QMouseEvent *event)
-{
-    //releaseMouse();
-    event->ignore();
-}
-*/
 
 // ************************************************************************** //
 // ******************************* FBParentLabel **************************** //
 // ************************************************************************** //
-
-//FBParentLabelAction FBParentLabel::currentAction = FBActionNone;
 
 
 FBParentLabel::FBParentLabel(QScrollArea *parent): QLabel (parent)
 {
     QVBoxLayout *parentLayout = new QVBoxLayout(this);
     parentLayout->addStretch();
-
-    /*
-    selector = new QLabel(this);
-    selector->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
-    //selector->resize(500,4);
-    selector->setMaximumSize(200,4);
-    selector->setMinimumSize(200,4);
-    selector->setAutoFillBackground(false);
-    selector->setStyleSheet("QLabel { border: 2px solid red}");
-
-    parentLayout->insertWidget(0,selector);
-    selector->hide();
-
-    posToInsertWidget = 0;
-
-    setMouseTracking(true);
-    */
 }
 
 
@@ -319,161 +318,9 @@ void FBParentLabel::DeleteElem (FBElem *elem)
 }
 
 
-/*
-void FBParentLabel::mouseMoveEvent (QMouseEvent *event)
-{
-    //if (currentAction != FBActionNone)
-    if (currentAction == FBActionMoving)
-    {
-        //if (currentAction == FBActionMoving)
-        //{
-            FBElem::CURRENT->hide();
-        //}
-
-        int curPos = -1;
-        if (elements.isEmpty())
-        {
-            curPos = 0;
-        }
-        else
-        {
-            for (int i=1; i<elements.size(); i++)
-            {
-                if (event->pos().y() > (elements[i-1].first->y() + elements[i-1].second)
-                && event->pos().y() <= (elements[i].first->y() + elements[i].second))
-                {
-                    curPos = i;
-                    break;
-                }
-            }
-            if (curPos == -1)
-            {
-                if (event->pos().y() > (elements[elements.size()-1].first->y()
-                                        + elements[elements.size()-1].second))
-                    curPos = elements.size();
-                else
-                    curPos = 0;
-            }
-        }
-
-        // Меняем позицию только если было изменение в процессе движения курсора.
-        //if (curPos != posToInsertWidget)
-        //{
-            // Отображаем в текущей позиции некий селектор, чтобы показать, куда можно
-            // переместить элемент.
-            posToInsertWidget = curPos;
-            QVBoxLayout *parentLayout = (QVBoxLayout*)this->layout();
-            parentLayout->removeWidget(selector);
-            parentLayout->insertWidget(posToInsertWidget,selector);
-        //}
-
-        // В любом случае отображаем селектор.
-        selector->show();
-    }
-}
-*/
-
-
-/*
-void FBParentLabel::mouseReleaseEvent (QMouseEvent *event)
-{
-    selector->hide();
-
-    if (currentAction == FBActionCreating)
-    {
-        if (elements.size() == FBMaxElemInPageCount)
-        {
-            // TODO: сигнал-слот с сообщением.
-        }
-        else
-        {
-            FBElem *newElem = FBElemType::CURRENT->CreateElem();
-            connect(newElem, SIGNAL(elemPressed()), this, SLOT(OnElemPressed()));
-            //InsertElem(newElem);
-            InsertElem(newElem,0);
-
-            // Обязательно изменяем высоту родительского лейбла, иначе не будет
-            // прокрутки.
-            // Высоту изменяем только если есть на какую величину изменять.
-            // При перерасчёте надо учесть отступы сверху и снизу иначе элементы
-            // будут залезать друг на друга.
-            int startHeight;
-            if (isVertical)
-                startHeight = FBParentLabelVertStartHeight;
-            else
-                startHeight = FBParentLabelHorStartHeight;
-            QVBoxLayout *layout = (QVBoxLayout*)this->layout();
-            int totalChildrenHeight =
-                    layout->contentsMargins().top()
-                    + layout->contentsMargins().bottom();
-            for (int k=0; k < elements.size(); k++)
-            {
-                // Проверяем, является ли ребёнок - виджетом, т.к. родительский
-                // лейбл будет иметь по крайней мере один такой объект - раскладку,
-                // не являющуюся виджетом.
-                totalChildrenHeight += elements[k].first->height() + layout->spacing();
-            }
-            if (totalChildrenHeight > startHeight)
-            {
-                resize(width(),totalChildrenHeight);
-            }
-        }
-    }
-
-    else if (currentAction == FBActionMoving)
-    {
-        QVBoxLayout *parentLayout = (QVBoxLayout*)this->layout();
-        parentLayout->removeWidget(FBElem::CURRENT);
-        parentLayout->insertWidget(posToInsertWidget,FBElem::CURRENT);
-
-        // Виджет был изъят из массива. Добавляем обратно, но уже на новую позицию.
-        elements.insert(posToInsertWidget,QPair<FBElem*,int>(FBElem::CURRENT,
-                                                FBElem::CURRENT->height()/2));
-
-        FBElem::CURRENT->show();
-    }
-
-    currentAction = FBActionNone;
-    FBElemType::CURRENT = NULL;
-}
-*/
-
-/*
-void FBParentLabel::OnElemPressed ()
-{
-
-    // Запоминаем изначальную позицию элемента, чтобы вернуть его, если
-    // курсор мыши вышел за пределы родительского лейбла (или вообще
-    // что-то пошло не так).
-    for (int i=0; i<elements.size(); i++)
-    {
-        if (elements[i].first == FBElem::CURRENT)
-        {
-            posToInsertWidget = i;
-
-            // Изымаем виджет из массива, т.к. при перемещении он будет спрятан.
-            // Ищем старую позицию виджета в сортированном массиве и удаляем его.
-            // Обратное добавление произойдёт когда мышь отпустится.
-            elements.removeAt(i);
-
-            break;
-        }
-    }
-}
-
-
-void FBParentLabel::OnElemTypePressed ()
-{
-    // Изначальная позиция для добавления нового элемента - 0.
-    posToInsertWidget = 0;
-}
-*/
-
-
 // ************************************************************************** //
 // ******************************* FBTabWidget ****************************** //
 // ************************************************************************** //
-
 
 void FBTabWidget::mousePressEvent(QMouseEvent *event)
 {
@@ -487,8 +334,10 @@ void FBTabWidget::mousePressEvent(QMouseEvent *event)
 
 FormBuilder::~FormBuilder()
 {
-    if (poDS != NULL)
-        GDALClose(poDS);
+//    if (poDS != NULL)
+//        //GDALClose(poDS);
+//        OGRDataSource::DestroyDataSource(poDS);
+    delete CUR_PRJ;
 
     delete ui;
 }
@@ -503,13 +352,13 @@ FormBuilder::FormBuilder(QWidget *parent) :QWidget(parent),ui(new Ui::FormBuilde
     // Создаём верхнее меню: "Файл", ...
     menuBar = new QMenuBar(this);
     this->layout()->setMenuBar(menuBar);
-    menuFile = new QMenu(QString::fromUtf8("Файл"),menuBar);
+    menuFile = new QMenu(QString::fromUtf8("Проект"),menuBar);
     menuBar->addMenu(menuFile);
       menuNew = new QMenu(QString::fromUtf8("Новый"),menuBar);
       menuFile->addMenu(menuNew);
-        actionNewVoid = new QAction(QString::fromUtf8("Пустая форма"),menuBar);
+        actionNewVoid = new QAction(QString::fromUtf8("Пустой"),menuBar);
         menuNew->addAction(actionNewVoid);
-        actionNewDataset = new QAction(QString::fromUtf8("Источник данных"),menuBar);
+        actionNewDataset = new QAction(QString::fromUtf8("Файловый ИД GDAL"),menuBar);
         menuNew->addAction(actionNewDataset);
         actionNewNGW = new QAction(QString::fromUtf8("NextGIS Web"),menuBar);
         menuNew->addAction(actionNewNGW);
@@ -590,25 +439,67 @@ FormBuilder::FormBuilder(QWidget *parent) :QWidget(parent),ui(new Ui::FormBuilde
     CreatePage();
 
     // Настраиваем правую панель.
+/*
     ui->tableWidget->clear();
     ui->tableWidget->horizontalHeader()->hide();
     //ui->tableWidget->setHorizontalHeaderItem(0,new QTableWidgetItem("test"));
     ui->tableWidget->setColumnCount(1);
     ui->tableWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     ui->tableWidget->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+    //ui->tableWidget->verticalHeader()->setAutoScroll(true);
+    ui->tableWidget->verticalHeader()->setClickable(false);
+    ui->tableWidget->verticalHeader()->setMovable(false);
+    ui->tableWidget->verticalHeader()->setResizeMode(QHeaderView::Fixed);
+    ui->tableWidget->verticalHeader()->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+    ui->tableWidget->verticalHeader()->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+   // ui->tableWidget->verticalHeader()->setStretchLastSection(true);
+    //ui->tableWidget->horizontalHeader()->setStretchLastSection(true);
     //ui->tableWidget->verticalHeader()->setCascadingSectionResizes(true);
     //ui->tableWidget->horizontalHeader()->setResizeMode(QHeaderView::Interactive);
     //ui->tableWidget->horizontalHeader()->setMinimumWidth(minwidth);
+*/
+
+    // Таблица без вертикальной шапки, поскольку это не даёт
+    // её нормально скроллить. Шапку имитирует жирный шрифт левой колонки.
+    ui->tableWidget1->clear();
+    ui->tableWidget1->verticalHeader()->hide();
+    ui->tableWidget1->setColumnCount(2);
+    ui->tableWidget1->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    ui->tableWidget1->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+    ui->tableWidget1->horizontalHeader()->setClickable(false);
+    QStringList theaders;
+    theaders.append(QString::fromUtf8("Атрибут"));
+    theaders.append(QString::fromUtf8("Значение"));
+    ui->tableWidget1->setHorizontalHeaderLabels(theaders);
+
     ui->toolButton->setIcon(QIcon(":/img/up"));
     ui->toolButton_2->setIcon(QIcon(":/img/down"));
     ui->toolButton_3->setIcon(QIcon(":/img/delete"));
+    ui->toolButton_4->setIcon(QIcon(":/img/save"));
 
     // Настройки для диалогов.
-    lastSavePath = QDir::currentPath();
+//    lastSavePath = QDir::currentPath();
 
     // Настройки GDAL.
-    GDALAllRegister();
-    poDS = NULL;
+    //GDALAllRegister();
+    OGRRegisterAll();
+//    poDS = NULL;
+
+    // Если не будет создан новый / открыт старый проект, то сохранится пустой GeoJSON
+    // в пару к xml-файлу формы.
+    //wasDataChanged = true;
+
+//    NGWConnection = "";
+
+    CUR_PRJ = new FBProject();
+    NEW_PRJ = NULL;
+
+// TEST ----------------------------------------------------------------
+    CPLSetConfigOption("CPL_DEBUG","ON");
+    CPLSetConfigOption("CPL_CURL_VERBOSE","YES");
+    CPLSetConfigOption("CPL_LOG","D:/Projects/FormBuilder/last_log.txt");
+    CPLSetConfigOption("CPL_LOG_ERRORS","ON");
+// ---------------------------------------------------------------------
 }
 
 
@@ -639,12 +530,12 @@ void FormBuilder::CreateElemTypes ()
     elemType->imgPaths.append(":/img/textfield");
     elemType->vParams.append(QPair<QString,QString>(FBPARAM_field,
                              QString::fromUtf8("Целевое поле")));
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_default,
+    elemType->vParams.append(QPair<QString,QString>(FBPARAM_text,
                              QString::fromUtf8("Начальный текст")));
     elemType->vParams.append(QPair<QString,QString>(FBPARAM_only_figures,
-                             QString::fromUtf8("Только цифры? [ДА/НЕТ]")));
+                             QString::fromUtf8("Только цифры?")));
     elemType->vParams.append(QPair<QString,QString>(FBPARAM_max_char_count,
-                             QString::fromUtf8("Максимальное кол-во символов")));
+                             QString::fromUtf8("Максимальное кол-во строк")));
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
@@ -656,6 +547,10 @@ void FormBuilder::CreateElemTypes ()
     elemType->imgPaths.append(":/img/button");
     elemType->vParams.append(QPair<QString,QString>(FBPARAM_caption,
                              QString::fromUtf8("Заголовок")));
+    elemType->vParams.append(QPair<QString,QString>(FBPARAM_field,
+                             QString::fromUtf8("Целевое поле")));
+    elemType->vParams.append(QPair<QString,QString>(FBPARAM_value,
+                             QString::fromUtf8("Значение")));
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
@@ -735,12 +630,11 @@ void FormBuilder::CreateElemTypes ()
     elemType->imgPaths.append(":/img/doublelist_2");
     elemType->vParams.append(QPair<QString,QString>(FBPARAM_field,
                                QString::fromUtf8("Целевое поле")));
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_values_sets,
-                             QString::fromUtf8("Значения через \':\' и \';\'")));
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_default,
-                             QString::fromUtf8("Значение по умолчанию для списка 1")));
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_default,
-                             QString::fromUtf8("Значения по умолчанию для списков 2")));
+    elemType->vParams.append(QPair<QString,QString>(FBPARAM_level1_values,
+                             QString::fromUtf8("Уровень 1: значения через \';\'")));
+    elemType->vParams.append(QPair<QString,QString>(FBPARAM_level1_default,
+                             QString::fromUtf8("Уровень 1: значение по умолчанию")));
+    // В дальнейшем по ходу программы этот список может быть расширен!
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
@@ -1173,8 +1067,8 @@ void FormBuilder::AfterDeselectElement ()
     // Если что в справке сказано, что после добавления виджета -
     // passing the ownership of the widget to the table.
     ui->groupBox_4->setTitle(QString::fromUtf8("Выберите элемент ..."));
-    ui->tableWidget->clearContents();
-    ui->tableWidget->setRowCount(0);
+    ui->tableWidget1->clearContents();
+    ui->tableWidget1->setRowCount(0);
 }
 
 
@@ -1197,19 +1091,6 @@ void FormBuilder::ShowMsgBox (QString msg)
     msgBox.exec();
 }
 
-
-/*
-// Отжатие мышки в любом месте экрана.
-// Нужен для отлова нажатий во вне всех важных виджетов - если пользователь
-// недовёл указатель мыши до нужного места, когда пытался создать / переместить
-// элемент интерфейса.
-void FormBuilder::mouseReleaseEvent (QMouseEvent *event)
-{
-    // Отменяем все предыдущие нажатия.
-    FBElemType::CURRENT = NULL;
-    FBParentLabel::currentAction = FBActionNone;
-}
-*/
 
 //-----------------------------------------------------------------------//
 //                        СЛОТЫ МЫШИ                                     //
@@ -1265,18 +1146,29 @@ void FormBuilder::OnElemPressed ()
     if (FBElem::CURRENT == NULL)
         return;
 
-    ui->tableWidget->clearContents(); // TODO: Это удаляет виджеты-комбобоксы?
-    ui->tableWidget->setRowCount(0); // TODO: Правильно таким образом очищать список строк?
-    //ui->tableWidget->horizontalHeader()->show();
-    //ui->tableWidget->setHorizontalHeaderItem(1,new QTableWidgetItem("7777"));
+    // TODO: Это удаляет виджеты-комбобоксы?
+    ui->tableWidget1->clearContents();
+    // TODO: Правильно таким образом очищать список строк?
+    ui->tableWidget1->setRowCount(0);
     for (int i=0; i<FBElem::CURRENT->vParamValues.size(); i++)
     {
-        int r = ui->tableWidget->rowCount();
-        ui->tableWidget->setRowCount(r + 1);
-        ui->tableWidget->setVerticalHeaderItem(i,
-          new QTableWidgetItem(FBElem::CURRENT->vParamValues[i].first.second));
-        // Если есть поля из каких выбирать - выводим.
-        if (!availableFields.isEmpty()
+        int r = ui->tableWidget1->rowCount();
+        ui->tableWidget1->setRowCount(r + 1);
+
+        // Ставим заголовок для атрибута:
+//        ui->tableWidget->setVerticalHeaderItem(i,
+//          new QTableWidgetItem(FBElem::CURRENT->vParamValues[i].first.second));
+
+        QTableWidgetItem *itemToAdd;
+        itemToAdd = new QTableWidgetItem(FBElem::CURRENT->vParamValues[i].first.second);
+        itemToAdd->setForeground(QBrush(QColor(80,80,80)));
+        itemToAdd->setFlags(Qt::ItemIsEditable);
+        ui->tableWidget1->setItem(i,0,itemToAdd);
+
+        // Выводим нечто в значение атрибута:
+
+        // 1. Комбобокс со списком полей и значение (может не быть в списке).
+        if (!CUR_PRJ->availableFields.isEmpty()
                 && (FBElem::CURRENT->vParamValues[i].first.first == FBPARAM_field
                     || FBElem::CURRENT->vParamValues[i].first.first == FBPARAM_field_name
                     || FBElem::CURRENT->vParamValues[i].first.first == FBPARAM_field_datetime
@@ -1284,19 +1176,21 @@ void FormBuilder::OnElemPressed ()
                     ))
         {
             // Создаём комбобокс.
-            QComboBox *combo = new QComboBox(ui->tableWidget);
+            QComboBox *combo = new QComboBox(ui->tableWidget1);
             combo->setEditable(true);
+
             // Заполняем комбобокс.
             int index = -1;
-            for (int j=0; j<availableFields.size(); j++)
+            for (int j=0; j<CUR_PRJ->availableFields.size(); j++)
             {
-                if (availableFields[j] == FBElem::CURRENT->vParamValues[i].second)
+                if (CUR_PRJ->availableFields[j] == FBElem::CURRENT->vParamValues[i].second)
                 {
                     index = j;
                 }
-                combo->addItem(availableFields[j]);
+                combo->addItem(CUR_PRJ->availableFields[j]);
             }
-            ui->tableWidget->setCellWidget(i,0,combo);
+//            ui->tableWidget->setCellWidget(i,0,combo);
+            ui->tableWidget1->setCellWidget(i,1,combo);
 
             // Ищем старое сохранённое значение.
             combo->setCurrentIndex(index);
@@ -1305,10 +1199,66 @@ void FormBuilder::OnElemPressed ()
                 combo->setEditText(FBElem::CURRENT->vParamValues[i].second);
             }
         }
+
+        // 2. Комбобокс Да/Нет.
+        else if (FBElem::CURRENT->vParamValues[i].first.first == FBPARAM_only_figures)
+        {
+            QComboBox *combo = new QComboBox(ui->tableWidget1);
+            combo->setEditable(false);
+            combo->addItem(QString::fromUtf8("yes"));
+            combo->addItem(QString::fromUtf8("no"));
+//            ui->tableWidget->setCellWidget(i,0,combo);
+            ui->tableWidget1->setCellWidget(i,1,combo);
+            if (FBElem::CURRENT->vParamValues[i].second == "yes")
+                combo->setCurrentIndex(0);
+            else
+                combo->setCurrentIndex(1);
+        }
+
+        // 3. Комбобокс для выбора значения по умолчанию.
+        else if (FBElem::CURRENT->vParamValues[i].first.first == FBPARAM_default
+         || FBElem::CURRENT->vParamValues[i].first.first == FBPARAM_level1_default)
+        {
+            // Заполняем значения:
+            QStringList vals;
+            for (int j=0; j<FBElem::CURRENT->vParamValues.size(); j++)
+            {
+                if (FBElem::CURRENT->vParamValues[j].first.first == FBPARAM_values
+                || FBElem::CURRENT->vParamValues[j].first.first == FBPARAM_level1_values)
+                {
+                    vals = FBElem::CURRENT->vParamValues[j].second
+                            .split(";",QString::SkipEmptyParts);
+                }
+            }
+            vals.prepend(QString::fromUtf8("<не задано>"));
+            QComboBox *combo = new QComboBox(ui->tableWidget1);
+            combo->setEditable(false);
+            combo->addItems(vals);
+//            ui->tableWidget->setCellWidget(i,0,combo);
+            ui->tableWidget1->setCellWidget(i,1,combo);
+            // Выбираем сохранённое:
+            bool def = false;
+            for (int k=0; k<vals.size(); k++)
+            {
+                if (vals[k] == FBElem::CURRENT->vParamValues[i].second)
+                {
+                    def = true;
+                    combo->setCurrentIndex(k);
+                }
+            }
+            if (!def)
+            {
+                combo->setCurrentIndex(0);
+            }
+        }
+
+        // 4. Всё остальное.
         else
         {
-            ui->tableWidget->setItem(i,0,
-              new QTableWidgetItem(FBElem::CURRENT->vParamValues[i].second));
+            QTableWidgetItem *itemToAdd;
+            itemToAdd = new QTableWidgetItem(FBElem::CURRENT->vParamValues[i].second);
+//            ui->tableWidget->setItem(i,0,
+            ui->tableWidget1->setItem(i,1,itemToAdd);
         }
     }
     ui->groupBox_4->setTitle(QString::fromUtf8("Редактирование элемента: ") +
@@ -1414,32 +1364,115 @@ void FormBuilder::on_toolButton_3_clicked()
 
 
 // Зафиксировать изменения.
-void FormBuilder::on_pushButton_5_clicked()
+void FormBuilder::on_toolButton_4_clicked()
 {
     if (FBElem::CURRENT == NULL)
         return;
 
+    // Надо снять выделение с ячеек в таблице, т.к. в момент редактирования
+    // ячейки в ней находится особый виджет.
+    ui->tableWidget1->setCurrentCell(-1,-1);
+
+    // Просматриваем все атрибуты выделенного элемента (строки таблицы
+    // полностью повторяют порядок следования) и сохраняем значения
+    // из таблицы в список атрибутов элемента.
+    // TODO: сделать цикл по строкам таблицы.
     for (int i=0; i<FBElem::CURRENT->vParamValues.size(); i++)
     {
-        // Мы должны понять что находится в ячейке и как достать оттуда текст.
         // Используем item(i,0). 0 - т.к. самая левая колонка - это не ячейка
         // а заголовок.
-        QWidget *widget = ui->tableWidget->cellWidget(i,0);
-        if (widget == NULL) // Определяем комбобокс или нет.
+//        QWidget *widget = ui->tableWidget->cellWidget(i,0);
+        QWidget *widget = ui->tableWidget1->cellWidget(i,1);
+
+        // Мы должны понять что находится в ячейке и как достать оттуда текст.
+
+        // Проверяем, комбобокс ли это.
+        if (widget != NULL)
         {
-            FBElem::CURRENT->vParamValues[i].second
-                    = ui->tableWidget->item(i,0)->text();
-        }
-        else
-        {
-            // TODO: определять что за ячейка:
+            // TODO: определять что за виджет в ячейке:
             //QMetaObject *objInfo = widget->metaObject();
             //if ()
             FBElem::CURRENT->vParamValues[i].second
                     = static_cast<QComboBox*>(widget)->currentText();
         }
+        else
+        {
+            FBElem::CURRENT->vParamValues[i].second
+//                    = ui->tableWidget->item(i,0)->text();
+                    = ui->tableWidget1->item(i,1)->text();
+        }
     }
+
+    // Логика для двухуровневого списка: если задано несколько значений
+    // уровня 1, то добавить столько же атрибутов уровня 2.
+    if (FBElem::CURRENT->elemType->type == FBDoubleList)
+    {
+        QStringList attrs_to_add;
+        int attrs_was = 0;
+
+        // Сначала считаем кол-во атрибутов уровня 2 для добавления/удаления.
+        for (int i=0; i<FBElem::CURRENT->vParamValues.size(); i++)
+        {
+            if (FBElem::CURRENT->vParamValues[i].first.first
+                    == FBPARAM_level1_values)
+            {
+                attrs_to_add = FBElem::CURRENT->vParamValues[i].second
+                    .split(";",QString::SkipEmptyParts);
+            }
+            // Запоминаем значения уже существующих атрибутов второго уровня.
+            else if (FBElem::CURRENT->vParamValues[i].first.first
+                     == FBPARAM_level2_values)
+            {
+                attrs_was++;
+            }
+        }
+
+        // Мы не можем стереть весь список атрибутов для уровня 2, т.к.
+        // необходимо сохранить уже заданные для них значения.
+
+        // Добавляем столько атрибутов, сколько задано через ; в уровне 1, но с тем,
+        // чтобы не затереть уже существующие.
+        if (attrs_was < attrs_to_add.size())
+        {
+            for (int k=0; k<attrs_to_add.size()-attrs_was; k++)
+            {
+                QPair<QString,QString> pv (FBPARAM_level2_values,
+                        QString::fromUtf8("Уровень 2 для [")
+                        + attrs_to_add[attrs_was + k]
+                        + QString::fromUtf8("]: значения через \';\'"));
+                QPair<QString,QString> pd (FBPARAM_level2_default,
+                        QString::fromUtf8("Уровень 2 для [")
+                        + attrs_to_add[attrs_was + k]
+                        + QString::fromUtf8("]: значение по умолчанию"));
+                FBElem::CURRENT->vParamValues.append(
+                            QPair<QPair<QString,QString>,QString>(pv,""));
+                FBElem::CURRENT->vParamValues.append(
+                            QPair<QPair<QString,QString>,QString>(pd,""));
+            }
+        }
+
+        // Удаляем столько атрибутов с конца, на сколько уменьшился уровень 1.
+        else if (attrs_was > attrs_to_add.size())
+        {
+            for (int k=0; k<attrs_was-attrs_to_add.size(); k++)
+            {
+                // Удаляем два раза: values и default
+                FBElem::CURRENT->vParamValues.removeLast();
+                FBElem::CURRENT->vParamValues.removeLast();
+            }
+        }
+
+        // Если списков уровня 2 для этого сохранения такое же кол-во, как и было -
+        // то ничего не меняем.
+
+        // TODO: сделать чтобы переименовывались названия атрибутов и не затирались
+        // не те значения, при смене кол-ва списков второго уровня.
+    }
+
+    // Перерисовываем таблицу.
+    OnElemPressed ();
 }
+
 
 // Изменить текущую вкладку.
 void FormBuilder::OnTabIndexChanged (int index)
@@ -1539,678 +1572,6 @@ void FormBuilder::OnActionOrtnAlb ()
     {
         // Не даём снять галку.
         actionOrtnAlb->setChecked(true);
-    }
-}
-
-
-// Новый пустой.
-void FormBuilder::OnActionNewVoid ()
-{
-    QMessageBox msgBox;
-    msgBox.setText(QString::fromUtf8("Это сотрёт текущую форму. Продолжить?"));
-    msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
-    msgBox.setDefaultButton(QMessageBox::Cancel);
-    int ret = msgBox.exec();
-    if (ret != QMessageBox::Ok)
-        return;
-
-    if (poDS != NULL)
-    {
-        GDALClose(poDS);
-    }
-    availableFields.clear();
-
-    ui->label_2->setText(QString::fromUtf8("Информация об источнике данных: источник данных не выбран"));
-
-    // Стираем и удаляем всё старое - создаём новый проект.
-    ClearAll();
-}
-
-
-// Новый с ИД.
-void FormBuilder::OnActionNewDataset ()
-{
-    QMessageBox msgBox;
-    msgBox.setText(QString::fromUtf8("Это сотрёт текущую форму. Продолжить?"));
-    msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
-    int ret = msgBox.exec();
-    if (ret != QMessageBox::Ok)
-        return;
-
-    QFileDialog dialogNewDataset (this);// = new QFileDialog (this);
-    dialogNewDataset.setAcceptMode(QFileDialog::AcceptOpen);
-    // Выбрать можно только один существующий файл:
-    dialogNewDataset.setFileMode(QFileDialog::ExistingFile);
-    dialogNewDataset.setViewMode(QFileDialog::List);
-    //dialogNewDataset->setDefaultSuffix("shp");
-    //dialogNewDataset->setNameFilter("*.shp");
-    dialogNewDataset.setLabelText(QFileDialog::LookIn,QString::fromUtf8("Путь:"));
-    dialogNewDataset.setLabelText(QFileDialog::FileName,QString::fromUtf8("Имя файла"));
-    dialogNewDataset.setLabelText(QFileDialog::FileType,QString::fromUtf8("Тип файла"));
-    dialogNewDataset.setLabelText(QFileDialog::Accept,QString::fromUtf8("Выбрать"));
-    dialogNewDataset.setLabelText(QFileDialog::Reject,QString::fromUtf8("Отмена"));
-    dialogNewDataset.setWindowTitle(QString::fromUtf8("Новая форма: выберите источник данных ..."));
-
-    dialogNewDataset.setDirectory(QDir()); //ставим текущую директорию
-    //dialogNewDataset->selectFile("form.xml"); //имя файла по умолчанию
-    if (dialogNewDataset.exec())
-    {
-        QStringList path = dialogNewDataset.selectedFiles();
-
-        if (poDS != NULL)
-        {
-            GDALClose(poDS);
-        }
-        availableFields.clear();
-
-        QByteArray arr = path[0].toUtf8(); // всегда будет выбран только один файл
-        poDS = (GDALDataset*) GDALOpenEx(arr.data(), GDAL_OF_VECTOR, NULL, NULL, NULL);
-        if(poDS == NULL)
-        {
-            ShowMsgBox(QString::fromUtf8("Ошибка! Невозможно открыть выбранный источник данных."));
-            return;
-        }
-
-        // Проверяем кол-во слоёв.
-        if (poDS->GetLayerCount() == 0 || poDS->GetLayerCount() > 1)
-        {
-            ShowMsgBox(QString::fromUtf8("Ошибка: источник данных ")
-                           + QString::fromUtf8(arr.data())
-                           + QString::fromUtf8(" содержит 0 или больше чем 1 слой"));
-            return;
-        }
-
-        OGRLayer *poLayer =  poDS->GetLayer(0);
-        if (poLayer == NULL)
-        {
-            ShowMsgBox(QString::fromUtf8("Ошибка: невозможно считать слой в источнике данных ")
-                           + QString::fromUtf8(arr.data()));
-            return;
-        }
-
-        // Проверяем правильность системы координат.
-        OGRSpatialReference SpaRef1(SRS_WKT_WGS84);
-        OGRSpatialReference SpaRef2;
-        SpaRef2.SetFromUserInput("EPSG:3857");
-        if ((poLayer->GetSpatialRef()->IsSame(&SpaRef1) == FALSE)
-                && (poLayer->GetSpatialRef()->IsSame(&SpaRef2) == FALSE))
-        {
-            ShowMsgBox(QString::fromUtf8("Ошибка: слой источник данных ")
-                           + QString::fromUtf8(arr.data())
-                           + QString::fromUtf8(" имеет неподдерживаемую систему координат (поддерживаются только EPSG:4326 и EPSG:3857)"));
-            return;
-        }
-
-        // Считываем набор доступных целевых полей.
-        OGRFeatureDefn *poLayerDefn = poLayer->GetLayerDefn();
-        for(int i=0; i<poLayerDefn->GetFieldCount(); i++)
-        {
-            OGRFieldDefn *poFieldDefn = poLayerDefn->GetFieldDefn(i);
-            availableFields.append(QString(poFieldDefn->GetNameRef()));
-        }
-
-        ui->label_2->setText(QString::fromUtf8("Информация об источнике данных: используется ")
-                           + arr.data());
-
-        // Стираем и удаляем всё старое - создаём новый проект.
-        ClearAll();
-    }
-}
-
-
-// Новый с NGW.
-void FormBuilder::OnActionNewNGW ()
-{
-    QMessageBox msgBox;
-    msgBox.setText(QString::fromUtf8("Это сотрёт текущую форму. Продолжить?"));
-    msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
-    int ret = msgBox.exec();
-    if (ret != QMessageBox::Ok)
-        return;
-
-    QDialog dialogNgw(this);
-    QVBoxLayout *dialogLayout = new QVBoxLayout(&dialogNgw);
-    dialogNgw.setWindowTitle(QString::fromUtf8("Установите доступ к NextGIS Web"));
-
-    QLabel* label;
-    QHBoxLayout *hLayout;
-
-    hLayout = new QHBoxLayout();
-    label = new QLabel(&dialogNgw);
-    label->setText(QString::fromUtf8("URL: "));
-    hLayout->addWidget(label);
-    QLineEdit* lineEdit1 = new QLineEdit(&dialogNgw);
-    lineEdit1->setText(QString::fromUtf8(FB_DEFAULT_NGW_URL));
-    hLayout->addWidget(lineEdit1);
-    dialogLayout->addLayout(hLayout);
-
-     hLayout = new QHBoxLayout();
-     label = new QLabel(&dialogNgw);
-     label->setText(QString::fromUtf8("Логин: "));
-     hLayout->addWidget(label);
-     QLineEdit* lineEdit2 = new QLineEdit(&dialogNgw);
-     lineEdit2->setText(QString::fromUtf8(FB_DEFAULT_NGW_LOGIN));
-     hLayout->addWidget(lineEdit2);
-     dialogLayout->addLayout(hLayout);
-
-      hLayout = new QHBoxLayout();
-      label = new QLabel(&dialogNgw);
-      label->setText(QString::fromUtf8("Пароль: "));
-      hLayout->addWidget(label);
-      QLineEdit* lineEdit3 = new QLineEdit(&dialogNgw);
-      lineEdit3->setText(QString::fromUtf8(FB_DEFAULT_NGW_PASSWORD));
-      hLayout->addWidget(lineEdit3);
-      dialogLayout->addLayout(hLayout);
-
-    QHBoxLayout *cancelLayout = new QHBoxLayout();
-    QLabel *statusLabel = new QLabel(&dialogNgw);
-    statusLabel->setText("                                        ");
-    QProgressBar *progBar = new QProgressBar(&dialogNgw);
-    progBar->setValue(0);
-    progBar->setMaximum(100);
-    progBar->setTextVisible(false);
-    QPushButton *button3 = new QPushButton(&dialogNgw);
-    button3->setText(QString::fromUtf8("Отменить"));
-    button3->setEnabled(false);
-    cancelLayout->addWidget(statusLabel);
-    cancelLayout->addWidget(progBar);
-    cancelLayout->addWidget(button3);
-
-    QTreeWidget *treeWidget = new QTreeWidget(&dialogNgw);
-    treeWidget->setColumnCount(1);
-    treeWidget->setHeaderLabel(QString::fromUtf8("Доступные ресурсы:"));
-    QPushButton *button2 = new QPushButton(&dialogNgw);
-    button2->setText(QString::fromUtf8("Выбрать"));
-    connect(button2, SIGNAL(clicked()), &dialogNgw, SLOT(accept()));
-    button2->setEnabled(false);
-    FBConnectButton *button1 = new FBConnectButton(&dialogNgw,lineEdit1,lineEdit2,
-                                                   lineEdit3,treeWidget,button3,
-                                                   progBar,statusLabel,button2);
-    button1->setText(QString::fromUtf8("Соединить"));
-    connect(button1, SIGNAL(clicked()), button1, SLOT(OnClicked()));
-
-    dialogLayout->addWidget(button1);
-    dialogLayout->addLayout(cancelLayout);
-    dialogLayout->addWidget(treeWidget);
-    dialogLayout->addWidget(button2);
-
-    if (dialogNgw.exec())
-    {
-        // Диалог завершился (по нажатию кнопки "Выбрать"), но не удалился,
-        // поэтому мы можем считать данные из его полей.
-/*
-        QString logPas = lineEdit2->text() + ":" + lineEdit3->text();
-        QByteArray logPasBa = logPas.toUtf8();
-
-        CPLSetConfigOption("GDAL_HTTP_USERPWD", logPasBa.data());
-
-        QString finalUrl = lineEdit1->text() + "/resource/"
-                + treeWidget->currentItem()->data(0,Qt::UserRole).toString()
-                + "/geojson/";
-        QByteArray finalUrlBa = finalUrl.toUtf8();
-
-        poDS = (GDALDataset*) GDALOpenEx(finalUrlBa.data(), GDAL_OF_VECTOR, NULL, NULL, NULL);
-        if(poDS == NULL)
-        {
-            ShowMsgBox(QString::fromUtf8("Ошибка! Невозможно открыть выбранный источник данных."));
-            return;
-        }
-
-        _openGdalDataset(); */
-
-    }
-}
-
-
-void FormBuilder::_openGdalDataset (char *datasetName)
-{
-
-}
-
-
-// Открыть.
-void FormBuilder::OnActionOpen ()
-{
-    QMessageBox msgBox;
-    msgBox.setText(QString::fromUtf8("Это сотрёт текущую форму. Продолжить?"));
-    msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
-    int ret = msgBox.exec();
-    if (ret != QMessageBox::Ok)
-        return;
-
-    // Настраиваем диалог открытия проекта.
-    QFileDialog dialogOpen(this);// = new QFileDialog (this);
-    dialogOpen.setAcceptMode(QFileDialog::AcceptOpen);
-    dialogOpen.setFileMode(QFileDialog::ExistingFile);
-    dialogOpen.setViewMode(QFileDialog::List);
-    dialogOpen.setDefaultSuffix("xml");
-    dialogOpen.setNameFilter("*.xml");
-    dialogOpen.setLabelText(QFileDialog::LookIn,QString::fromUtf8("Путь:"));
-    dialogOpen.setLabelText(QFileDialog::FileName,QString::fromUtf8("Имя файла"));
-    dialogOpen.setLabelText(QFileDialog::FileType,QString::fromUtf8("Тип файла"));
-    dialogOpen.setLabelText(QFileDialog::Accept,QString::fromUtf8("Открыть"));
-    dialogOpen.setLabelText(QFileDialog::Reject,QString::fromUtf8("Отмена"));
-    dialogOpen.setWindowTitle(QString::fromUtf8("Открыть форму ..."));
-
-    QString path;// = "form.xml";
-    dialogOpen.setDirectory(lastSavePath);
-    if (dialogOpen.exec())
-    {
-        path = dialogOpen.selectedFiles().first();
-        if (!path.endsWith(".xml",Qt::CaseInsensitive))
-        {
-            ShowMsgBox(QString::fromUtf8("Ошибка! Выбран неверный XML файл"));
-            return;
-        }
-
-        QFile file (path);
-        if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-        {
-            ShowMsgBox(QString::fromUtf8("Ошибка! Не удалось открыть выбранный XML файл"));
-            return;
-        }
-
-        QTextStream in(&file);
-        in.setCodec("UTF-8");
-        // TODO: при желании можно сделать чтобы сразу формировал QDomDocument
-        // при помощи xml reader.
-        QString xmlStr;
-        QString onexmlstr;
-        do
-        {
-            onexmlstr = in.readLine();
-            if (onexmlstr.isNull())
-                break;
-            xmlStr += onexmlstr;
-        }
-        while (true);
-        QDomDocument xmlDoc;
-        QString errMsg; int errLine = 0, errColumn = 0;
-        bool res = xmlDoc.setContent(xmlStr, &errMsg, &errLine, &errColumn);
-        if (res)
-        {
-            // Считываем, есть ли у данной форму сопутствующий источник данных.
-            QDomElement root = xmlDoc.documentElement();
-            QDomNamedNodeMap attrsRoot = root.attributes();
-            QDomNode atDataset = attrsRoot.namedItem(QString(FBXML_Attr_Dataset));
-
-            // Если нет, то всё равно обнуляем всё, что связано с ИД.
-            if (atDataset.nodeValue() == FBXML_Value_DatasetNo)
-            {
-                if (poDS != NULL)
-                {
-                    GDALClose(poDS);
-                }
-                availableFields.clear();
-                ui->label_2->setText(QString::fromUtf8("Информация об источнике данных: источник данных не используется"));
-            }
-
-            // Иначе пытаемся загрузить поля из ИД.
-            else if (atDataset.nodeValue() == FBXML_Value_DatasetYes)
-            {
-                GDALAllRegister();
-                path.chop(4);
-                path += "_data.json";
-                QByteArray arr1 = QString(path).toUtf8();
-                GDALDataset *poJsonDS = (GDALDataset*) GDALOpenEx(arr1.data(),
-                                               GDAL_OF_VECTOR, NULL, NULL, NULL );
-                if(poJsonDS == NULL)
-                {
-                    ShowMsgBox(QString::fromUtf8("Ошибка! XML файл найден, но сопутствующий ему JSON источник данных не удаётся открыть"));
-                    return;
-                }
-                OGRLayer *poJsonLayer = poJsonDS->GetLayer(0);
-                if(poJsonLayer == NULL)
-                {
-                    ShowMsgBox(QString::fromUtf8("Ошибка! XML файл найден, но сопутствующий ему JSON источник данных не удаётся открыть: некорректный слой данных"));
-                    return;
-                }
-
-                if (poDS != NULL)
-                {
-                    GDALClose(poDS);
-                }
-                availableFields.clear();
-                ui->label_2->setText(QString::fromUtf8("Информация об источнике данных: используется ")
-                                   + arr1.data());
-
-                // Загрузка полей целевого слоя.
-                OGRFeatureDefn *poJsonDefn = poJsonLayer->GetLayerDefn();
-                for(int y=0; y<poJsonDefn->GetFieldCount(); y++)
-                {
-                    OGRFieldDefn *poFieldDefn = poJsonDefn->GetFieldDefn(y);
-                    availableFields.append(QString(poFieldDefn->GetNameRef()));
-                }
-
-                GDALClose(poJsonDS);
-            }
-
-            else
-            {
-                ShowMsgBox(QString::fromUtf8("Ошибка! XML файл сформирован неверно: отсутствует указание наличия связанного JSON источника данных"));
-                return;
-            }
-
-            // Удаляем даже самую первую вкладку в обоих табах, т.к.
-            // она будет загружена из файла.
-            ClearAll();
-            QWidget *tabToDel = tabWidget->widget(0);
-            tabWidget->clear();
-            delete tabToDel;
-            tabToDel = tabHorWidget->widget(0);
-            tabHorWidget->clear();
-            delete tabToDel;
-            // Не забываем полностью очистить массив соответствий:
-            correspondence.clear();
-
-            // Загружаем вкладки и их элементы:
-
-            // Просматриваем вкладки в XML-файле.
-            QDomNodeList tabs = root.childNodes();
-            for (int i=0; i<tabs.length(); i++)
-            {
-                // Создаём вкладку: горизонтальную и вертикальную.
-                CreatePage();
-                // По сути тут не важна какая ориентация активная, но задать надо.
-                isCurrentVertical = true;
-                // Считываем имя вкладки.
-                QDomNamedNodeMap attrs = tabs.item(i).attributes();//.at(i).attributes();
-                QDomNode atType = attrs.namedItem(QString(FBXML_Attr_TabName));
-                // Делаем текущую вкладку для обоих табов активной. Это важно,
-                // т.к. именно на неё сейчас будут добавляться элементы.
-                tabWidget->setCurrentIndex(tabWidget->count()-1);
-                // Переименовываем созданную вкладку.
-                ChangeTabName(atType.nodeValue());
-
-                // Просматриваем ориентации для текущей вкладки в XML-файле.
-                QDomNodeList orientations = tabs.at(i).childNodes();
-                for (int j=0; j<orientations.length(); j++)
-                {
-                    QWidget *curWidget;
-
-                    if (orientations.at(j).nodeName() == QString(FBXML_Node_Port))
-                    {
-                        isCurrentVertical = true;
-                        curWidget = tabWidget->currentWidget();
-                    }
-                    else if (orientations.at(j).nodeName() == QString(FBXML_Node_Alb))
-                    {
-                        isCurrentVertical = false;
-                        curWidget = tabHorWidget->currentWidget();
-                    }
-                    else break; // На всякий случай, если в файл будет некорректным.
-
-                    // Получаем родительский лейбл для текущего
-                    // виджета - понадобится в дальнейшем.
-                    // curParentLabel не должен быть нулём, т.к. родительский лейбл
-                    // был только что добавлен.
-                    FBParentLabel *parentLabel = correspondence[curWidget].second;
-                    /*
-                    for (int ii=0; ii<screenParentLabels.size(); ii++)//.count(); ii++)
-                    {
-                        // Ищем родительский лейбл куда добавлять, сравнивая его виджет с
-                        // текущим открытым.
-                        if (screenParentLabels[ii].first == curWidget)
-                        {
-                            curParentLabel = screenParentLabels[ii].second.second;
-                            break;
-                        }
-                    }*/
-
-                    // Просматриваем элементы текущей вкладки для текущей ориентации
-                    // в XML-файле.
-                    QDomNodeList elements = orientations.at(j).childNodes();
-                    for (int k=elements.length()-1; k>=0; k--) // просматриваем с конца, т.к. добавление будет происходить с верху
-                    {
-                        QDomNamedNodeMap attrs = elements.at(k).attributes();
-                        QDomNode atType = attrs.namedItem(QString(FBXML_Attr_Type));
-                        // Задаём текщий тип элемента, как будто выбираем из
-                        // правой колонки.
-                        FBElemType::CURRENT = NULL;
-                        if (pElemTypeGroupStart->name == atType.nodeValue())
-                        {
-                            FBElemType::CURRENT = pElemTypeGroupStart;
-                        }
-                        else if (pElemTypeGroupEnd->name == atType.nodeValue())
-                        {
-                            FBElemType::CURRENT = pElemTypeGroupEnd;
-                        }
-                        else
-                            for (int kk=0; kk<vElemTypes.size(); kk++)
-                            {
-                                if (vElemTypes[kk]->name == atType.nodeValue())
-                                {
-                                    FBElemType::CURRENT = vElemTypes[kk];
-                                    break;
-                                }
-                            }
-                        // На вскяий случай, если файл был изменён вручную: если
-                        // не нашли тип элемента - просто не добавляем его на сцену:
-                        if (FBElemType::CURRENT == NULL)
-                            continue;
-
-                        FBElem *newElem = FBElemType::CURRENT->CreateElem();
-                        if (parentLabel->InsertElem(newElem,0))
-                        {
-                            connect(newElem, SIGNAL(elemPressed()), this, SLOT(OnElemPressed()));
-                        }
-                        else
-                        {
-                            delete newElem;
-                            continue;
-                        }
-
-                        // Очищаем параметры элемента, т.к. они сейчас будут загружены
-                        // из файла.
-                        newElem->vParamValues.clear();
-
-                        // Загружаем атрибуты элемента.
-                        QDomNodeList props = elements.at(k).childNodes();
-                        for (int l=0; l<props.length(); l++)
-                        {
-                            QDomNamedNodeMap attrs = props.at(l).attributes();
-
-                            QDomNode attrName = attrs.namedItem(QString(FBXML_Attr_Name));
-                            QDomNode attrAlias = attrs.namedItem(QString(FBXML_Attr_Alias));
-                            QDomNode attrValue = attrs.namedItem(QString(FBXML_Attr_Value));
-                            newElem->vParamValues.append(
-                                        QPair<QPair<QString,QString>,QString>(
-                                        QPair<QString,QString>(
-                                                attrName.nodeValue(),attrAlias.nodeValue()),
-                                            attrValue.nodeValue()));
-                        }
-                    }
-                }
-            }
-
-            // Пользователь начинает с 1-ой открытой вертикальной вкладки:
-            isCurrentVertical = false; // чтоб с гарантией сменилось при смене ориентации + т.к. последняя была всё=таки горизонтальной
-            OnActionOrtnPrt(); // вызываем смену ориентации
-            actionOrtnPrt->setChecked(true); // Добавляем галку которая либо есть либо нету
-            tabWidget->setCurrentIndex(0);
-            ui->lineEdit->setText(tabWidget->tabText(0));
-            ui->groupBox_5->setTitle(QString::fromUtf8("Редактирование вкладки: ") +
-                                     ui->lineEdit->text());
-        }
-        else
-        {
-            ShowMsgBox(QString::fromUtf8("Ошибка при попытке прочесть XML файл формы: ")
-                           + errMsg);
-        }
-    }
-}
-
-
-// Сохранить.
-void FormBuilder::OnActionSave ()
-{
-    // Настраиваем диалог сохранения проекта.
-    QFileDialog dialogSave(this);// = new QFileDialog (this);
-    dialogSave.setAcceptMode(QFileDialog::AcceptSave);
-    dialogSave.setFileMode(QFileDialog::AnyFile);
-    dialogSave.setViewMode(QFileDialog::List);
-    dialogSave.setDefaultSuffix("xml");
-    dialogSave.setNameFilter("*.xml");
-    dialogSave.setLabelText(QFileDialog::LookIn,QString::fromUtf8("Путь:"));
-    dialogSave.setLabelText(QFileDialog::FileName,QString::fromUtf8("Имя файла"));
-    dialogSave.setLabelText(QFileDialog::FileType,QString::fromUtf8("Тип файла"));
-    dialogSave.setLabelText(QFileDialog::Accept,QString::fromUtf8("Сохранить"));
-    dialogSave.setLabelText(QFileDialog::Reject,QString::fromUtf8("Отмена"));
-    dialogSave.setWindowTitle(QString::fromUtf8("Сохранить форму ..."));
-
-    QString path = "form.xml";
-    dialogSave.setDirectory(lastSavePath);//QDir());
-    // TODO: сделать выбор последнего имени.
-    dialogSave.selectFile("form.xml"); //имя файла по умолчанию
-    if (dialogSave.exec())
-    {
-        // TODO: (возможно через сигнал accepted) -
-        // не смотря на то, что задан суффикс по дефолту - при сохранении файла с
-        // другим суффиксом (не .xml) диалог не выдаст предупреждение.
-        path = dialogSave.selectedFiles().first();
-        if (!path.endsWith(".xml",Qt::CaseInsensitive))
-            path = path + ".xml";
-
-        // TODO: Проверка на недопустимое имя файла и выдачу сообщения.
-        QFile file (path);
-        if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-        {
-            ShowMsgBox(QString::fromUtf8("Ошибка! Не удалось открыть выбранный файл"));
-            return;
-        }
-
-        QTextStream out(&file);
-        // Важно поставить кодек, иначе будет неправильная кодировка.
-        out.setCodec("UTF-8");
-
-        lastSavePath = path;
-
-        // Для каждой вкладки:
-        // Для каждой ориентации (если имеется):
-        // Для каждого элемента:
-        // Сохраняем его состояние и параметры в файл.
-
-        QDomDocument doc;
-        //QDomImplementation::setInvalidDataPolicy(QDomImplementation::ReturnNullNode);
-        QDomProcessingInstruction instr
-                = doc.createProcessingInstruction("xml", "version=\"1.0\"");
-        doc.appendChild(instr);
-        // TODO: сделать енкодинг путём добавления нового child, т.к. для
-        // свойств childNodes так же актуален.
-        //QDomProcessingInstruction instr2
-                //= doc.createProcessingInstruction("xml", "encoding=\"UTF-8\"");
-        //doc.appendChild(instr2);
-
-        QDomElement root = doc.createElement(QString(FBXML_Root_Form));
-        doc.appendChild(root);
-
-        root.setAttribute(FBXML_Attr_Version,FBXML_Value_CURRENTVERSION);
-
-        if (poDS != NULL)
-            root.setAttribute(FBXML_Attr_Dataset,FBXML_Value_DatasetYes);
-        else
-            root.setAttribute(FBXML_Attr_Dataset,FBXML_Value_DatasetNo);
-
-        for (int i=0; i<tabWidget->count(); i++)
-        {
-            QDomElement tabElem = doc.createElement(QString(FBXML_Node_Tab));
-            tabElem.setAttribute(FBXML_Attr_TabName,
-                                 tabWidget->tabText(i));
-            root.appendChild(tabElem);
-
-            QDomElement verLayElem = doc.createElement(QString(FBXML_Node_Port));
-            QDomElement horLayElem = doc.createElement(QString(FBXML_Node_Alb));
-            tabElem.appendChild(verLayElem);
-            tabElem.appendChild(horLayElem);
-
-            // по очереди для обоих ориентаций:
-            for (int ornt=0; ornt<=1; ornt++)
-            {
-                FBTabWidget *curTabWidget;
-                QDomElement *curOrntElem;
-                if (ornt == 0)
-                {
-                    curTabWidget = tabWidget;
-                    curOrntElem = &verLayElem;
-                }
-                else
-                {
-                    curTabWidget = tabHorWidget;
-                    curOrntElem = &horLayElem;
-                }
-
-                // Получаем родительский лейбл для данной вкладки, для того чтобы взять
-                // все его виджеты - элементы интерфейса.
-                FBParentLabel *parentLabel = correspondence[curTabWidget->widget(i)].second;
-
-                for (int k=0; k<parentLabel->elements.size(); k++)
-                {
-                    QDomElement elemElem = doc.createElement(QString(FBXML_Node_Elem));
-                    curOrntElem->appendChild(elemElem);
-
-                    elemElem.setAttribute(QString(FBXML_Attr_Type),
-                       parentLabel->elements[k]->elemType->name);
-
-                    QList<QPair<QPair<QString,QString>, QString> > params;
-                    params = parentLabel->elements[k]->vParamValues;
-                    for (int l=0; l<params.size(); l++)
-                    {
-                        QDomElement propElem = doc.createElement(QString(FBXML_Node_Prop));
-                        elemElem.appendChild(propElem);
-
-                        propElem.setAttribute(FBXML_Attr_Name,
-                                              params[l].first.first);
-
-                        propElem.setAttribute(FBXML_Attr_Alias,
-                                              params[l].first.second);
-
-                        propElem.setAttribute(FBXML_Attr_Value,
-                                              params[l].second);
-                    }
-                }
-            }
-        }
-
-        // Записываем сформированный XML в файл.
-        QString result = doc.toString();
-        out<<result;
-
-        // Сохраняем данные в GeoJSON.
-        GDALAllRegister();
-        GDALDriver *poJsonDriver = GetGDALDriverManager()->GetDriverByName("GeoJSON");
-        if(poJsonDriver == NULL)
-        {
-            ShowMsgBox(QString::fromUtf8("Ошибка при создании источника данных формата GeoJSON. Не удалось инициализировать драйвер формата GeoJSON"));
-            // TODO: удалить XML файл.
-            return;
-        }
-
-        path.chop(4);
-        QByteArray arr = QString(path + "_data.json").toUtf8();
-        GDALDataset *poJsonDS = poJsonDriver->Create(arr.data(), 0, 0, 0, GDT_Unknown, NULL);
-        if(poJsonDS == NULL)
-        {
-            ShowMsgBox(QString::fromUtf8("Ошибка при создании источника "
-          "данных формата GeoJSON. Не удалось создать источник данных"));
-            // TODO: удалить XML файл.
-            return;
-        }
-
-        if (poDS != NULL)
-        {
-            OGRLayer *poSourceLayer = poDS->GetLayer(0);
-            OGRLayer *poJsonLayer = poJsonDS->CopyLayer(poSourceLayer,
-                                                        poSourceLayer->GetName());
-            if(poJsonLayer == NULL)
-            {
-                ShowMsgBox(QString::fromUtf8("Ошибка при создании источника данных"
-                "формата GeoJSON. Не удалось создать слой данных"));
-                // TODO: удалить XML файл.
-                return;
-            }
-        }
-
-        GDALClose(poJsonDS);
     }
 }
 
@@ -2545,4 +1906,6 @@ void FBConnectButton::HttpSslErrors(QNetworkReply*,const QList<QSslError> &error
 
 }
 */
+
+
 

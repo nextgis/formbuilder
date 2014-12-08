@@ -1,3 +1,32 @@
+/******************************************************************************
+ *
+ * Name:     formbuilder.h
+ * Project:  NextGIS Form Builder
+ * Purpose:  General declarations.
+ * Author:   NextGIS
+ *
+ ******************************************************************************
+ * Copyright (c) 2014, NextGIS
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ ****************************************************************************/
+
 #ifndef FORMBUILDER_H
 #define FORMBUILDER_H
 
@@ -21,6 +50,7 @@
 #include <QProgressBar>
 
 #include <QFile>
+#include <QTemporaryFile>
 #include <QTextStream>
 
 #include <QMap>
@@ -53,6 +83,8 @@
 #define FBPARAM_field "field"
 #define FBPARAM_caption "caption"
 #define FBPARAM_default "default"
+#define FBPARAM_text "text"
+#define FBPARAM_value "value"
 #define FBPARAM_values "values"
 #define FBPARAM_only_figures "only_figures"
 #define FBPARAM_max_char_count "max_char_count"
@@ -61,14 +93,21 @@
 #define FBPARAM_field_name "field_name"
 #define FBPARAM_field_azimuth "field_azimuth"
 #define FBPARAM_field_datetime "field_datetime"
+#define FBPARAM_level1_values "level1_values"
+#define FBPARAM_level1_default "level1_default"
+#define FBPARAM_level2_values "level2_values" // в порядке следования в списке
+#define FBPARAM_level2_default "level2_default"
+
+
+#define FB_current_version "1.0"
+#define FB_true "yes"
+#define FB_false "no"
 
 // Теги для XML файла.
-#define FBXML_Value_CURRENTVERSION "1.0"
 #define FBXML_Root_Form "Form"
 #define FBXML_Attr_Version "Version"
 #define FBXML_Attr_Dataset "Dataset"
-#define FBXML_Value_DatasetYes "Yes"
-#define FBXML_Value_DatasetNo "No"
+#define FBXML_Attr_NGWConnection "NGWConnection"
 #define FBXML_Node_Tab "Tab"
 #define FBXML_Attr_TabName "Name"
 #define FBXML_Node_Port "Portrait"
@@ -84,8 +123,8 @@
 
 //#define FB_DEFAULT_NGW_URL "https://demo.nextgis.ru/rekod/"
 //#define FB_DEFAULT_NGW_URL "http://demo.nextgis.ru/rekod"
-//#define FB_DEFAULT_NGW_URL "http://bishop.gis.to"
-#define FB_DEFAULT_NGW_URL "http://demo.nextgis.ru/ngw"
+#define FB_DEFAULT_NGW_URL "http://bishop.gis.to"
+//#define FB_DEFAULT_NGW_URL "http://demo.nextgis.ru/ngw"
 #define FB_DEFAULT_NGW_LOGIN "administrator"
 #define FB_DEFAULT_NGW_PASSWORD "admin"
 
@@ -124,6 +163,17 @@ enum FBType
     FBGroupEnd,
 };
 
+struct FBProject
+{
+    QString path;
+    QString name_base;
+    OGRDataSource* poDS;
+    QStringList availableFields;
+    std::string NGWConnection;
+
+    FBProject();
+    ~FBProject();
+};
 
 namespace Ui
 {
@@ -308,10 +358,25 @@ class FormBuilder : public QWidget
          QAction *actionOrtnAlb;
        QAction *actionAddPage;
 
-       GDALDataset* poDS;
+/*
+       //GDALDataset* poDS;
+       OGRDataSource* poDS;
        QStringList availableFields;
 
+       // При сохранении проекта данные так же сохраняются трансформируясь в
+       // формат GeoJSON. Их стоит записывать/перезаписывать только если это
+       // было импортирование из выбранного ИД при создании нового проекта, или
+       // если до открытия старого проекта, данные были как-то изменены. Для
+       // отслеживания этого момента используется следующая переменная.
+       //bool wasDataChanged;
+
+       std::string NGWConnection;
+
        QString lastSavePath;
+*/
+
+     FBProject *CUR_PRJ;
+     FBProject *NEW_PRJ;
 
      // Список типов элементов. На экране может быть создано любое
      // количество таких элементов.
@@ -356,16 +421,18 @@ class FormBuilder : public QWidget
      void on_pushButton_2_clicked();
      void on_pushButton_3_clicked();
      void on_pushButton_4_clicked();
-     void on_pushButton_5_clicked();
 
      void OnTabIndexChanged (int index);
 
      void OnActionNewVoid ();
      void OnActionNewDataset ();
      void OnActionNewNGW ();
-     void _openGdalDataset (char *datasetName);
+     bool _initGdalDataset (char *datasetName);
      void OnActionOpen ();
      void OnActionSave ();
+     bool AddFileToZip(const CPLString &szFilePathName,
+                       const CPLString &szFileName,
+                       void* hZIP, GByte **pabyBuffer, size_t nBufferSize);
      void OnActionOrtnPrt ();
      void OnActionOrtnAlb ();
      void OnActionAddPage ();
@@ -377,6 +444,8 @@ class FormBuilder : public QWidget
 
      //void OnNgwConnect (QString url, QString login, QString password);
      //void OnNgwSelect (QString inLayer, QString &outJson);
+private slots:
+     void on_toolButton_4_clicked();
 };
 
 

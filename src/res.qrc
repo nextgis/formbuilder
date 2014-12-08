@@ -26,5 +26,6 @@
         <file alias="void">img/void.png</file>
         <file alias="group_end">img/group_end.png</file>
         <file alias="group_start">img/group_start.png</file>
+        <file alias="save">img/save.png</file>
     </qresource>
 </RCC>

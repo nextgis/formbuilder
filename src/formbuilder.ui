@@ -176,6 +176,33 @@
              </widget>
             </item>
             <item>
+             <spacer name="horizontalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_7">
+              <property name="text">
+               <string>Записать:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="toolButton_4">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item>
              <spacer name="horizontalSpacer">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
@@ -212,14 +239,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QTableWidget" name="tableWidget"/>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pushButton_5">
-            <property name="text">
-             <string>Зафиксировать изменения</string>
-            </property>
-           </widget>
+           <widget class="QTableWidget" name="tableWidget1"/>
           </item>
          </layout>
         </widget>
@@ -237,7 +257,7 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>Информация об источнике данных: источник данных не выбран</string>
+      <string>Открытый проект: &lt;без имени&gt;. Источник данных не используется</string>
      </property>
     </widget>
    </item>
