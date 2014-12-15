@@ -121,12 +121,9 @@
 #define FBXML_Attr_Alias "Alias"
 #define FBXML_Attr_Value "Value"
 
-//#define FB_DEFAULT_NGW_URL "https://demo.nextgis.ru/rekod/"
-//#define FB_DEFAULT_NGW_URL "http://demo.nextgis.ru/rekod"
 #define FB_DEFAULT_NGW_URL "http://bishop.gis.to"
-//#define FB_DEFAULT_NGW_URL "http://demo.nextgis.ru/ngw"
 #define FB_DEFAULT_NGW_LOGIN "administrator"
-#define FB_DEFAULT_NGW_PASSWORD "admin"
+#define FB_DEFAULT_NGW_PASSWORD "************"
 
 // Следующие константы используются для выбора ресурса в древе доступных ресурсов,
 // полученного с сервера NGW.
