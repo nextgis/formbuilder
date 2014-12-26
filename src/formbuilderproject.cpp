@@ -29,7 +29,6 @@
 
 #include "formbuilder.h"
 #include "ui_formbuilder.h"
-#include "json/json.h"
 
 
 //-----------------------------------------------------------------------//
@@ -142,7 +141,9 @@ void FormBuilder::OnActionNewNGW ()
     label->setText(QString::fromUtf8("URL: "));
     hLayout->addWidget(label);
     QLineEdit* lineEdit1 = new QLineEdit(&dialogNgw);
-    lineEdit1->setText(QString::fromUtf8(FB_DEFAULT_NGW_URL));
+// TEST -----------------------------------------------------------------------
+    lineEdit1->setText(QString::fromUtf8("http://bishop.gis.to"));
+// ----------------------------------------------------------------------------
     hLayout->addWidget(lineEdit1);
     dialogLayout->addLayout(hLayout);
 
@@ -151,7 +152,9 @@ void FormBuilder::OnActionNewNGW ()
      label->setText(QString::fromUtf8("Логин: "));
      hLayout->addWidget(label);
      QLineEdit* lineEdit2 = new QLineEdit(&dialogNgw);
-     lineEdit2->setText(QString::fromUtf8(FB_DEFAULT_NGW_LOGIN));
+// TEST -----------------------------------------------------------------------
+     lineEdit2->setText(QString::fromUtf8("administrator"));
+// ----------------------------------------------------------------------------
      hLayout->addWidget(lineEdit2);
      dialogLayout->addLayout(hLayout);
 
@@ -160,7 +163,10 @@ void FormBuilder::OnActionNewNGW ()
       label->setText(QString::fromUtf8("Пароль: "));
       hLayout->addWidget(label);
       QLineEdit* lineEdit3 = new QLineEdit(&dialogNgw);
-      lineEdit3->setText(QString::fromUtf8(FB_DEFAULT_NGW_PASSWORD));
+// TEST -----------------------------------------------------------------------
+      lineEdit3->setText(QString::fromUtf8("***************"));
+// ----------------------------------------------------------------------------
+      lineEdit3->setEchoMode(QLineEdit::Password);
       hLayout->addWidget(lineEdit3);
       dialogLayout->addLayout(hLayout);
 
@@ -350,8 +356,6 @@ void FormBuilder::OnActionOpen ()
     dialogOpen.setAcceptMode(QFileDialog::AcceptOpen);
     dialogOpen.setFileMode(QFileDialog::ExistingFile);
     dialogOpen.setViewMode(QFileDialog::List);
-    //dialogOpen.setDefaultSuffix("xml");
-    //dialogOpen.setNameFilter("*.xml");
     dialogOpen.setDefaultSuffix("ngfp");
     dialogOpen.setNameFilter("*.ngfp");
     dialogOpen.setLabelText(QFileDialog::LookIn,QString::fromUtf8("Путь:"));
@@ -376,15 +380,15 @@ void FormBuilder::OnActionOpen ()
         QString filePath;
         QByteArray pathBa;
 
-        FBProject *OPEN_PRJ = new FBProject();
-
-// **************************** 1. Считываем XML **********************************
+// ************************* 1. Считываем JSON-форму *********************************
 
         CPLSetConfigOption("CPL_VSIL_ZIP_ALLOWED_EXTENSIONS","ngfp");
 
+        //CPLSetConfigOption("CPL_ZIP_ENCODING", "cp866");
+
         filePath = pathName;
         filePath.prepend("/vsizip/");
-        filePath.append("/form.xml");
+        filePath.append("/form.json");
         pathBa = filePath.toUtf8();
 
         VSILFILE *fp;
@@ -392,45 +396,51 @@ void FormBuilder::OnActionOpen ()
         if (fp == NULL)
         {
             ShowMsgBox(QString::fromUtf8("Ошибка при открытие "
-                     "проекта! Не удалось прочитать XML-файл формы"));
+                     "проекта! Не удалось прочитать JSON-файл формы"));
             return;
         }
 
-        QString xmlStr = "";
+        std::string jsonStr = "";
         do
         {
             const char *str = CPLReadLineL(fp);
             if (str == NULL)
                 break;
-            xmlStr += QString::fromUtf8(str);
+            jsonStr += str;
         }
         while (true);
 
         VSIFCloseL(fp);
 
-        QDomDocument xmlDoc;
-        QString errMsg; int errLine = 0, errColumn = 0;
-        bool res = xmlDoc.setContent(xmlStr, &errMsg, &errLine, &errColumn);
+        Json::Value jsonRoot;
+        Json::Reader jsonReader;
+        Json::Value jsonValue;
 
-        if (!res)
+        if (!jsonReader.parse(jsonStr, jsonRoot, false)
+                || jsonRoot.isNull())
         {
             ShowMsgBox(QString::fromUtf8("Ошибка при открытие проекта! "
-              "При попытке прочесть XML-файл формы возникла ошибка: ") + errMsg);
+              "Не удалось прочесть JSON-файл формы"));
             return;
         }
 
-        QDomElement root = xmlDoc.documentElement();
-        QDomNamedNodeMap attrsRoot = root.attributes();
-
 // ************************ 2. Считываем GEOJSON данные ******************************
 
-        QDomNode atDataset = attrsRoot.namedItem(QString(FBXML_Attr_Dataset));
+        jsonValue = jsonRoot[FBJSONKEY_dataset];
+        if (jsonValue.isNull())
+        {
+            ShowMsgBox(QString::fromUtf8("Ошибка при открытие проекта! "
+              "Не удалось прочесть JSON-файл формы"));
+            return;
+        }
 
-        if (atDataset.nodeValue() == FB_true)
+        FBProject *OPEN_PRJ = new FBProject();
+
+        if (jsonValue.asBool() == true)
         {
             filePath = pathName;
             filePath.prepend("/vsizip/");
-            filePath.append("/form_data.geojson");
+            filePath.append("/data.geojson");
             pathBa = filePath.toUtf8();
 
             OGRRegisterAll();
@@ -471,16 +481,23 @@ void FormBuilder::OnActionOpen ()
             {
                 delete OPEN_PRJ;
                 ShowMsgBox(QString::fromUtf8("Ошибка при открытии проекта: "
-                 "не удалось открыть GDAL - источник данных формата GeoJSON"));
+                 "не удалось открыть GDAL источник данных формата GeoJSON"));
                 return;
             }
         }
 
 // ******************** 3. Считываем JSON с соединением к NGW ************************
 
-        QDomNode atNgw = attrsRoot.namedItem(QString(FBXML_Attr_NGWConnection));
+        jsonValue = jsonRoot[FBJSONKEY_ngw_connection];
+        if (jsonValue.isNull())
+        {
+            delete OPEN_PRJ;
+            ShowMsgBox(QString::fromUtf8("Ошибка при открытие проекта! "
+              "Не удалось прочесть JSON-файл формы"));
+            return;
+        }
 
-        if (atNgw.nodeValue() == FB_true)
+        if (jsonValue.asBool() == true)
         {
             filePath = pathName;
             filePath.prepend("/vsizip/");
@@ -494,13 +511,13 @@ void FormBuilder::OnActionOpen ()
              "не удалось открыть JSON-файл с информацией о соединении с NextGIS Web"));
                 return;
             }
-            QString jsonStr = "";
+            std::string jsonConStr = "";
             do
             {
                 const char *str = CPLReadLineL(fp);
                 if (str == NULL)
                     break;
-                jsonStr += QString::fromUtf8(str);
+                jsonConStr += str;
             }
             while (true);
             VSIFCloseL(fp);
@@ -508,10 +525,21 @@ void FormBuilder::OnActionOpen ()
             // TODO: сделать проверку на правильность строки (м.б. даже
             // сохранять не строку, а json-объект)
 
-            OPEN_PRJ->NGWConnection = QString(jsonStr).toStdString();
+            OPEN_PRJ->NGWConnection = jsonConStr;
         }
 
 // ************************ 4. Устанавливаем открытый проект ***********************
+
+        // Сначала считываем вкладки из файла формы.
+        Json::Value jsonTabs;
+        jsonTabs = jsonRoot[FBJSONKEY_tabs];
+        if (jsonTabs.isNull())
+        {
+            delete OPEN_PRJ;
+            ShowMsgBox(QString::fromUtf8("Ошибка при открытие проекта! "
+              "Не удалось прочесть JSON-файл формы"));
+            return;
+        }
 
         pathBa = pathName.toUtf8();
         OPEN_PRJ->path = QString(CPLGetPath(pathBa.data())) + "/";
@@ -535,40 +563,44 @@ void FormBuilder::OnActionOpen ()
         // Не забываем полностью очистить массив соответствий:
         correspondence.clear();
 
-        // Просматриваем вкладки в XML-файле.
-        QDomNodeList tabs = root.childNodes();
-        for (int i=0; i<tabs.length(); i++)
+        // Просматриваем вкладки в JSON-файле.
+
+        for (int i=0; i<jsonTabs.size(); ++i)
         {
             // Создаём вкладку: горизонтальную и вертикальную.
             CreatePage();
             // По сути тут не важна какая ориентация активная, но задать надо.
             isCurrentVertical = true;
             // Считываем имя вкладки.
-            QDomNamedNodeMap attrs = tabs.item(i).attributes();//.at(i).attributes();
-            QDomNode atType = attrs.namedItem(QString(FBXML_Attr_TabName));
+            Json::Value jsonTab = jsonTabs[i];
+            jsonValue = jsonTab[FBJSONKEY_name];
             // Делаем текущую вкладку для обоих табов активной. Это важно,
             // т.к. именно на неё сейчас будут добавляться элементы.
             tabWidget->setCurrentIndex(tabWidget->count()-1);
             // Переименовываем созданную вкладку.
-            ChangeTabName(atType.nodeValue());
+            ChangeTabName(QString::fromUtf8(jsonValue.asString().data()));
 
-            // Просматриваем ориентации для текущей вкладки в XML-файле.
-            QDomNodeList orientations = tabs.at(i).childNodes();
-            for (int j=0; j<orientations.length(); j++)
+            // Просматриваем ориентации для текущей вкладки в JSON-файле.
+            Json::Value jsonOrtns [2];
+            jsonOrtns[0] = jsonTab[FBJSONKEY_portrait_elements];
+            jsonOrtns[1] = jsonTab[FBJSONKEY_album_elements];
+            for (int j=0; j<2; j++) // этот цикл по сути вместо функции
             {
+                if (jsonOrtns[j].isNull())
+                    continue;
+
                 QWidget *curWidget;
 
-                if (orientations.at(j).nodeName() == QString(FBXML_Node_Port))
+                if (j == 0)
                 {
                     isCurrentVertical = true;
                     curWidget = tabWidget->currentWidget();
                 }
-                else if (orientations.at(j).nodeName() == QString(FBXML_Node_Alb))
+                else
                 {
                     isCurrentVertical = false;
                     curWidget = tabHorWidget->currentWidget();
                 }
-                else break; // На всякий случай, если в файл будет некорректным.
 
                 // Получаем родительский лейбл для текущего
                 // виджета - понадобится в дальнейшем.
@@ -576,44 +608,42 @@ void FormBuilder::OnActionOpen ()
                 // был только что добавлен.
                 FBParentLabel *parentLabel = correspondence[curWidget].second;
 
-                //for (int ii=0; ii<screenParentLabels.size(); ii++)//.count(); ii++)
-                //{
-                //    // Ищем родительский лейбл куда добавлять, сравнивая его виджет с
-                //    // текущим открытым.
-                //    if (screenParentLabels[ii].first == curWidget)
-                //    {
-                //        curParentLabel = screenParentLabels[ii].second.second;
-                //        break;
-                //    }
-                //}
-
                 // Просматриваем элементы текущей вкладки для текущей ориентации
-                // в XML-файле.
-                QDomNodeList elements = orientations.at(j).childNodes();
-                for (int k=elements.length()-1; k>=0; k--) // просматриваем с конца, т.к. добавление будет происходить с верху
+                // в JSON-файле.
+                Json::Value jsonElems = jsonOrtns[j];
+                for (int k=jsonElems.size()-1; k>=0; --k) // просматриваем с конца, т.к. добавление будет происходить с верху
                 {
-                    QDomNamedNodeMap attrs = elements.at(k).attributes();
-                    QDomNode atType = attrs.namedItem(QString(FBXML_Attr_Type));
+                    Json::Value jsonElem = jsonElems[k];
+
+                    Json::Value jsonType = jsonElem[FBJSONKEY_type];
+                    if (jsonType.isNull())
+                        continue;
+
                     // Задаём текщий тип элемента, как будто выбираем из
                     // правой колонки.
                     FBElemType::CURRENT = NULL;
-                    if (pElemTypeGroupStart->name == atType.nodeValue())
+                    if (pElemTypeGroupStart->name
+                            == QString::fromUtf8(jsonType.asString().data()))
                     {
                         FBElemType::CURRENT = pElemTypeGroupStart;
                     }
-                    else if (pElemTypeGroupEnd->name == atType.nodeValue())
+                    else if (pElemTypeGroupEnd->name
+                             == QString::fromUtf8(jsonType.asString().data()))
                     {
                         FBElemType::CURRENT = pElemTypeGroupEnd;
                     }
                     else
+                    {
                         for (int kk=0; kk<vElemTypes.size(); kk++)
                         {
-                            if (vElemTypes[kk]->name == atType.nodeValue())
+                            if (vElemTypes[kk]->name
+                                    == QString::fromUtf8(jsonType.asString().data()))
                             {
                                 FBElemType::CURRENT = vElemTypes[kk];
                                 break;
                             }
                         }
+                    }
                     // На вскяий случай, если файл был изменён вручную: если
                     // не нашли тип элемента - просто не добавляем его на сцену:
                     if (FBElemType::CURRENT == NULL)
@@ -631,24 +661,34 @@ void FormBuilder::OnActionOpen ()
                         continue;
                     }
 
-                    // Очищаем параметры элемента, т.к. они сейчас будут загружены
+                    // Очищаем атрибуты элемента, т.к. они сейчас будут загружены
                     // из файла.
-                    newElem->vParamValues.clear();
+                    newElem->attributes.clear();
 
-                    // Загружаем атрибуты элемента.
-                    QDomNodeList props = elements.at(k).childNodes();
-                    for (int l=0; l<props.length(); l++)
+                    // Загружаем атрибуты и проверяем на нуль. У таких элементов
+                    // как пробел или конец группы атрибутов может не быть, поэтому
+                    // элемент мы создали, но дальше не идём.
+                    Json::Value jsonAttrs = jsonElem[FBJSONKEY_attributes];
+                    if (jsonAttrs.isNull())
+                        continue;
+
+                    // Загружаем атрибуты элемента (в JSON-файле это не массив,
+                    // поэтому считываем как кортеж).
+                    std::vector<std::string> members = jsonAttrs.getMemberNames();
+                    for (int l=0; l<members.size(); l++)
                     {
-                        QDomNamedNodeMap attrs = props.at(l).attributes();
+                        //Json::Value jsonAttrName = jsonAttrs[l][FBJSONKEY_name];
+                        //Json::Value jsonAttrAlias = jsonAttrs[l][FBJSONKEY_alias];
+                        //Json::Value jsonAttrValue = jsonAttrs[l][FBJSONKEY_value];
 
-                        QDomNode attrName = attrs.namedItem(QString(FBXML_Attr_Name));
-                        QDomNode attrAlias = attrs.namedItem(QString(FBXML_Attr_Alias));
-                        QDomNode attrValue = attrs.namedItem(QString(FBXML_Attr_Value));
-                        newElem->vParamValues.append(
-                                    QPair<QPair<QString,QString>,QString>(
-                                    QPair<QString,QString>(
-                                            attrName.nodeValue(),attrAlias.nodeValue()),
-                                        attrValue.nodeValue()));
+                        jsonValue = jsonAttrs[members[l].data()];
+
+                        //newElem->attributes.append(QPair<QString,QString>(
+                        newElem->attributes.append(QPair<QString,Json::Value>(
+                            members[l].data(),
+                            //FBElemType::GetAttributeValueString(members[l].data(),
+                            //                                    jsonValue)));
+                                                       jsonValue));
                     }
                 }
             }
@@ -689,10 +729,6 @@ void FormBuilder::OnActionSave ()
     dialogSave.setAcceptMode(QFileDialog::AcceptSave);
     dialogSave.setFileMode(QFileDialog::AnyFile);
     dialogSave.setViewMode(QFileDialog::List);
-//    dialogSave.setDefaultSuffix("xml");
-//    dialogSave.setNameFilter("*.xml");
-//    dialogSave.setDefaultSuffix("zip");
-//    dialogSave.setNameFilter("*.zip");
     dialogSave.setDefaultSuffix("ngfp");
     dialogSave.setNameFilter("*.ngfp");
     dialogSave.setLabelText(QFileDialog::LookIn,QString::fromUtf8("Путь:"));
@@ -703,33 +739,15 @@ void FormBuilder::OnActionSave ()
     dialogSave.setWindowTitle(QString::fromUtf8("Сохранить проект как ..."));
 
     // Задаём выбор по умолчанию, но выбранное значение может быть совершенно другим.
-//    QString path = "form.xml";
-//    dialogSave.setDirectory(lastSavePath);//QDir());
     dialogSave.setDirectory(CUR_PRJ->path);
-    // TODO: сделать выбор последнего имени.
-//    dialogSave.selectFile("form.xml"); //имя файла по умолчанию
     dialogSave.selectFile(CUR_PRJ->name_base+".ngfp");
 
     if (dialogSave.exec())
     {
-        // TODO: (возможно через сигнал accepted) -
-        // не смотря на то, что задан суффикс по дефолту - при сохранении файла с
-        // другим суффиксом (не .xml) диалог не выдаст предупреждение.
-//        path = dialogSave.selectedFiles().first();
-//        if (!path.endsWith(".xml",Qt::CaseInsensitive))
-//            path = path + ".xml";
-
         // Определяем zip-файл проекта, который будем записывать на диск.
         QString prj_full_pathname = dialogSave.selectedFiles().first();
         if (!prj_full_pathname.endsWith(".ngfp",Qt::CaseInsensitive))
             prj_full_pathname = prj_full_pathname + ".ngfp";
-//        QFile file (path_name);
-//        if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-//        {
-//            ShowMsgBox(QString::fromUtf8("Ошибка! Не удалось сохранить/"
-//                                         "заменить файл проекта"));
-//            return;
-//        }
 
         // Получаем базовое имя для создания всех сопутствующих временных файлов
         // проекта.
@@ -754,77 +772,72 @@ void FormBuilder::OnActionSave ()
         QString geojsonFilePath;
         QString jsonFilePath;
 
-// ************************ 1. СОЗДАЁМ ВРЕМЕННЫЙ XML ФАЙЛ ******************************
+// ********************* 1. СОЗДАЁМ ВРЕМЕННЫЙ JSON ФАЙЛ ФОРМЫ ************************
 
-        //QTemporaryFile file_xml (prj_path + "XXXXXX" + prj_name_base + "form.xml");
-        QTemporaryFile file_xml (prj_path + "XXXXXXform.xml");
+        QTemporaryFile file_xml (prj_path + "XXXXXXform.json");
         if (file_xml.open())
         {
             xmlFilePath = file_xml.fileName();
             QTextStream xml_out(&file_xml);
             xml_out.setCodec("UTF-8"); // Важно поставить кодек, иначе будет неправильная кодировка.
 
+            Json::Value jsonRoot;
+            Json::Value jsonValue;
+            QByteArray baValue;
+
+            jsonValue = FB_current_version;
+            jsonRoot[FBJSONKEY_version] = jsonValue;
+            if (CUR_PRJ->poDS != NULL)
+            {
+                jsonValue = true;
+            }
+            else
+            {
+                jsonValue = false;
+            }
+            jsonRoot[FBJSONKEY_dataset] = jsonValue;
+
+            if (CUR_PRJ->NGWConnection != "")
+            {
+                jsonValue = true;
+            }
+            else
+            {
+                jsonValue = false;
+            }
+            jsonRoot[FBJSONKEY_ngw_connection] = jsonValue;
+
             // Для каждой вкладки:
             // Для каждой ориентации (если имеется):
             // Для каждого элемента:
             // Сохраняем его состояние и параметры в файл.
-
-            QDomDocument doc;
-            //QDomImplementation::setInvalidDataPolicy(QDomImplementation::ReturnNullNode);
-            QDomProcessingInstruction instr
-                    = doc.createProcessingInstruction("xml", "version=\"1.0\"");
-            doc.appendChild(instr);
-            // TODO: сделать енкодинг путём добавления нового child, т.к. для
-            // свойств childNodes так же актуален.
-            //QDomProcessingInstruction instr2
-                    //= doc.createProcessingInstruction("xml", "encoding=\"UTF-8\"");
-            //doc.appendChild(instr2);
-
-            QDomElement root = doc.createElement(QString(FBXML_Root_Form));
-            doc.appendChild(root);
-
-            root.setAttribute(FBXML_Attr_Version,FB_current_version);
-
-            if (CUR_PRJ->poDS != NULL)
-                root.setAttribute(FBXML_Attr_Dataset,FB_true);
-            else
-                root.setAttribute(FBXML_Attr_Dataset,FB_false);
-
-            if (CUR_PRJ->NGWConnection != "")
-            {
-                root.setAttribute(FBXML_Attr_NGWConnection,FB_true);
-            }
-            else
-            {
-                root.setAttribute(FBXML_Attr_NGWConnection,FB_false);
-            }
-
+            Json::Value jsonTabs;
             for (int i=0; i<tabWidget->count(); i++)
             {
-                QDomElement tabElem = doc.createElement(QString(FBXML_Node_Tab));
-                tabElem.setAttribute(FBXML_Attr_TabName,
-                                     tabWidget->tabText(i));
-                root.appendChild(tabElem);
+                Json::Value jsonTab;
 
-                QDomElement verLayElem = doc.createElement(QString(FBXML_Node_Port));
-                QDomElement horLayElem = doc.createElement(QString(FBXML_Node_Alb));
-                tabElem.appendChild(verLayElem);
-                tabElem.appendChild(horLayElem);
+                baValue = tabWidget->tabText(i).toUtf8();
+                jsonValue = baValue.data();
+                jsonTab[FBJSONKEY_name] = jsonValue;
+
+                Json::Value jsonPortraitElems;
+                Json::Value jsonAlbumElems;
 
                 // по очереди для обоих ориентаций:
                 for (int ornt=0; ornt<=1; ornt++)
                 {
                     FBTabWidget *curTabWidget;
-                    QDomElement *curOrntElem;
+                    Json::Value *curJsonElems;
+
                     if (ornt == 0)
                     {
                         curTabWidget = tabWidget;
-                        curOrntElem = &verLayElem;
+                        curJsonElems = &jsonPortraitElems;
                     }
                     else
                     {
                         curTabWidget = tabHorWidget;
-                        curOrntElem = &horLayElem;
+                        curJsonElems = &jsonAlbumElems;
                     }
 
                     // Получаем родительский лейбл для данной вкладки, для того чтобы взять
@@ -833,40 +846,55 @@ void FormBuilder::OnActionSave ()
 
                     for (int k=0; k<parentLabel->elements.size(); k++)
                     {
-                        QDomElement elemElem = doc.createElement(QString(FBXML_Node_Elem));
-                        curOrntElem->appendChild(elemElem);
+                        Json::Value jsonElem;
+                        baValue = parentLabel->elements[k]->elemType->name.toUtf8();
+                        jsonValue = baValue.data();
+                        jsonElem[FBJSONKEY_type] = jsonValue;
 
-                        elemElem.setAttribute(QString(FBXML_Attr_Type),
-                           parentLabel->elements[k]->elemType->name);
-
-                        QList<QPair<QPair<QString,QString>, QString> > params;
-                        params = parentLabel->elements[k]->vParamValues;
-                        for (int l=0; l<params.size(); l++)
+                        Json::Value jsonAttrs;
+//                        QList<QPair<QString,QString> > attrs
+                        QList<QPair<QString,Json::Value> > attrs
+                                = parentLabel->elements[k]->attributes;
+                        for (int l=0; l<attrs.size(); l++)
                         {
-                            QDomElement propElem = doc.createElement(QString(FBXML_Node_Prop));
-                            elemElem.appendChild(propElem);
+                            QByteArray attrBaValue;
 
-                            propElem.setAttribute(FBXML_Attr_Name,
-                                                  params[l].first.first);
+                            // Узнаём имя атрибута.
+                            attrBaValue = attrs[l].first.toUtf8();
 
-                            propElem.setAttribute(FBXML_Attr_Alias,
-                                                  params[l].first.second);
-
-                            propElem.setAttribute(FBXML_Attr_Value,
-                                                  params[l].second);
+                            // Присваиваем определённое JSON-значение.
+                            jsonAttrs[attrBaValue.data()] =
+                               //FBElemType::GetAttributeValueJson(attrs[l].first,
+                               //                                  attrs[l].second);
+                                    attrs[l].second;
                         }
+
+                        jsonElem[FBJSONKEY_attributes] = jsonAttrs;
+
+                        curJsonElems->append(jsonElem);
                     }
+
                 }
+
+                jsonTab[FBJSONKEY_portrait_elements] = jsonPortraitElems;
+                jsonTab[FBJSONKEY_album_elements] = jsonAlbumElems;
+
+                jsonTabs.append(jsonTab);
             }
 
-            // Записываем сформированный XML в файл.
-            QString xml_result = doc.toString();
+            jsonRoot[FBJSONKEY_tabs] = jsonTabs;
+
+            Json::StyledWriter jsonWriter;
+            //Json::FastWriter jsonWriter;
+            std::string finalJsonString = jsonWriter.write(jsonRoot);
+            // Обязательная трансформация из Utf8.
+            QString xml_result = QString::fromUtf8(finalJsonString.data());
             xml_out<<xml_result;
         }
         else
         {
             progress_ok = false;
-            ShowMsgBox(QString::fromUtf8("Ошибка! Не удалось создать временный XML-файл формы "
+            ShowMsgBox(QString::fromUtf8("Ошибка! Не удалось создать временный JSON-файл формы "
                                          "во время сохранения проекта."));
         }
 
@@ -882,8 +910,7 @@ void FormBuilder::OnActionSave ()
             // получить уникальное имя.
             // TODO: найти и вызывать метод по получению уникального имени.
             QTemporaryFile *file_geojson;
-            //file_geojson = new QTemporaryFile(prj_path + "XXXXXX." + prj_name_base + "_data.geojson");
-            file_geojson = new QTemporaryFile(prj_path + "XXXXXXform_data.geojson");
+            file_geojson = new QTemporaryFile(prj_path + "XXXXXXdata.geojson");
             if (file_geojson->open())
             {
                 // Удаляем файл, но сохраням имя, чтобы создать ИД методами GDAL.
@@ -943,7 +970,6 @@ void FormBuilder::OnActionSave ()
 
 // ***************** 3. СОЗДАЁМ ВРЕМЕННЫЙ JSON ФАЙЛ ПОДКЛЮЧЕНИЯ К NGW ******************
 
-        //QTemporaryFile file_json (prj_path + "XXXXXX." + prj_name_base + "_connection.json");
         QTemporaryFile file_json (prj_path + "XXXXXXconnection.json");
         if (progress_ok)
         {
@@ -971,25 +997,21 @@ void FormBuilder::OnActionSave ()
 
             if (hZip)
             {
-                //QByteArray xmlNameBa = QString(prj_name_base + "_form.xml").toUtf8();
-                //QByteArray geojsonNameBa = QString(prj_name_base + "_data.geojson").toUtf8();
-                //QByteArray jsonNameBa = QString(prj_name_base + "_connection.json").toUtf8();
-
                 size_t nBufferSize = 1024 * 1024;
                 GByte *pabyBuffer = (GByte *)CPLMalloc(nBufferSize);
                 QByteArray fullPathBa;
 
                 fullPathBa = xmlFilePath.toUtf8();
-                if (!AddFileToZip(fullPathBa.data(), "form.xml",//CPLGetFilename(fullPathBa.data()),
+                if (!AddFileToZip(fullPathBa.data(), "form.json",//CPLGetFilename(fullPathBa.data()),
                                  hZip, &pabyBuffer, nBufferSize))
                 {
                     ShowMsgBox(QString::fromUtf8("Ошибка при сохранении проекта! Не "
-                           "удалось записать временный XML-файл формы в ZIP-архив."));
+                           "удалось записать временный JSON-файл формы в ZIP-архив."));
                 }
                 else
                 {
                     fullPathBa = geojsonFilePath.toUtf8();
-                    if (!AddFileToZip(fullPathBa.data(), "form_data.geojson",//CPLGetFilename(fullPathBa.data()),
+                    if (!AddFileToZip(fullPathBa.data(), "data.geojson",//CPLGetFilename(fullPathBa.data()),
                                      hZip, &pabyBuffer, nBufferSize))
                     {
                         ShowMsgBox(QString::fromUtf8("Ошибка при сохранении проекта! Не "

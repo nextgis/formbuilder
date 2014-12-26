@@ -154,6 +154,9 @@
          <layout class="QVBoxLayout" name="verticalLayout_6">
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout">
+            <property name="spacing">
+             <number>3</number>
+            </property>
             <item>
              <widget class="QLabel" name="label">
               <property name="text">
@@ -191,7 +194,7 @@
             <item>
              <widget class="QLabel" name="label_7">
               <property name="text">
-               <string>Записать:</string>
+               <string>Зафиксировать:</string>
               </property>
              </widget>
             </item>

@@ -29,7 +29,6 @@
 
 #include "formbuilder.h"
 #include "ui_formbuilder.h"
-#include "json/json.h"
 
 
 // ************************************************************************** //
@@ -116,7 +115,6 @@ FBElem *FBElemType::CreateElem ()
 
     int totalHeight = 0;
 
-    //newElem->caption = this->caption;
     newElem->elemType = this;
 
     // Создаём компоненты элемента.
@@ -143,7 +141,7 @@ FBElem *FBElemType::CreateElem ()
     // можно было задавать стили только для конкретных виджетов, не трогая
     // их дочерние виджеты.
     newElem->setObjectName(QString("e_") +
-                           QString::number(this->type) +
+                           //QString::number(this->type) +
                            QString("_") +
                            QString::number(FBElem::GetNextId()));
 
@@ -152,10 +150,10 @@ FBElem *FBElemType::CreateElem ()
     newElem->deselect(); // Задаём стиль контура - элемент не выделен.
 
     // Копируем названия и поля свойств объекта.
-    for (int i=0; i<vParams.size(); i++)
+    for (int i=0; i<attributeNames.size(); i++)
     {
-        newElem->vParamValues.append(QPair<QPair<QString,QString>,QString>
-                                     (vParams[i],""));
+        Json::Value value; // будет = null
+        newElem->attributes.append(QPair<QString,Json::Value>(attributeNames[i].first,value));
     }
 
     // TODO: проверки, и если не прошло - delete newElem, return NULL
@@ -292,10 +290,6 @@ void FBParentLabel::MoveElem (FBElem *elem, bool isUp)
             elements.insert(index+1,FBElem::CURRENT);
         }
     }
-
-    // Виджет был изъят из массива. Добавляем обратно, но уже на новую позицию.
-    //elements.insert(posToInsertWidget,QPair<FBElem*,int>(FBElem::CURRENT,
-                                                //FBElem::CURRENT->height()/2));
 }
 
 
@@ -334,11 +328,7 @@ void FBTabWidget::mousePressEvent(QMouseEvent *event)
 
 FormBuilder::~FormBuilder()
 {
-//    if (poDS != NULL)
-//        //GDALClose(poDS);
-//        OGRDataSource::DestroyDataSource(poDS);
     delete CUR_PRJ;
-
     delete ui;
 }
 
@@ -439,26 +429,6 @@ FormBuilder::FormBuilder(QWidget *parent) :QWidget(parent),ui(new Ui::FormBuilde
     CreatePage();
 
     // Настраиваем правую панель.
-/*
-    ui->tableWidget->clear();
-    ui->tableWidget->horizontalHeader()->hide();
-    //ui->tableWidget->setHorizontalHeaderItem(0,new QTableWidgetItem("test"));
-    ui->tableWidget->setColumnCount(1);
-    ui->tableWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-    ui->tableWidget->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
-    //ui->tableWidget->verticalHeader()->setAutoScroll(true);
-    ui->tableWidget->verticalHeader()->setClickable(false);
-    ui->tableWidget->verticalHeader()->setMovable(false);
-    ui->tableWidget->verticalHeader()->setResizeMode(QHeaderView::Fixed);
-    ui->tableWidget->verticalHeader()->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
-    ui->tableWidget->verticalHeader()->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-   // ui->tableWidget->verticalHeader()->setStretchLastSection(true);
-    //ui->tableWidget->horizontalHeader()->setStretchLastSection(true);
-    //ui->tableWidget->verticalHeader()->setCascadingSectionResizes(true);
-    //ui->tableWidget->horizontalHeader()->setResizeMode(QHeaderView::Interactive);
-    //ui->tableWidget->horizontalHeader()->setMinimumWidth(minwidth);
-*/
-
     // Таблица без вертикальной шапки, поскольку это не даёт
     // её нормально скроллить. Шапку имитирует жирный шрифт левой колонки.
     ui->tableWidget1->clear();
@@ -477,19 +447,8 @@ FormBuilder::FormBuilder(QWidget *parent) :QWidget(parent),ui(new Ui::FormBuilde
     ui->toolButton_3->setIcon(QIcon(":/img/delete"));
     ui->toolButton_4->setIcon(QIcon(":/img/save"));
 
-    // Настройки для диалогов.
-//    lastSavePath = QDir::currentPath();
-
     // Настройки GDAL.
-    //GDALAllRegister();
     OGRRegisterAll();
-//    poDS = NULL;
-
-    // Если не будет создан новый / открыт старый проект, то сохранится пустой GeoJSON
-    // в пару к xml-файлу формы.
-    //wasDataChanged = true;
-
-//    NGWConnection = "";
 
     CUR_PRJ = new FBProject();
     NEW_PRJ = NULL;
@@ -511,154 +470,128 @@ void FormBuilder::CreateElemTypes ()
     FBElemType* elemType;
 
     elemType = new FBElemType(ui->groupBox);
-    //elemType->caption = QString::fromUtf8("Статический текст");
-    elemType->name = QString::fromUtf8("text_label");
-    elemType->alias_ru = QString::fromUtf8("Статический текст");
-    elemType->alias_eng = QString::fromUtf8("Text label");
-    elemType->type = FBText;
+    elemType->name = QString::fromUtf8(FBELEMTYPE_text_label);
+    elemType->alias.ru = QString::fromUtf8("Статический текст");
+    elemType->alias.en = QString::fromUtf8("Text label");
     elemType->imgPaths.append(":/img/text");
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_caption,
-                               QString::fromUtf8("Текст")));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_text,FBAlias(
+                               QString::fromUtf8("Текст"))));
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
-    //elemType->caption = QString::fromUtf8("Текстовое поле");
-    elemType->name = QString::fromUtf8("text_edit");
-    elemType->alias_ru = QString::fromUtf8("Текстовое поле");
-    elemType->alias_eng = QString::fromUtf8("Text edit");
-    elemType->type = FBTextedit;
+    elemType->name = QString::fromUtf8(FBELEMTYPE_text_edit);
+    elemType->alias.ru = QString::fromUtf8("Текстовое поле");
+    elemType->alias.en = QString::fromUtf8("Text edit");
     elemType->imgPaths.append(":/img/textfield");
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_field,
-                             QString::fromUtf8("Целевое поле")));
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_text,
-                             QString::fromUtf8("Начальный текст")));
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_only_figures,
-                             QString::fromUtf8("Только цифры?")));
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_max_char_count,
-                             QString::fromUtf8("Максимальное кол-во строк")));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_field,FBAlias(
+                             QString::fromUtf8("Целевое поле"))));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_text,FBAlias(
+                             QString::fromUtf8("Начальный текст"))));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_only_figures,FBAlias(
+                             QString::fromUtf8("Только цифры?"))));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_max_string_count,FBAlias(
+                             QString::fromUtf8("Максимальное кол-во строк"))));
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
-    //elemType->caption = QString::fromUtf8("Кнопка");
-    elemType->name = QString::fromUtf8("button");
-    elemType->alias_ru = QString::fromUtf8("Кнопка");
-    elemType->alias_eng = QString::fromUtf8("Button");
-    elemType->type = FBButton;
+    elemType->name = QString::fromUtf8(FBELEMTYPE_button);
+    elemType->alias.ru = QString::fromUtf8("Кнопка");
+    elemType->alias.en = QString::fromUtf8("Button");
     elemType->imgPaths.append(":/img/button");
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_caption,
-                             QString::fromUtf8("Заголовок")));
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_field,
-                             QString::fromUtf8("Целевое поле")));
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_value,
-                             QString::fromUtf8("Значение")));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_text,FBAlias(
+                             QString::fromUtf8("Заголовок"))));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_field,FBAlias(
+                             QString::fromUtf8("Целевое поле"))));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_value,FBAlias(
+                             QString::fromUtf8("Значение"))));
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
-    //elemType->caption = QString::fromUtf8("Выпадающий список");
-    elemType->name = QString::fromUtf8("combobox");
-    elemType->alias_ru = QString::fromUtf8("Выпадающий список");
-    elemType->alias_eng = QString::fromUtf8("Combobox");
-    elemType->type = FBCombobox;
+    elemType->name = QString::fromUtf8(FBELEMTYPE_combobox);
+    elemType->alias.ru = QString::fromUtf8("Выпадающий список");
+    elemType->alias.en = QString::fromUtf8("Combobox");
     elemType->imgPaths.append(":/img/combobox");
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_field,
-                             QString::fromUtf8("Целевое поле")));
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_values,
-                             QString::fromUtf8("Значения через \';\'")));
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_default,
-                             QString::fromUtf8("Значение по умолчанию")));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_field,FBAlias(
+                             QString::fromUtf8("Целевое поле"))));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_values,FBAlias(
+                             QString::fromUtf8("Значения"))));
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
-    //elemType->caption = QString::fromUtf8("Флажок");
-    elemType->name = QString::fromUtf8("checkbox");
-    elemType->alias_ru = QString::fromUtf8("Флажок");
-    elemType->alias_eng = QString::fromUtf8("Checkbox");
-    elemType->type = FBCheckbox;
+    elemType->name = QString::fromUtf8(FBELEMTYPE_checkbox);
+    elemType->alias.ru = QString::fromUtf8("Флажок");
+    elemType->alias.en = QString::fromUtf8("Checkbox");
     elemType->imgPaths.append(":/img/checkbox");
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_field,
-                                 QString::fromUtf8("Целевое поле")));
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_caption,
-                                 QString::fromUtf8("Заголовок")));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_field,FBAlias(
+                                 QString::fromUtf8("Целевое поле"))));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_text,FBAlias(
+                                 QString::fromUtf8("Заголовок"))));
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
-    //elemType->caption = QString::fromUtf8("Радио-группа");
-    elemType->name = QString::fromUtf8("radio_group");
-    elemType->alias_ru = QString::fromUtf8("Радио-группа");
-    elemType->alias_eng = QString::fromUtf8("Radio-group");
-    elemType->type = FBRadiogroup;
+    elemType->name = QString::fromUtf8(FBELEMTYPE_radio_group);
+    elemType->alias.ru = QString::fromUtf8("Радио-группа");
+    elemType->alias.en = QString::fromUtf8("Radio-group");
     elemType->imgPaths.append(":/img/radiobutton");
     elemType->imgPaths.append(":/img/radiobutton_void");
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_field,
-                               QString::fromUtf8("Целевое поле")));
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_values,
-                             QString::fromUtf8("Значения через \';\'")));
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_default,
-                             QString::fromUtf8("Значение по умолчанию")));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_field,FBAlias(
+                               QString::fromUtf8("Целевое поле"))));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_values,FBAlias(
+                             QString::fromUtf8("Значения"))));
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
-    //elemType->caption = QString::fromUtf8("Компас");
-    elemType->name = QString::fromUtf8("compass");
-    elemType->alias_ru = QString::fromUtf8("Компас");
-    elemType->alias_eng = QString::fromUtf8("Compass");
-    elemType->type = FBCompass;
+    elemType->name = QString::fromUtf8(FBELEMTYPE_compass);
+    elemType->alias.ru = QString::fromUtf8("Компас");
+    elemType->alias.en = QString::fromUtf8("Compass");
     elemType->imgPaths.append(":/img/compass");
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_field,
-                               QString::fromUtf8("Целевое поле")));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_field,FBAlias(
+                               QString::fromUtf8("Целевое поле"))));
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
-    //elemType->caption = QString::fromUtf8("Дата-Время");
-    elemType->name = QString::fromUtf8("date_time");
-    elemType->alias_ru = QString::fromUtf8("Дата-Время");
-    elemType->alias_eng = QString::fromUtf8("Date-time");
-    elemType->type = FBDateTime;
+    elemType->name = QString::fromUtf8(FBELEMTYPE_date_time);
+    elemType->alias.ru = QString::fromUtf8("Дата-Время");
+    elemType->alias.en = QString::fromUtf8("Date-time");
     elemType->imgPaths.append(":/img/date_date");
     elemType->imgPaths.append(":/img/date_time");
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_field,
-                                 QString::fromUtf8("Целевое поле")));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_field,FBAlias(
+                                 QString::fromUtf8("Целевое поле"))));
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
-    //elemType->caption = QString::fromUtf8("Двухуровневый список");
-    elemType->name = QString::fromUtf8("double_combobox");
-    elemType->alias_ru = QString::fromUtf8("Двухуровневый список");
-    elemType->alias_eng = QString::fromUtf8("Double combobox");
-    elemType->type = FBDoubleList;
+    elemType->name = QString::fromUtf8(FBELEMTYPE_double_combobox);
+    elemType->alias.ru = QString::fromUtf8("Двухуровневый список");
+    elemType->alias.en = QString::fromUtf8("Double combobox");
     elemType->imgPaths.append(":/img/doublelist_1");
     elemType->imgPaths.append(":/img/doublelist_2");
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_field,
-                               QString::fromUtf8("Целевое поле")));
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_level1_values,
-                             QString::fromUtf8("Уровень 1: значения через \';\'")));
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_level1_default,
-                             QString::fromUtf8("Уровень 1: значение по умолчанию")));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_field_level1,FBAlias(
+                               QString::fromUtf8("Целевое поле уровня 1"))));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_field_level2,FBAlias(
+                               QString::fromUtf8("Целевое поле уровня 2"))));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_values,FBAlias(
+                             QString::fromUtf8("Значения"))));
     // В дальнейшем по ходу программы этот список может быть расширен!
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
-    //elemType->caption = QString::fromUtf8("Фото");
-    elemType->name = QString::fromUtf8("photo");
-    elemType->alias_ru = QString::fromUtf8("Фото");
-    elemType->alias_eng = QString::fromUtf8("Photo");
-    elemType->type = FBPhoto;
+    elemType->name = QString::fromUtf8(FBELEMTYPE_photo);
+    elemType->alias.ru = QString::fromUtf8("Фото");
+    elemType->alias.en = QString::fromUtf8("Photo");
     elemType->imgPaths.append(":/img/photo_targ");
     elemType->imgPaths.append(":/img/photo_but");
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_field_name,
-                               QString::fromUtf8("Целевое поле названия снимка")));
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_field_azimuth,
-                               QString::fromUtf8("Целевое поле азимута снимка")));
-    elemType->vParams.append(QPair<QString,QString>(FBPARAM_field_datetime,
-                               QString::fromUtf8("Целевое поле даты снимка")));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_field_name,FBAlias(
+                               QString::fromUtf8("Целевое поле названия снимка"))));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_field_azimuth,FBAlias(
+                               QString::fromUtf8("Целевое поле азимута снимка"))));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_field_datetime,FBAlias(
+                               QString::fromUtf8("Целевое поле даты снимка"))));
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
-    //elemType->caption = QString::fromUtf8("Пробел");
-    elemType->name = QString::fromUtf8("space");
-    elemType->alias_ru = QString::fromUtf8("Пробел");
-    elemType->alias_eng = QString::fromUtf8("Space");
-    elemType->type = FBSpace;
+    elemType->name = QString::fromUtf8(FBELEMTYPE_space);
+    elemType->alias.ru = QString::fromUtf8("Пробел");
+    elemType->alias.en = QString::fromUtf8("Space");
     elemType->imgPaths.append(":/img/void");
     vElemTypes.append(elemType);
 
@@ -673,7 +606,7 @@ void FormBuilder::CreateElemTypes ()
         vElemTypes[i]->setIconSize(QSize(100,21));
         vElemTypes[i]->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
         vElemTypes[i]->setMinimumHeight(50);
-        vElemTypes[i]->setToolTip(vElemTypes[i]->alias_ru);
+        vElemTypes[i]->setToolTip(vElemTypes[i]->alias.ru);
         connect(vElemTypes[i], SIGNAL(elemTypePressed()),
                 this, SLOT(OnElemTypePressed()));
     }
@@ -681,16 +614,13 @@ void FormBuilder::CreateElemTypes ()
     QVBoxLayout *twoButtonLayout = new QVBoxLayout();
 
     pElemTypeGroupStart = new FBElemType(ui->groupBox_5);
-    //ui->horizontalLayout_5->addWidget(pElemTypeGroupStart);
-    //pElemTypeGroupStart->caption = QString::fromUtf8("Начало группы");
-    pElemTypeGroupStart->name = QString::fromUtf8("group_start");
-    pElemTypeGroupStart->alias_ru = QString::fromUtf8("Начало группы");
-    pElemTypeGroupStart->alias_eng = QString::fromUtf8("Group start");
-    pElemTypeGroupStart->type = FBGroupEnd;
+    pElemTypeGroupStart->name = QString::fromUtf8(FBELEMTYPE_group_start);
+    pElemTypeGroupStart->alias.ru = QString::fromUtf8("Начало группы");
+    pElemTypeGroupStart->alias.en = QString::fromUtf8("Group start");
     pElemTypeGroupStart->imgPaths.append(":/img/void");
     pElemTypeGroupStart->imgPaths.append(":/img/group_start");
-    pElemTypeGroupStart->vParams.append(QPair<QString,QString>(FBPARAM_caption,
-                               QString::fromUtf8("Заголовок")));
+    pElemTypeGroupStart->attributeNames.append(QPair<QString,FBAlias>(FBATTR_text,FBAlias(
+                               QString::fromUtf8("Заголовок"))));
     pElemTypeGroupStart->setToolTip(QString::fromUtf8("Поместите в начало будущей группы"));
     pElemTypeGroupStart->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
     QIcon icon1(pElemTypeGroupStart->imgPaths[1]);
@@ -700,12 +630,9 @@ void FormBuilder::CreateElemTypes ()
             this, SLOT(OnElemTypePressed()));
 
     pElemTypeGroupEnd = new FBElemType(ui->groupBox_5);
-    //ui->horizontalLayout_5->addWidget(pElemTypeGroupEnd);
-    //pElemTypeGroupEnd->caption = QString::fromUtf8("Конец группы");
-    pElemTypeGroupEnd->name = QString::fromUtf8("group_end");
-    pElemTypeGroupEnd->alias_ru = QString::fromUtf8("Конец группы");
-    pElemTypeGroupEnd->alias_eng = QString::fromUtf8("Group end");
-    pElemTypeGroupEnd->type = FBGroupEnd;
+    pElemTypeGroupEnd->name = QString::fromUtf8(FBELEMTYPE_group_end);
+    pElemTypeGroupEnd->alias.ru = QString::fromUtf8("Конец группы");
+    pElemTypeGroupEnd->alias.en = QString::fromUtf8("Group end");
     pElemTypeGroupEnd->imgPaths.append(":/img/group_end");
     pElemTypeGroupEnd->imgPaths.append(":/img/void");
     pElemTypeGroupEnd->setToolTip(QString::fromUtf8("Поместите в конец будущей группы"));
@@ -1109,8 +1036,6 @@ void FormBuilder::OnElemTypePressed ()
     else
         widget = tabHorWidget->currentWidget();
 
-    //correspondence[widget].second->mouseReleaseEvent(NULL);
-
     // Определяем родителький лейбл в который добавляем элемент.
     FBParentLabel *parentLabel = correspondence[widget].second;
 
@@ -1146,123 +1071,149 @@ void FormBuilder::OnElemPressed ()
     if (FBElem::CURRENT == NULL)
         return;
 
-    // TODO: Это удаляет виджеты-комбобоксы?
+    // Подготавливаем таблицу для вывода атрибутов.
+    // TODO: Это удаляет виджеты-комбобоксы/кнопки?
     ui->tableWidget1->clearContents();
     // TODO: Правильно таким образом очищать список строк?
     ui->tableWidget1->setRowCount(0);
-    for (int i=0; i<FBElem::CURRENT->vParamValues.size(); i++)
+
+    // Просматриваем все атрибуты элемента и выводим в таблицу:
+    // 1. Название атрибута (для всех);
+    // 2. Способ его редактирования (для тех, где этот способ
+    // отличается от простого едита ячейки таблицы);
+    // 3. Имеющееся значение (если его можно вывести).
+    for (int i=0; i<FBElem::CURRENT->attributes.size(); i++)
     {
         int r = ui->tableWidget1->rowCount();
         ui->tableWidget1->setRowCount(r + 1);
 
-        // Ставим заголовок для атрибута:
-//        ui->tableWidget->setVerticalHeaderItem(i,
-//          new QTableWidgetItem(FBElem::CURRENT->vParamValues[i].first.second));
+        // Ищем алиас атрибута.
+        QString attrAlias;
+        for (int x=0; x<FBElem::CURRENT->elemType->attributeNames.size(); x++)
+        {
+            // Ищем алиас атрибута по его имени.
+            if (FBElem::CURRENT->elemType->attributeNames[x].first
+                == FBElem::CURRENT->attributes[i].first)
+            {
+                // Сюда зайдёт обязательно, т.к. элемент FBElem создавался через
+                // FBElemType путём копирования имён атрибутов.
+                // Исторически сложилось что тут мы не использем Map, а ищем в цикле.
+                attrAlias = FBElem::CURRENT->elemType->attributeNames[x].second.ru;
+                break;
+            }
+        }
 
+        // Выводим алиас атрибута как название строки таблицы.
         QTableWidgetItem *itemToAdd;
-        itemToAdd = new QTableWidgetItem(FBElem::CURRENT->vParamValues[i].first.second);
+        itemToAdd = new QTableWidgetItem(attrAlias);
         itemToAdd->setForeground(QBrush(QColor(80,80,80)));
         itemToAdd->setFlags(Qt::ItemIsEditable);
         ui->tableWidget1->setItem(i,0,itemToAdd);
 
-        // Выводим нечто в значение атрибута:
+        // В зависимости от типа элемента и данного его атрибута требуется разная логика
+        // для задания способоа редактирования атрибута и его значения:
 
-        // 1. Комбобокс со списком полей и значение (может не быть в списке).
+        // 1. Элемент - любой; Атрибут - все виды "Целевого поля".
         if (!CUR_PRJ->availableFields.isEmpty()
-                && (FBElem::CURRENT->vParamValues[i].first.first == FBPARAM_field
-                    || FBElem::CURRENT->vParamValues[i].first.first == FBPARAM_field_name
-                    || FBElem::CURRENT->vParamValues[i].first.first == FBPARAM_field_datetime
-                    || FBElem::CURRENT->vParamValues[i].first.first == FBPARAM_field_azimuth
+                && (FBElem::CURRENT->attributes[i].first == FBATTR_field
+                    || FBElem::CURRENT->attributes[i].first == FBATTR_field_name
+                    || FBElem::CURRENT->attributes[i].first == FBATTR_field_datetime
+                    || FBElem::CURRENT->attributes[i].first == FBATTR_field_azimuth
+                    || FBElem::CURRENT->attributes[i].first == FBATTR_field_level1
+                    || FBElem::CURRENT->attributes[i].first == FBATTR_field_level2
                     ))
         {
             // Создаём комбобокс.
             QComboBox *combo = new QComboBox(ui->tableWidget1);
             combo->setEditable(true);
 
+            // Получаем строковое значение атрибута.
+            QString attrValue = QString::fromUtf8(
+                        FBElem::CURRENT->attributes[i].second.asString().data());
+
             // Заполняем комбобокс.
             int index = -1;
             for (int j=0; j<CUR_PRJ->availableFields.size(); j++)
             {
-                if (CUR_PRJ->availableFields[j] == FBElem::CURRENT->vParamValues[i].second)
+                if (CUR_PRJ->availableFields[j]
+                        == attrValue)
                 {
                     index = j;
                 }
                 combo->addItem(CUR_PRJ->availableFields[j]);
             }
-//            ui->tableWidget->setCellWidget(i,0,combo);
             ui->tableWidget1->setCellWidget(i,1,combo);
 
             // Ищем старое сохранённое значение.
             combo->setCurrentIndex(index);
             if (index == -1)
             {
-                combo->setEditText(FBElem::CURRENT->vParamValues[i].second);
+                // TODO: всегда присваивать "<не задано>".
+
+                combo->setEditText(attrValue);
             }
         }
 
-        // 2. Комбобокс Да/Нет.
-        else if (FBElem::CURRENT->vParamValues[i].first.first == FBPARAM_only_figures)
+        // 2. Элемент - текстовый едит; Атрибут - "Только цифры".
+        else if (FBElem::CURRENT->attributes[i].first == FBATTR_only_figures)
         {
             QComboBox *combo = new QComboBox(ui->tableWidget1);
             combo->setEditable(false);
-            combo->addItem(QString::fromUtf8("yes"));
-            combo->addItem(QString::fromUtf8("no"));
-//            ui->tableWidget->setCellWidget(i,0,combo);
+            combo->addItem(QString::fromUtf8("да"));
+            combo->addItem(QString::fromUtf8("нет"));
             ui->tableWidget1->setCellWidget(i,1,combo);
-            if (FBElem::CURRENT->vParamValues[i].second == "yes")
+
+            // Ставим значение атрибута.
+            if (FBElem::CURRENT->attributes[i].second.asBool() == true)
+            {
                 combo->setCurrentIndex(0);
+            }
             else
+            {
                 combo->setCurrentIndex(1);
+            }
         }
 
-        // 3. Комбобокс для выбора значения по умолчанию.
-        else if (FBElem::CURRENT->vParamValues[i].first.first == FBPARAM_default
-         || FBElem::CURRENT->vParamValues[i].first.first == FBPARAM_level1_default)
+        // 3. Элемент - комбобокс или радиогруппа; Атрибут - "Значения".
+        else if ((FBElem::CURRENT->elemType->name == FBELEMTYPE_combobox
+                  || FBElem::CURRENT->elemType->name == FBELEMTYPE_radio_group)
+                 && FBElem::CURRENT->attributes[i].first == FBATTR_values)
         {
-            // Заполняем значения:
-            QStringList vals;
-            for (int j=0; j<FBElem::CURRENT->vParamValues.size(); j++)
-            {
-                if (FBElem::CURRENT->vParamValues[j].first.first == FBPARAM_values
-                || FBElem::CURRENT->vParamValues[j].first.first == FBPARAM_level1_values)
-                {
-                    vals = FBElem::CURRENT->vParamValues[j].second
-                            .split(";",QString::SkipEmptyParts);
-                }
-            }
-            vals.prepend(QString::fromUtf8("<не задано>"));
-            QComboBox *combo = new QComboBox(ui->tableWidget1);
-            combo->setEditable(false);
-            combo->addItems(vals);
-//            ui->tableWidget->setCellWidget(i,0,combo);
-            ui->tableWidget1->setCellWidget(i,1,combo);
-            // Выбираем сохранённое:
-            bool def = false;
-            for (int k=0; k<vals.size(); k++)
-            {
-                if (vals[k] == FBElem::CURRENT->vParamValues[i].second)
-                {
-                    def = true;
-                    combo->setCurrentIndex(k);
-                }
-            }
-            if (!def)
-            {
-                combo->setCurrentIndex(0);
-            }
+            // Выводим кнопку. Текущее значение выводить строкой не нужно.
+            QPushButton *but = new QPushButton(ui->tableWidget1);
+            but->setText(QString::fromUtf8("Задать ..."));
+            ui->tableWidget1->setCellWidget(i,1,but);
+            connect(but,SIGNAL(clicked()),this,SLOT(ShowComboOrRadioDialog()));
+            // NOTE: Считывание JSON-значения пройдёт в методе,
+            // подсоединённому к сигналу.
         }
 
-        // 4. Всё остальное.
+        // 4. Элемент - двухуровневый список; Атрибут - "Значения".
+        else if (FBElem::CURRENT->elemType->name == FBELEMTYPE_double_combobox
+                 && FBElem::CURRENT->attributes[i].first == FBATTR_values)
+        {
+            // Выводим кнопку. Текущее значение выводить строкой не нужно.
+            QPushButton *but = new QPushButton(ui->tableWidget1);
+            but->setText(QString::fromUtf8("Задать ..."));
+            ui->tableWidget1->setCellWidget(i,1,but);
+            connect(but,SIGNAL(clicked()),this,SLOT(ShowDoubleComboDialog()));
+            // NOTE: Считывание JSON-значения пройдёт в методе,
+            // подсоединённому к сигналу.
+        }
+
+        // 5. Элемент - все остальные; Атрибут - все остальные.
         else
         {
+            // Считаем это обычной строкой и выводим в обычную ячейку таблицы.
             QTableWidgetItem *itemToAdd;
-            itemToAdd = new QTableWidgetItem(FBElem::CURRENT->vParamValues[i].second);
-//            ui->tableWidget->setItem(i,0,
+            itemToAdd = new QTableWidgetItem(QString::fromUtf8(
+                        FBElem::CURRENT->attributes[i].second.asString().data()));
             ui->tableWidget1->setItem(i,1,itemToAdd);
         }
     }
+
     ui->groupBox_4->setTitle(QString::fromUtf8("Редактирование элемента: ") +
-                         FBElem::CURRENT->elemType->alias_ru);
+                         FBElem::CURRENT->elemType->alias.ru);
 }
 
 
@@ -1376,101 +1327,93 @@ void FormBuilder::on_toolButton_4_clicked()
     // Просматриваем все атрибуты выделенного элемента (строки таблицы
     // полностью повторяют порядок следования) и сохраняем значения
     // из таблицы в список атрибутов элемента.
-    // TODO: сделать цикл по строкам таблицы.
-    for (int i=0; i<FBElem::CURRENT->vParamValues.size(); i++)
+    for (int i=0; i<FBElem::CURRENT->attributes.size(); i++)
     {
-        // Используем item(i,0). 0 - т.к. самая левая колонка - это не ячейка
-        // а заголовок.
-//        QWidget *widget = ui->tableWidget->cellWidget(i,0);
-        QWidget *widget = ui->tableWidget1->cellWidget(i,1);
+        // В зависимости от типа элемента и данного его атрибута требуется
+        // разная логика доставания значения атрибута из элементов его редактировнаия
+        // и сохранения в массив атрибутов:
 
-        // Мы должны понять что находится в ячейке и как достать оттуда текст.
-
-        // Проверяем, комбобокс ли это.
-        if (widget != NULL)
+        // 1. Элемент - любой; Атрибут - все виды "Целевого поля".
+        if (!CUR_PRJ->availableFields.isEmpty()
+                && (FBElem::CURRENT->attributes[i].first == FBATTR_field
+                    || FBElem::CURRENT->attributes[i].first == FBATTR_field_name
+                    || FBElem::CURRENT->attributes[i].first == FBATTR_field_datetime
+                    || FBElem::CURRENT->attributes[i].first == FBATTR_field_azimuth
+                    || FBElem::CURRENT->attributes[i].first == FBATTR_field_level1
+                    || FBElem::CURRENT->attributes[i].first == FBATTR_field_level2
+                    ))
         {
-            // TODO: определять что за виджет в ячейке:
-            //QMetaObject *objInfo = widget->metaObject();
-            //if ()
-            FBElem::CURRENT->vParamValues[i].second
-                    = static_cast<QComboBox*>(widget)->currentText();
+            // Используем item(i,0). 0 - т.к. самая левая колонка - это не ячейка
+            // а заголовок.
+            QWidget *widget = ui->tableWidget1->cellWidget(i,1);
+            // Проверяем, комбобокс ли это.
+            //if (widget != NULL)
+            //{
+                //const QMetaObject *objInfo = widget->metaObject();
+                //QString className = objInfo->className();
+                //if (className == "QComboBox")
+                //{
+                    Json::Value attrValue;
+                    QByteArray baValue = static_cast<QComboBox*>(widget)
+                            ->currentText().toUtf8();
+                    attrValue = baValue.data();
+                    FBElem::CURRENT->attributes[i].second = attrValue;
+                //}
+            //}
         }
+
+        // 2. Элемент - текстовый едит; Атрибут - "Только цифры".
+        else if (FBElem::CURRENT->attributes[i].first == FBATTR_only_figures)
+        {
+            // Используем item(i,0). 0 - т.к. самая левая колонка - это не ячейка
+            // а заголовок.
+            QWidget *widget = ui->tableWidget1->cellWidget(i,1);
+            // Проверяем, комбобокс ли это.
+            //if (widget != NULL)
+            //{
+                //const QMetaObject *objInfo = widget->metaObject();
+                //QString className = objInfo->className();
+                //if (className == "QComboBox")
+                //{
+                    Json::Value attrValue;
+                    if (static_cast<QComboBox*>(widget)->currentText()
+                            == QString::fromUtf8("да"))
+                        attrValue = true;
+                    else
+                        attrValue = false;
+                    FBElem::CURRENT->attributes[i].second = attrValue;
+                //}
+            //}
+        }
+
+        // 3. Элемент - комбобокс или радиогруппа; Атрибут - "Значения".
+        else if ((FBElem::CURRENT->elemType->name == FBELEMTYPE_combobox
+                  || FBElem::CURRENT->elemType->name == FBELEMTYPE_radio_group)
+                 && FBElem::CURRENT->attributes[i].first == FBATTR_values)
+        {
+            // NOTE: атрибут будет считан и сохранён в специальном диалоге
+            // при нажатии кнопки в этой ячейке. Это ветвление нужно чтобы не
+            // выводилась простая строка.
+        }
+
+        // 4. Элемент - двухуровневый список; Атрибут - "Значения".
+        else if (FBElem::CURRENT->elemType->name == FBELEMTYPE_double_combobox
+                 && FBElem::CURRENT->attributes[i].first == FBATTR_values)
+        {
+            // NOTE: атрибут будет считан и сохранён в специальном диалоге
+            // при нажатии кнопки в этой ячейке. Это ветвление нужно чтобы не
+            // выводилась простая строка.
+        }
+
+        // 5. Элемент - все остальные; Атрибут - все остальные.
         else
         {
-            FBElem::CURRENT->vParamValues[i].second
-//                    = ui->tableWidget->item(i,0)->text();
-                    = ui->tableWidget1->item(i,1)->text();
+            Json::Value attrValue;
+            QByteArray baValue = ui->tableWidget1->item(i,1)->text().toUtf8();
+            attrValue = baValue.data();
+            FBElem::CURRENT->attributes[i].second = attrValue;
         }
     }
-
-    // Логика для двухуровневого списка: если задано несколько значений
-    // уровня 1, то добавить столько же атрибутов уровня 2.
-    if (FBElem::CURRENT->elemType->type == FBDoubleList)
-    {
-        QStringList attrs_to_add;
-        int attrs_was = 0;
-
-        // Сначала считаем кол-во атрибутов уровня 2 для добавления/удаления.
-        for (int i=0; i<FBElem::CURRENT->vParamValues.size(); i++)
-        {
-            if (FBElem::CURRENT->vParamValues[i].first.first
-                    == FBPARAM_level1_values)
-            {
-                attrs_to_add = FBElem::CURRENT->vParamValues[i].second
-                    .split(";",QString::SkipEmptyParts);
-            }
-            // Запоминаем значения уже существующих атрибутов второго уровня.
-            else if (FBElem::CURRENT->vParamValues[i].first.first
-                     == FBPARAM_level2_values)
-            {
-                attrs_was++;
-            }
-        }
-
-        // Мы не можем стереть весь список атрибутов для уровня 2, т.к.
-        // необходимо сохранить уже заданные для них значения.
-
-        // Добавляем столько атрибутов, сколько задано через ; в уровне 1, но с тем,
-        // чтобы не затереть уже существующие.
-        if (attrs_was < attrs_to_add.size())
-        {
-            for (int k=0; k<attrs_to_add.size()-attrs_was; k++)
-            {
-                QPair<QString,QString> pv (FBPARAM_level2_values,
-                        QString::fromUtf8("Уровень 2 для [")
-                        + attrs_to_add[attrs_was + k]
-                        + QString::fromUtf8("]: значения через \';\'"));
-                QPair<QString,QString> pd (FBPARAM_level2_default,
-                        QString::fromUtf8("Уровень 2 для [")
-                        + attrs_to_add[attrs_was + k]
-                        + QString::fromUtf8("]: значение по умолчанию"));
-                FBElem::CURRENT->vParamValues.append(
-                            QPair<QPair<QString,QString>,QString>(pv,""));
-                FBElem::CURRENT->vParamValues.append(
-                            QPair<QPair<QString,QString>,QString>(pd,""));
-            }
-        }
-
-        // Удаляем столько атрибутов с конца, на сколько уменьшился уровень 1.
-        else if (attrs_was > attrs_to_add.size())
-        {
-            for (int k=0; k<attrs_was-attrs_to_add.size(); k++)
-            {
-                // Удаляем два раза: values и default
-                FBElem::CURRENT->vParamValues.removeLast();
-                FBElem::CURRENT->vParamValues.removeLast();
-            }
-        }
-
-        // Если списков уровня 2 для этого сохранения такое же кол-во, как и было -
-        // то ничего не меняем.
-
-        // TODO: сделать чтобы переименовывались названия атрибутов и не затирались
-        // не те значения, при смене кол-ва списков второго уровня.
-    }
-
-    // Перерисовываем таблицу.
-    OnElemPressed ();
 }
 
 
@@ -1572,6 +1515,228 @@ void FormBuilder::OnActionOrtnAlb ()
     {
         // Не даём снять галку.
         actionOrtnAlb->setChecked(true);
+    }
+}
+
+
+// Редактирование элементов комбобокса или радиогруппы.
+void FormBuilder::ShowComboOrRadioDialog()
+{
+    FBListDialog dialog (FBElem::CURRENT->elemType->name,this);
+
+    //Достаём данные из JSON-значения атрибута и выводим их в созданный диалог.
+
+    Json::Value arrayValue;
+    for (int i=0; i<FBElem::CURRENT->attributes.size(); i++)
+    {
+        if (FBElem::CURRENT->attributes[i].first == FBATTR_values)
+        {
+            arrayValue = FBElem::CURRENT->attributes[i].second;
+            break;
+        }
+    }
+
+    int defaultIndex = 0;
+    for (int i=0; i<arrayValue.size(); ++i)
+    {
+        Json::Value elemValue;
+        elemValue = arrayValue[i];
+        QListWidgetItem *item;
+        item = new QListWidgetItem();
+
+        item->setText(QString::fromUtf8(elemValue[FBJSONKEY_alias].asString().data()));
+        item->setData(Qt::UserRole,QString::fromUtf8(elemValue[FBJSONKEY_name].asString().data()));
+        dialog.listLeft->addItem(item);
+
+        Json::Value defaultValue;
+        defaultValue = elemValue[FBJSONKEY_default];
+        if (!defaultValue.isNull() && defaultValue == true)
+        {
+            defaultIndex = i+1; // почему +1 см. ниже
+        }
+    }
+    dialog.refreshLeftCombo(0,"nothing"); // чтобы наполнить комбобокс элементами
+    dialog.comboLeft->setCurrentIndex(defaultIndex);
+
+    //Достаём данные из диалога и формируем JSON-значение атрибута.
+
+    if (dialog.exec())
+    {
+        Json::Value arrayValue;
+
+        for (int i=0; i<dialog.listLeft->count(); i++)
+        {
+            Json::Value elemValue;
+            Json::Value value;
+            QListWidgetItem *item;
+            QByteArray ba;
+
+            item = dialog.listLeft->item(i);
+
+            ba = item->text().toUtf8();
+            value = ba.data();
+            elemValue[FBJSONKEY_alias] = value;
+
+            ba = item->data(Qt::UserRole).toString().toUtf8();
+            value = ba.data();
+            elemValue[FBJSONKEY_name] = value;
+
+            if (dialog.comboLeft->currentIndex() != 0
+                   && dialog.comboLeft->currentIndex() == i+1) // почему +1 см. ниже
+            {
+                elemValue[FBJSONKEY_default] = true;
+            }
+
+            arrayValue.append(elemValue);
+        }
+
+        // Ищем атрибут "Значения" и присваеваем ему заданное значение.
+        for (int i=0; i<FBElem::CURRENT->attributes.size(); i++)
+        {
+            if (FBElem::CURRENT->attributes[i].first == FBATTR_values)
+            {
+                FBElem::CURRENT->attributes[i].second = arrayValue;
+                break;
+            }
+        }
+    }
+}
+
+
+// Редактирование элементов сдвоенного комбобокса.
+void FormBuilder::ShowDoubleComboDialog()
+{
+    FBListDialog dialog (FBElem::CURRENT->elemType->name,this);
+
+    //Достаём данные из JSON-значения атрибута и выводим их в созданный диалог.
+
+    Json::Value arrayValue;
+    for (int i=0; i<FBElem::CURRENT->attributes.size(); i++)
+    {
+        if (FBElem::CURRENT->attributes[i].first == FBATTR_values)
+        {
+            arrayValue = FBElem::CURRENT->attributes[i].second;
+            break;
+        }
+    }
+
+    int defaultIndex = 0;
+    for (int i=0; i<arrayValue.size(); ++i)
+    {
+        Json::Value elemValue;
+        elemValue = arrayValue[i];
+        QListWidgetItem *item;
+        item = new QListWidgetItem();
+
+        item->setText(QString::fromUtf8(elemValue[FBJSONKEY_alias].asString().data()));
+        item->setData(Qt::UserRole,QString::fromUtf8(elemValue[FBJSONKEY_name].asString().data()));
+        dialog.listLeft->addItem(item);
+
+        Json::Value defaultValue;
+        defaultValue = elemValue[FBJSONKEY_default];
+        if (!defaultValue.isNull() && defaultValue == true)
+        {
+            defaultIndex = i+1; // почему +1 см. ниже
+        }
+
+        dialog.listsRight.append(new QListWidget(this));
+        dialog.listsLayoutRight->addWidget(dialog.listsRight.last());
+        connect(dialog.listsRight.last(), SIGNAL(itemClicked(QListWidgetItem*)),
+                &dialog, SLOT(OnRightItemSelected(QListWidgetItem*)));
+        dialog.listsRight.last()->hide();
+        dialog.combosRight.append(new QComboBox(this));
+        dialog.combosLayoutRight->addWidget(dialog.combosRight.last());
+        dialog.combosRight.last()->hide(); // наполнение будет потом
+        Json::Value array2Value;
+        array2Value = elemValue[FBJSONKEY_values];
+        int default2Index = 0;
+        for (int j=0; j<array2Value.size(); ++j)
+        {
+            Json::Value elem2Value;
+            elem2Value = array2Value[j];
+            item = new QListWidgetItem();
+            item->setText(QString::fromUtf8(elem2Value[FBJSONKEY_alias].asString().data()));
+            item->setData(Qt::UserRole,QString::fromUtf8(elem2Value[FBJSONKEY_name].asString().data()));
+            dialog.listsRight.last()->addItem(item);
+
+            Json::Value default2Value;
+            default2Value = elem2Value[FBJSONKEY_default];
+            if (!default2Value.isNull() && default2Value == true)
+            {
+                default2Index = j+1; // почему +1 см. ниже
+            }
+        }
+        dialog.pListRight = dialog.listsRight.last(); // чтобы сработало обновление комбобокса
+        dialog.pComboRight = dialog.combosRight.last();
+        dialog.refreshRightCombo(0,"nothing"); // чтобы наполнить комбобокс элементами
+        dialog.pComboRight->setCurrentIndex(default2Index);
+        dialog.pListRight = dialog.listsRight.first(); // возвращаем на место
+        dialog.pComboRight = dialog.combosRight.first();
+    }
+    dialog.refreshLeftCombo(0,"nothing"); // чтобы наполнить комбобокс элементами
+    dialog.comboLeft->setCurrentIndex(defaultIndex);
+
+    //Достаём данные из диалога и формируем JSON-значение атрибута.
+
+    if (dialog.exec())
+    {
+        Json::Value arrayValue;
+
+        for (int i=0; i<dialog.listLeft->count(); i++)
+        {
+            Json::Value elemValue;
+            Json::Value value;
+            QListWidgetItem *item;
+            QByteArray ba;
+
+            item = dialog.listLeft->item(i);
+
+            ba = item->text().toUtf8();
+            value = ba.data();
+            elemValue[FBJSONKEY_alias] = value;
+
+            ba = item->data(Qt::UserRole).toString().toUtf8();
+            value = ba.data();
+            elemValue[FBJSONKEY_name] = value;
+
+            if (dialog.comboLeft->currentIndex() != 0
+                   && dialog.comboLeft->currentIndex() == i+1) // почему +1 см. ниже
+            {
+                elemValue[FBJSONKEY_default] = true;
+            }
+
+            Json::Value array2Value;
+            for (int j=0; j<dialog.listsRight[i+1]->count(); j++) // почему +1 см. ниже
+            {
+                Json::Value elem2Value;
+                item = dialog.listsRight[i+1]->item(j);
+                ba = item->text().toUtf8();
+                value = ba.data();
+                elem2Value[FBJSONKEY_alias] = value;
+                ba = item->data(Qt::UserRole).toString().toUtf8();
+                value = ba.data();
+                elem2Value[FBJSONKEY_name] = value;
+                if (dialog.combosRight[i+1]->currentIndex() != 0
+                      && dialog.combosRight[i+1]->currentIndex() == j+1) // почему +1 см. ниже
+                {
+                    elem2Value[FBJSONKEY_default] = true;
+                }
+                array2Value.append(elem2Value);
+            }
+            elemValue[FBJSONKEY_values] = array2Value;
+
+            arrayValue.append(elemValue);
+        }
+
+        // Ищем атрибут "Значения" и присваеваем ему заданное значение.
+        for (int i=0; i<FBElem::CURRENT->attributes.size(); i++)
+        {
+            if (FBElem::CURRENT->attributes[i].first == FBATTR_values)
+            {
+                FBElem::CURRENT->attributes[i].second = arrayValue;
+                break;
+            }
+        }
     }
 }
 
@@ -1895,17 +2060,556 @@ QList<QTreeWidgetItem*> FBConnectButton::_ParseJsonReply(QNetworkReply *reply)
 }
 
 
-/*
-void FBConnectButton::HttpCancel()
-{
+//void FBConnectButton::HttpCancel()
+//{
+//
+//}
 
+//void FBConnectButton::HttpSslErrors(QNetworkReply*,const QList<QSslError> &errors)
+//{
+//
+//}
+
+
+// ************************************************************************** //
+// ************************ FBDoubleListEditDialog ************************** //
+// ************************************************************************** //
+
+FBListDialog::FBListDialog(QString listType, QWidget *parent)
+{
+    //this->setParent(parent);
+
+    this->listType = listType;
+
+// Левая часть:
+
+    labelLeft = new QLabel(this);
+    labelLeft->setText(QString::fromUtf8("Главный список:"));
+
+    listLeft = new QListWidget(this);
+
+    buttonAddLeft = new QPushButton(this);
+    buttonAddLeft->setText(QString::fromUtf8("Добавить"));
+    buttonRemoveLeft = new QPushButton(this);
+    buttonRemoveLeft->setText(QString::fromUtf8("Удалить"));
+    buttonRemoveLeft->setEnabled(false);
+    QHBoxLayout *hll = new QHBoxLayout();
+    hll->addWidget(buttonAddLeft);
+    hll->addWidget(buttonRemoveLeft);
+
+    groupLeft = new QGroupBox(this);
+    groupLeft->setTitle(QString::fromUtf8("Редактирование:"));
+    groupLeft->setEnabled(false);
+    editNameLeft = new QLineEdit(groupLeft);
+    labelNameLeft = new QLabel(groupLeft);
+    labelNameLeft->setText(QString::fromUtf8("Название: "));
+    QHBoxLayout *hlll1 = new QHBoxLayout();
+    hlll1->addWidget(labelNameLeft);
+    hlll1->addWidget(editNameLeft);
+    editAliasLeft = new QLineEdit(groupLeft);
+    labelAliasLeft = new QLabel(groupLeft);
+    labelAliasLeft->setText(QString::fromUtf8("Отображаемое название: "));
+    QHBoxLayout *hlll2 = new QHBoxLayout();
+    hlll2->addWidget(labelAliasLeft);
+    hlll2->addWidget(editAliasLeft);
+    buttonModifyLeft = new QPushButton(groupLeft);
+    buttonModifyLeft->setText(QString::fromUtf8("Изменить"));
+    QVBoxLayout *vll = new QVBoxLayout(groupLeft);
+    vll->addLayout(hlll1);
+    vll->addLayout(hlll2);
+    vll->addWidget(buttonModifyLeft);
+
+    labelComboLeft = new QLabel(this);
+    labelComboLeft->setText(QString::fromUtf8("По умолчанию:"));
+    comboLeft = new QComboBox(this);
+    comboLeft->addItem(QString::fromUtf8("<не задано>"));
+    QHBoxLayout *hll2 = new QHBoxLayout();
+    hll2->addWidget(labelComboLeft);
+    hll2->addWidget(comboLeft);
+
+    QVBoxLayout *vl = new QVBoxLayout();
+    vl->addWidget(labelLeft);
+    vl->addWidget(listLeft);
+    vl->addLayout(hll);
+    vl->addWidget(groupLeft);
+    vl->addLayout(hll2);
+
+// Правая часть:
+
+    QVBoxLayout *vr;
+
+    // Выводим её только, если диалог для двухуровневого списка.
+    if (listType == FBELEMTYPE_double_combobox)
+    {
+        labelRight = new QLabel(this);
+        labelRight->setText(QString::fromUtf8("Зависимый список:"));
+
+        // Добавляем пустой список. После загрузки остальных списков (во внешнем
+        // методе), этот обязательно остаётся для показа пустого списка, если
+        // остальные будут в процессе удалены.
+        listsLayoutRight = new QHBoxLayout();
+        listsRight.append(new QListWidget(this));
+        // Текущий список - тот что добавили.
+        pListRight = listsRight[0];
+        // Мы создали специальную раскладку, что бы в неё добавлять все виджеты
+        // для списков второго уровня.
+        listsLayoutRight->addWidget(pListRight);
+        pListRight->setEnabled(false);
+
+        buttonAddRight = new QPushButton(this);
+        buttonAddRight->setText(QString::fromUtf8("Добавить"));
+        buttonAddRight->setEnabled(false);
+        buttonRemoveRight = new QPushButton(this);
+        buttonRemoveRight->setText(QString::fromUtf8("Удалить"));
+        buttonRemoveRight->setEnabled(false);
+        QHBoxLayout *hrr = new QHBoxLayout();
+        hrr->addWidget(buttonAddRight);
+        hrr->addWidget(buttonRemoveRight);
+
+        groupRight = new QGroupBox(this);
+        groupRight->setTitle(QString::fromUtf8("Редактирование:"));
+        groupRight->setEnabled(false);
+        editNameRight = new QLineEdit(groupRight);
+        labelNameRight = new QLabel(groupRight);
+        labelNameRight->setText(QString::fromUtf8("Название: "));
+        QHBoxLayout *hrrr1 = new QHBoxLayout();
+        hrrr1->addWidget(labelNameRight);
+        hrrr1->addWidget(editNameRight);
+        editAliasRight = new QLineEdit(groupRight);
+        labelAliasRight = new QLabel(groupRight);
+        labelAliasRight->setText(QString::fromUtf8("Отображаемое название: "));
+        QHBoxLayout *hrrr2 = new QHBoxLayout();
+        hrrr2->addWidget(labelAliasRight);
+        hrrr2->addWidget(editAliasRight);
+        buttonModifyRight = new QPushButton(groupRight);
+        buttonModifyRight->setText(QString::fromUtf8("Изменить"));
+        QVBoxLayout *vrr = new QVBoxLayout(groupRight);
+        vrr->addLayout(hrrr1);
+        vrr->addLayout(hrrr2);
+        vrr->addWidget(buttonModifyRight);
+
+        labelComboRight = new QLabel(this);
+        labelComboRight->setText(QString::fromUtf8("По умолчанию:"));
+        // У нас будет несколько комбобоксов, по аналогии со списками.
+        // Сейчас мы добавляем комбо-заглушку так же по аналогии: что бы
+        // просто отображать что-то, пока никаких элементов ещё нет (или
+        // все уже удалены).
+        combosRight.append(new QComboBox(this));
+        pComboRight = combosRight[0];
+        pComboRight->setEnabled(false);
+        combosLayoutRight = new QHBoxLayout();
+        combosLayoutRight->addWidget(labelComboRight);
+        combosLayoutRight->addWidget(pComboRight);
+
+        vr = new QVBoxLayout();
+        vr->addWidget(labelRight);
+        vr->addLayout(listsLayoutRight);
+        vr->addLayout(hrr);
+        vr->addWidget(groupRight);
+        vr->addLayout(combosLayoutRight);
+    }
+
+    // Если это одноуровневый список то переименовываем поля левой части.
+    else if (listType == FBELEMTYPE_combobox)
+    {
+        labelLeft->setText(QString::fromUtf8("Элементы списка:"));
+    }
+
+    // Если это радиогруппа то переименовываем поля левой части.
+    else if (listType == FBELEMTYPE_radio_group)
+    {
+        labelLeft->setText(QString::fromUtf8("Элементы группы:"));
+    }
+
+// Общая часть:
+
+    QHBoxLayout *h = new QHBoxLayout();
+    h->addLayout(vl);
+    if (listType == FBELEMTYPE_double_combobox)
+    {
+        h->addSpacing(10);
+        h->addLayout(vr);
+    }
+
+    buttonOk = new QPushButton(this);
+    buttonOk->setText(QString::fromUtf8("ОК"));
+
+    QVBoxLayout *v = new QVBoxLayout();
+    v->addLayout(h);
+    v->addWidget(buttonOk);
+    setLayout(v);
+
+    connect(buttonOk, SIGNAL(clicked()), this, SLOT(OnOkClicked()));
+
+    connect(listLeft, SIGNAL(itemClicked(QListWidgetItem*)),
+            this, SLOT(OnLeftItemSelected(QListWidgetItem*)));
+    connect(buttonAddLeft, SIGNAL(clicked()), this, SLOT(OnLeftAddClicked()));
+    connect(buttonRemoveLeft, SIGNAL(clicked()), this, SLOT(OnLeftDeleteClicked()));
+    connect(buttonModifyLeft, SIGNAL(clicked()), this, SLOT(OnLeftFixClicked()));
+
+    if (listType == FBELEMTYPE_double_combobox)
+    {
+        setWindowTitle(QString::fromUtf8("Ввод элементов двухуровневого списка ..."));
+
+        connect(pListRight, SIGNAL(itemClicked(QListWidgetItem*)),
+                this, SLOT(OnRightItemSelected(QListWidgetItem*)));
+        connect(buttonAddRight, SIGNAL(clicked()), this, SLOT(OnRightAddClicked()));
+        connect(buttonRemoveRight, SIGNAL(clicked()), this, SLOT(OnRightDeleteClicked()));
+        connect(buttonModifyRight, SIGNAL(clicked()), this, SLOT(OnRightFixClicked()));
+    }
+    else if (listType == FBELEMTYPE_combobox)
+    {
+        setWindowTitle(QString::fromUtf8("Ввод элементов выпадающего списка ..."));
+    }
+    else if (listType == FBELEMTYPE_radio_group)
+    {
+        setWindowTitle(QString::fromUtf8("Ввод элементов радио-группы ..."));
+    }
 }
 
-void FBConnectButton::HttpSslErrors(QNetworkReply*,const QList<QSslError> &errors)
+
+void FBListDialog::OnOkClicked()
 {
-
+    this->accept();
 }
-*/
+
+void FBListDialog::OnCancelClicked()
+{
+    this->reject();
+}
+
+
+void FBListDialog::OnLeftItemSelected(QListWidgetItem* item)
+{
+    editAliasLeft->setText(item->text());
+    editNameLeft->setText(item->data(Qt::UserRole).toString());
+    groupLeft->setEnabled(true);
+    buttonRemoveLeft->setEnabled(true);
+
+    // Выводим содержимое правого списка + комбокса для умолчания, если мы
+    // редактируем двухуровневый.
+    if (listType == FBELEMTYPE_double_combobox)
+    {
+        // +1, т.к. в массиве списков их всегда на один больше - нулевой всегда
+        // дополнительный и пустой.
+        pListRight->hide();
+        pListRight = listsRight[listLeft->currentRow() + 1];
+        pListRight->show();
+         pComboRight->hide();
+         pComboRight = combosRight[listLeft->currentRow() + 1];
+         pComboRight->show();
+        pListRight->setCurrentRow(-1);
+        editAliasRight->setText("");
+        editNameRight->setText("");
+        refreshRightCombo(0,"modified"); // чтобы просто отобразить когда-то выбранное значение
+        pListRight->setEnabled(true);
+        buttonAddRight->setEnabled(true);
+        pComboRight->setEnabled(true);
+        buttonRemoveRight->setEnabled(false);
+        groupRight->setEnabled(false);
+        // Укорачиваем имя элемента, если оно слишком большое.
+        QString level1name = item->text();
+        if (level1name.size() > 15)
+        {
+            level1name.truncate(15);
+            level1name += QString::fromUtf8("...");
+        }
+        labelRight->setText(QString::fromUtf8("Зависимый список для [")
+                            + level1name + QString::fromUtf8("]:"));
+    }
+}
+
+
+void FBListDialog::OnLeftAddClicked()
+{
+    if (listLeft->count() == FBMaxComboElemsCount)
+        return;
+    QListWidgetItem *item = new QListWidgetItem(QString::fromUtf8(FBLIST_new_alias));
+    item->setData(Qt::UserRole,QString::fromUtf8(FBLIST_new_name));
+    listLeft->addItem(item);
+    refreshLeftCombo(0,"added"); // вместо 0 можно любое число, здесь это не играет роли
+    listLeft->setCurrentRow(listLeft->count()-1);
+    editAliasLeft->setText(QString::fromUtf8(FBLIST_new_alias));
+    editNameLeft->setText(QString::fromUtf8(FBLIST_new_name));
+    groupLeft->setEnabled(true);
+    buttonRemoveLeft->setEnabled(true);
+
+    // Добавляем новый пустой список и комбобокс для умолчаний в правую часть.
+    if (listType == FBELEMTYPE_double_combobox)
+    {
+        pListRight->hide();
+        listsRight.append(new QListWidget(this));
+        pListRight = listsRight.last();
+        connect(pListRight, SIGNAL(itemClicked(QListWidgetItem*)),
+                this, SLOT(OnRightItemSelected(QListWidgetItem*)));
+        listsLayoutRight->addWidget(pListRight);
+        pListRight->show();
+         pComboRight->hide();
+         combosRight.append(new QComboBox(this));
+         pComboRight = combosRight.last();
+         pComboRight->addItem(QString::fromUtf8("<не задано>"));
+         combosLayoutRight->addWidget(pComboRight);
+        pListRight->setCurrentRow(-1);
+        editAliasRight->setText("");
+        editNameRight->setText("");
+        refreshRightCombo(0,"nothing"); // чтобы отобразить, что ещё ничего не выбрано в качестве умолчаний
+        pListRight->setEnabled(true);
+        buttonAddRight->setEnabled(true);
+        pComboRight->setEnabled(true);
+        buttonRemoveRight->setEnabled(false);
+        groupRight->setEnabled(false);
+        QString level1name = item->text();
+        if (level1name.size() > 15)
+        {
+            level1name.truncate(15);
+            level1name += QString::fromUtf8("...");
+        }
+        labelRight->setText(QString::fromUtf8("Зависимый список для [")
+                            + level1name + QString::fromUtf8("]:"));
+    }
+}
+
+void FBListDialog::OnLeftDeleteClicked()
+{
+    if (listLeft->currentRow() < 0)
+        return;
+
+    // Удаляем соответствующий список для элементов второго уровня из правой части.
+    if (listType == FBELEMTYPE_double_combobox)
+    {
+        QMessageBox msgBox;
+        msgBox.setText(QString::fromUtf8("Это так же удалит все соответствующие"
+                                         " элементы уровня 2. Продолжить?"));
+        msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+        msgBox.setDefaultButton(QMessageBox::Cancel);
+        int ret = msgBox.exec();
+        if (ret != QMessageBox::Ok)
+            return;
+
+        // Показываем пустой список.
+        pListRight->hide();
+        pListRight = listsRight[0];
+        pListRight->show();
+        // Удаляем старый. Почему +1 см выше.
+        QListWidget *widget = listsRight.takeAt(listLeft->currentRow() + 1);
+        delete widget;
+         pComboRight->hide();
+         pComboRight = combosRight[0]; // по аналогии показываем пустой комбо для умолчаний
+         pComboRight->show();
+         QComboBox *combo = combosRight.takeAt(listLeft->currentRow() + 1);
+         delete combo;
+        pListRight->setCurrentRow(-1);
+        editAliasRight->setText("");
+        editNameRight->setText("");
+        refreshRightCombo(0,"nothing"); // здесь не должно ничего показаться, т.к. текущий комбо - пустой
+        pListRight->setEnabled(false);
+        buttonAddRight->setEnabled(false);
+        buttonRemoveRight->setEnabled(false);
+        groupRight->setEnabled(false);
+        pComboRight->setEnabled(false);
+        labelRight->setText(QString::fromUtf8("Зависимый список:"));
+    }
+
+    int curRow = listLeft->currentRow();
+    QListWidgetItem *item = listLeft->takeItem(curRow);
+    delete item;
+    listLeft->setCurrentRow(-1);
+    editAliasLeft->setText("");
+    editNameLeft->setText("");
+    refreshLeftCombo(curRow,"deleted");
+    buttonRemoveLeft->setEnabled(false);
+    groupLeft->setEnabled(false);
+}
+
+void FBListDialog::OnLeftFixClicked()
+{
+    if (listLeft->currentRow() < 0)
+        return;
+    QListWidgetItem *item = listLeft->currentItem();
+    item->setText(editAliasLeft->text());
+    item->setData(Qt::UserRole,editNameLeft->text());
+    refreshLeftCombo(0,"modified"); // вместо 0 можно любое число, здесь это не играет роли
+
+    if (listType == FBELEMTYPE_double_combobox)
+    {
+        QString level1name = item->text();
+        if (level1name.size() > 15)
+        {
+            level1name.truncate(15);
+            level1name += QString::fromUtf8("...");
+        }
+        labelRight->setText(QString::fromUtf8("Зависимый список для [")
+                            + level1name + QString::fromUtf8("]:"));
+    }
+}
+
+
+void FBListDialog::refreshLeftCombo(int elemIndex, QString actionWithElem)
+{
+    // Определяем изменится ли элемент по-умолчанию и как.
+    int indexToSet;
+
+    // Т.к. элементов в списке всегда на 1 меньше чем элементов в комбобоксе
+    // (там есть элемент "не задано") надо инкрементировать индекс элемента,
+    // с которым было произведено дейсвтие. На этом этапе ВСЕ индексы в списке
+    // соответсвуют индексам в комбобоксе.
+    elemIndex++;
+
+    // Если уже стояло "не задано", то ничего измениться не может.
+    if (comboLeft->currentIndex() == 0)
+    {
+        indexToSet = 0;
+    }
+
+    // Добавление происходит всегда в конец и индекс не может измениться.
+    else if (actionWithElem == "added")
+    {
+        indexToSet = comboLeft->currentIndex();
+    }
+
+    // Если удалили элемент, расположенный в списке до элемента по умолчанию,
+    // то инжекс надо декрементировать. Если удалили именно элемент по умолчанию
+    // то индекс надо поставить на "не определено".
+    else if (actionWithElem == "deleted")
+    {
+        if (elemIndex == comboLeft->currentIndex())
+        {
+            indexToSet = 0;
+        }
+        else if (elemIndex < comboLeft->currentIndex())
+        {
+            indexToSet = comboLeft->currentIndex() - 1;
+        }
+        else
+        {
+            indexToSet = comboLeft->currentIndex();
+        }
+    }
+
+    // При простом изменении ничего не происходит.
+    else if (actionWithElem == "modified")
+    {
+        indexToSet = comboLeft->currentIndex();
+    }
+
+    // Если не так заданы параметры.
+    else
+    {
+        indexToSet = 0;
+    }
+
+    comboLeft->clear();
+    comboLeft->addItem(QString::fromUtf8("<не задано>"));
+    for (int i=0; i<listLeft->count(); i++)
+    {
+        comboLeft->addItem(listLeft->item(i)->text());
+    }
+
+    comboLeft->setCurrentIndex(indexToSet);
+}
 
 
 
+
+
+void FBListDialog::OnRightItemSelected(QListWidgetItem* item)
+{
+    editAliasRight->setText(item->text());
+    editNameRight->setText(item->data(Qt::UserRole).toString());
+    buttonRemoveRight->setEnabled(true);
+    groupRight->setEnabled(true);
+}
+
+void FBListDialog::OnRightAddClicked()
+{
+    if (pListRight->count() == FBMaxComboElemsCount)
+        return;
+    QListWidgetItem *item = new QListWidgetItem(QString::fromUtf8(FBLIST_new_alias));
+    item->setData(Qt::UserRole,QString::fromUtf8(FBLIST_new_name));
+    pListRight->addItem(item);
+    refreshRightCombo(0,"added"); // 0 тут не важен, см. аналогичное для левого комбо
+    pListRight->setCurrentRow(pListRight->count()-1);
+    editAliasRight->setText(QString::fromUtf8(FBLIST_new_alias));
+    editNameRight->setText(QString::fromUtf8(FBLIST_new_name));
+    buttonRemoveRight->setEnabled(true);
+    groupRight->setEnabled(true);
+}
+
+void FBListDialog::OnRightDeleteClicked()
+{
+    if (pListRight->currentRow() < 0)
+        return;
+    int curRow = pListRight->currentRow();
+    QListWidgetItem *item = pListRight->takeItem(curRow);
+    delete item;
+    refreshRightCombo(curRow,"deleted");
+    pListRight->setCurrentRow(-1);
+    editAliasRight->setText("");
+    editNameRight->setText("");
+    buttonRemoveRight->setEnabled(false);
+    groupRight->setEnabled(false);
+}
+
+void FBListDialog::OnRightFixClicked()
+{
+    if (pListRight->currentRow() < 0)
+        return;
+    QListWidgetItem *item = pListRight->currentItem();
+    item->setText(editAliasRight->text());
+    item->setData(Qt::UserRole,editNameRight->text());
+    refreshRightCombo(0,"modified"); // 0 тут не важен, см. аналогичное для левого комбо
+}
+
+
+void FBListDialog::refreshRightCombo(int elemIndex, QString actionWithElem)
+{
+    // Все комментарии см. аналогичный метод для левого комбобокса.
+    int indexToSet;
+
+    elemIndex++;
+
+    if (pComboRight->currentIndex() == 0)
+    {
+        indexToSet = 0;
+    }
+
+    else if (actionWithElem == "added")
+    {
+        indexToSet = pComboRight->currentIndex();
+    }
+
+    else if (actionWithElem == "deleted")
+    {
+        if (elemIndex == pComboRight->currentIndex())
+        {
+            indexToSet = 0;
+        }
+        else if (elemIndex < pComboRight->currentIndex())
+        {
+            indexToSet = pComboRight->currentIndex() - 1;
+        }
+        else
+        {
+            indexToSet = pComboRight->currentIndex();
+        }
+    }
+
+    else if (actionWithElem == "modified")
+    {
+        indexToSet = pComboRight->currentIndex();
+    }
+
+    else
+    {
+        indexToSet = 0;
+    }
+
+    pComboRight->clear();
+    pComboRight->addItem(QString::fromUtf8("<не задано>"));
+    for (int i=0; i<pListRight->count(); i++)
+    {
+        pComboRight->addItem(pListRight->item(i)->text());
+    }
+
+    pComboRight->setCurrentIndex(indexToSet);
+}

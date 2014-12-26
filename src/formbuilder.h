@@ -40,7 +40,6 @@
 #include <QPushButton>
 #include <QTabWidget>
 #include <QAction>
-//#include <QMouseEvent>
 #include <QFileDialog>
 #include <QComboBox>
 #include <QListWidget>
@@ -48,6 +47,7 @@
 #include <QTextEdit>
 #include <QTreeWidget>
 #include <QProgressBar>
+#include <QGroupBox>
 
 #include <QFile>
 #include <QTemporaryFile>
@@ -55,18 +55,16 @@
 
 #include <QMap>
 
-#include <QDomDocument>
-#include <QDomElement>
-#include <QDomText>
-#include <QDomComment>
-#include <QDomNode>
-
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QAuthenticator>
 #include <QUrl>
 
+#include <QDialog>
+
 #include "ogrsf_frmts.h"
+
+#include "json/json.h"
 
 // Различные константные размеры.
 #define FBParentLabelVertWidth 289
@@ -78,52 +76,43 @@
 #define FBMaxPageCount 10
 #define FBMaxElemInPageCount 50
 #define FBMaxTabNameCharCount 25
+#define FBMaxComboElemsCount 100
 
 // Имена атрибутов элементов интерфейса.
-#define FBPARAM_field "field"
-#define FBPARAM_caption "caption"
-#define FBPARAM_default "default"
-#define FBPARAM_text "text"
-#define FBPARAM_value "value"
-#define FBPARAM_values "values"
-#define FBPARAM_only_figures "only_figures"
-#define FBPARAM_max_char_count "max_char_count"
-#define FBPARAM_values_sets "values_sets"
-#define FBPARAM_defaults "defaults"
-#define FBPARAM_field_name "field_name"
-#define FBPARAM_field_azimuth "field_azimuth"
-#define FBPARAM_field_datetime "field_datetime"
-#define FBPARAM_level1_values "level1_values"
-#define FBPARAM_level1_default "level1_default"
-#define FBPARAM_level2_values "level2_values" // в порядке следования в списке
-#define FBPARAM_level2_default "level2_default"
+
+#define FBATTR_field "field"
+#define FBATTR_field_name "field_name"
+#define FBATTR_field_azimuth "field_azimuth"
+#define FBATTR_field_datetime "field_datetime"
+#define FBATTR_field_level1 "field_level1"
+#define FBATTR_field_level2 "field_level2"
+#define FBATTR_value "value"
+#define FBATTR_values "values"
+#define FBATTR_text "text"
+#define FBATTR_only_figures "only_figures"
+#define FBATTR_max_string_count "max_string_count"
+
+
+#define FBLIST_new_name "new_elem"
+#define FBLIST_new_alias "<новый элемент>"
 
 
 #define FB_current_version "1.0"
-#define FB_true "yes"
-#define FB_false "no"
 
-// Теги для XML файла.
-#define FBXML_Root_Form "Form"
-#define FBXML_Attr_Version "Version"
-#define FBXML_Attr_Dataset "Dataset"
-#define FBXML_Attr_NGWConnection "NGWConnection"
-#define FBXML_Node_Tab "Tab"
-#define FBXML_Attr_TabName "Name"
-#define FBXML_Node_Port "Portrait"
-#define FBXML_Node_Alb "Album"
-#define FBXML_Node_Elem "Element"
-#define FBXML_Attr_Type "Type"
-#define FBXML_Attr_NameRus "NameRus"
-#define FBXML_Attr_NameEng "NameEng"
-#define FBXML_Node_Prop "Property"
-#define FBXML_Attr_Name "Name"
-#define FBXML_Attr_Alias "Alias"
-#define FBXML_Attr_Value "Value"
+// Ключи для JSON.
+#define FBJSONKEY_version "version"
+#define FBJSONKEY_dataset "dataset"
+#define FBJSONKEY_ngw_connection "ngw_connection"
+#define FBJSONKEY_tabs "tabs"
+#define FBJSONKEY_name "name"
+#define FBJSONKEY_portrait_elements "portrait_elements"
+#define FBJSONKEY_album_elements "album_elements"
+#define FBJSONKEY_type "type"
+#define FBJSONKEY_attributes "attributes"
+#define FBJSONKEY_values "values"
+#define FBJSONKEY_default "default"
+#define FBJSONKEY_alias "alias"
 
-#define FB_DEFAULT_NGW_URL "http://bishop.gis.to"
-#define FB_DEFAULT_NGW_LOGIN "administrator"
-#define FB_DEFAULT_NGW_PASSWORD "************"
 
 // Следующие константы используются для выбора ресурса в древе доступных ресурсов,
 // полученного с сервера NGW.
@@ -132,34 +121,32 @@
 #define FB_NGW_ITEM_TYPE_VECTORLAYER 2
 #define FB_NGW_ITEM_TYPE_POSTGISLAYER 3
 
-// Константы состояний.
-enum FBParentLabelAction
+
+#define FBELEMTYPE_text_label "text_label"
+#define FBELEMTYPE_text_edit "text_edit"
+#define FBELEMTYPE_button "button"
+#define FBELEMTYPE_combobox "combobox"
+#define FBELEMTYPE_checkbox "checkbox"
+#define FBELEMTYPE_radio_group "radio_group"
+#define FBELEMTYPE_compass "compass"
+#define FBELEMTYPE_date_time "date_time"
+#define FBELEMTYPE_double_combobox "double_combobox"
+#define FBELEMTYPE_photo "photo"
+#define FBELEMTYPE_space "space"
+#define FBELEMTYPE_group_start "group_start"
+#define FBELEMTYPE_group_end "group_end"
+
+struct FBAlias
 {
-    FBActionNone,
-    FBActionCreating,
-    FBActionMoving,
+    QString ru;
+    QString en;
+    FBAlias (QString lRu) {ru = lRu, en = "en";}
+    FBAlias (QString lRu, QString lEn) {ru = lRu, en = lEn;}
+    FBAlias () {ru = ""; en = "";}
 };
 
-// Номер типа элемента.
-enum FBType
-{
-    FBNone,
-    FBSpace,
-    FBCombobox,
-    FBTextedit,
-    FBCheckbox,
-    FBRadiogroup,
-    FBDateTime,
-    FBDoubleList,
-    FBText,
-    FBButton,
-    FBCompass,
-    FBPhoto,
 
-    FBGroupStart,
-    FBGroupEnd,
-};
-
+// Всё то, что должно изменяться при открытии, сохранении, создании нового проекта.
 struct FBProject
 {
     QString path;
@@ -171,6 +158,7 @@ struct FBProject
     FBProject();
     ~FBProject();
 };
+
 
 namespace Ui
 {
@@ -194,25 +182,22 @@ class FBElem: public QLabel
 
      static long idCounter;
 
-     //QString caption;
      FBElemType *elemType; // Указатель на тип, чтобы достать имена,  алиасы, ...
 
      // их порядковые номера в вертикальной раскладке, т.к. без этого при считывании
      // элементов родительского лейбла - они считаются в порядке добавления.
      QList<QLabel*> images; // Изображения компонентов элемента.
-     QList<QPair<QPair<QString,QString>, QString> > vParamValues; // name, alias, value
+
+     QList<QPair<QString,Json::Value> > attributes; // строковое имя и значение в особом формате
 
     public:
 
      static long GetNextId ();
 
-     //FBElem(FBParentLabel* pParent): QLabel ((QLabel*)pParent) {}
      FBElem(): QLabel () {}
      ~FBElem();
 
      virtual void mousePressEvent (QMouseEvent *event);
-     //virtual void mouseMoveEvent (QMouseEvent *event);
-     //virtual void mouseReleaseEvent (QMouseEvent *event);
 
      virtual void select ();
      virtual void deselect ();
@@ -226,27 +211,22 @@ class FBElem: public QLabel
 // начале работы программы. По сути - фабрики, выдающие элементы.
 // Он же - то, что перемещается с панели инструментов (левой колонки) на "экран"
 // телефона.
-class FBElemType: public QPushButton//QLabel
+class FBElemType: public QPushButton
 {
     Q_OBJECT
 
     public:
-     static FBElemType* CURRENT;
-     FBType type;
-     //QString caption;
+      static FBElemType* CURRENT;
+
       QString name;
-      QString alias_ru;
-      QString alias_eng;
-     QList<QString> imgPaths;
-     QList<QPair<QString,QString> > vParams; // name, alias
+      FBAlias alias;
+      QList<QString> imgPaths;
+      QList<QPair<QString, FBAlias> > attributeNames; // name, aliases
 
     public:
-     //FBElemType(): QLabel () {}
-     FBElemType (QWidget* pParent): QPushButton(pParent) {}//QLabel(pParent) {}
-     //FBElemType(const FBElemType &otherElem): QLabel(otherElem) {}
+     FBElemType (QWidget* pParent): QPushButton(pParent) {}
      FBElem *CreateElem ();
      virtual void mousePressEvent (QMouseEvent *event);
-     //virtual void mouseMoveEvent (QMouseEvent *event);
 
     signals:
      void elemTypePressed ();
@@ -258,41 +238,17 @@ class FBParentLabel: public QLabel
     Q_OBJECT
 
     public:
-
-     //static FBParentLabelAction currentAction;
-
-     // УПОРЯДОЧЕННЫЙ список элементов и их геометрических средних линий в данном
-     // родительском лейбле.
-     //QList <QPair<FBElem*,int> > elements;
      QList <FBElem*> elements;
-
-     //int posToInsertWidget;
-     //QLabel *selector;
-
      // Сохраняем логическое значение - в какой ориентации был создан этот лейбл.
      bool isVertical;
 
     public:
-
-     // Вставляет элемент в раскладку на позицию курсора.
-     // Если index не равен -1, то вставляет именно на эту позицию.
-     //void InsertElem (FBElem *elem, int index = -1);
      bool InsertElem (FBElem *elem, int index = -1);
-
      void DeleteElem (FBElem *elem);
-
      void MoveElem (FBElem *elem, bool isUp);
-
      FBParentLabel(QScrollArea *parent);
-     //~FBParentLabel(); // Деструктор не требуется.
-     //virtual void mouseMoveEvent (QMouseEvent *event);
-     //virtual void mouseReleaseEvent (QMouseEvent *event);
 
     public slots:
-     /*
-     void OnElemPressed ();
-     void OnElemTypePressed ();
-     */
 };
 
 
@@ -337,8 +293,6 @@ class FormBuilder : public QWidget
      // фоновую картинку и один виджет - прокручиваемую область, которая сама по себе
      // и содержит родительский лейбл для всех элементов интерфейса. Здесь
      // соответствие 1 к 1: один виджет -> один экранный -> один родительский лейбл.
-     //QList <QPair<QWidget*,QPair<QLabel*,QLabel*> > > screenParentLabels;
-     //QList <QPair<QWidget*,QPair<QLabel*,FBParentLabel*> > > screenParentLabels;
      QMap <QWidget*,QPair<QLabel*,FBParentLabel*> > correspondence;
 
      QMenuBar* menuBar;
@@ -354,23 +308,6 @@ class FormBuilder : public QWidget
          QAction *actionOrtnPrt;
          QAction *actionOrtnAlb;
        QAction *actionAddPage;
-
-/*
-       //GDALDataset* poDS;
-       OGRDataSource* poDS;
-       QStringList availableFields;
-
-       // При сохранении проекта данные так же сохраняются трансформируясь в
-       // формат GeoJSON. Их стоит записывать/перезаписывать только если это
-       // было импортирование из выбранного ИД при создании нового проекта, или
-       // если до открытия старого проекта, данные были как-то изменены. Для
-       // отслеживания этого момента используется следующая переменная.
-       //bool wasDataChanged;
-
-       std::string NGWConnection;
-
-       QString lastSavePath;
-*/
 
      FBProject *CUR_PRJ;
      FBProject *NEW_PRJ;
@@ -405,9 +342,6 @@ class FormBuilder : public QWidget
      // Нельзя использовать как метод по созданию вкладок в самом начале!
      void ClearAll ();
 
-     //virtual void mouseMoveEvent (QMouseEvent *event);
-     //virtual void mouseReleaseEvent (QMouseEvent *event);
-
      void ShowMsgBox (QString msg);
 
     public slots:
@@ -439,8 +373,9 @@ class FormBuilder : public QWidget
 
      void DeselectElement ();
 
-     //void OnNgwConnect (QString url, QString login, QString password);
-     //void OnNgwSelect (QString inLayer, QString &outJson);
+     void ShowDoubleComboDialog();
+     void ShowComboOrRadioDialog();
+
 private slots:
      void on_toolButton_4_clicked();
 };
@@ -469,10 +404,6 @@ class FBConnectButton : public QPushButton
      QLabel* _statusLabel;
      QPushButton *_selectButton;
 
-// TEST ---------------------------------------
-//     QTextEdit* _testEdit;
-// --------------------------------------------
-
      QNetworkAccessManager httpManager;
      QNetworkReply *httpAuthReply;
      QNetworkReply *httpReply;
@@ -500,8 +431,74 @@ class FBConnectButton : public QPushButton
      void HttpAuthFinished ();
      void HttpFinished ();
      void HttpResourceFinished ();
+};
 
 
+class FBListDialog: public QDialog
+{
+    Q_OBJECT
+
+    public:
+
+     FBListDialog(QString listType, QWidget *parent = 0);
+
+     QString listType;
+
+     // Из следующих полей будут браться значения для формирования JSON-значения
+     // единственного атрибута "values" этого списка.
+
+     QLabel *labelLeft;
+     QListWidget *listLeft;
+     QPushButton *buttonAddLeft;
+     QPushButton *buttonRemoveLeft;
+     QGroupBox *groupLeft;
+     QLabel *labelNameLeft;
+     QLabel *labelAliasLeft;
+     QLineEdit *editNameLeft;
+     QLineEdit *editAliasLeft;
+     QPushButton *buttonModifyLeft;
+     QLabel *labelComboLeft;
+     QComboBox *comboLeft;
+
+     QLabel *labelRight;
+      QHBoxLayout *listsLayoutRight;
+      QListWidget *pListRight;
+      QList<QListWidget*> listsRight;
+     QPushButton *buttonAddRight;
+     QPushButton *buttonRemoveRight;
+     QGroupBox *groupRight;
+     QLabel *labelNameRight;
+     QLabel *labelAliasRight;
+     QLineEdit *editNameRight;
+     QLineEdit *editAliasRight;
+     QPushButton *buttonModifyRight;
+     QLabel *labelComboRight;
+      QHBoxLayout *combosLayoutRight;
+      QList<QComboBox*> combosRight;
+      QComboBox *pComboRight;
+
+     QPushButton *buttonOk;
+
+    public slots:
+
+     void OnOkClicked();
+     void OnCancelClicked();
+
+     void OnLeftItemSelected(QListWidgetItem* item);
+     void OnLeftAddClicked();
+     void OnLeftDeleteClicked();
+     void OnLeftFixClicked();
+
+     void OnRightItemSelected(QListWidgetItem* item);
+     void OnRightAddClicked();
+     void OnRightDeleteClicked();
+     void OnRightFixClicked();
+
+    public:
+
+     void refreshLeftCombo(int elemIndex, QString actionWithElem);
+
+     void refreshRightCombo(int elemIndex, QString actionWithElem);
 };
 
 #endif // FORMBUILDER_H
