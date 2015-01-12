@@ -115,15 +115,11 @@
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_5">
-            <item>
-             <widget class="QLabel" name="label_6">
-              <property name="text">
-               <string>Задать группу:</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>Задать группу:</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>

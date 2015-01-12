@@ -36,5 +36,7 @@ INCLUDEPATH += C:\OSGeo4W\include
 
 FORMS    += formbuilder.ui
 
+RC_FILE = forappicon.rc
+
 RESOURCES += \
     res.qrc

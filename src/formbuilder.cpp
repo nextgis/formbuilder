@@ -67,7 +67,8 @@ long FBElem::GetNextId ()
 
 FBElem::~FBElem()
 {
-    for (int i=0; i<images.size(); i++)
+    int i;
+    for (i=0; i<images.size(); i++)
     {
         if (images[i] != NULL)
             delete images[i];
@@ -118,11 +119,11 @@ FBElem *FBElemType::CreateElem ()
     newElem->elemType = this;
 
     // Создаём компоненты элемента.
-    for (int i=0; i<imgPaths.size(); i++)
+    for (int i=0; i<imgDisplayPaths.size(); i++)
     {
         QLabel *image = new QLabel(newElem);
         newElem->images.append(image);
-        image->setPixmap(imgPaths[i]);
+        image->setPixmap(imgDisplayPaths[i]);
         image->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
         image->setScaledContents(true);
         newElemLayout->addWidget(image);
@@ -473,7 +474,8 @@ void FormBuilder::CreateElemTypes ()
     elemType->name = QString::fromUtf8(FBELEMTYPE_text_label);
     elemType->alias.ru = QString::fromUtf8("Статический текст");
     elemType->alias.en = QString::fromUtf8("Text label");
-    elemType->imgPaths.append(":/img/text");
+    elemType->imgDisplayPaths.append(":/img/text");
+    elemType->imgIconPath = ":/img/text_icon";
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_text,FBAlias(
                                QString::fromUtf8("Текст"))));
     vElemTypes.append(elemType);
@@ -482,7 +484,8 @@ void FormBuilder::CreateElemTypes ()
     elemType->name = QString::fromUtf8(FBELEMTYPE_text_edit);
     elemType->alias.ru = QString::fromUtf8("Текстовое поле");
     elemType->alias.en = QString::fromUtf8("Text edit");
-    elemType->imgPaths.append(":/img/textfield");
+    elemType->imgDisplayPaths.append(":/img/textfield");
+    elemType->imgIconPath = ":/img/textfield_icon";
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_field,FBAlias(
                              QString::fromUtf8("Целевое поле"))));
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_text,FBAlias(
@@ -491,13 +494,16 @@ void FormBuilder::CreateElemTypes ()
                              QString::fromUtf8("Только цифры?"))));
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_max_string_count,FBAlias(
                              QString::fromUtf8("Максимальное кол-во строк"))));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_last,FBAlias(
+                             QString::fromUtf8("Запоминать последнее значение?"))));
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
     elemType->name = QString::fromUtf8(FBELEMTYPE_button);
     elemType->alias.ru = QString::fromUtf8("Кнопка");
     elemType->alias.en = QString::fromUtf8("Button");
-    elemType->imgPaths.append(":/img/button");
+    elemType->imgDisplayPaths.append(":/img/button");
+    elemType->imgIconPath = ":/img/button";
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_text,FBAlias(
                              QString::fromUtf8("Заголовок"))));
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_field,FBAlias(
@@ -510,41 +516,51 @@ void FormBuilder::CreateElemTypes ()
     elemType->name = QString::fromUtf8(FBELEMTYPE_combobox);
     elemType->alias.ru = QString::fromUtf8("Выпадающий список");
     elemType->alias.en = QString::fromUtf8("Combobox");
-    elemType->imgPaths.append(":/img/combobox");
+    elemType->imgDisplayPaths.append(":/img/combobox");
+    elemType->imgIconPath = ":/img/combobox_icon";
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_field,FBAlias(
                              QString::fromUtf8("Целевое поле"))));
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_values,FBAlias(
                              QString::fromUtf8("Значения"))));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_last,FBAlias(
+                             QString::fromUtf8("Запоминать последнее значение?"))));
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
     elemType->name = QString::fromUtf8(FBELEMTYPE_checkbox);
     elemType->alias.ru = QString::fromUtf8("Флажок");
     elemType->alias.en = QString::fromUtf8("Checkbox");
-    elemType->imgPaths.append(":/img/checkbox");
+    elemType->imgDisplayPaths.append(":/img/checkbox");
+    elemType->imgIconPath = ":/img/checkbox_icon";
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_field,FBAlias(
                                  QString::fromUtf8("Целевое поле"))));
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_text,FBAlias(
                                  QString::fromUtf8("Заголовок"))));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_last,FBAlias(
+                             QString::fromUtf8("Запоминать последнее значение?"))));
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
     elemType->name = QString::fromUtf8(FBELEMTYPE_radio_group);
     elemType->alias.ru = QString::fromUtf8("Радио-группа");
     elemType->alias.en = QString::fromUtf8("Radio-group");
-    elemType->imgPaths.append(":/img/radiobutton");
-    elemType->imgPaths.append(":/img/radiobutton_void");
+    elemType->imgDisplayPaths.append(":/img/radiobutton");
+    elemType->imgDisplayPaths.append(":/img/radiobutton_void");
+    elemType->imgIconPath = ":/img/radiobutton_icon";
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_field,FBAlias(
                                QString::fromUtf8("Целевое поле"))));
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_values,FBAlias(
                              QString::fromUtf8("Значения"))));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_last,FBAlias(
+                             QString::fromUtf8("Запоминать последнее значение?"))));
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
     elemType->name = QString::fromUtf8(FBELEMTYPE_compass);
     elemType->alias.ru = QString::fromUtf8("Компас");
     elemType->alias.en = QString::fromUtf8("Compass");
-    elemType->imgPaths.append(":/img/compass");
+    elemType->imgDisplayPaths.append(":/img/compass");
+    elemType->imgIconPath = ":/img/compass_icon";
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_field,FBAlias(
                                QString::fromUtf8("Целевое поле"))));
     vElemTypes.append(elemType);
@@ -553,8 +569,9 @@ void FormBuilder::CreateElemTypes ()
     elemType->name = QString::fromUtf8(FBELEMTYPE_date_time);
     elemType->alias.ru = QString::fromUtf8("Дата-Время");
     elemType->alias.en = QString::fromUtf8("Date-time");
-    elemType->imgPaths.append(":/img/date_date");
-    elemType->imgPaths.append(":/img/date_time");
+    elemType->imgDisplayPaths.append(":/img/date_date");
+    elemType->imgDisplayPaths.append(":/img/date_time");
+    elemType->imgIconPath = ":/img/datetime_icon";
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_field,FBAlias(
                                  QString::fromUtf8("Целевое поле"))));
     vElemTypes.append(elemType);
@@ -563,14 +580,17 @@ void FormBuilder::CreateElemTypes ()
     elemType->name = QString::fromUtf8(FBELEMTYPE_double_combobox);
     elemType->alias.ru = QString::fromUtf8("Двухуровневый список");
     elemType->alias.en = QString::fromUtf8("Double combobox");
-    elemType->imgPaths.append(":/img/doublelist_1");
-    elemType->imgPaths.append(":/img/doublelist_2");
+    elemType->imgDisplayPaths.append(":/img/doublelist_1");
+    elemType->imgDisplayPaths.append(":/img/doublelist_2");
+    elemType->imgIconPath = ":/img/doublelist_icon";
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_field_level1,FBAlias(
                                QString::fromUtf8("Целевое поле уровня 1"))));
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_field_level2,FBAlias(
                                QString::fromUtf8("Целевое поле уровня 2"))));
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_values,FBAlias(
                              QString::fromUtf8("Значения"))));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_last,FBAlias(
+                             QString::fromUtf8("Запоминать последнее значение?"))));
     // В дальнейшем по ходу программы этот список может быть расширен!
     vElemTypes.append(elemType);
 
@@ -578,8 +598,9 @@ void FormBuilder::CreateElemTypes ()
     elemType->name = QString::fromUtf8(FBELEMTYPE_photo);
     elemType->alias.ru = QString::fromUtf8("Фото");
     elemType->alias.en = QString::fromUtf8("Photo");
-    elemType->imgPaths.append(":/img/photo_targ");
-    elemType->imgPaths.append(":/img/photo_but");
+    elemType->imgDisplayPaths.append(":/img/photo_targ");
+    elemType->imgDisplayPaths.append(":/img/photo_but");
+    elemType->imgIconPath = ":/img/targetphoto_icon";
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_field_name,FBAlias(
                                QString::fromUtf8("Целевое поле названия снимка"))));
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_field_azimuth,FBAlias(
@@ -592,14 +613,15 @@ void FormBuilder::CreateElemTypes ()
     elemType->name = QString::fromUtf8(FBELEMTYPE_space);
     elemType->alias.ru = QString::fromUtf8("Пробел");
     elemType->alias.en = QString::fromUtf8("Space");
-    elemType->imgPaths.append(":/img/void");
+    elemType->imgDisplayPaths.append(":/img/void");
+    elemType->imgIconPath = ":/img/void";
     vElemTypes.append(elemType);
 
     // Для всех:
     for (int i=0; i<vElemTypes.size(); i++)
     {
         //vElemTypes[i]->setPixmap(QPixmap(vElemTypes[i]->imgPaths[0]));
-        QIcon icon(vElemTypes[i]->imgPaths[0]);
+        QIcon icon(vElemTypes[i]->imgIconPath);
         vElemTypes[i]->setIcon(icon);
         //vElemTypes[i]->setIconSize(icon.actualSize(vElemTypes[i]->iconSize()));
         // TODO: разобраться как взять настоящие размеры иконки.
@@ -611,19 +633,18 @@ void FormBuilder::CreateElemTypes ()
                 this, SLOT(OnElemTypePressed()));
     }
 
-    QVBoxLayout *twoButtonLayout = new QVBoxLayout();
-
     pElemTypeGroupStart = new FBElemType(ui->groupBox_5);
     pElemTypeGroupStart->name = QString::fromUtf8(FBELEMTYPE_group_start);
     pElemTypeGroupStart->alias.ru = QString::fromUtf8("Начало группы");
     pElemTypeGroupStart->alias.en = QString::fromUtf8("Group start");
-    pElemTypeGroupStart->imgPaths.append(":/img/void");
-    pElemTypeGroupStart->imgPaths.append(":/img/group_start");
+    pElemTypeGroupStart->imgDisplayPaths.append(":/img/void");
+    pElemTypeGroupStart->imgDisplayPaths.append(":/img/group_start");
+    pElemTypeGroupStart->imgIconPath = ":/img/groupstart_icon";
     pElemTypeGroupStart->attributeNames.append(QPair<QString,FBAlias>(FBATTR_text,FBAlias(
                                QString::fromUtf8("Заголовок"))));
     pElemTypeGroupStart->setToolTip(QString::fromUtf8("Поместите в начало будущей группы"));
     pElemTypeGroupStart->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
-    QIcon icon1(pElemTypeGroupStart->imgPaths[1]);
+    QIcon icon1(pElemTypeGroupStart->imgIconPath);
     pElemTypeGroupStart->setIcon(icon1);
     pElemTypeGroupStart->setIconSize(QSize(80,31));
     connect(pElemTypeGroupStart, SIGNAL(elemTypePressed()),
@@ -633,19 +654,19 @@ void FormBuilder::CreateElemTypes ()
     pElemTypeGroupEnd->name = QString::fromUtf8(FBELEMTYPE_group_end);
     pElemTypeGroupEnd->alias.ru = QString::fromUtf8("Конец группы");
     pElemTypeGroupEnd->alias.en = QString::fromUtf8("Group end");
-    pElemTypeGroupEnd->imgPaths.append(":/img/group_end");
-    pElemTypeGroupEnd->imgPaths.append(":/img/void");
+    pElemTypeGroupEnd->imgDisplayPaths.append(":/img/group_end");
+    pElemTypeGroupEnd->imgDisplayPaths.append(":/img/void");
+    pElemTypeGroupEnd->imgIconPath = ":/img/groupend_icon";
     pElemTypeGroupEnd->setToolTip(QString::fromUtf8("Поместите в конец будущей группы"));
     pElemTypeGroupEnd->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
-    QIcon icon2(pElemTypeGroupEnd->imgPaths[0]);
+    QIcon icon2(pElemTypeGroupEnd->imgIconPath);
     pElemTypeGroupEnd->setIcon(icon2);
     pElemTypeGroupEnd->setIconSize(QSize(80,31));
     connect(pElemTypeGroupEnd, SIGNAL(elemTypePressed()),
             this, SLOT(OnElemTypePressed()));
 
-    twoButtonLayout->addWidget(pElemTypeGroupEnd);
-    twoButtonLayout->addWidget(pElemTypeGroupStart);
-    ui->horizontalLayout_5->addLayout(twoButtonLayout);
+    ui->groupBox_5->layout()->addWidget(pElemTypeGroupStart);
+    ui->groupBox_5->layout()->addWidget(pElemTypeGroupEnd);
 }
 
 
@@ -1155,7 +1176,8 @@ void FormBuilder::OnElemPressed ()
         }
 
         // 2. Элемент - текстовый едит; Атрибут - "Только цифры".
-        else if (FBElem::CURRENT->attributes[i].first == FBATTR_only_figures)
+        else if (FBElem::CURRENT->attributes[i].first == FBATTR_only_figures ||
+                 FBElem::CURRENT->attributes[i].first == FBATTR_last)
         {
             QComboBox *combo = new QComboBox(ui->tableWidget1);
             combo->setEditable(false);
@@ -1363,7 +1385,8 @@ void FormBuilder::on_toolButton_4_clicked()
         }
 
         // 2. Элемент - текстовый едит; Атрибут - "Только цифры".
-        else if (FBElem::CURRENT->attributes[i].first == FBATTR_only_figures)
+        else if (FBElem::CURRENT->attributes[i].first == FBATTR_only_figures ||
+                 FBElem::CURRENT->attributes[i].first == FBATTR_last)
         {
             // Используем item(i,0). 0 - т.к. самая левая колонка - это не ячейка
             // а заголовок.

@@ -27,5 +27,17 @@
         <file alias="group_end">img/group_end.png</file>
         <file alias="group_start">img/group_start.png</file>
         <file alias="save">img/save.png</file>
+        <file alias="datetime_icon">img/datetime_icon.png</file>
+        <file alias="doublelist_icon">img/doublelist_icon.png</file>
+        <file alias="checkbox_icon">img/checkbox_icon.png</file>
+        <file alias="combobox_icon">img/combobox_icon.png</file>
+        <file alias="compass_icon">img/compass_icon.png</file>
+        <file alias="groupend_icon">img/groupend_icon.png</file>
+        <file alias="groupstart_icon">img/groupstart_icon.png</file>
+        <file alias="radiobutton_icon">img/radiobutton_icon.png</file>
+        <file alias="targetphoto_icon">img/targetphoto_icon.png</file>
+        <file alias="text_icon">img/text_icon.png</file>
+        <file alias="textfield_icon">img/textfield_icon.png</file>
+        <file alias="icon72">img/icon72.ico</file>
     </qresource>
 </RCC>

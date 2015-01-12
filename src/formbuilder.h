@@ -89,6 +89,7 @@
 #define FBATTR_value "value"
 #define FBATTR_values "values"
 #define FBATTR_text "text"
+#define FBATTR_last "last"
 #define FBATTR_only_figures "only_figures"
 #define FBATTR_max_string_count "max_string_count"
 
@@ -220,7 +221,8 @@ class FBElemType: public QPushButton
 
       QString name;
       FBAlias alias;
-      QList<QString> imgPaths;
+      QList<QString> imgDisplayPaths;
+      QString imgIconPath;
       QList<QPair<QString, FBAlias> > attributeNames; // name, aliases
 
     public:
