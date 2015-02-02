@@ -32,60 +32,36 @@
 
 
 //-----------------------------------------------------------------------//
-//                         НОВЫЙ ПУСТОЙ ПРОЕКТ                           //
-//-----------------------------------------------------------------------//
-void FormBuilder::OnActionNewVoid ()
-{
-    QMessageBox msgBox;
-    msgBox.setText(QString::fromUtf8("При создании нового проекта, все "
-                     "несохранённые изменения в текущем проекте будут "
-                     "потеряны. Продолжить?"));
-    msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
-    msgBox.setDefaultButton(QMessageBox::Cancel);
-    int ret = msgBox.exec();
-    if (ret != QMessageBox::Ok)
-        return;
-
-    // Просто создаём новый проект, удалив старый.
-    delete CUR_PRJ;
-    CUR_PRJ = new FBProject();
-
-    ui->label_2->setText(QString::fromUtf8("Открытый проект: <без имени>. "
-                                "Источник данных не используется"));
-
-    // Очищаем весь интерфейс и создаём новую форму.
-    ClearAll();
-}
-
-
-//-----------------------------------------------------------------------//
-//                 НОВЫЙ ПРОЕКТ ИЗ ИСТОЧНИКА ДАННЫХ GDAL                 //
+//                       НОВЫЙ ПРОЕКТ ИЗ ШЕЙПФАЙЛА                       //
 //-----------------------------------------------------------------------//
 void FormBuilder::OnActionNewDataset ()
 {
-    QMessageBox msgBox;
-    msgBox.setText(QString::fromUtf8("При создании нового проекта, все "
-                                     "несохранённые изменения в текущем проекте будут "
-                                     "потеряны. Продолжить?"));
-    msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
-    int ret = msgBox.exec();
-    if (ret != QMessageBox::Ok)
-        return;
+    if (CUR_PRJ != NULL)
+    {
+        QMessageBox msgBox;
+        msgBox.setText(QString::fromUtf8("При создании нового проекта, все "
+                                         "несохранённые изменения в текущем проекте будут "
+                                         "потеряны. Продолжить?"));
+        msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+        int ret = msgBox.exec();
+        if (ret != QMessageBox::Ok)
+            return;
+    }
 
     QFileDialog dialogNewDataset (this);
     dialogNewDataset.setAcceptMode(QFileDialog::AcceptOpen);
     // Выбрать можно только один существующий файл:
     dialogNewDataset.setFileMode(QFileDialog::ExistingFile);
     dialogNewDataset.setViewMode(QFileDialog::List);
-    //dialogNewDataset->setDefaultSuffix("shp");
-    //dialogNewDataset->setNameFilter("*.shp");
+    dialogNewDataset.setDefaultSuffix("shp");
+    dialogNewDataset.setNameFilter("*.shp");
     dialogNewDataset.setLabelText(QFileDialog::LookIn,QString::fromUtf8("Путь:"));
     dialogNewDataset.setLabelText(QFileDialog::FileName,QString::fromUtf8("Имя файла"));
     dialogNewDataset.setLabelText(QFileDialog::FileType,QString::fromUtf8("Тип файла"));
     dialogNewDataset.setLabelText(QFileDialog::Accept,QString::fromUtf8("Выбрать"));
     dialogNewDataset.setLabelText(QFileDialog::Reject,QString::fromUtf8("Отмена"));
-    dialogNewDataset.setWindowTitle(QString::fromUtf8("Создание нового проекта: "
-                       "выберите файловый источник данных, поддерживаемый GDAL ..."));
+    dialogNewDataset.setWindowTitle(QString::fromUtf8("Создание нового проекта:"
+                       " выберите Shapefile ..."));
     dialogNewDataset.setDirectory(QDir()); //ставим текущую директорию
 
     if (dialogNewDataset.exec())
@@ -95,10 +71,12 @@ void FormBuilder::OnActionNewDataset ()
         QByteArray dsPathBa = dsPaths[0].toUtf8(); // всегда будет выбран только один файл
 
         // Создаём новый проект.
-        NEW_PRJ = new FBProject();
+        FBProject *NEW_PRJ = new FBProject();
 
+        // Не удаляем старый источник данных и не стираем его доступные поля,
+        // пока не убедимся, что всё новое загрузилось верно.
         // Пытаемся его инициализировать.
-        if (!_initGdalDataset(dsPathBa.data()))
+        if (!_initNewProject(dsPathBa.data(),NEW_PRJ))
         {
             // Если была какая-то ошибка - отменяем создание.
             delete NEW_PRJ;
@@ -106,11 +84,27 @@ void FormBuilder::OnActionNewDataset ()
         }
 
         // Иначе удаляем текущий, и новый становится текущим.
-        delete CUR_PRJ;
+        if (CUR_PRJ != NULL) delete CUR_PRJ;
         CUR_PRJ = NEW_PRJ;
 
-        // Очищаем весь интерфейс и создаём новую форму.
+        // Очищаем экран телефона и весь интерфейс. Создайм новую форму.
         ClearAll();
+
+        // Выводим информацию об открытом проекте.
+        QString output_path = QString::fromUtf8(dsPathBa.data());
+        if (output_path.size() > 60)
+        {
+            output_path.remove(0,output_path.size()-60);
+            output_path.prepend("...");
+        }
+        ui->label_2->setText(QString::fromUtf8("Доступ к Shapefile-у установлен "
+         "успешно. Сохраните проект, чтобы импортировать данные "
+         "из ") + output_path
+         + QString::fromUtf8(" и зафиксировать изменения на форме."));
+
+        // Разблокируем весь интерфейс, если это создание проекта при отсутствии
+        // текущего проекта.
+        EnableInterface();
     }
 }
 
@@ -120,14 +114,17 @@ void FormBuilder::OnActionNewDataset ()
 //-----------------------------------------------------------------------//
 void FormBuilder::OnActionNewNGW ()
 {
-    QMessageBox msgBox;
-    msgBox.setText(QString::fromUtf8("При создании нового проекта, все "
-                                     "несохранённые изменения в текущем проекте будут "
-                                     "потеряны. Продолжить?"));
-    msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
-    int ret = msgBox.exec();
-    if (ret != QMessageBox::Ok)
-        return;
+    if (CUR_PRJ != NULL)
+    {
+        QMessageBox msgBox;
+        msgBox.setText(QString::fromUtf8("При создании нового проекта, все "
+                                         "несохранённые изменения в текущем проекте будут "
+                                         "потеряны. Продолжить?"));
+        msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+        int ret = msgBox.exec();
+        if (ret != QMessageBox::Ok)
+            return;
+    }
 
     QDialog dialogNgw(this);
     QVBoxLayout *dialogLayout = new QVBoxLayout(&dialogNgw);
@@ -142,7 +139,7 @@ void FormBuilder::OnActionNewNGW ()
     hLayout->addWidget(label);
     QLineEdit* lineEdit1 = new QLineEdit(&dialogNgw);
 // TEST -----------------------------------------------------------------------
-    lineEdit1->setText(QString::fromUtf8("http://bishop.gis.to"));
+    lineEdit1->setText(QString::fromUtf8("http://176.9.38.120/wwf"));
 // ----------------------------------------------------------------------------
     hLayout->addWidget(lineEdit1);
     dialogLayout->addLayout(hLayout);
@@ -206,92 +203,191 @@ void FormBuilder::OnActionNewNGW ()
     {
         // Диалог завершился (по нажатию кнопки "Выбрать"), но не удалился,
         // поэтому мы можем считать данные из его полей.
-
         QString logPas = lineEdit2->text() + ":" + lineEdit3->text();
         QByteArray logPasBa = logPas.toUtf8();
         CPLSetConfigOption("GDAL_HTTP_USERPWD", logPasBa.data());
 
-        // IMPORTANT TODO: проверять на наличие '/' в конце строки.
+        // Убираем '/' с конца строки, если пользователь его зачем-то поставил.
+        QString lineEdit1Text = lineEdit1->text();
+        //while(lineEdit1Text.endsWith("/"))
+        //{
+        //    lineEdit1Text.chop(1);
+        //}
 
-        QString finalUrl = lineEdit1->text() + "/resource/"
+        QString finalUrl = lineEdit1Text + "/resource/"
                 + treeWidget->currentItem()->data(0,Qt::UserRole).toString()
                 + "/geojson/";
         QByteArray finalUrlBa = finalUrl.toUtf8();
 
         // Создаём новый проект.
-        NEW_PRJ = new FBProject();
+        FBProject *NEW_PRJ = new FBProject();
 
+        // Не удаляем старый источник данных и не стираем его доступные поля,
+        // пока не убедимся, что всё новое загрузилось верно.
         // Пытаемся его инициализировать.
-        if (!_initGdalDataset(finalUrlBa.data()))
+        if (!_initNewProject(finalUrlBa.data(),NEW_PRJ))
         {
             // Если была какая-то ошибка - отменяем создание.
             delete NEW_PRJ;
             return;
         }
 
+        // Из-за особенностей формата GeoJSON, а именно из-за того, что если в нём
+        // не определены данные - в возвращаемом с сервера NGW JSON-е может не
+        // содержаться ни список полей, ни другая информация об ИД. Поэтому
+        // необходимо попробовать достать всё это другим способом.
+        if (NEW_PRJ->datasetToConvert->GetLayer(0)->GetLayerDefn()->GetFieldCount() == 0)
+        {
+            QString ngw_api_url;
+            ngw_api_url = lineEdit1Text + "/api/resource/"
+             + treeWidget->currentItem()->data(0,Qt::UserRole).toString();
+
+            // Из-за асинхронной работы классов по работе с http необходимо
+            // считывать json, только после того, как он полностью и без
+            // ошибок передался. Это можно сделать при помощи потоков, а можно
+            // и дополнительным диалогом со строкой-прогрессом, чтобы ещё
+            // и показывать ход "загрузки".
+            // Диалог не завершит работу, пока не будет полностью получен http
+            // ответ или пользователь его сам не закроет.
+            std::string receivedJson = "";
+            FBWaitNgwApiDialog dlg(&button1->httpManager,ngw_api_url,&receivedJson);
+            dlg.exec();
+
+            // Парсим полученный json.
+            if (!receivedJson.empty())
+            {
+                Json::Reader json_reader;
+                Json::Value json_root;
+                if (json_reader.parse(receivedJson, json_root, false))
+                {
+                    Json::Value json_fields;
+                    Json::Value json_new_fields;
+                    json_fields = json_root["feature_layer"]["fields"];
+                    for (int i=0; i<json_fields.size(); ++i)
+                    {
+                        std::string str_keyname
+                                = json_fields[i]["keyname"].asString();
+                        std::string str_datatype
+                                = json_fields[i]["datatype"].asString();
+                        std::string str_display_name
+                                = json_fields[i]["display_name"].asString();
+
+                        Json::Value json_new_field;
+                        json_new_field["keyname"] = str_keyname;
+                        json_new_field["datatype"] = str_datatype;
+                        json_new_field["display_name"] = str_display_name;
+                        json_new_fields.append(json_new_field);
+                    }
+                    NEW_PRJ->metaData[FBJSONKEY_meta_fields] = json_new_fields;
+
+                    NEW_PRJ->metaData[FBJSONKEY_meta_geometry_type]
+                            = json_root["vector_layer"]["geometry_type"];
+
+                    NEW_PRJ->metaData[FBJSONKEY_meta_srs]
+                            = json_root["vector_layer"]["srs"];
+                }
+                else
+                {
+                    delete NEW_PRJ;
+                    ShowMsgBox(QString::fromUtf8("Не удалось считать описание "
+                     "полей из источника данных ") + ngw_api_url);
+                    return;
+                }
+            }
+            else
+            {
+                delete NEW_PRJ;
+                ShowMsgBox(QString::fromUtf8("Не удалось считать описание "
+                 "полей из источника данных ") + ngw_api_url);
+                return;
+            }
+        }
+
         // Иначе удаляем текущий, и новый становится текущим.
-        delete CUR_PRJ;
+        if (CUR_PRJ != NULL) delete CUR_PRJ;
         CUR_PRJ = NEW_PRJ;
 
-        // Формируем json-строку подключения к NGW. При сохранении будет создан файл
-        // json с этими параметрами.
-        Json::Value root;
+        // Формируем json-строку подключения к NGW.
+        Json::Value val;
         const Json::Value vUrl = finalUrlBa.data();
-        root["url"] = vUrl;
+        val["url"] = vUrl;
         QByteArray logBa = lineEdit2->text().toUtf8();
         const Json::Value vLogin = logBa.data();
-        root["login"] = vLogin;
+        val["login"] = vLogin;
         QByteArray pasBa = lineEdit3->text().toUtf8();
         const Json::Value vPassword = pasBa.data();
-        root["password"] = vPassword;
-        Json::StyledWriter writer;
-        CUR_PRJ->NGWConnection = writer.write(root);
+        val["password"] = vPassword;
+        CUR_PRJ->metaData[FBJSONKEY_meta_ngw_connection] = val;
 
-        // Очищаем весь интерфейс и создаём новую форму.
+        // Очищаем экран телефона и весь интерфейс. Создайм новую форму.
         ClearAll();
+
+        // Выводим информацию об открытом проекте.
+        QString output_path = QString::fromUtf8(finalUrlBa.data());
+        if (output_path.size() > 60)
+        {
+            output_path.remove(0,output_path.size()-60);
+            output_path.prepend("...");
+        }
+        ui->label_2->setText(QString::fromUtf8("Соединение с сервером NextGIS Web "
+         "установлено успешно. Сохраните проект, чтобы импортировать данные "
+         "из ") +output_path+ QString::fromUtf8(" и зафиксировать изменения на форме."));
+
+        // Разблокируем весь интерфейс, если это создание проекта при отсутствии
+        // текущего проекта.
+        EnableInterface();
+
+        // TODO: Убрать заданные Config Option для GDAL.
     }
 }
 
 
-// Инициализация источника данных GDAL.
-bool FormBuilder::_initGdalDataset (char *datasetName)
+void FormBuilder::EnableInterface()
 {
-    // Не удаляем старый источник данных и не стираем его доступные поля,
-    // пока не убедимся, что всё новое загрузилось верно.
-    //GDALDataset *poNewDS;
-//    OGRDataSource* poNewDS;
-    //poNewDS = (GDALDataset*) GDALOpenEx(datasetName, GDAL_OF_VECTOR, NULL, NULL, NULL);
-//    poNewDS = OGRSFDriverRegistrar::Open(datasetName);
-
-    if (NEW_PRJ == NULL)
-        return false;
-
-    NEW_PRJ->poDS = OGRSFDriverRegistrar::Open(datasetName);
-    if(NEW_PRJ->poDS == NULL)
+    for (int i=0; i<vElemTypes.size(); i++)
     {
-        ShowMsgBox(QString::fromUtf8("Ошибка при попытке открыть выбранный"
-                                     "источник данных!"));
+        vElemTypes[i]->setEnabled(true);
+    }
+    ui->groupBox_4->setEnabled(true);
+    ui->groupBox_5->setEnabled(true);
+    actionSave->setEnabled(true);
+    tabWidget->setEnabled(true);
+    tabHorWidget->setEnabled(true);
+    menuScreen->setEnabled(true);
+}
+
+
+// Инициализация источника данных GDAL.
+bool FormBuilder::_initNewProject (char *datasetName, FBProject *NEW_PRJ)
+{
+    //NEW_PRJ->poDS = OGRSFDriverRegistrar::Open(datasetName);
+    NEW_PRJ->datasetToConvert = (GDALDataset*) GDALOpenEx(datasetName,
+                                    GDAL_OF_VECTOR, NULL, NULL, NULL);
+    //if(NEW_PRJ->poDS == NULL)
+    if(NEW_PRJ->datasetToConvert == NULL)
+    {
+        ShowMsgBox(QString::fromUtf8("Ошибка при попытке открыть "
+                       "источник данных ") + QString::fromUtf8(datasetName));
         return false;
     }
 
     // Проверяем кол-во слоёв.
-    if (NEW_PRJ->poDS->GetLayerCount() == 0 || NEW_PRJ->poDS->GetLayerCount() > 1)
+    //if (NEW_PRJ->poDS->GetLayerCount() == 0 || NEW_PRJ->poDS->GetLayerCount() > 1)
+    if (NEW_PRJ->datasetToConvert->GetLayerCount() == 0
+            || NEW_PRJ->datasetToConvert->GetLayerCount() > 1)
     {
         ShowMsgBox(QString::fromUtf8("Ошибка: требуется, чтобы источник данных "
                                      "содержал только 1 слой! Выбранный источник "
                                      "данных содержит 0 или больше чем 1 слой."));
-        //GDALClose(poNewDS);
-//        OGRDataSource::DestroyDataSource(poNewDS);
         return false;
     }
 
-    OGRLayer *poLayer =  NEW_PRJ->poDS->GetLayer(0);
+    //OGRLayer *poLayer =  NEW_PRJ->poDS->GetLayer(0);
+    OGRLayer *poLayer =  NEW_PRJ->datasetToConvert->GetLayer(0);
     if (poLayer == NULL)
     {
         ShowMsgBox(QString::fromUtf8("Ошибка: невозможно считать слой в выбранном "
                                      "источнике данных "));
-        //GDALClose(poNewDS);
-//        OGRDataSource::DestroyDataSource(poNewDS);
         return false;
     }
 
@@ -299,39 +395,118 @@ bool FormBuilder::_initGdalDataset (char *datasetName)
     OGRSpatialReference SpaRef1(SRS_WKT_WGS84);
     OGRSpatialReference SpaRef2;
     SpaRef2.SetFromUserInput("EPSG:3857");
-    if ((poLayer->GetSpatialRef()->IsSame(&SpaRef1) == FALSE)
-            && (poLayer->GetSpatialRef()->IsSame(&SpaRef2) == FALSE))
+    //OGRSpatialReference SpaRef22;
+    //SpaRef22.SetFromUserInput("EPSG:3857");
+    //SpaRef22.morphToESRI(); // У Shape-файлов свой формат записи СК.
+    OGRSpatialReference *layerSpaRef = poLayer->GetSpatialRef();
+    QString srsNumber;
+    if (layerSpaRef == NULL) // Допускаем пустую систему координат.
+    {
+        srsNumber = "null";
+    }
+    else if (layerSpaRef->IsSame(&SpaRef1) == TRUE)
+    {
+        srsNumber = "4326";
+    }
+    else if (layerSpaRef->IsSame(&SpaRef2) == TRUE)
+    {
+        srsNumber = "3857";
+    }
+    else
     {
         ShowMsgBox(QString::fromUtf8("Ошибка: слой выбранного источника данных"
                                      " имеет неподдерживаемую систему координат "
                                      "(поддерживаются только EPSG:4326 и EPSG:3857)"));
-        //GDALClose(poNewDS);
-//        OGRDataSource::DestroyDataSource(poNewDS);
         return false;
     }
 
-    // Стираем и удаляем всё старое - создаём новый проект.
-//    if (poDS != NULL)
-        //GDALClose(poDS);
-//        OGRDataSource::DestroyDataSource(poDS);
-//    poDS = poNewDS;
+    // Считываем метаданные слоя, чтобы при сохранении проекта не считывать второй раз.
+    Json::Value nullVal;
 
-    // Считываем набор доступных целевых полей.
-    NEW_PRJ->availableFields.clear();
+    // 0. Берём текущую версию приложения (и формата тоже).
+    NEW_PRJ->metaData[FBJSONKEY_meta_version] = FB_current_version;
+
+    // 1. Считываем все доступные поля слоя.
     OGRFeatureDefn *poLayerDefn = poLayer->GetLayerDefn();
+    Json::Value json_mas;
     for (int i=0; i<poLayerDefn->GetFieldCount(); i++)
     {
         OGRFieldDefn *poFieldDefn = poLayerDefn->GetFieldDefn(i);
-        NEW_PRJ->availableFields.append(QString(poFieldDefn->GetNameRef()));
+
+        Json::Value json_mas_elem;
+        json_mas_elem["keyname"] = poFieldDefn->GetNameRef();
+        OGRFieldType ft = poFieldDefn->GetType();
+        switch (ft)
+        {
+            case OFTInteger:
+                json_mas_elem["datatype"] = "INTEGER";
+            break;
+            case OFTReal:
+                json_mas_elem["datatype"] = "REAL";
+            break;
+            case OFTDate:
+                json_mas_elem["datatype"] = "DATE";
+            break;
+            // TODO: расширить список.
+            default://case OFTString:
+                json_mas_elem["data_type"] = "STRING";
+            break;
+            //default:
+            //    json_mas_elem["data_type"] = nullVal;
+            //break;
+        }
+        json_mas_elem["display_name"] = poFieldDefn->GetNameRef();
+        json_mas.append(json_mas_elem);
+    }
+    NEW_PRJ->metaData[FBJSONKEY_meta_fields] = json_mas;
+
+    // 2. Считываем тип геометрии.
+    OGRwkbGeometryType tt = poLayerDefn->GetGeomType();
+    switch (tt)
+    {
+        case wkbLineString:
+            NEW_PRJ->metaData[FBJSONKEY_meta_geometry_type] = "LINESTRING";
+        break;
+        case wkbPoint:
+            NEW_PRJ->metaData[FBJSONKEY_meta_geometry_type] = "POINT";
+        break;
+        case wkbPolygon:
+            NEW_PRJ->metaData[FBJSONKEY_meta_geometry_type] = "POLYGON";
+        break;
+        case wkbMultiPoint:
+            NEW_PRJ->metaData[FBJSONKEY_meta_geometry_type] = "MULTIPOINT";
+        break;
+        case wkbMultiLineString:
+            NEW_PRJ->metaData[FBJSONKEY_meta_geometry_type] = "MULTILINESTRING";
+        break;
+        case wkbMultiPolygon:
+            NEW_PRJ->metaData[FBJSONKEY_meta_geometry_type] = "MULTIPOLYGON";
+        break;
+        default:
+            NEW_PRJ->metaData[FBJSONKEY_meta_geometry_type] = nullVal;
+        break;
     }
 
-    //ClearAll();
+    // 3. Считываем систему координат.
+    Json::Value jsonSrs;
+    if (srsNumber == "null")
+    {
+        jsonSrs = nullVal;
+    }
+    else
+    {
+        QByteArray baSrs;
+        baSrs = srsNumber.toUtf8();
+        jsonSrs["id"] = baSrs.data();
+    }
+    NEW_PRJ->metaData[FBJSONKEY_meta_srs] = jsonSrs;
 
-    ui->label_2->setText(QString::fromUtf8("Открытый проект: <без имени>."
-                         " Используется источник данных: ") + QString(datasetName));
+    // 4. Заполняем пустую связь с НГВ. Если этот метод вызван при создании проекта
+    // с НГВ то этот параметр получит значение в другом месте.
+    NEW_PRJ->metaData[FBJSONKEY_meta_ngw_connection] = nullVal;
 
-    // Гео-данные будут сохранены в сопутствующий json.
-    //wasDataChanged = true;
+    // 5. Создаём счётчик для внутренних имён изображений.
+    NEW_PRJ->metaData[FBJSONKEY_meta_image_counter] = 0;
 
     return true;
 }
@@ -342,14 +517,17 @@ bool FormBuilder::_initGdalDataset (char *datasetName)
 //-----------------------------------------------------------------------//
 void FormBuilder::OnActionOpen ()
 {
-    QMessageBox msgBox;
-    msgBox.setText(QString::fromUtf8("При открытии нового проекта, все "
-                                     "несохранённые изменения в текущем проекте будут "
-                                     "потеряны. Продолжить?"));
-    msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
-    int ret = msgBox.exec();
-    if (ret != QMessageBox::Ok)
-        return;
+    if (CUR_PRJ != NULL)
+    {
+        QMessageBox msgBox;
+        msgBox.setText(QString::fromUtf8("При открытии нового проекта, все "
+                                         "несохранённые изменения в текущем проекте будут "
+                                         "потеряны. Продолжить?"));
+        msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+        int ret = msgBox.exec();
+        if (ret != QMessageBox::Ok)
+            return;
+    }
 
     // Настраиваем диалог открытия проекта.
     QFileDialog dialogOpen(this);
@@ -363,10 +541,15 @@ void FormBuilder::OnActionOpen ()
     dialogOpen.setLabelText(QFileDialog::FileType,QString::fromUtf8("Тип файла"));
     dialogOpen.setLabelText(QFileDialog::Accept,QString::fromUtf8("Открыть"));
     dialogOpen.setLabelText(QFileDialog::Reject,QString::fromUtf8("Отмена"));
-    dialogOpen.setWindowTitle(QString::fromUtf8("Открыть проект ..."));
+    dialogOpen.setWindowTitle(QString::fromUtf8("Открыть проект. Выберите файл "
+                    "с расширением .ngfp ..."));
+
+// ======================= Начало работы диалога =============================
 
     QString pathName;
-    dialogOpen.setDirectory(CUR_PRJ->path);
+    if (CUR_PRJ != NULL)
+        dialogOpen.setDirectory(CUR_PRJ->path);
+
     if (dialogOpen.exec())
     {
         pathName = dialogOpen.selectedFiles().first();
@@ -380,7 +563,7 @@ void FormBuilder::OnActionOpen ()
         QString filePath;
         QByteArray pathBa;
 
-// ************************* 1. Считываем JSON-форму *********************************
+// ======================= Считываем JSON-форму =============================
 
         CPLSetConfigOption("CPL_VSIL_ZIP_ALLOWED_EXTENSIONS","ngfp");
 
@@ -412,143 +595,86 @@ void FormBuilder::OnActionOpen ()
 
         VSIFCloseL(fp);
 
-        Json::Value jsonRoot;
         Json::Reader jsonReader;
         Json::Value jsonValue;
 
-        if (!jsonReader.parse(jsonStr, jsonRoot, false)
-                || jsonRoot.isNull())
+        Json::Value jsonFormRoot;
+
+        if (!jsonReader.parse(jsonStr, jsonFormRoot, false)
+                || jsonFormRoot.isNull())
         {
             ShowMsgBox(QString::fromUtf8("Ошибка при открытие проекта! "
               "Не удалось прочесть JSON-файл формы"));
             return;
         }
 
-// ************************ 2. Считываем GEOJSON данные ******************************
+// =============== Считываем метаданные =========================================
 
-        jsonValue = jsonRoot[FBJSONKEY_dataset];
-        if (jsonValue.isNull())
-        {
-            ShowMsgBox(QString::fromUtf8("Ошибка при открытие проекта! "
-              "Не удалось прочесть JSON-файл формы"));
-            return;
-        }
-
+        // Создаём новый проект, пока что не трогая старый.
         FBProject *OPEN_PRJ = new FBProject();
 
-        if (jsonValue.asBool() == true)
-        {
-            filePath = pathName;
-            filePath.prepend("/vsizip/");
-            filePath.append("/data.geojson");
-            pathBa = filePath.toUtf8();
-
-            OGRRegisterAll();
-            OPEN_PRJ->poDS = OGRSFDriverRegistrar::Open(pathBa.data());
-            if(OPEN_PRJ->poDS != NULL)
-            {
-                OGRLayer *poJsonLayer = OPEN_PRJ->poDS->GetLayer(0);
-                if(poJsonLayer != NULL)
-                {
-                    OGRFeatureDefn *poJsonDefn = poJsonLayer->GetLayerDefn();
-                    if (poJsonDefn != NULL)
-                    {
-                        for(int y=0; y<poJsonDefn->GetFieldCount(); y++)
-                        {
-                            OGRFieldDefn *poFieldDefn = poJsonDefn->GetFieldDefn(y);
-                            OPEN_PRJ->availableFields
-                                    .append(QString(poFieldDefn->GetNameRef()));
-                        }
-                    }
-                    else
-                    {
-                        delete OPEN_PRJ;
-                        ShowMsgBox(QString::fromUtf8("Ошибка при открытии проекта: "
-                          "не удалось считать описание полей в источнике данных"
-                                                     "формата GeoJSON"));
-                        return;
-                    }
-                }
-                else
-                {
-                    delete OPEN_PRJ;
-                    ShowMsgBox(QString::fromUtf8("Ошибка при открытии проекта: "
-                       "не удалось считать слой в источнике данных формата GeoJSON"));
-                    return;
-                }
-            }
-            else
-            {
-                delete OPEN_PRJ;
-                ShowMsgBox(QString::fromUtf8("Ошибка при открытии проекта: "
-                 "не удалось открыть GDAL источник данных формата GeoJSON"));
-                return;
-            }
-        }
-
-// ******************** 3. Считываем JSON с соединением к NGW ************************
-
-        jsonValue = jsonRoot[FBJSONKEY_ngw_connection];
-        if (jsonValue.isNull())
+        // Считываем всю json-структуру метаданных.
+        filePath = pathName;
+        filePath.prepend("/vsizip/");
+        filePath.append("/meta.json");
+        pathBa = filePath.toUtf8();
+        fp = VSIFOpenL(pathBa.data(), "rb");
+        if (fp == NULL)
         {
             delete OPEN_PRJ;
+            ShowMsgBox(QString::fromUtf8("Ошибка при открытии проекта: "
+             "не удалось открыть JSON-файл метаданных"));
+            return;
+        }
+        std::string jsonConStr = "";
+        do
+        {
+            const char *str = CPLReadLineL(fp);
+            if (str == NULL)
+                break;
+            jsonConStr += str;
+        }
+        while (true);
+        VSIFCloseL(fp);
+
+        Json::Value jsonMetaRoot;
+
+        if (!jsonReader.parse(jsonConStr, jsonMetaRoot, false)
+                || jsonMetaRoot.isNull())
+        {
             ShowMsgBox(QString::fromUtf8("Ошибка при открытие проекта! "
-              "Не удалось прочесть JSON-файл формы"));
+              "Не удалось прочесть JSON-файл метаданных"));
+            delete OPEN_PRJ;
             return;
         }
 
-        if (jsonValue.asBool() == true)
+        // Проверяем версию проекта.
+        Json::Value versVal = jsonMetaRoot[FBJSONKEY_meta_version];
+        if (QString::fromUtf8(versVal.asString().data())
+                != QString::fromUtf8(FB_current_version))
         {
-            filePath = pathName;
-            filePath.prepend("/vsizip/");
-            filePath.append("/connection.json");
-            pathBa = filePath.toUtf8();
-            fp = VSIFOpenL(pathBa.data(), "rb");
-            if (fp == NULL)
-            {
-                delete OPEN_PRJ;
-                ShowMsgBox(QString::fromUtf8("Ошибка при открытии проекта: "
-             "не удалось открыть JSON-файл с информацией о соединении с NextGIS Web"));
-                return;
-            }
-            std::string jsonConStr = "";
-            do
-            {
-                const char *str = CPLReadLineL(fp);
-                if (str == NULL)
-                    break;
-                jsonConStr += str;
-            }
-            while (true);
-            VSIFCloseL(fp);
-
-            // TODO: сделать проверку на правильность строки (м.б. даже
-            // сохранять не строку, а json-объект)
-
-            OPEN_PRJ->NGWConnection = jsonConStr;
-        }
-
-// ************************ 4. Устанавливаем открытый проект ***********************
-
-        // Сначала считываем вкладки из файла формы.
-        Json::Value jsonTabs;
-        jsonTabs = jsonRoot[FBJSONKEY_tabs];
-        if (jsonTabs.isNull())
-        {
-            delete OPEN_PRJ;
             ShowMsgBox(QString::fromUtf8("Ошибка при открытие проекта! "
-              "Не удалось прочесть JSON-файл формы"));
+              "Не совпадают версии приложения и открываемого проекта"));
+            delete OPEN_PRJ;
             return;
         }
+
+        // TODO: по-хорошему надо проверять на правильность всю JSON-структуру
+        // метаданных, потому что от этого зависит корректная работа с проектом.
+        // Но пока подразумевается, что внутрь файла проекта никто не полезет.
+
+// ====================== Меняем старый проект на новый ==============================
 
         pathBa = pathName.toUtf8();
-        OPEN_PRJ->path = QString(CPLGetPath(pathBa.data())) + "/";
-        OPEN_PRJ->name_base = QString(CPLGetFilename(pathBa.data()));
-        OPEN_PRJ->name_base.chop(5);
-        delete CUR_PRJ;
+        OPEN_PRJ->path = QString::fromUtf8(CPLGetPath(pathBa.data())) + "/";
+        OPEN_PRJ->nameBase = QString::fromUtf8(CPLGetFilename(pathBa.data()));
+        OPEN_PRJ->nameBase.chop(5);
+        OPEN_PRJ->metaData = jsonMetaRoot;
+        // Не забываем: dataset при любом открытии может быть только NULL.
+        if (CUR_PRJ != NULL) delete CUR_PRJ;
         CUR_PRJ = OPEN_PRJ;
 
-// ************************ 5. Отображаем новую форму ******************************
+// ====================== Отображаем новую форму ==================================
 
         // Очищаем всё старое.
         // Удаляем даже самую первую вкладку в обоих табах, т.к.
@@ -564,157 +690,153 @@ void FormBuilder::OnActionOpen ()
         correspondence.clear();
 
         // Просматриваем вкладки в JSON-файле.
-
-        for (int i=0; i<jsonTabs.size(); ++i)
+        Json::Value jsonTabs;
+        jsonTabs = jsonFormRoot[FBJSONKEY_tabs];
+        if (!jsonTabs.isNull())
         {
-            // Создаём вкладку: горизонтальную и вертикальную.
-            CreatePage();
-            // По сути тут не важна какая ориентация активная, но задать надо.
-            isCurrentVertical = true;
-            // Считываем имя вкладки.
-            Json::Value jsonTab = jsonTabs[i];
-            jsonValue = jsonTab[FBJSONKEY_name];
-            // Делаем текущую вкладку для обоих табов активной. Это важно,
-            // т.к. именно на неё сейчас будут добавляться элементы.
-            tabWidget->setCurrentIndex(tabWidget->count()-1);
-            // Переименовываем созданную вкладку.
-            ChangeTabName(QString::fromUtf8(jsonValue.asString().data()));
-
-            // Просматриваем ориентации для текущей вкладки в JSON-файле.
-            Json::Value jsonOrtns [2];
-            jsonOrtns[0] = jsonTab[FBJSONKEY_portrait_elements];
-            jsonOrtns[1] = jsonTab[FBJSONKEY_album_elements];
-            for (int j=0; j<2; j++) // этот цикл по сути вместо функции
+            for (int i=0; i<jsonTabs.size(); ++i)
             {
-                if (jsonOrtns[j].isNull())
-                    continue;
+                // Создаём вкладку: горизонтальную и вертикальную.
+                CreatePage();
+                // По сути тут не важна какая ориентация активная, но задать надо.
+                isCurrentVertical = true;
+                // Считываем имя вкладки.
+                Json::Value jsonTab = jsonTabs[i];
+                jsonValue = jsonTab[FBJSONKEY_name];
+                // Делаем текущую вкладку для обоих табов активной. Это важно,
+                // т.к. именно на неё сейчас будут добавляться элементы.
+                tabWidget->setCurrentIndex(tabWidget->count()-1);
+                // Переименовываем созданную вкладку.
+                ChangeTabName(QString::fromUtf8(jsonValue.asString().data()));
 
-                QWidget *curWidget;
-
-                if (j == 0)
+                // Просматриваем ориентации для текущей вкладки в JSON-файле.
+                Json::Value jsonOrtns [2];
+                jsonOrtns[0] = jsonTab[FBJSONKEY_portrait_elements];
+                jsonOrtns[1] = jsonTab[FBJSONKEY_album_elements];
+                for (int j=0; j<2; j++) // этот цикл по сути вместо функции
                 {
-                    isCurrentVertical = true;
-                    curWidget = tabWidget->currentWidget();
-                }
-                else
-                {
-                    isCurrentVertical = false;
-                    curWidget = tabHorWidget->currentWidget();
-                }
-
-                // Получаем родительский лейбл для текущего
-                // виджета - понадобится в дальнейшем.
-                // curParentLabel не должен быть нулём, т.к. родительский лейбл
-                // был только что добавлен.
-                FBParentLabel *parentLabel = correspondence[curWidget].second;
-
-                // Просматриваем элементы текущей вкладки для текущей ориентации
-                // в JSON-файле.
-                Json::Value jsonElems = jsonOrtns[j];
-                for (int k=jsonElems.size()-1; k>=0; --k) // просматриваем с конца, т.к. добавление будет происходить с верху
-                {
-                    Json::Value jsonElem = jsonElems[k];
-
-                    Json::Value jsonType = jsonElem[FBJSONKEY_type];
-                    if (jsonType.isNull())
+                    if (jsonOrtns[j].isNull())
                         continue;
 
-                    // Задаём текщий тип элемента, как будто выбираем из
-                    // правой колонки.
-                    FBElemType::CURRENT = NULL;
-                    if (pElemTypeGroupStart->name
-                            == QString::fromUtf8(jsonType.asString().data()))
+                    QWidget *curWidget;
+
+                    if (j == 0)
                     {
-                        FBElemType::CURRENT = pElemTypeGroupStart;
-                    }
-                    else if (pElemTypeGroupEnd->name
-                             == QString::fromUtf8(jsonType.asString().data()))
-                    {
-                        FBElemType::CURRENT = pElemTypeGroupEnd;
+                        isCurrentVertical = true;
+                        curWidget = tabWidget->currentWidget();
                     }
                     else
                     {
-                        for (int kk=0; kk<vElemTypes.size(); kk++)
+                        isCurrentVertical = false;
+                        curWidget = tabHorWidget->currentWidget();
+                    }
+
+                    // Получаем родительский лейбл для текущего
+                    // виджета - понадобится в дальнейшем.
+                    // curParentLabel не должен быть нулём, т.к. родительский лейбл
+                    // был только что добавлен.
+                    FBParentLabel *parentLabel = correspondence[curWidget].second;
+
+                    // Просматриваем элементы текущей вкладки для текущей ориентации
+                    // в JSON-файле.
+                    Json::Value jsonElems = jsonOrtns[j];
+                    for (int k=jsonElems.size()-1; k>=0; --k) // просматриваем с конца, т.к. добавление будет происходить с верху
+                    {
+                        Json::Value jsonElem = jsonElems[k];
+
+                        Json::Value jsonType = jsonElem[FBJSONKEY_type];
+                        if (jsonType.isNull())
+                            continue;
+
+                        // Задаём текщий тип элемента, как будто выбираем из
+                        // правой колонки.
+                        FBElemType::CURRENT = NULL;
+                        if (pElemTypeGroupStart->name
+                                == QString::fromUtf8(jsonType.asString().data()))
                         {
-                            if (vElemTypes[kk]->name
-                                    == QString::fromUtf8(jsonType.asString().data()))
+                            FBElemType::CURRENT = pElemTypeGroupStart;
+                        }
+                        else if (pElemTypeGroupEnd->name
+                                 == QString::fromUtf8(jsonType.asString().data()))
+                        {
+                            FBElemType::CURRENT = pElemTypeGroupEnd;
+                        }
+                        else
+                        {
+                            for (int kk=0; kk<vElemTypes.size(); kk++)
                             {
-                                FBElemType::CURRENT = vElemTypes[kk];
-                                break;
+                                if (vElemTypes[kk]->name
+                                        == QString::fromUtf8(jsonType.asString().data()))
+                                {
+                                    FBElemType::CURRENT = vElemTypes[kk];
+                                    break;
+                                }
                             }
                         }
-                    }
-                    // На вскяий случай, если файл был изменён вручную: если
-                    // не нашли тип элемента - просто не добавляем его на сцену:
-                    if (FBElemType::CURRENT == NULL)
-                        continue;
+                        // На вскяий случай, если файл был изменён вручную: если
+                        // не нашли тип элемента - просто не добавляем его на сцену:
+                        if (FBElemType::CURRENT == NULL)
+                            continue;
 
-                    FBElem *newElem = FBElemType::CURRENT->CreateElem();
-                    if (parentLabel->InsertElem(newElem,0))
-                    {
-                        connect(newElem, SIGNAL(elemPressed()),
-                                this, SLOT(OnElemPressed()));
-                    }
-                    else
-                    {
-                        delete newElem;
-                        continue;
-                    }
+                        FBElem *newElem = FBElemType::CURRENT->CreateElem();
+                        if (parentLabel->InsertElem(newElem,0))
+                        {
+                            connect(newElem, SIGNAL(elemPressed()),
+                                    this, SLOT(OnElemPressed()));
+                        }
+                        else
+                        {
+                            delete newElem;
+                            continue;
+                        }
 
-                    // Очищаем атрибуты элемента, т.к. они сейчас будут загружены
-                    // из файла.
-                    newElem->attributes.clear();
+                        // Очищаем атрибуты элемента, т.к. они сейчас будут загружены
+                        // из файла.
+                        newElem->attributes.clear();
 
-                    // Загружаем атрибуты и проверяем на нуль. У таких элементов
-                    // как пробел или конец группы атрибутов может не быть, поэтому
-                    // элемент мы создали, но дальше не идём.
-                    Json::Value jsonAttrs = jsonElem[FBJSONKEY_attributes];
-                    if (jsonAttrs.isNull())
-                        continue;
+                        // Загружаем атрибуты и проверяем на нуль. У таких элементов
+                        // как пробел или конец группы атрибутов может не быть, поэтому
+                        // элемент мы создали, но дальше не идём.
+                        Json::Value jsonAttrs = jsonElem[FBJSONKEY_attributes];
+                        if (jsonAttrs.isNull())
+                            continue;
 
-                    // Загружаем атрибуты элемента (в JSON-файле это не массив,
-                    // поэтому считываем как кортеж).
-                    std::vector<std::string> members = jsonAttrs.getMemberNames();
-                    for (int l=0; l<members.size(); l++)
-                    {
-                        //Json::Value jsonAttrName = jsonAttrs[l][FBJSONKEY_name];
-                        //Json::Value jsonAttrAlias = jsonAttrs[l][FBJSONKEY_alias];
-                        //Json::Value jsonAttrValue = jsonAttrs[l][FBJSONKEY_value];
+                        // Загружаем атрибуты элемента (в JSON-файле это не массив,
+                        // поэтому считываем как кортеж).
+                        std::vector<std::string> members = jsonAttrs.getMemberNames();
+                        for (int l=0; l<members.size(); l++)
+                        {
+                            //Json::Value jsonAttrName = jsonAttrs[l][FBJSONKEY_name];
+                            //Json::Value jsonAttrAlias = jsonAttrs[l][FBJSONKEY_alias];
+                            //Json::Value jsonAttrValue = jsonAttrs[l][FBJSONKEY_value];
 
-                        jsonValue = jsonAttrs[members[l].data()];
+                            jsonValue = jsonAttrs[members[l].data()];
 
-                        //newElem->attributes.append(QPair<QString,QString>(
-                        newElem->attributes.append(QPair<QString,Json::Value>(
-                            members[l].data(),
-                            //FBElemType::GetAttributeValueString(members[l].data(),
-                            //                                    jsonValue)));
-                                                       jsonValue));
+                            //newElem->attributes.append(QPair<QString,QString>(
+                            newElem->attributes.append(QPair<QString,Json::Value>(
+                                members[l].data(),
+                                //FBElemType::GetAttributeValueString(members[l].data(),
+                                //                                    jsonValue)));
+                                                           jsonValue));
+                        }
                     }
                 }
             }
+
+            // Пользователь начинает с 1-ой открытой вертикальной вкладки:
+            isCurrentVertical = false; // чтоб с гарантией сменилось при смене ориентации + т.к. последняя была всё=таки горизонтальной
+            OnActionOrtnPrt(); // вызываем смену ориентации
+            actionOrtnPrt->setChecked(true); // Добавляем галку которая либо есть либо нету
+            tabWidget->setCurrentIndex(0);
+            ui->lineEdit->setText(tabWidget->tabText(0));
+            ui->groupBox_5->setTitle(QString::fromUtf8("Редактирование вкладки: ") +
+                                     ui->lineEdit->text());
         }
 
-        // Пользователь начинает с 1-ой открытой вертикальной вкладки:
-        isCurrentVertical = false; // чтоб с гарантией сменилось при смене ориентации + т.к. последняя была всё=таки горизонтальной
-        OnActionOrtnPrt(); // вызываем смену ориентации
-        actionOrtnPrt->setChecked(true); // Добавляем галку которая либо есть либо нету
-        tabWidget->setCurrentIndex(0);
-        ui->lineEdit->setText(tabWidget->tabText(0));
-        ui->groupBox_5->setTitle(QString::fromUtf8("Редактирование вкладки: ") +
-                                 ui->lineEdit->text());
+        EnableInterface();
 
-        if (CUR_PRJ->poDS == NULL)
-        {
-            ui->label_2->setText(QString::fromUtf8("Открытый проект: ")
-                       + CUR_PRJ->path + CUR_PRJ->name_base + ".ngfp" +
-                QString::fromUtf8(". Источник данных не используется"));
-        }
-        else
-        {
-            ui->label_2->setText(QString::fromUtf8("Открытый проект: ")
-                       + CUR_PRJ->path + CUR_PRJ->name_base + ".ngfp" +
-                QString::fromUtf8(". Используется источник данных: внутренний GeoJSON"));
-        }
+        ui->label_2->setText(QString::fromUtf8("Открытый проект: ")
+                   + pathName);
     }
 }
 
@@ -740,10 +862,13 @@ void FormBuilder::OnActionSave ()
 
     // Задаём выбор по умолчанию, но выбранное значение может быть совершенно другим.
     dialogSave.setDirectory(CUR_PRJ->path);
-    dialogSave.selectFile(CUR_PRJ->name_base+".ngfp");
+    dialogSave.selectFile(CUR_PRJ->nameBase+".ngfp");
 
     if (dialogSave.exec())
     {
+        // TODO: Подумать, можно ли сделать временную директорию с уникальным
+        // именем, чтобы не создавать уникальные имена для временных файлов.
+
         // Определяем zip-файл проекта, который будем записывать на диск.
         QString prj_full_pathname = dialogSave.selectedFiles().first();
         if (!prj_full_pathname.endsWith(".ngfp",Qt::CaseInsensitive))
@@ -768,44 +893,23 @@ void FormBuilder::OnActionSave ()
         // что работу можно продолжать.
         bool progress_ok = true;
 
-        QString xmlFilePath;
-        QString geojsonFilePath;
-        QString jsonFilePath;
+        QString formFilePath;
+        QString dataFilePath;
+        QString metaFilePath;
 
 // ********************* 1. СОЗДАЁМ ВРЕМЕННЫЙ JSON ФАЙЛ ФОРМЫ ************************
 
         QTemporaryFile file_xml (prj_path + "XXXXXXform.json");
+        QList<QPair<QString,QString> > images_to_save;
         if (file_xml.open())
         {
-            xmlFilePath = file_xml.fileName();
+            formFilePath = file_xml.fileName();
             QTextStream xml_out(&file_xml);
             xml_out.setCodec("UTF-8"); // Важно поставить кодек, иначе будет неправильная кодировка.
 
             Json::Value jsonRoot;
             Json::Value jsonValue;
             QByteArray baValue;
-
-            jsonValue = FB_current_version;
-            jsonRoot[FBJSONKEY_version] = jsonValue;
-            if (CUR_PRJ->poDS != NULL)
-            {
-                jsonValue = true;
-            }
-            else
-            {
-                jsonValue = false;
-            }
-            jsonRoot[FBJSONKEY_dataset] = jsonValue;
-
-            if (CUR_PRJ->NGWConnection != "")
-            {
-                jsonValue = true;
-            }
-            else
-            {
-                jsonValue = false;
-            }
-            jsonRoot[FBJSONKEY_ngw_connection] = jsonValue;
 
             // Для каждой вкладки:
             // Для каждой ориентации (если имеется):
@@ -852,21 +956,49 @@ void FormBuilder::OnActionSave ()
                         jsonElem[FBJSONKEY_type] = jsonValue;
 
                         Json::Value jsonAttrs;
-//                        QList<QPair<QString,QString> > attrs
                         QList<QPair<QString,Json::Value> > attrs
                                 = parentLabel->elements[k]->attributes;
                         for (int l=0; l<attrs.size(); l++)
                         {
-                            QByteArray attrBaValue;
+                            // Отдельная логика для атрибута path (для картинки),
+                            // если был задан новый путь к новой картинке.
+                            // Изменяем значение атрибута - указываем, имя
+                            // картинки в архиве, вместо полного имени на
+                            // диске.
+                          /*  if (attrs[l].first == FBATTR_path
+                                && !attrs[l].second.isNull()
+                                && !QString::fromUtf8(
+                                   attrs[l].second.asString().data())
+                                   .startsWith("archive:"))
+                            {
+                                // Запоминаем полный путь к картинке.
+                                QString str_real_path = QString::fromUtf8(
+                                            attrs[l].second.asString().data());
 
-                            // Узнаём имя атрибута.
-                            attrBaValue = attrs[l].first.toUtf8();
+                                // Ищем новое уникальное имя для картинки при помощи счётчика
+                                // в метаданных и изменяем само значение этого счётчика.
+                                int counter = CUR_PRJ->metaData[FBJSONKEY_meta_image_counter].asInt();
+                                QString str_archive_name = QString::fromUtf8("archive:image"+QString::number(counter)+".png");
+                                counter++;
+                                CUR_PRJ->metaData[FBJSONKEY_meta_image_counter] = counter;
 
-                            // Присваиваем определённое JSON-значение.
-                            jsonAttrs[attrBaValue.data()] =
-                               //FBElemType::GetAttributeValueJson(attrs[l].first,
-                               //                                  attrs[l].second);
-                                    attrs[l].second;
+                                // Сохраняем оба определённых имени в
+                                // массив, для того чтобы чуть позже записать
+                                // изображение в итоговый архив.
+                                images_to_save.append(QPair<QString,QString>
+                                               (str_real_path,str_archive_name));
+
+                                // Сохраняем в метаданных имя картинки в архиве.
+                                QByteArray archive_name_ba;
+                                archive_name_ba = str_archive_name.toUtf8();
+                                attrs[l].second = archive_name_ba.data();
+                            }
+                            */
+
+                            // Готовим атрибут для записи в файл.
+                            QByteArray attr_ba_Name;
+                            attr_ba_Name = attrs[l].first.toUtf8();
+                            jsonAttrs[attr_ba_Name.data()] = attrs[l].second;
                         }
 
                         jsonElem[FBJSONKEY_attributes] = jsonAttrs;
@@ -908,56 +1040,145 @@ void FormBuilder::OnActionSave ()
             // Создаём сначала пустой файл GeoJSON методами Qt, чтобы удостовериться,
             // что его имя будет уникально. По сути эти дейсвтия нужны только чтобы
             // получить уникальное имя.
-            // TODO: найти и вызывать метод по получению уникального имени.
+
+            // TODO: делать это всё во временной директории - тогда не нужны
+            // уникальные имена файлов. Использовать QTemporaryDir но в Qt5.
+
             QTemporaryFile *file_geojson;
             file_geojson = new QTemporaryFile(prj_path + "XXXXXXdata.geojson");
             if (file_geojson->open())
             {
                 // Удаляем файл, но сохраням имя, чтобы создать ИД методами GDAL.
+                // Если всё успешно, то файл с уникальным именем будет затем создан
+                // GDAL-ом, а удалён в конце метода, как простой файл.
                 QByteArray geojsonBa = file_geojson->fileName().toUtf8();
-                geojsonFilePath = file_geojson->fileName();
+                dataFilePath = file_geojson->fileName();
                 const char *geojson_unique_name = geojsonBa.data();
                 file_geojson->close();
                 delete file_geojson;
 
-                // Если всё успешно, то файл с уникальным именем будет создан
-                // GDAL-ом, а удалён в конце метода, как простой файл.
-                OGRRegisterAll();
-                OGRSFDriver *poJsonDriver = OGRSFDriverRegistrar::GetRegistrar()
-                        ->GetDriverByName("GeoJSON");
-                if(poJsonDriver != NULL)
+                // Мы должны сохранить данные (фичи) слоя только в том случае, если
+                // текущий проект - это только что созданный из другого ИД проект.
+                if (CUR_PRJ->datasetToConvert != NULL)
                 {
-                    OGRDataSource *poJsonDS = poJsonDriver
-                            ->CreateDataSource(geojson_unique_name);
-                    if(poJsonDS != NULL)
+                    //OGRRegisterAll();
+                    //GDALAllRegister();
+                    //OGRSFDriver *poJsonDriver = OGRSFDriverRegistrar::GetRegistrar()
+                    //        ->GetDriverByName("GeoJSON");
+                    GDALDriver *poJsonDriver = GetGDALDriverManager()
+                            ->GetDriverByName("GeoJSON");
+                    if(poJsonDriver != NULL)
                     {
-                        if (CUR_PRJ->poDS != NULL)
+                        //OGRDataSource *poJsonDS = poJsonDriver
+                        //        ->CreateDataSource(geojson_unique_name);
+                        GDALDataset *poJsonDS = poJsonDriver
+                                ->Create(geojson_unique_name, 0, 0, 0, GDT_Unknown, NULL);
+                        if(poJsonDS != NULL)
                         {
-                            OGRLayer *poSourceLayer = CUR_PRJ->poDS->GetLayer(0);
-                            OGRLayer *poJsonLayer = poJsonDS->CopyLayer(poSourceLayer,
-                                                                    poSourceLayer->GetName());
-                            if(poJsonLayer == NULL)
+                            //if (CUR_PRJ->poDS != NULL)
+                            //OGRLayer *poSourceLayer = CUR_PRJ->poDS->GetLayer(0);
+                            OGRLayer *poSourceLayer = CUR_PRJ->
+                                    datasetToConvert->GetLayer(0);
+                            OGRLayer *poJsonLayer = poJsonDS->
+                                 CopyLayer(poSourceLayer,poSourceLayer->GetName());
+                            if(poJsonLayer != NULL)
+                            {
+                                //poJsonLayer->
+                            }
+                            else
                             {
                                 progress_ok = false;
                                 ShowMsgBox(QString::fromUtf8("Ошибка при создании временного GeoJSON-файла "
                                "данных: не удалось создать слой в источнике данных GeoJSON"));
                             }
-                        }
 
-                        OGRDataSource::DestroyDataSource(poJsonDS);
+                            //OGRDataSource::DestroyDataSource(poJsonDS);
+                            GDALClose(poJsonDS);
+                        }
+                        else
+                        {
+                            progress_ok = false;
+                            ShowMsgBox(QString::fromUtf8("Ошибка при создании временного GeoJSON-файла "
+                           "данных: не удалось создать источник данных GeoJSON"));
+                        }
                     }
                     else
                     {
                         progress_ok = false;
                         ShowMsgBox(QString::fromUtf8("Ошибка при создании временного GeoJSON-файла "
-                       "данных: не удалось создать источник данных GeoJSON"));
+                       "данных: не удалось инициализировать драйвер формата GeoJSON"));
                     }
                 }
+
+                // Иначе ничего не делаем, т.к. файл уже существует в сохранённой
+                // на данный момент версии проекта.
                 else
                 {
-                    progress_ok = false;
-                    ShowMsgBox(QString::fromUtf8("Ошибка при создании временного GeoJSON-файла "
-                   "данных: не удалось инициализировать драйвер формата GeoJSON"));
+                    // Тут на самом деле мы копируем старый GeoJSON ИД, т.к.
+                    // так приходится делать из-за текущего способоа создания итогового
+                    // ЗИП-архива - он создаётся каждый раз с нуля.
+
+                    // TODO: не создавать каждый раз новый, а модифицировать старый
+                    // файл проекта, нет трогая при этом файл данных и метаданных.
+
+                    CPLSetConfigOption("CPL_VSIL_ZIP_ALLOWED_EXTENSIONS","ngfp");
+                    QString __filePath = CUR_PRJ->path + CUR_PRJ->nameBase
+                     + QString::fromUtf8(".ngfp");
+                    __filePath.prepend("/vsizip/");
+                    __filePath.append("/data.geojson");
+                    QByteArray __pathBa;
+                    __pathBa = __filePath.toUtf8();
+                    char **__allowedDrivers = NULL;
+                    __allowedDrivers = CSLAddString(__allowedDrivers,"GeoJSON");
+                    GDALDataset *__srcJsonDs = (GDALDataset*) GDALOpenEx(__pathBa.data(),
+                     GDAL_OF_VECTOR | GDAL_OF_READONLY, __allowedDrivers, NULL, NULL);
+                    CSLDestroy(__allowedDrivers);
+                    if(__srcJsonDs == NULL)
+                    {
+                        ShowMsgBox(QString::fromUtf8("Ошибка при пересохранении файла данных!"));
+                        progress_ok = false;
+                    }
+                    else
+                    {
+                        OGRLayer * __srcJsonLayer = __srcJsonDs->GetLayer(0);
+                        if (__srcJsonLayer == NULL)
+                        {
+                            ShowMsgBox(QString::fromUtf8("Ошибка при пересохранении файла данных!"));
+                            progress_ok = false;
+                        }
+                        else
+                        {
+                            GDALDriver *__jsonDriver = GetGDALDriverManager()
+                                    ->GetDriverByName("GeoJSON");
+                            if(__jsonDriver == NULL)
+                            {
+                                ShowMsgBox(QString::fromUtf8("Ошибка при пересохранении файла данных!"));
+                                progress_ok = false;
+                            }
+                            else
+                            {
+                                GDALDataset *__tgtJsonDs = __jsonDriver
+                                 ->Create(geojson_unique_name, 0, 0, 0, GDT_Unknown, NULL);
+                                if (__tgtJsonDs == NULL)
+                                {
+                                    ShowMsgBox(QString::fromUtf8("Ошибка при пересохранении файла данных!"));
+                                    progress_ok = false;
+                                }
+                                else
+                                {
+                                    OGRLayer *__tgtJsonLayer = __tgtJsonDs
+                                     ->CopyLayer(__srcJsonLayer,__srcJsonLayer->GetName());
+                                    if (__tgtJsonLayer == NULL)
+                                    {
+                                        ShowMsgBox(QString::fromUtf8("Ошибка при пересохранении файла данных!"));
+                                        progress_ok = false;
+                                    }
+                                }
+                                GDALClose(__tgtJsonDs);
+                            }
+                        }
+                    }
+                    GDALClose(__srcJsonDs);
                 }
             }
             else
@@ -968,24 +1189,40 @@ void FormBuilder::OnActionSave ()
             }
         }
 
-// ***************** 3. СОЗДАЁМ ВРЕМЕННЫЙ JSON ФАЙЛ ПОДКЛЮЧЕНИЯ К NGW ******************
+// ***************** 3. СОЗДАЁМ ВРЕМЕННЫЙ JSON ФАЙЛ МЕТАДАННЫХ ******************
 
-        QTemporaryFile file_json (prj_path + "XXXXXXconnection.json");
+        // Создаём файл вне условий, чтобы он удалился не при завершении ветвления,
+        // а в конце метода.
+        QTemporaryFile file_meta (prj_path + "XXXXXXmeta.json");
         if (progress_ok)
         {
-            if (file_json.open())
-            {
-                jsonFilePath = file_json.fileName();
-                QTextStream json_out(&file_json);
-                json_out.setCodec("UTF-8");
-                json_out << QString::fromStdString(CUR_PRJ->NGWConnection);
-            }
-            else
-            {
-                progress_ok = false;
-                ShowMsgBox(QString::fromUtf8("Ошибка! Не удалось создать временный JSON-файл "
-                       "соединения с NextGIS Web во время сохранения проекта."));
-            }
+            // TODO: сохранять метаданные только, если это проект, созданный впервые,
+            // иначе нужный файл уже существует. Все метаданные сохраняются только
+            // 1 раз и не могут быть обновлены.
+            // Сделать по аналогии с файлом данных.
+
+            // На данный момент сохраняем файл в любом случае.
+            //if (CUR_PRJ->datasetToConvert != NULL)
+            //{
+                if (file_meta.open())
+                {
+                    metaFilePath = file_meta.fileName();
+                    QTextStream json_out(&file_meta);
+                    json_out.setCodec("UTF-8");
+
+                    // Записываем сформированную json-строку в meta-файл.
+                    Json::StyledWriter jsonWriter;
+                    std::string final_json_string = jsonWriter.write(CUR_PRJ->metaData);
+                    QString res_json_str = QString::fromUtf8(final_json_string.data());
+                    json_out<<res_json_str;
+                }
+                else
+                {
+                    progress_ok = false;
+                    ShowMsgBox(QString::fromUtf8("Ошибка! Не удалось создать временный JSON-файл "
+                           "метаданных во время сохранения проекта."));
+                }
+            //}
         }
 
 // ********************* 4. СОЗДАЁМ ИТОГОВЫЙ ZIP ФАЙЛ ПРОЕКТА *************************
@@ -1001,51 +1238,90 @@ void FormBuilder::OnActionSave ()
                 GByte *pabyBuffer = (GByte *)CPLMalloc(nBufferSize);
                 QByteArray fullPathBa;
 
-                fullPathBa = xmlFilePath.toUtf8();
+                fullPathBa = formFilePath.toUtf8();
                 if (!AddFileToZip(fullPathBa.data(), "form.json",//CPLGetFilename(fullPathBa.data()),
                                  hZip, &pabyBuffer, nBufferSize))
                 {
                     ShowMsgBox(QString::fromUtf8("Ошибка при сохранении проекта! Не "
-                           "удалось записать временный JSON-файл формы в ZIP-архив."));
+                           "удалось записать временный JSON-файл формы в файл проекта."));
                 }
                 else
                 {
-                    fullPathBa = geojsonFilePath.toUtf8();
-                    if (!AddFileToZip(fullPathBa.data(), "data.geojson",//CPLGetFilename(fullPathBa.data()),
-                                     hZip, &pabyBuffer, nBufferSize))
+                    bool okk = true;
+                    //if (CUR_PRJ->datasetToConvert != NULL)
+                    //{
+                        fullPathBa = dataFilePath.toUtf8();
+                        okk = AddFileToZip(fullPathBa.data(), "data.geojson",//CPLGetFilename(fullPathBa.data()),
+                                           hZip, &pabyBuffer, nBufferSize);
+                    //}
+
+                    if (!okk)
                     {
                         ShowMsgBox(QString::fromUtf8("Ошибка при сохранении проекта! Не "
-                           "удалось записать временный GeoJSON-файл данных в ZIP-архив."));
+                           "удалось записать временный GeoJSON-файл данных в файл проекта."));
                     }
                     else
                     {
-                        fullPathBa = jsonFilePath.toUtf8();
-                        if (!AddFileToZip(fullPathBa.data(), "connection.json",//CPLGetFilename(fullPathBa.data()),
-                                         hZip, &pabyBuffer, nBufferSize))
+                        okk = true;
+                        //if (CUR_PRJ->datasetToConvert != NULL)
+                        //{
+                            fullPathBa = metaFilePath.toUtf8();
+                            okk = AddFileToZip(fullPathBa.data(), "meta.json",//CPLGetFilename(fullPathBa.data()),
+                                               hZip, &pabyBuffer, nBufferSize);
+                        //}
+
+                        if (!okk)
                         {
                             ShowMsgBox(QString::fromUtf8("Ошибка при сохранении проекта! "
-                              "Не удалось записать временный JSON-файл соединения с "
-                                                         "NextGIS Web в ZIP-архив."));
+                              "Не удалось записать временный JSON-файл метаданных в файл проекта."));
                         }
+
                         else
                         {
-                            CUR_PRJ->path = prj_path;
-                            CUR_PRJ->name_base = prj_name_base;
+                            okk = true;
+/*
+                            Выше сформирован список для копирования - и что важно
+                            картинки, контролы которых удалились, должны быть тоже
+                            удалены (не скопированы).
 
-                            // TODO: по идее здесь должен так же поменяться poDS.
-                            // availableFields в любом случае остаётся прежним.
-
-                            if (CUR_PRJ->poDS == NULL)
+                            Использовать МЕМ файл
+*/
+                            for (int i=0; i<images_to_save.size(); i++)
                             {
-                                ui->label_2->setText(QString::fromUtf8("Открытый проект: ")
-                                      + prj_full_pathname + QString::fromUtf8("."
-                                     " Источник данных не используется"));
+                                QByteArray path_ba = images_to_save[i].first.toUtf8();
+                                images_to_save[i].second.remove(0,8); // удаляем 'archive:'
+                                QByteArray archive_name_ba = images_to_save[i].second.toUtf8();
+                                okk = AddFileToZip(path_ba.data(), archive_name_ba.data(),
+                                                   hZip, &pabyBuffer, nBufferSize);
+                                if (!okk) break;
                             }
+
+                            if (!okk)
+                            {
+                                ShowMsgBox(QString::fromUtf8("Ошибка при сохранении проекта! "
+                                  "Не удалось записать один из PNG файлов изображений в файл проекта."));
+                            }
+
+                            // Нужные файлы были записаны. Итоговый архив сформирован
+                            // и сохранён.
+                            // Делаем текущий проект таким, как будто он был открыт.
                             else
                             {
-                                ui->label_2->setText(QString::fromUtf8("Открытый проект: ")
-                                      + prj_full_pathname + QString::fromUtf8("."
-                                     " Используется источник данных: внутренний GeoJSON"));
+
+                                // Теперь путь к проекту - тот, что сохранён.
+                                CUR_PRJ->path = prj_path;
+                                CUR_PRJ->nameBase = prj_name_base;
+
+                                // ИД больше не нужен.
+                                if (CUR_PRJ->datasetToConvert != NULL)
+                                {
+                                    //OGRDataSource::DestroyDataSource(CUR_PRJ->datasetToConvert);
+                                    GDALClose(CUR_PRJ->datasetToConvert);
+                                    CUR_PRJ->datasetToConvert = NULL;
+                                }
+
+                                 ui->label_2->setText(QString::fromUtf8("Открытый проект: ")
+                                   + prj_full_pathname);
                             }
                         }
                     }
@@ -1064,7 +1340,7 @@ void FormBuilder::OnActionSave ()
         // Временные файлы удалятся сами как только метод закончит выполнение.
         // Файл с данными не удалится, т.к. он не временный, а создан GDAL-ом,
         // поэтому удаляем вручную.
-        QFile::remove(geojsonFilePath);
+        QFile::remove(dataFilePath);
     }
 }
 

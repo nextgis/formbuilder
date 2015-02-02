@@ -256,7 +256,7 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>Открытый проект: &lt;без имени&gt;. Источник данных не используется</string>
+      <string>Создайте новый или откройте существующий проект ...</string>
      </property>
     </widget>
    </item>

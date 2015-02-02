@@ -38,16 +38,20 @@
 FBProject::FBProject()
 {
     path = QDir::currentPath();
-    name_base = "form";
-    poDS = NULL;
-    NGWConnection = "";
-    //availableFields
+    nameBase = QString::fromUtf8("form");
+    datasetToConvert = NULL;
+    Json::Value nullVal; metaData = nullVal;
 }
+
 
 FBProject::~FBProject()
 {
-    if (poDS != NULL)
-        OGRDataSource::DestroyDataSource(poDS);
+    if (datasetToConvert != NULL)
+    {
+        //OGRDataSource::DestroyDataSource(datasetToConvert);
+        GDALClose(datasetToConvert);
+        datasetToConvert = NULL;
+    }
 }
 
 // ************************************************************************** //
@@ -124,8 +128,17 @@ FBElem *FBElemType::CreateElem ()
         QLabel *image = new QLabel(newElem);
         newElem->images.append(image);
         image->setPixmap(imgDisplayPaths[i]);
-        image->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
-        image->setScaledContents(true);
+        if (newElem->elemType->name == FBELEMTYPE_image)
+        {
+            // TODO: сделать изображение большой картинкой.
+            image->setScaledContents(false);
+            image->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Expanding);
+        }
+        else
+        {
+            image->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
+            image->setScaledContents(true);
+        }
         newElemLayout->addWidget(image);
         totalHeight+=image->height();
     }
@@ -333,6 +346,21 @@ FormBuilder::~FormBuilder()
     delete ui;
 }
 
+void FormBuilder::closeEvent(QCloseEvent *event)
+{
+    /*if (CUR_PRJ != NULL)
+    {
+        QMessageBox msgBox;
+        msgBox.setText(QString::fromUtf8("Выйти из программы?"));
+        msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+        int ret = msgBox.exec();
+        if (ret == QMessageBox::Ok)
+        {
+            QWidget::closeEvent(event);
+        }
+    }*/
+}
+
 FormBuilder::FormBuilder(QWidget *parent) :QWidget(parent),ui(new Ui::FormBuilder)
 {
     ui->setupUi(this);
@@ -347,18 +375,18 @@ FormBuilder::FormBuilder(QWidget *parent) :QWidget(parent),ui(new Ui::FormBuilde
     menuBar->addMenu(menuFile);
       menuNew = new QMenu(QString::fromUtf8("Новый"),menuBar);
       menuFile->addMenu(menuNew);
-        actionNewVoid = new QAction(QString::fromUtf8("Пустой"),menuBar);
-        menuNew->addAction(actionNewVoid);
-        actionNewDataset = new QAction(QString::fromUtf8("Файловый ИД GDAL"),menuBar);
+        actionNewDataset = new QAction(QString::fromUtf8("... из Shapefile-а"),menuBar);
         menuNew->addAction(actionNewDataset);
-        actionNewNGW = new QAction(QString::fromUtf8("NextGIS Web"),menuBar);
+        actionNewNGW = new QAction(QString::fromUtf8("... из подклюения к NextGIS Web"),menuBar);
         menuNew->addAction(actionNewNGW);
       actionOpen = new QAction(QString::fromUtf8("Открыть"),menuBar);
       menuFile->addAction(actionOpen);
       actionSave = new QAction(QString::fromUtf8("Сохранить"),menuBar);
       menuFile->addAction(actionSave);
+      actionSave->setEnabled(false);
     menuScreen = new QMenu(QString::fromUtf8("Экран"),menuBar);
     menuBar->addMenu(menuScreen);
+    menuScreen->setEnabled(false);
       menuOrtn = new QMenu(QString::fromUtf8("Ориентация"),menuBar);
       menuScreen->addMenu(menuOrtn); //->addAction(actionOrtn);
         actionOrtnPrt = new QAction(QString::fromUtf8("Портретная"),menuBar);
@@ -371,7 +399,6 @@ FormBuilder::FormBuilder(QWidget *parent) :QWidget(parent),ui(new Ui::FormBuilde
       actionAddPage = new QAction(QString::fromUtf8("Добавить вкладку"),menuBar);
       menuScreen->addAction(actionAddPage);
 
-    connect(actionNewVoid, SIGNAL(triggered()), this, SLOT(OnActionNewVoid()));
     connect(actionNewDataset, SIGNAL(triggered()), this, SLOT(OnActionNewDataset()));
     connect(actionNewNGW, SIGNAL(triggered()), this, SLOT(OnActionNewNGW()));
     connect(actionOpen, SIGNAL(triggered()), this, SLOT(OnActionOpen()));
@@ -404,6 +431,9 @@ FormBuilder::FormBuilder(QWidget *parent) :QWidget(parent),ui(new Ui::FormBuilde
         //frame->setFrameShadow(QFrame::Sunken);
         //frame->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
         //frame->show();
+
+        // При открытии приложения никакой проект пока не создан.
+        vElemTypes[i]->setEnabled(false);
     }
 
     // Добавляем в левую колонку вниз растягиватель.
@@ -425,9 +455,13 @@ FormBuilder::FormBuilder(QWidget *parent) :QWidget(parent),ui(new Ui::FormBuilde
     tabHorWidget->hide();
     isCurrentVertical = true;
 
-    // Добавляем первую страницу (вкладку) для обоих ориентаций.
-    //OnActionAddPage();
+    // Добавляем подсказку что надо либо создать либо открыть новый проект.
+    // Добавлена в UI.
+
+    // Создаём первую вкладку формы и пока что блокируем её.
     CreatePage();
+    tabWidget->setEnabled(false);
+    tabHorWidget->setEnabled(false);
 
     // Настраиваем правую панель.
     // Таблица без вертикальной шапки, поскольку это не даёт
@@ -448,17 +482,21 @@ FormBuilder::FormBuilder(QWidget *parent) :QWidget(parent),ui(new Ui::FormBuilde
     ui->toolButton_3->setIcon(QIcon(":/img/delete"));
     ui->toolButton_4->setIcon(QIcon(":/img/save"));
 
-    // Настройки GDAL.
-    OGRRegisterAll();
+    // Блокируем часть интерфейса т.к. проект ещё не создан/ не открыт.
+    ui->groupBox_4->setEnabled(false);
+    ui->groupBox_5->setEnabled(false);
 
-    CUR_PRJ = new FBProject();
-    NEW_PRJ = NULL;
+    // Настройки GDAL.
+    //OGRRegisterAll();
+    GDALAllRegister();
+
+    CUR_PRJ = NULL;
 
 // TEST ----------------------------------------------------------------
-    CPLSetConfigOption("CPL_DEBUG","ON");
-    CPLSetConfigOption("CPL_CURL_VERBOSE","YES");
-    CPLSetConfigOption("CPL_LOG","D:/Projects/FormBuilder/last_log.txt");
-    CPLSetConfigOption("CPL_LOG_ERRORS","ON");
+    //CPLSetConfigOption("CPL_DEBUG","ON");
+    //CPLSetConfigOption("CPL_CURL_VERBOSE","YES");
+    //CPLSetConfigOption("CPL_LOG","D:/Projects/FormBuilder/last_log.txt");
+    //CPLSetConfigOption("CPL_LOG_ERRORS","ON");
 // ---------------------------------------------------------------------
 }
 
@@ -481,6 +519,16 @@ void FormBuilder::CreateElemTypes ()
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
+    elemType->name = QString::fromUtf8(FBELEMTYPE_image);
+    elemType->alias.ru = QString::fromUtf8("Изображение");
+    elemType->alias.en = QString::fromUtf8("Image");
+    elemType->imgDisplayPaths.append(":/img/image");
+    elemType->imgIconPath = ":/img/image_icon";
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_path,FBAlias(
+                               QString::fromUtf8("Файл .png"))));
+    vElemTypes.append(elemType);
+
+    elemType = new FBElemType(ui->groupBox);
     elemType->name = QString::fromUtf8(FBELEMTYPE_text_edit);
     elemType->alias.ru = QString::fromUtf8("Текстовое поле");
     elemType->alias.en = QString::fromUtf8("Text edit");
@@ -496,6 +544,8 @@ void FormBuilder::CreateElemTypes ()
                              QString::fromUtf8("Максимальное кол-во строк"))));
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_last,FBAlias(
                              QString::fromUtf8("Запоминать последнее значение?"))));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_is_dialog,FBAlias(
+                             QString::fromUtf8("Использовать диалог для ввода?"))));
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
@@ -510,6 +560,8 @@ void FormBuilder::CreateElemTypes ()
                              QString::fromUtf8("Целевое поле"))));
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_value,FBAlias(
                              QString::fromUtf8("Значение"))));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_path,FBAlias(
+                               QString::fromUtf8("Файл .png для изображения"))));
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
@@ -524,6 +576,8 @@ void FormBuilder::CreateElemTypes ()
                              QString::fromUtf8("Значения"))));
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_last,FBAlias(
                              QString::fromUtf8("Запоминать последнее значение?"))));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_big_list,FBAlias(
+                             QString::fromUtf8("Большой список?"))));
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
@@ -574,6 +628,14 @@ void FormBuilder::CreateElemTypes ()
     elemType->imgIconPath = ":/img/datetime_icon";
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_field,FBAlias(
                                  QString::fromUtf8("Целевое поле"))));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_date_type,FBAlias(
+                                 QString::fromUtf8("Тип даты"))));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_readonly,FBAlias(
+                                 QString::fromUtf8("Системная дата"))));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_last,FBAlias(
+                             QString::fromUtf8("Запоминать последнее значение?"))));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_is_dialog,FBAlias(
+                             QString::fromUtf8("Использовать диалог для ввода?"))));
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
@@ -591,6 +653,10 @@ void FormBuilder::CreateElemTypes ()
                              QString::fromUtf8("Значения"))));
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_last,FBAlias(
                              QString::fromUtf8("Запоминать последнее значение?"))));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_big_list_level1,FBAlias(
+                             QString::fromUtf8("Большой список для уровня 1?"))));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_big_list_level2,FBAlias(
+                             QString::fromUtf8("Большой список для уровня 2?"))));
     // В дальнейшем по ходу программы этот список может быть расширен!
     vElemTypes.append(elemType);
 
@@ -1099,10 +1165,18 @@ void FormBuilder::OnElemPressed ()
     ui->tableWidget1->setRowCount(0);
 
     // Просматриваем все атрибуты элемента и выводим в таблицу:
+    // ВНИМАНИЕ: выводятся все атрибуты которые считаны, а не те,
+    // что прописаны в типе данного элемента, что позволяет выводить
+    // любое их кол-во и даже те, что были добавлены в файл формы вручную.
+
+    // TODO: привязать вывод атрибутов к классовой системе контролов. Сделать
+    // аналогичную систему для контролов.
+
     // 1. Название атрибута (для всех);
     // 2. Способ его редактирования (для тех, где этот способ
     // отличается от простого едита ячейки таблицы);
     // 3. Имеющееся значение (если его можно вывести).
+
     for (int i=0; i<FBElem::CURRENT->attributes.size(); i++)
     {
         int r = ui->tableWidget1->rowCount();
@@ -1132,52 +1206,58 @@ void FormBuilder::OnElemPressed ()
         ui->tableWidget1->setItem(i,0,itemToAdd);
 
         // В зависимости от типа элемента и данного его атрибута требуется разная логика
-        // для задания способоа редактирования атрибута и его значения:
+        // для задания способа редактирования атрибута и его значения:
 
         // 1. Элемент - любой; Атрибут - все виды "Целевого поля".
-        if (!CUR_PRJ->availableFields.isEmpty()
-                && (FBElem::CURRENT->attributes[i].first == FBATTR_field
-                    || FBElem::CURRENT->attributes[i].first == FBATTR_field_name
-                    || FBElem::CURRENT->attributes[i].first == FBATTR_field_datetime
-                    || FBElem::CURRENT->attributes[i].first == FBATTR_field_azimuth
-                    || FBElem::CURRENT->attributes[i].first == FBATTR_field_level1
-                    || FBElem::CURRENT->attributes[i].first == FBATTR_field_level2
-                    ))
+        if (FBElem::CURRENT->attributes[i].first == FBATTR_field
+            || FBElem::CURRENT->attributes[i].first == FBATTR_field_name
+            || FBElem::CURRENT->attributes[i].first == FBATTR_field_datetime
+            || FBElem::CURRENT->attributes[i].first == FBATTR_field_azimuth
+            || FBElem::CURRENT->attributes[i].first == FBATTR_field_level1
+            || FBElem::CURRENT->attributes[i].first == FBATTR_field_level2)
         {
             // Создаём комбобокс.
             QComboBox *combo = new QComboBox(ui->tableWidget1);
-            combo->setEditable(true);
+            //combo->setEditable(true);
+            combo->addItem(QString::fromUtf8("<не задано>"));
 
             // Получаем строковое значение атрибута.
-            QString attrValue = QString::fromUtf8(
-                        FBElem::CURRENT->attributes[i].second.asString().data());
+            QString attrValue;
+            if (FBElem::CURRENT->attributes[i].second.isNull())
+            {
+                attrValue = QString::fromUtf8("<не задано>");
+            }
+            else
+            {
+                attrValue = QString::fromUtf8(FBElem::CURRENT
+                            ->attributes[i].second.asString().data());
+            }
+            combo->setCurrentIndex(0);
 
             // Заполняем комбобокс.
-            int index = -1;
-            for (int j=0; j<CUR_PRJ->availableFields.size(); j++)
+            Json::Value valArray;
+            valArray = CUR_PRJ->metaData[FBJSONKEY_meta_fields];
+            for (int k=0; k<valArray.size(); ++k)
             {
-                if (CUR_PRJ->availableFields[j]
-                        == attrValue)
-                {
-                    index = j;
-                }
-                combo->addItem(CUR_PRJ->availableFields[j]);
+                Json::Value fieldVal = valArray[k];
+                Json::Value strVal = fieldVal["keyname"];
+                combo->addItem(QString::fromUtf8(strVal.asString().data()));
+
+                if (combo->itemText(k+1) == attrValue)
+                    combo->setCurrentIndex(k+1);
             }
+
             ui->tableWidget1->setCellWidget(i,1,combo);
-
-            // Ищем старое сохранённое значение.
-            combo->setCurrentIndex(index);
-            if (index == -1)
-            {
-                // TODO: всегда присваивать "<не задано>".
-
-                combo->setEditText(attrValue);
-            }
         }
 
-        // 2. Элемент - текстовый едит; Атрибут - "Только цифры".
+        // 2. Элемент - некоторые; Атрибут - логический да/нет.
         else if (FBElem::CURRENT->attributes[i].first == FBATTR_only_figures ||
-                 FBElem::CURRENT->attributes[i].first == FBATTR_last)
+                 FBElem::CURRENT->attributes[i].first == FBATTR_last ||
+                 FBElem::CURRENT->attributes[i].first == FBATTR_big_list ||
+                 FBElem::CURRENT->attributes[i].first == FBATTR_big_list_level1 ||
+                 FBElem::CURRENT->attributes[i].first == FBATTR_big_list_level2 ||
+                 FBElem::CURRENT->attributes[i].first == FBATTR_is_dialog ||
+                 FBElem::CURRENT->attributes[i].first == FBATTR_readonly)
         {
             QComboBox *combo = new QComboBox(ui->tableWidget1);
             combo->setEditable(false);
@@ -1223,7 +1303,40 @@ void FormBuilder::OnElemPressed ()
             // подсоединённому к сигналу.
         }
 
-        // 5. Элемент - все остальные; Атрибут - все остальные.
+        // 5. Элемент - Дата-время; Атрибут - тип даты.
+        else if (FBElem::CURRENT->attributes[i].first == FBATTR_date_type)
+        {
+            QComboBox *combo = new QComboBox(ui->tableWidget1);
+            combo->setEditable(false);
+            combo->addItem(QString::fromUtf8("Дата"));
+            combo->addItem(QString::fromUtf8("Время"));
+            combo->addItem(QString::fromUtf8("Дата и время"));
+            ui->tableWidget1->setCellWidget(i,1,combo);
+
+            // Определяем старое значение атрибута.
+            combo->setCurrentIndex(FBElem::CURRENT->attributes[i].second.asInt());
+        }
+
+        // 6. Элемент - Изображение; Атрибут - путь к файлу.
+        else if (FBElem::CURRENT->attributes[i].first == FBATTR_path)
+        {
+            QPushButton *but = new QPushButton(ui->tableWidget1);
+            // Ставим различный текст на кнопку.
+            if (FBElem::CURRENT->attributes[i].second.isNull())
+            {
+                but->setText(QString::fromUtf8("Выбрать ..."));
+            }
+            else
+            {
+                but->setText(QString::fromUtf8("Изменить заданный ..."));
+            }
+            ui->tableWidget1->setCellWidget(i,1,but);
+            connect(but,SIGNAL(clicked()),this,SLOT(ShowSelectImgDialog()));
+            // NOTE: Считывание JSON-значения пройдёт в методе,
+            // подсоединённому к сигналу.
+        }
+
+        // 7. Элемент - все остальные; Атрибут - все остальные.
         else
         {
             // Считаем это обычной строкой и выводим в обычную ячейку таблицы.
@@ -1356,14 +1469,12 @@ void FormBuilder::on_toolButton_4_clicked()
         // и сохранения в массив атрибутов:
 
         // 1. Элемент - любой; Атрибут - все виды "Целевого поля".
-        if (!CUR_PRJ->availableFields.isEmpty()
-                && (FBElem::CURRENT->attributes[i].first == FBATTR_field
-                    || FBElem::CURRENT->attributes[i].first == FBATTR_field_name
-                    || FBElem::CURRENT->attributes[i].first == FBATTR_field_datetime
-                    || FBElem::CURRENT->attributes[i].first == FBATTR_field_azimuth
-                    || FBElem::CURRENT->attributes[i].first == FBATTR_field_level1
-                    || FBElem::CURRENT->attributes[i].first == FBATTR_field_level2
-                    ))
+        if (FBElem::CURRENT->attributes[i].first == FBATTR_field
+            || FBElem::CURRENT->attributes[i].first == FBATTR_field_name
+            || FBElem::CURRENT->attributes[i].first == FBATTR_field_datetime
+            || FBElem::CURRENT->attributes[i].first == FBATTR_field_azimuth
+            || FBElem::CURRENT->attributes[i].first == FBATTR_field_level1
+            || FBElem::CURRENT->attributes[i].first == FBATTR_field_level2)
         {
             // Используем item(i,0). 0 - т.к. самая левая колонка - это не ячейка
             // а заголовок.
@@ -1375,18 +1486,31 @@ void FormBuilder::on_toolButton_4_clicked()
                 //QString className = objInfo->className();
                 //if (className == "QComboBox")
                 //{
-                    Json::Value attrValue;
-                    QByteArray baValue = static_cast<QComboBox*>(widget)
-                            ->currentText().toUtf8();
-                    attrValue = baValue.data();
-                    FBElem::CURRENT->attributes[i].second = attrValue;
+                    if (static_cast<QComboBox*>(widget)->count() < 1)
+                    {
+                        Json::Value nullVal;
+                        FBElem::CURRENT->attributes[i].second = nullVal;
+                    }
+                    else
+                    {
+                        Json::Value attrValue;
+                        QByteArray baValue = static_cast<QComboBox*>(widget)
+                                ->currentText().toUtf8();
+                        attrValue = baValue.data();
+                        FBElem::CURRENT->attributes[i].second = attrValue;
+                    }
                 //}
             //}
         }
 
-        // 2. Элемент - текстовый едит; Атрибут - "Только цифры".
+        // 2. Элемент - некоторые; Атрибут - логический да/нет.
         else if (FBElem::CURRENT->attributes[i].first == FBATTR_only_figures ||
-                 FBElem::CURRENT->attributes[i].first == FBATTR_last)
+                 FBElem::CURRENT->attributes[i].first == FBATTR_last ||
+                 FBElem::CURRENT->attributes[i].first == FBATTR_big_list ||
+                 FBElem::CURRENT->attributes[i].first == FBATTR_big_list_level1 ||
+                 FBElem::CURRENT->attributes[i].first == FBATTR_big_list_level2 ||
+                 FBElem::CURRENT->attributes[i].first == FBATTR_is_dialog ||
+                 FBElem::CURRENT->attributes[i].first == FBATTR_readonly)
         {
             // Используем item(i,0). 0 - т.к. самая левая колонка - это не ячейка
             // а заголовок.
@@ -1428,7 +1552,24 @@ void FormBuilder::on_toolButton_4_clicked()
             // выводилась простая строка.
         }
 
-        // 5. Элемент - все остальные; Атрибут - все остальные.
+        // 5. Элемент - дата-время; Атрибут - тип даты.
+        else if (FBElem::CURRENT->attributes[i].first == FBATTR_date_type)
+        {
+            // Сохраняем индекс - это и есть "код" значения.
+            QWidget *widget = ui->tableWidget1->cellWidget(i,1);
+            int val = static_cast<QComboBox*>(widget)->currentIndex();
+            FBElem::CURRENT->attributes[i].second = val;
+        }
+
+        // 6. Элемент - Изображение; Атрибут - путь к файлу.
+        else if (FBElem::CURRENT->attributes[i].first == FBATTR_path)
+        {
+            // NOTE: атрибут будет считан и сохранён в специальном диалоге
+            // при нажатии кнопки в этой ячейке. Это ветвление нужно чтобы не
+            // выводилась простая строка.
+        }
+
+        // 7. Элемент - все остальные; Атрибут - все остальные.
         else
         {
             Json::Value attrValue;
@@ -1757,6 +1898,71 @@ void FormBuilder::ShowDoubleComboDialog()
             if (FBElem::CURRENT->attributes[i].first == FBATTR_values)
             {
                 FBElem::CURRENT->attributes[i].second = arrayValue;
+                break;
+            }
+        }
+    }
+}
+
+
+// Выбор картинки с диска.
+void FormBuilder::ShowSelectImgDialog()
+{
+    QString prevPath;
+    for (int i=0; i<FBElem::CURRENT->attributes.size(); i++)
+    {
+        if (FBElem::CURRENT->attributes[i].first == FBATTR_path)
+        {
+            if (!FBElem::CURRENT->attributes[i].second.isNull())
+            {
+                prevPath = QString::fromUtf8(
+                        FBElem::CURRENT->attributes[i].second.asString().data());
+            }
+            else
+            {
+                prevPath = "";
+            }
+            break;
+        }
+    }
+
+    QFileDialog dialog (this);
+    dialog.setAcceptMode(QFileDialog::AcceptOpen);
+    // Выбрать можно только один существующий файл:
+    dialog.setFileMode(QFileDialog::ExistingFile);
+    dialog.setViewMode(QFileDialog::List);
+    dialog.setDefaultSuffix("png");
+    dialog.setNameFilter("*.png");
+    dialog.setLabelText(QFileDialog::LookIn,QString::fromUtf8("Путь:"));
+    dialog.setLabelText(QFileDialog::FileName,QString::fromUtf8("Имя файла"));
+    dialog.setLabelText(QFileDialog::FileType,QString::fromUtf8("Тип файла"));
+    dialog.setLabelText(QFileDialog::Accept,QString::fromUtf8("Выбрать"));
+    dialog.setLabelText(QFileDialog::Reject,QString::fromUtf8("Отмена"));
+    dialog.setWindowTitle(QString::fromUtf8("Выберите файл с расширением .png"));
+
+    if (prevPath != "" || !prevPath.startsWith("archive:"))
+    {
+        dialog.selectFile(prevPath);
+    }
+    else
+    {
+        dialog.setDirectory(QDir()); //ставим текущую директорию
+    }
+
+    if (dialog.exec())
+    {
+        QStringList dsPaths = dialog.selectedFiles();
+        QByteArray dsPathBa = dsPaths[0].toUtf8();
+
+        // Ищем атрибут "Путь" и присваеваем ему выбранное значение.
+        for (int i=0; i<FBElem::CURRENT->attributes.size(); i++)
+        {
+            if (FBElem::CURRENT->attributes[i].first == FBATTR_path)
+            {
+                FBElem::CURRENT->attributes[i].second = dsPathBa.data();
+                // NOTE: данная строка будет перезаписана при сохранении проекта,
+                // т.е. полный путь до картинки нужен только 1 раз, после этого
+                // связь с картинкой теряется.
                 break;
             }
         }
@@ -2125,7 +2331,7 @@ FBListDialog::FBListDialog(QString listType, QWidget *parent)
     groupLeft->setEnabled(false);
     editNameLeft = new QLineEdit(groupLeft);
     labelNameLeft = new QLabel(groupLeft);
-    labelNameLeft->setText(QString::fromUtf8("Название: "));
+    labelNameLeft->setText(QString::fromUtf8("Значение: "));
     QHBoxLayout *hlll1 = new QHBoxLayout();
     hlll1->addWidget(labelNameLeft);
     hlll1->addWidget(editNameLeft);
@@ -2136,7 +2342,7 @@ FBListDialog::FBListDialog(QString listType, QWidget *parent)
     hlll2->addWidget(labelAliasLeft);
     hlll2->addWidget(editAliasLeft);
     buttonModifyLeft = new QPushButton(groupLeft);
-    buttonModifyLeft->setText(QString::fromUtf8("Изменить"));
+    buttonModifyLeft->setText(QString::fromUtf8("Сохранить"));
     QVBoxLayout *vll = new QVBoxLayout(groupLeft);
     vll->addLayout(hlll1);
     vll->addLayout(hlll2);
@@ -2194,7 +2400,7 @@ FBListDialog::FBListDialog(QString listType, QWidget *parent)
         groupRight->setEnabled(false);
         editNameRight = new QLineEdit(groupRight);
         labelNameRight = new QLabel(groupRight);
-        labelNameRight->setText(QString::fromUtf8("Название: "));
+        labelNameRight->setText(QString::fromUtf8("Значение: "));
         QHBoxLayout *hrrr1 = new QHBoxLayout();
         hrrr1->addWidget(labelNameRight);
         hrrr1->addWidget(editNameRight);
@@ -2205,7 +2411,7 @@ FBListDialog::FBListDialog(QString listType, QWidget *parent)
         hrrr2->addWidget(labelAliasRight);
         hrrr2->addWidget(editAliasRight);
         buttonModifyRight = new QPushButton(groupRight);
-        buttonModifyRight->setText(QString::fromUtf8("Изменить"));
+        buttonModifyRight->setText(QString::fromUtf8("Сохранить"));
         QVBoxLayout *vrr = new QVBoxLayout(groupRight);
         vrr->addLayout(hrrr1);
         vrr->addLayout(hrrr2);
@@ -2635,4 +2841,63 @@ void FBListDialog::refreshRightCombo(int elemIndex, QString actionWithElem)
     }
 
     pComboRight->setCurrentIndex(indexToSet);
+}
+
+
+
+// ************************************************************************** //
+// ************************ FBWaitDialog ************************** //
+// ************************************************************************** //
+
+
+FBWaitNgwApiDialog::FBWaitNgwApiDialog (QNetworkAccessManager * _httpManager,
+                                        QString url,
+                                        std::string *receivedJson)
+{
+    // Если передача остановилась важно что бы можно было закрыть диалог. Поэтому
+    // нельзя убирать кнопки закрытия.
+    //setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
+
+    progBar = new QProgressBar();
+    QVBoxLayout *vl = new QVBoxLayout();
+    vl->addWidget(progBar);
+    setLayout(vl);
+    progBar->setMaximum(100);
+    progBar->setValue(50);
+    progBar->setTextVisible(false);
+    connect(progBar,SIGNAL(valueChanged(int)),this,SLOT(OnProgbarChanged(int)));
+    connect(this,SIGNAL(closeDialog()),this,SLOT(accept()));
+
+    httpManager = _httpManager;
+
+    receivedApiJson = receivedJson;
+
+    QNetworkRequest rrequest(QUrl((QString)url));
+    httpApiReply = httpManager->get(rrequest);
+    connect(httpApiReply, SIGNAL(finished()),
+            this, SLOT(HttpApiFinished()));
+    connect(httpApiReply, SIGNAL(readyRead()),
+            this, SLOT(HttpReadyApiRead()));
+}
+
+void FBWaitNgwApiDialog::OnProgbarChanged (int val)
+{
+    if (val == 100) emit closeDialog();
+}
+
+void FBWaitNgwApiDialog::HttpReadyApiRead ()
+{
+    QByteArray barr;
+    barr = httpApiReply->readAll();
+    *receivedApiJson += QString(barr).toStdString();
+}
+
+void FBWaitNgwApiDialog::HttpApiFinished ()
+{
+    if (httpApiReply->error() != QNetworkReply::NoError)
+    {
+        *receivedApiJson = "";
+    }
+    httpApiReply->deleteLater();
+    progBar->setValue(100);
 }

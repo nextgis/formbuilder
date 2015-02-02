@@ -62,9 +62,41 @@
 
 #include <QDialog>
 
-#include "ogrsf_frmts.h"
+#include "gdal/ogrsf_frmts.h"
 
 #include "json/json.h"
+
+// ВЕРСИИ формата файла проекта:
+// 1.0.
+// * Первые формы от pooh.
+//#define FB_current_version "1.0"
+// 1.1.
+// * Новый файл: вместо connection.json - meta.json. Он
+// содержит информацию о слое.
+// * Из form.json убраны некоторые ключи - по сути остался только
+// список элементов.
+// * Теперь available fields достаются только из meta.json,
+// а не из самого GeoJSON при открытие существующего проекта.
+// Причина: невозможность сохранить описание слоя в формате
+// GeoJSON при отсутствии фич в нём.
+// * Ещё другие изменения.
+#define FB_current_version "1.1"
+
+// Имена контролов (элементов формы).
+#define FBELEMTYPE_text_label "text_label"
+#define FBELEMTYPE_image "image"
+#define FBELEMTYPE_text_edit "text_edit"
+#define FBELEMTYPE_button "button"
+#define FBELEMTYPE_combobox "combobox"
+#define FBELEMTYPE_checkbox "checkbox"
+#define FBELEMTYPE_radio_group "radio_group"
+#define FBELEMTYPE_compass "compass"
+#define FBELEMTYPE_date_time "date_time"
+#define FBELEMTYPE_double_combobox "double_combobox"
+#define FBELEMTYPE_photo "photo"
+#define FBELEMTYPE_space "space"
+#define FBELEMTYPE_group_start "group_start"
+#define FBELEMTYPE_group_end "group_end"
 
 // Различные константные размеры.
 #define FBParentLabelVertWidth 289
@@ -79,7 +111,6 @@
 #define FBMaxComboElemsCount 100
 
 // Имена атрибутов элементов интерфейса.
-
 #define FBATTR_field "field"
 #define FBATTR_field_name "field_name"
 #define FBATTR_field_azimuth "field_azimuth"
@@ -92,18 +123,21 @@
 #define FBATTR_last "last"
 #define FBATTR_only_figures "only_figures"
 #define FBATTR_max_string_count "max_string_count"
-
+#define FBATTR_big_list "big_list"
+#define FBATTR_big_list_level1 "big_list_level1"
+#define FBATTR_big_list_level2 "big_list_level2"
+#define FBATTR_is_dialog "is_dialog"
+#define FBATTR_date_type "date_type"
+#define FBATTR_readonly "readonly"
+#define FBATTR_path "path"
 
 #define FBLIST_new_name "new_elem"
 #define FBLIST_new_alias "<новый элемент>"
 
-
-#define FB_current_version "1.0"
-
-// Ключи для JSON.
-#define FBJSONKEY_version "version"
-#define FBJSONKEY_dataset "dataset"
-#define FBJSONKEY_ngw_connection "ngw_connection"
+// Ключи для формы в JSON-формате.
+//#define FBJSONKEY_version "version"
+//#define FBJSONKEY_dataset "dataset"
+//#define FBJSONKEY_ngw_connection "ngw_connection"
 #define FBJSONKEY_tabs "tabs"
 #define FBJSONKEY_name "name"
 #define FBJSONKEY_portrait_elements "portrait_elements"
@@ -114,6 +148,16 @@
 #define FBJSONKEY_default "default"
 #define FBJSONKEY_alias "alias"
 
+// Ключи для метафайла в JSON-формате.
+#define FBJSONKEY_meta_version "version"
+#define FBJSONKEY_meta_fields "fields"
+#define FBJSONKEY_meta_geometry_type "geometry_type"
+#define FBJSONKEY_meta_srs "srs"
+#define FBJSONKEY_meta_ngw_connection "ngw_connection"
+#define FBJSONKEY_meta_datatype "datatype"
+#define FBJSONKEY_meta_keyname "keyname"
+#define FBJSONKEY_meta_display_name "display_name"
+#define FBJSONKEY_meta_image_counter "image_counter"
 
 // Следующие константы используются для выбора ресурса в древе доступных ресурсов,
 // полученного с сервера NGW.
@@ -121,21 +165,6 @@
 #define FB_NGW_ITEM_TYPE_RESOURCEGROUP 1
 #define FB_NGW_ITEM_TYPE_VECTORLAYER 2
 #define FB_NGW_ITEM_TYPE_POSTGISLAYER 3
-
-
-#define FBELEMTYPE_text_label "text_label"
-#define FBELEMTYPE_text_edit "text_edit"
-#define FBELEMTYPE_button "button"
-#define FBELEMTYPE_combobox "combobox"
-#define FBELEMTYPE_checkbox "checkbox"
-#define FBELEMTYPE_radio_group "radio_group"
-#define FBELEMTYPE_compass "compass"
-#define FBELEMTYPE_date_time "date_time"
-#define FBELEMTYPE_double_combobox "double_combobox"
-#define FBELEMTYPE_photo "photo"
-#define FBELEMTYPE_space "space"
-#define FBELEMTYPE_group_start "group_start"
-#define FBELEMTYPE_group_end "group_end"
 
 struct FBAlias
 {
@@ -146,20 +175,23 @@ struct FBAlias
     FBAlias () {ru = ""; en = "";}
 };
 
-
 // Всё то, что должно изменяться при открытии, сохранении, создании нового проекта.
 struct FBProject
 {
+    // Используются для сохранения последнего имени/пути проекта.
     QString path;
-    QString name_base;
-    OGRDataSource* poDS;
-    QStringList availableFields;
-    std::string NGWConnection;
+    QString nameBase;
+
+    // Используется только при создании новго проекта и до его сохранения.
+    GDALDataset *datasetToConvert;
+
+    // Только для чтения. Загружается при открытии проекта из JSON или при создании
+    // нового проекта из ИД.
+    Json::Value metaData;
 
     FBProject();
     ~FBProject();
 };
-
 
 namespace Ui
 {
@@ -167,9 +199,8 @@ namespace Ui
 }
 
 class FBParentLabel;
-
-
 class FBElemType;
+
 
 // Общий лейбл для отрисовки всего элемента на "экране" телефона - в нём располагаются
 // его пользовательское название и компоненты.
@@ -280,6 +311,11 @@ class FormBuilder : public QWidget
      explicit FormBuilder(QWidget *parent = 0);
      ~FormBuilder(); 
 
+    protected:
+
+     // Для показа диалога - сохранить перед выходом?
+     virtual void closeEvent(QCloseEvent * event );
+
     private:
 
      Ui::FormBuilder *ui;
@@ -300,7 +336,7 @@ class FormBuilder : public QWidget
      QMenuBar* menuBar;
      QMenu *menuFile;
        QMenu *menuNew;
-         QAction *actionNewVoid;
+//         QAction *actionNewVoid;
          QAction *actionNewDataset;
          QAction *actionNewNGW;
        QAction *actionOpen;
@@ -312,7 +348,7 @@ class FormBuilder : public QWidget
        QAction *actionAddPage;
 
      FBProject *CUR_PRJ;
-     FBProject *NEW_PRJ;
+     //FBProject *NEW_PRJ;
 
      // Список типов элементов. На экране может быть создано любое
      // количество таких элементов.
@@ -323,6 +359,10 @@ class FormBuilder : public QWidget
 
     private:
 
+     // Создание фабрик (пока только описаний) для всех типов элементов
+     // интерфейса.
+     // TODO: серьёзно переделать эту систему - сделать отдельный класс для
+     // каждого типа элемента, с методами по его сохранению в JSON, и т.д.
      void CreateElemTypes ();
 
      // Создаёт и возвращает экранный лейбл (с родительским внутри).
@@ -346,6 +386,8 @@ class FormBuilder : public QWidget
 
      void ShowMsgBox (QString msg);
 
+     void EnableInterface();
+
     public slots:
 
      void OnElemPressed ();
@@ -357,10 +399,10 @@ class FormBuilder : public QWidget
 
      void OnTabIndexChanged (int index);
 
-     void OnActionNewVoid ();
+//     void OnActionNewVoid ();
      void OnActionNewDataset ();
      void OnActionNewNGW ();
-     bool _initGdalDataset (char *datasetName);
+     bool _initNewProject (char *datasetName, FBProject *NEW_PRJ);
      void OnActionOpen ();
      void OnActionSave ();
      bool AddFileToZip(const CPLString &szFilePathName,
@@ -377,8 +419,9 @@ class FormBuilder : public QWidget
 
      void ShowDoubleComboDialog();
      void ShowComboOrRadioDialog();
+     void ShowSelectImgDialog();
 
-private slots:
+    private slots:
      void on_toolButton_4_clicked();
 };
 
@@ -395,7 +438,7 @@ class FBConnectButton : public QPushButton
                      QPushButton *cancelButton,QProgressBar* progBar,QLabel* statusLabel,
                      QPushButton *selectButton);
 
-    private:
+//    private:
 
      QLineEdit *_inUrl;
      QLineEdit *_inLog;
@@ -407,6 +450,7 @@ class FBConnectButton : public QPushButton
      QPushButton *_selectButton;
 
      QNetworkAccessManager httpManager;
+
      QNetworkReply *httpAuthReply;
      QNetworkReply *httpReply;
      QNetworkReply *httpResourceReply;
@@ -501,6 +545,29 @@ class FBListDialog: public QDialog
      void refreshLeftCombo(int elemIndex, QString actionWithElem);
 
      void refreshRightCombo(int elemIndex, QString actionWithElem);
+};
+
+
+class FBWaitNgwApiDialog: public QDialog
+{
+    Q_OBJECT
+    public:
+     FBWaitNgwApiDialog (QNetworkAccessManager * _httpManager,
+                         QString url,
+                         std::string *receivedJson);
+     QProgressBar *progBar;
+    public slots:
+     void OnProgbarChanged (int val);
+    signals:
+     void closeDialog();
+    // Для http запроса:
+    public:
+     QNetworkAccessManager *httpManager; // для сохранения данных аутентификации.
+     QNetworkReply *httpApiReply;
+     std::string *receivedApiJson;
+    public slots:
+     void HttpReadyApiRead ();
+     void HttpApiFinished ();
 };
 
 #endif // FORMBUILDER_H

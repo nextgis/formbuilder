@@ -14,25 +14,24 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         formbuilder.cpp\
-D:\libs\jsoncpp-master\dist\jsoncpp.cpp \
+D:/libs/jsoncpp-master/dist/jsoncpp.cpp \
     formbuilderproject.cpp
-#INCLUDEPATH += D:\libs\jsoncpp-master\dist
 
-HEADERS  += formbuilder.h
+HEADERS  += formbuilder.h 
 
-#LIBS += D:\GitHub\gdal-build\gdal20.lib
-LIBS += C:\OSGeo4W\lib\gdal_i.lib
+# ----------- static gdal --------------------------------------
+LIBS += D:/libs/libiconv-build/install/lib/x86/libiconv.lib
+LIBS += D:/libs/curl-master-build/install/lib/libcurl.lib
+LIBS += D:/Projects/FormBuilder/gdal_svn-cmake4gdal-build/install/lib/x86/gdal20.lib
+INCLUDEPATH += D:/Projects/FormBuilder/gdal_svn-cmake4gdal-build/install/include
+INCLUDEPATH += D:/libs/curl-master-build/install/include
+# --------------------------------------------------------------
 
-#INCLUDEPATH += D:\GitHub\gdal\gdal\ogr\ogrsf_frmts
-#INCLUDEPATH += D:\GitHub\gdal\gdal\ogr
-#INCLUDEPATH += D:\GitHub\gdal\gdal\port
-#INCLUDEPATH += D:\GitHub\gdal\gdal\gcore
-#INCLUDEPATH += D:\GitHub\gdal\gdal\frmts
-#INCLUDEPATH += D:\GitHub\gdal\gdal\gnm
-INCLUDEPATH += C:\OSGeo4W\include
-
-#INCLUDEPATH += D:\GitHub\gdal-build\port # пришлось добавить т.к. почему-то в /port теперь
-                                         # отсутствует cpl_congig.h
+# ----------- dynamic gdal debug ---------------------------------------
+#INCLUDEPATH += D:/GitHub/gdal-build/include
+#LIBS += D:/GitHub/gdal-build/gdal20d.lib
+## note: compile this gdal project with Qt Creator
+# ----------------------------------------------------------------------
 
 FORMS    += formbuilder.ui
 
@@ -40,3 +39,4 @@ RC_FILE = forappicon.rc
 
 RESOURCES += \
     res.qrc
+

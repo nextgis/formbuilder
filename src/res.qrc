@@ -39,5 +39,7 @@
         <file alias="text_icon">img/text_icon.png</file>
         <file alias="textfield_icon">img/textfield_icon.png</file>
         <file alias="icon72">img/icon72.ico</file>
+        <file alias="image">img/image.png</file>
+        <file alias="image_icon">img/image_icon.png</file>
     </qresource>
 </RCC>
