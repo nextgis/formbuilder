@@ -12,10 +12,10 @@ TARGET = FormBuilder
 TEMPLATE = app
 
 
-SOURCES += main.cpp\
-        formbuilder.cpp\
-D:/libs/jsoncpp-master/dist/jsoncpp.cpp \
-    formbuilderproject.cpp
+SOURCES += main.cpp \
+           formbuilder.cpp \
+           jsoncpp.cpp \
+           formbuilderproject.cpp
 
 HEADERS  += formbuilder.h 
 
