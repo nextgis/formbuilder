@@ -207,16 +207,15 @@ void FormBuilder::OnActionNewNGW ()
         QByteArray logPasBa = logPas.toUtf8();
         CPLSetConfigOption("GDAL_HTTP_USERPWD", logPasBa.data());
 
+        QString str_ngw_url = lineEdit1->text();
+        QString str_ngw_id = treeWidget->currentItem()->data(0,Qt::UserRole).toString();
         // Убираем '/' с конца строки, если пользователь его зачем-то поставил.
-        QString lineEdit1Text = lineEdit1->text();
         //while(lineEdit1Text.endsWith("/"))
         //{
         //    lineEdit1Text.chop(1);
         //}
 
-        QString finalUrl = lineEdit1Text + "/resource/"
-                + treeWidget->currentItem()->data(0,Qt::UserRole).toString()
-                + "/geojson/";
+        QString finalUrl = str_ngw_url + "/resource/" + str_ngw_id + "/geojson/";
         QByteArray finalUrlBa = finalUrl.toUtf8();
 
         // Создаём новый проект.
@@ -239,8 +238,7 @@ void FormBuilder::OnActionNewNGW ()
         if (NEW_PRJ->datasetToConvert->GetLayer(0)->GetLayerDefn()->GetFieldCount() == 0)
         {
             QString ngw_api_url;
-            ngw_api_url = lineEdit1Text + "/api/resource/"
-             + treeWidget->currentItem()->data(0,Qt::UserRole).toString();
+            ngw_api_url = str_ngw_url + "/api/resource/" + str_ngw_id;
 
             // Из-за асинхронной работы классов по работе с http необходимо
             // считывать json, только после того, как он полностью и без
@@ -308,14 +306,18 @@ void FormBuilder::OnActionNewNGW ()
         CUR_PRJ = NEW_PRJ;
 
         // Формируем json-строку подключения к NGW.
+        QByteArray ngwBa;
         Json::Value val;
-        const Json::Value vUrl = finalUrlBa.data();
+        ngwBa = str_ngw_url.toUtf8();
+        const Json::Value vUrl = ngwBa.data();//finalUrlBa.data();
+        const Json::Value vId = str_ngw_id.toInt();
         val["url"] = vUrl;
-        QByteArray logBa = lineEdit2->text().toUtf8();
-        const Json::Value vLogin = logBa.data();
+        val["id"] = vId;
+        ngwBa = lineEdit2->text().toUtf8();
+        const Json::Value vLogin = ngwBa.data();
         val["login"] = vLogin;
-        QByteArray pasBa = lineEdit3->text().toUtf8();
-        const Json::Value vPassword = pasBa.data();
+        ngwBa = lineEdit3->text().toUtf8();
+        const Json::Value vPassword = ngwBa.data();
         val["password"] = vPassword;
         CUR_PRJ->metaData[FBJSONKEY_meta_ngw_connection] = val;
 
@@ -504,10 +506,10 @@ bool FormBuilder::_initNewProject (char *datasetName, FBProject *NEW_PRJ)
     // 4. Заполняем пустую связь с НГВ. Если этот метод вызван при создании проекта
     // с НГВ то этот параметр получит значение в другом месте.
     NEW_PRJ->metaData[FBJSONKEY_meta_ngw_connection] = nullVal;
-
+/*
     // 5. Создаём счётчик для внутренних имён изображений.
     NEW_PRJ->metaData[FBJSONKEY_meta_image_counter] = 0;
-
+*/
     return true;
 }
 
@@ -1276,16 +1278,16 @@ void FormBuilder::OnActionSave ()
                               "Не удалось записать временный JSON-файл метаданных в файл проекта."));
                         }
 
-                        else
+/*                        else
                         {
                             okk = true;
-/*
-                            Выше сформирован список для копирования - и что важно
-                            картинки, контролы которых удалились, должны быть тоже
-                            удалены (не скопированы).
 
-                            Использовать МЕМ файл
-*/
+                            //Выше сформирован список для копирования - и что важно
+                            //картинки, контролы которых удалились, должны быть тоже
+                            //удалены (не скопированы).
+
+                            //Использовать МЕМ файл
+
                             for (int i=0; i<images_to_save.size(); i++)
                             {
                                 QByteArray path_ba = images_to_save[i].first.toUtf8();
@@ -1301,7 +1303,7 @@ void FormBuilder::OnActionSave ()
                                 ShowMsgBox(QString::fromUtf8("Ошибка при сохранении проекта! "
                                   "Не удалось записать один из PNG файлов изображений в файл проекта."));
                             }
-
+*/
                             // Нужные файлы были записаны. Итоговый архив сформирован
                             // и сохранён.
                             // Делаем текущий проект таким, как будто он был открыт.
@@ -1323,8 +1325,8 @@ void FormBuilder::OnActionSave ()
                                  ui->label_2->setText(QString::fromUtf8("Открытый проект: ")
                                    + prj_full_pathname);
                             }
-                        }
-                    }
+/*                        }
+*/                    }
                 }
 
                 CPLCloseZip(hZip);

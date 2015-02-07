@@ -80,7 +80,11 @@
 // Причина: невозможность сохранить описание слоя в формате
 // GeoJSON при отсутствии фич в нём.
 // * Ещё другие изменения.
-#define FB_current_version "1.1"
+//#define FB_current_version "1.1"
+// 1.2.
+// * Привести ngw_connection к универсальному виду.
+// * См. issues на гитхабе за январь.
+#define FB_current_version "1.2"
 
 // Имена контролов (элементов формы).
 #define FBELEMTYPE_text_label "text_label"
@@ -128,7 +132,7 @@
 #define FBATTR_big_list_level2 "big_list_level2"
 #define FBATTR_is_dialog "is_dialog"
 #define FBATTR_date_type "date_type"
-#define FBATTR_readonly "readonly"
+//#define FBATTR_readonly "readonly"
 #define FBATTR_path "path"
 
 #define FBLIST_new_name "new_elem"
@@ -157,7 +161,9 @@
 #define FBJSONKEY_meta_datatype "datatype"
 #define FBJSONKEY_meta_keyname "keyname"
 #define FBJSONKEY_meta_display_name "display_name"
+/*
 #define FBJSONKEY_meta_image_counter "image_counter"
+*/
 
 // Следующие константы используются для выбора ресурса в древе доступных ресурсов,
 // полученного с сервера NGW.

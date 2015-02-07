@@ -12,24 +12,24 @@ TARGET = FormBuilder
 TEMPLATE = app
 
 
-SOURCES += main.cpp \
-           formbuilder.cpp \
-           jsoncpp.cpp \
-           formbuilderproject.cpp
+SOURCES += main.cpp\
+        formbuilder.cpp\
+ jsoncpp.cpp \
+    formbuilderproject.cpp
 
 HEADERS  += formbuilder.h 
 
 # ----------- static gdal --------------------------------------
-LIBS += D:/libs/libiconv-build/install/lib/x86/libiconv.lib
-LIBS += D:/libs/curl-master-build/install/lib/libcurl.lib
-LIBS += D:/Projects/FormBuilder/gdal_svn-cmake4gdal-build/install/lib/x86/gdal20.lib
-INCLUDEPATH += D:/Projects/FormBuilder/gdal_svn-cmake4gdal-build/install/include
-INCLUDEPATH += D:/libs/curl-master-build/install/include
+#LIBS += D:/libs/libiconv-build/install/lib/x86/libiconv.lib
+#LIBS += D:/libs/curl-master-build/install/lib/libcurl.lib
+#LIBS += D:/Projects/FormBuilder/gdal_svn-cmake4gdal-build/install/lib/x86/gdal20.lib
+#INCLUDEPATH += D:/Projects/FormBuilder/gdal_svn-cmake4gdal-build/install/include
+#INCLUDEPATH += D:/libs/curl-master-build/install/include
 # --------------------------------------------------------------
 
 # ----------- dynamic gdal debug ---------------------------------------
-#INCLUDEPATH += D:/GitHub/gdal-build/include
-#LIBS += D:/GitHub/gdal-build/gdal20d.lib
+INCLUDEPATH += D:/GitHub/gdal-build/include
+LIBS += D:/GitHub/gdal-build/gdal20d.lib
 ## note: compile this gdal project with Qt Creator
 # ----------------------------------------------------------------------
 

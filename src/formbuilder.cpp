@@ -493,10 +493,10 @@ FormBuilder::FormBuilder(QWidget *parent) :QWidget(parent),ui(new Ui::FormBuilde
     CUR_PRJ = NULL;
 
 // TEST ----------------------------------------------------------------
-    //CPLSetConfigOption("CPL_DEBUG","ON");
-    //CPLSetConfigOption("CPL_CURL_VERBOSE","YES");
-    //CPLSetConfigOption("CPL_LOG","D:/Projects/FormBuilder/last_log.txt");
-    //CPLSetConfigOption("CPL_LOG_ERRORS","ON");
+    CPLSetConfigOption("CPL_DEBUG","ON");
+    CPLSetConfigOption("CPL_CURL_VERBOSE","YES");
+    CPLSetConfigOption("CPL_LOG","D:/Projects/FormBuilder/last_log.txt");
+    CPLSetConfigOption("CPL_LOG_ERRORS","ON");
 // ---------------------------------------------------------------------
 }
 
@@ -517,7 +517,7 @@ void FormBuilder::CreateElemTypes ()
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_text,FBAlias(
                                QString::fromUtf8("Текст"))));
     vElemTypes.append(elemType);
-
+/*
     elemType = new FBElemType(ui->groupBox);
     elemType->name = QString::fromUtf8(FBELEMTYPE_image);
     elemType->alias.ru = QString::fromUtf8("Изображение");
@@ -527,7 +527,7 @@ void FormBuilder::CreateElemTypes ()
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_path,FBAlias(
                                QString::fromUtf8("Файл .png"))));
     vElemTypes.append(elemType);
-
+*/
     elemType = new FBElemType(ui->groupBox);
     elemType->name = QString::fromUtf8(FBELEMTYPE_text_edit);
     elemType->alias.ru = QString::fromUtf8("Текстовое поле");
@@ -630,12 +630,12 @@ void FormBuilder::CreateElemTypes ()
                                  QString::fromUtf8("Целевое поле"))));
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_date_type,FBAlias(
                                  QString::fromUtf8("Тип даты"))));
-    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_readonly,FBAlias(
-                                 QString::fromUtf8("Системная дата"))));
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_last,FBAlias(
                              QString::fromUtf8("Запоминать последнее значение?"))));
     elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_is_dialog,FBAlias(
                              QString::fromUtf8("Использовать диалог для ввода?"))));
+    elemType->attributeNames.append(QPair<QString,FBAlias>(FBATTR_text,FBAlias(
+                                 QString::fromUtf8("Начальный текст"))));
     vElemTypes.append(elemType);
 
     elemType = new FBElemType(ui->groupBox);
@@ -1256,8 +1256,7 @@ void FormBuilder::OnElemPressed ()
                  FBElem::CURRENT->attributes[i].first == FBATTR_big_list ||
                  FBElem::CURRENT->attributes[i].first == FBATTR_big_list_level1 ||
                  FBElem::CURRENT->attributes[i].first == FBATTR_big_list_level2 ||
-                 FBElem::CURRENT->attributes[i].first == FBATTR_is_dialog ||
-                 FBElem::CURRENT->attributes[i].first == FBATTR_readonly)
+                 FBElem::CURRENT->attributes[i].first == FBATTR_is_dialog)
         {
             QComboBox *combo = new QComboBox(ui->tableWidget1);
             combo->setEditable(false);
@@ -1336,7 +1335,24 @@ void FormBuilder::OnElemPressed ()
             // подсоединённому к сигналу.
         }
 
-        // 7. Элемент - все остальные; Атрибут - все остальные.
+        // 7. Элемент - некоторые; Атрибут - целое число.
+        // Переходим на шаг ниже - выводим как строку.
+
+        // 8. Элемент - дата; Атрибут - текст.
+        else if (FBElem::CURRENT->elemType->name == FBELEMTYPE_date_time &&
+                 FBElem::CURRENT->attributes[i].first == FBATTR_text)
+        {
+// TEMP -----------------------------------------------------------------------
+            // Если дата не задана, задаём маску для ввода даты
+            // по-умолчанию: yyyy-mm-dd
+            QTableWidgetItem *itemToAdd;
+            itemToAdd = new QTableWidgetItem(QString::fromUtf8(
+                        FBElem::CURRENT->attributes[i].second.asString().data()));
+            ui->tableWidget1->setItem(i,1,itemToAdd);
+// ----------------------------------------------------------------------------
+        }
+
+        // 9. Элемент - все остальные; Атрибут - все остальные.
         else
         {
             // Считаем это обычной строкой и выводим в обычную ячейку таблицы.
@@ -1509,8 +1525,7 @@ void FormBuilder::on_toolButton_4_clicked()
                  FBElem::CURRENT->attributes[i].first == FBATTR_big_list ||
                  FBElem::CURRENT->attributes[i].first == FBATTR_big_list_level1 ||
                  FBElem::CURRENT->attributes[i].first == FBATTR_big_list_level2 ||
-                 FBElem::CURRENT->attributes[i].first == FBATTR_is_dialog ||
-                 FBElem::CURRENT->attributes[i].first == FBATTR_readonly)
+                 FBElem::CURRENT->attributes[i].first == FBATTR_is_dialog)
         {
             // Используем item(i,0). 0 - т.к. самая левая колонка - это не ячейка
             // а заголовок.
@@ -1569,7 +1584,28 @@ void FormBuilder::on_toolButton_4_clicked()
             // выводилась простая строка.
         }
 
-        // 7. Элемент - все остальные; Атрибут - все остальные.
+        // 7. Элемент - некоторые; Атрибут - целое число.
+        else if (FBElem::CURRENT->attributes[i].first == FBATTR_max_string_count)
+        {
+            int number = ui->tableWidget1->item(i,1)->text().toInt();
+            // Если конверсия не удастся, сохранится 0.
+            FBElem::CURRENT->attributes[i].second = number;
+        }
+
+        // 8. Элемент - дата; Атрибут - текст.
+        else if (FBElem::CURRENT->elemType->name == FBELEMTYPE_date_time &&
+                 FBElem::CURRENT->attributes[i].first == FBATTR_text)
+        {
+// TEMP -----------------------------------------------------------------------
+            // Проверяем, чтобы была введена дата без ошибок.
+            Json::Value attrValue;
+            QByteArray baValue = ui->tableWidget1->item(i,1)->text().toUtf8();
+            attrValue = baValue.data();
+            FBElem::CURRENT->attributes[i].second = attrValue;
+// ----------------------------------------------------------------------------
+        }
+
+        // 9. Элемент - все остальные; Атрибут - все остальные.
         else
         {
             Json::Value attrValue;
@@ -1814,6 +1850,17 @@ void FormBuilder::ShowDoubleComboDialog()
         Json::Value array2Value;
         array2Value = elemValue[FBJSONKEY_values];
         int default2Index = 0;
+
+        // Сперва проверяем, если первый элемент - фиктивный, то его надо временно удалить.
+        // Потом он опять добавится, если список так и останется пустым при сохранении.
+        Json::Value ffValue = array2Value[0];
+        if (ffValue[FBJSONKEY_alias].asString() == "--"
+                && ffValue[FBJSONKEY_name].asString() == "-1")
+        {
+            Json::Value nullVal;
+            array2Value = nullVal;
+        }
+
         for (int j=0; j<array2Value.size(); ++j)
         {
             Json::Value elem2Value;
@@ -1870,7 +1917,8 @@ void FormBuilder::ShowDoubleComboDialog()
             }
 
             Json::Value array2Value;
-            for (int j=0; j<dialog.listsRight[i+1]->count(); j++) // почему +1 см. ниже
+            int j = 0;
+            for (j=0; j<dialog.listsRight[i+1]->count(); j++) // почему +1 см. ниже
             {
                 Json::Value elem2Value;
                 item = dialog.listsRight[i+1]->item(j);
@@ -1887,6 +1935,16 @@ void FormBuilder::ShowDoubleComboDialog()
                 }
                 array2Value.append(elem2Value);
             }
+
+            // Проверяем, если список не заполнился - надо добавить фиктивный элемент.
+            if (j == 0)
+            {
+                Json::Value elem2Value;
+                elem2Value[FBJSONKEY_alias] = "--";
+                elem2Value[FBJSONKEY_name] = "-1";
+                array2Value.append(elem2Value);
+            }
+
             elemValue[FBJSONKEY_values] = array2Value;
 
             arrayValue.append(elemValue);
@@ -2014,6 +2072,7 @@ void FBConnectButton::OnClicked ()
     _statusLabel->setText(QString::fromUtf8("Идёт соединение..."));
     _progBar->setValue(25);
     _cancelButton->setEnabled(true);
+    _cancelButton->repaint(); // Чтобы доступность кнопки сразу отрисовалась, иначе долгий процесс подключения не даст это сделать.
 
     // Обнуляем строку, т.к. дальше будет не единственное считывание, а несколько
     // считываний с конкатенацией (по мере прихода ответов с сервера).
@@ -2051,6 +2110,7 @@ void FBConnectButton::HttpOnItemExpended (QTreeWidgetItem *treeItem)
     _statusLabel->setText(QString::fromUtf8("Идёт соединение..."));
     _progBar->setValue(50);
     _cancelButton->setEnabled(true);
+    _cancelButton->repaint();
 
     //_selectButton->setEnabled(false);
 
