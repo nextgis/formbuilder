@@ -1,7 +1,7 @@
-formbuilder
+NextGIS FormBuilder
 ===========
 
-Forms editor for various GIS soft. Currently build forms for NextGIS Mobile.
+Forms editor for various GIS soft. Currently builds forms for NextGIS Mobile.
 
 Latest binaries for Windows: http://nextgis.ru/programs/formbuilder/fb.zip
 
