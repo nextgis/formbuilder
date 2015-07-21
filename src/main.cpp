@@ -1,10 +1,10 @@
-#include "formbuilder.h"
+#include "fb.h"
 #include <QApplication>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    FormBuilder w;
+    FB w;
     w.show();
 
     return a.exec();
