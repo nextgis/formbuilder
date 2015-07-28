@@ -97,8 +97,6 @@ class FBTextAttr: public FBAttr
      void fromJson (Json::Value jsonVal);
      QWidget *getWidget ();
      QString getValue () { return value; }
-    //signals:
-     //void preview (QString newText);
     private slots:
      void onEditEnd (QString lineEditText);
     private:
@@ -131,8 +129,6 @@ class FBYesNoAttr: public FBAttr
      void fromJson (Json::Value jsonVal);
      QWidget *getWidget ();
      bool getValue () { return value; }
-    //signals:
-     //void preview (bool);
     private slots:
      void onEditEnd (int checkboxState);
     private:
@@ -175,7 +171,7 @@ class FBRadioValuesAttr: public FBListValuesAttr
      QList<QPair<bool,QString> > getValues ();
 };
 
-/*
+
 class FBDoubleListValuesAttr: public FBAttr
 {
     Q_OBJECT
@@ -194,7 +190,25 @@ class FBDoubleListValuesAttr: public FBAttr
      QList<QList<QPair<QString,QString> > > values2;
      QList<int> defIndexes2;
 };
-*/
+
+
+// Список с фиксированными (для самой программы) значениями.
+class FBSelectAttr: public FBAttr
+{
+    Q_OBJECT
+    public:
+     FBSelectAttr(FBElem *elem, QString strJsonName, QList<QString> strsValues, int curIndex);
+     //~FBSelectAttr();
+     Json::Value toJson ();
+     void fromJson (Json::Value jsonVal);
+     QWidget *getWidget ();
+    private slots:
+     void onEditEnd (int indexSelected);
+    private:
+     QList<QString> strsValues;
+     int curIndex;
+
+};
 
 
 #endif //ATTRIBUTES_H

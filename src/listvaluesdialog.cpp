@@ -33,8 +33,6 @@ FBListValuesDialog::FBListValuesDialog(QString elemName)
 {
     this->elemName = elemName;
 
-// Левая часть:
-
     QLabel *labelL = new QLabel(this);
     labelL->setText(tr("Элементы списка:"));
     listL = new QListWidget();
@@ -98,73 +96,18 @@ FBListValuesDialog::FBListValuesDialog(QString elemName)
     vl0->addLayout(hl3);
     vl0->addLayout(hl4);
 
-// Правая часть:
-
-    /*if (elemName == )
-    {
-
-    }
-
-    // Если это одноуровневый список то переименовываем поля левой части.
-    else if (listType == FBELEMTYPE_combobox)
-    {
-
-    }
-
-    // Если это радиогруппа то переименовываем поля левой части.
-    else if (listType == FBELEMTYPE_radio_group)
-    {
-
-    }
-    */
-
-// Общая часть:
-
     butOk = new QPushButton(this);
     butOk->setText(tr("ОК"));
     connect(butOk, SIGNAL(clicked()), this, SLOT(onOkClicked()));
 
     QHBoxLayout *h = new QHBoxLayout();
     h->addLayout(vl0);
-    /*
-    if (listType == FBELEMTYPE_double_combobox)
-    {
-        h->addSpacing(10);
-        h->addLayout(vr);
-    }*/
     QVBoxLayout *v = new QVBoxLayout();
     v->addLayout(h);
     v->addWidget(butOk);
     setLayout(v);
 
     this->setWindowTitle(tr("Задайте элементы списка ..."));
-
-/*
-    connect(listLeft, SIGNAL(itemClicked(QListWidgetItem*)),
-            this, SLOT(OnLeftItemSelected(QListWidgetItem*)));
-
-    connect(buttonRemoveLeft, SIGNAL(clicked()), this, SLOT(OnLeftDeleteClicked()));
-    connect(buttonModifyLeft, SIGNAL(clicked()), this, SLOT(OnLeftFixClicked()));
-
-    if (listType == FBELEMTYPE_double_combobox)
-    {
-        setWindowTitle(QString::fromUtf8("Ввод элементов двухуровневого списка ..."));
-
-        connect(pListRight, SIGNAL(itemClicked(QListWidgetItem*)),
-                this, SLOT(OnRightItemSelected(QListWidgetItem*)));
-        connect(buttonAddRight, SIGNAL(clicked()), this, SLOT(OnRightAddClicked()));
-        connect(buttonRemoveRight, SIGNAL(clicked()), this, SLOT(OnRightDeleteClicked()));
-        connect(buttonModifyRight, SIGNAL(clicked()), this, SLOT(OnRightFixClicked()));
-    }
-    else if (listType == FBELEMTYPE_combobox)
-    {
-        setWindowTitle(QString::fromUtf8("Ввод элементов выпадающего списка ..."));
-    }
-    else if (listType == FBELEMTYPE_radio_group)
-    {
-        setWindowTitle(QString::fromUtf8("Ввод элементов радио-группы ..."));
-    }
-    */
 }
 
 
@@ -207,9 +150,6 @@ void FBListValuesDialog::onLeftAddClicked()
     butRemoveL->setEnabled(true);
     butChangeL->setEnabled(true);
     comboL->addItem(editOuterL->text());
-
-    // Добавляем новый пустой список и комбобокс для умолчаний в правую часть.
-
 }
 
 
@@ -237,10 +177,7 @@ void FBListValuesDialog::onLeftRemoveClicked ()
         row = curListRow + 1;
     comboL->removeItem(row);
 
-
     delete item;
-
-    // Удаляем соответствия из правого списка.
 }
 
 

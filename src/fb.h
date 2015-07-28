@@ -40,6 +40,7 @@
 #include <QHBoxLayout>
 #include <QTreeWidget>
 #include <QTableWidget>
+#include <QHeaderView>
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QMouseEvent>
@@ -94,6 +95,7 @@
 #define FB_LIMIT_ATTR_MAXSTRINGS 65535
 
 // Ключи для json-файла метаданных:
+#define FB_JSON_META_VERSION "version"
 #define FB_JSON_META_FIELDS "fields"
 #define FB_JSON_META_KEYNAME "keyname"
 #define FB_JSON_META_DATATYPE "datatype"
@@ -134,17 +136,23 @@
 #define FB_JSON_FIELD "field"
 #define FB_JSON_FIELD_LEVEL1 "field_level1"
 #define FB_JSON_FIELD_LEVEL2 "field_level2"
+#define FB_JSON_IS_DIALOG "is_dialog"
+#define FB_JSON_IS_DIALOG_LEVEL1 "big_list_level1"
+#define FB_JSON_IS_DIALOG_LEVEL2 "big_list_level2"
+#define FB_JSON_VALUE "value"
+#define FB_JSON_VALUES "values"
+#define FB_JSON_INIT_VALUE "init_value"
 #define FB_JSON_TEXT "text"
 #define FB_JSON_ONLY_FIGURES "only_figures"
-#define FB_JSON_VALUES "values"
 #define FB_JSON_MAX_STRING_COUNT "max_string_count"
-#define FB_JSON_INIT_VALUE "init_value"
-#define FB_JSON_VALUE "value"
 #define FB_JSON_LAST "last"
+#define FB_JSON_DATE_TYPE "date_type"
 // - ещё для атрибутов:
 #define FB_JSON_ALIAS "alias"
 #define FB_JSON_NAME "name"
 #define FB_JSON_DEFAULT "default"
+#define FB_JSONVALUE_NONAME "-1"
+#define FB_JSONVALUE_NOALIAS "--"
 
 
 #include "factories.h"
@@ -427,6 +435,44 @@ class FBListValuesDialog: public QDialog
 
     private:
      QString elemName;
+};
+
+
+// Диалог для ввода значений сдвоенного списка.
+class FBDoubleListValueDialog: public QDialog
+{
+    Q_OBJECT
+
+    public:
+     FBDoubleListValueDialog ();
+
+    public:
+     QTableWidget *table1;
+     QComboBox *combo1;
+     QLabel *label2;
+     QList<QTableWidget*> tables2;
+     QList<QComboBox*> combos2;
+     QPushButton *butOk;
+
+    public slots:
+     void onOkClicked ();
+     void onTable1SelectionChanged ();
+     void onTable2SelectionChanged ();
+     void onCell1Changed (int row, int col);
+     void onCell2Changed (int row, int col);
+
+    private:
+     void addTable2();
+     void removeTable2 (int row);
+     void showTable2 (int row);
+     void showMsgBox (QString msg);
+     QString getTable2String (QString srcStr);
+
+    private:
+     QVBoxLayout *vlTable2;
+     QHBoxLayout *hlCombo2;
+     QTableWidget *curTable2Ptr;
+     QComboBox *curCombo2Ptr;
 };
 
 

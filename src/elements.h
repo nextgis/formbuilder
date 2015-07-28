@@ -49,6 +49,7 @@
 class FBInsertWidget;
 class FBFactory;
 
+
 // Базовый класс для всех элементов интерфейса (контролов), добавляемых
 // на экран устройства для формирования формы.
 // Любой элемент в FormBuilder содержит своё графическое представления
@@ -60,7 +61,6 @@ class FBElem: public QWidget
     public:
      static FBElem* SELECTED;
      static bool IS_SELECTED_MOVING;
-     //QString strJsonName; // имя-ключ элемента для записи в json-файл.
      // TODO: список атрибутов возможно сделать через QMap с ключом-названием char*.
      //QList<QPair<QString,FBAttr*> > listAttrs;
      // ключ здесь - это не JSON-ключ, а уникальное название атрибута в элементе,

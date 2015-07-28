@@ -214,7 +214,6 @@ void FBYesNoAttr::onEditEnd(int checkboxState)
         value = false;
     else
         value = true;
-    //emit preview(value);
     emit changeAppearance();
 }
 
@@ -362,23 +361,120 @@ QList<QPair<bool,QString> > FBRadioValuesAttr::getValues ()
 // ===================================================================================== //
 //                             FBDoubleListValuesAttr                                    //
 // ===================================================================================== //
-/*
+
 FBDoubleListValuesAttr::FBDoubleListValuesAttr(FBElem *elem, QString strJsonName):
     FBAttr(elem,strJsonName)
 {
-    defIndex = -1;
+    defIndex = -1; // три остальных массива просто пусты
 }
 
 Json::Value FBDoubleListValuesAttr::toJson ()
 {
     Json::Value jsonFinal;
+    QByteArray ba;
+
+    for (int i=0; i<values.size(); i++)
+    {
+        Json::Value jsonElem;
+
+        ba = values[i].first.toUtf8();
+        jsonElem[FB_JSON_NAME] = ba.data();
+
+        ba = values[i].second.toUtf8();
+        jsonElem[FB_JSON_ALIAS] = ba.data();
+
+        if (i == defIndex) // если == -1, то сюда просто не зайдёт
+        {
+            jsonElem[FB_JSON_DEFAULT] = true;
+        }
+
+        Json::Value jsonFinal2;
+        QByteArray ba2;
+        int j = 0;
+        for (j=0; j<values2[i].size(); j++)
+        {
+            Json::Value jsonElem2;
+
+            ba2 = values2[i][j].first.toUtf8();
+            jsonElem2[FB_JSON_NAME] = ba2.data();
+
+            ba2 = values2[i][j].second.toUtf8();
+            jsonElem2[FB_JSON_ALIAS] = ba2.data();
+
+            if (j == defIndexes2[i])
+            {
+                jsonElem2[FB_JSON_DEFAULT] = true;
+            }
+
+            jsonFinal2.append(jsonElem2);
+        }
+        if (j == 0) // зависимый список не может быть пустой, добавляем фиктивный элемент
+        {
+            Json::Value jsonElem2;
+            jsonElem2[FB_JSON_NAME] = FB_JSONVALUE_NONAME;
+            jsonElem2[FB_JSON_ALIAS] = FB_JSONVALUE_NOALIAS;
+            jsonFinal2.append(jsonElem2);
+        }
+        jsonElem[FB_JSON_VALUES] = jsonFinal2;
+
+        jsonFinal.append(jsonElem);
+    }
 
     return jsonFinal;
 }
 
 void FBDoubleListValuesAttr::fromJson (Json::Value jsonVal)
 {
+    values.clear();
+    values2.clear();
+    defIndex = -1;
+    defIndexes2.clear();
 
+    for (int i=0; i<jsonVal.size(); ++i)
+    {
+        QPair<QString,QString> pair(
+                    QString::fromUtf8(jsonVal[i][FB_JSON_NAME].asString().data()),
+                    QString::fromUtf8(jsonVal[i][FB_JSON_ALIAS].asString().data()));
+        values.append(pair);
+
+        Json::Value jsonDef;
+        jsonDef = jsonVal[i][FB_JSON_DEFAULT];
+        if (!jsonDef.isNull())
+        {
+            defIndex = i;
+        }
+
+        Json::Value jsonVal2 = jsonVal[i][FB_JSON_VALUES]; // пустого быть не может (в правильном файле)
+        QList<QPair<QString,QString> > tempList;
+        defIndexes2.append(-1);
+        for (int j=0; j<jsonVal2.size(); ++j)
+        {
+            QPair<QString,QString> pair(
+                        QString::fromUtf8(jsonVal2[j][FB_JSON_NAME].asString().data()),
+                        QString::fromUtf8(jsonVal2[j][FB_JSON_ALIAS].asString().data()));
+
+            // TODO: сделать ещё проверку на размер массива, потому что сейчас пользователь
+            // может сам ввести такие значения в начале или середине списка, и всё что за ними
+            // - не добавится в список.
+            // Другой ворос что эти значения так подобраны, что пользователь их скорее всего
+            // никогда не введёт.
+
+            if (pair.first == FB_JSONVALUE_NONAME && pair.second == FB_JSONVALUE_NOALIAS)
+            {
+                break; // т.е. в values2 добавится пустой массив
+            }
+
+            tempList.append(pair);
+
+            Json::Value jsonDef2;
+            jsonDef2 = jsonVal2[j][FB_JSON_DEFAULT];
+            if (!jsonDef2.isNull())
+            {
+                defIndexes2[i] = j;
+            }
+        }
+        values2.append(tempList);
+    }
 }
 
 QWidget *FBDoubleListValuesAttr::getWidget ()
@@ -391,7 +487,84 @@ QWidget *FBDoubleListValuesAttr::getWidget ()
 
 void FBDoubleListValuesAttr::onEditStart ()
 {
+    FBDoubleListValueDialog dialog;
 
+    // Загружаем в диалог уже имеющийся список значений.
+    for (int i=0; i<values.size(); i++)
+    {
+        dialog.table1->setCurrentCell(i,0); // это так же добавит пустую строку и таблицу, если надо
+        dialog.table1->currentItem()->setText(values[i].first);
+        dialog.table1->setCurrentCell(i,1); // это так же добавит элемент в комбобокс для умолчаний
+        dialog.table1->currentItem()->setText(values[i].second);
+        for (int j=0; j<values2[i].size(); j++)
+        {
+            dialog.tables2[i]->setCurrentCell(j,0);
+            dialog.tables2[i]->currentItem()->setText(values2[i][j].first);
+            dialog.tables2[i]->setCurrentCell(j,1);
+            dialog.tables2[i]->currentItem()->setText(values2[i][j].second);
+        }
+        dialog.combos2[i]->setCurrentIndex(defIndexes2[i]+1);
+    }
+    dialog.combo1->setCurrentIndex(defIndex+1); // если индекс = -1, то он станет = 0, а т.е. с текстом не выбранного элемента
+
+    // Сохраняем из диалога получившийся список значений.
+    if (dialog.exec())
+    {
+        values.clear();
+        values2.clear();
+        defIndex = -1; // на случай, если элементом по умолчанию был выбран пустой элемент
+        defIndexes2.clear();
+        for (int i=0; i<dialog.table1->rowCount()-1; i++) // -1, т.к. не берём последний всегда пустой элемент
+        {
+            QString inStr1 = dialog.table1->item(i,0)->text();
+            QString outStr1 = dialog.table1->item(i,1)->text();
+            if (inStr1 == "" && outStr1 == "") // не сохраняем пустые строки вообще
+            {
+                continue;
+            }
+            else if (outStr1 == "") // не даём сохранить значения с пустой парой - дополняем её
+            {
+                outStr1 = inStr1;
+            }
+            else if (inStr1 == "")
+            {
+                inStr1 = outStr1;
+            }
+            values.append(QPair<QString,QString>(inStr1,outStr1));
+            if (i == dialog.combo1->currentIndex()-1)
+            {
+                defIndex = i; // присвоится только если не было continue, иначе останется = -1
+            }
+            QList<QPair<QString,QString> > tempList;
+            defIndexes2.append(-1); // будет заменён на заданный, если он есть. Создаём здесь = -1 в любом случае, т.к. элемент верхнего уровня имеется
+            for (int j=0; j<dialog.tables2[i]->rowCount()-1; j++)
+            {
+                QString inStr2 = dialog.tables2[i]->item(j,0)->text();
+                QString outStr2 = dialog.tables2[i]->item(j,1)->text();
+                if (inStr2 == "" && outStr2 == "")
+                {
+                    continue;
+                }
+                else if (outStr2 == "")
+                {
+                    outStr2 = inStr2;
+                }
+                else if (inStr2 == "")
+                {
+                    inStr2 = outStr2;
+                }
+                tempList.append(QPair<QString,QString>(inStr2,outStr2));
+                if (j == dialog.combos2[i]->currentIndex()-1)
+                {
+                    defIndexes2[i] = j;
+                }
+            }
+            values2.append(tempList);
+        }
+
+        // Обновляем внешний вид элемента на форме.
+        emit changeAppearance();
+    }
 }
 
 void FBDoubleListValuesAttr::getDefValueTexts (QString &str1, QString &str2)
@@ -410,6 +583,47 @@ void FBDoubleListValuesAttr::getDefValueTexts (QString &str1, QString &str2)
     }
     str2 = values2[defIndex][defIndexes2[defIndex]].second;
 }
-*/
 
 
+// ===================================================================================== //
+//                                FBSelectAttr                                           //
+// ===================================================================================== //
+
+FBSelectAttr::FBSelectAttr(FBElem *elem, QString strJsonName, QList<QString> strsValues,
+                           int curIndex):
+    FBAttr(elem,strJsonName)
+{
+    for (int i=0; i<strsValues.size(); i++)
+    {
+        this->strsValues.append(strsValues[i]);
+    }
+    this->curIndex = curIndex;
+}
+
+Json::Value FBSelectAttr::toJson()
+{
+    Json::Value jsonFinal = curIndex;
+    return jsonFinal;
+}
+
+void FBSelectAttr::fromJson(Json::Value jsonVal)
+{
+    curIndex = jsonVal.asInt();
+}
+
+QWidget *FBSelectAttr::getWidget ()
+{
+    QComboBox *widget = new QComboBox();
+    for (int i=0; i<strsValues.size(); i++)
+    {
+        widget->addItem(strsValues[i]);
+    }
+    widget->setCurrentIndex(curIndex);
+    connect(widget,SIGNAL(currentIndexChanged(int)),this,SLOT(onEditEnd(int)));
+    return widget;
+}
+
+void FBSelectAttr::onEditEnd (int indexSelected)
+{
+    curIndex = indexSelected;
+}

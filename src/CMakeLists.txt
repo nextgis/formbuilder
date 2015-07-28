@@ -68,6 +68,7 @@ project.cpp
 insertwidget.cpp
 ngwdialog.cpp
 listvaluesdialog.cpp
+dlistvaluesdialog.cpp
 progressdialog.cpp
 aboutdialog.cpp)
 

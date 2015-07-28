@@ -118,7 +118,10 @@ bool FBProject::init (char *datasetName)
 
                 if (progress != false)
                 {
-                    // TODO: Текущая версия приложения.
+                    // Текущая версия приложения.
+                    QByteArray baVers;
+                    baVers = QString::number(FB_VERSION,'f',1).toUtf8();
+                    jsonMeta[FB_JSON_META_VERSION] = baVers.data();
 
                     // Доступные поля слоя.
                     OGRFeatureDefn *poLayerDefn = poLayer->GetLayerDefn();

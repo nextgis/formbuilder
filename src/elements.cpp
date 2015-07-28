@@ -468,29 +468,36 @@ FBDoubleComboBoxElem::FBDoubleComboBoxElem(FBFactory *factoryPtr): FBElem(factor
     vlayAll->addLayout(hlay2);
 
     // Атрибуты:
-/*
+
     FBFieldAttr *attr1 = new FBFieldAttr(this,FB_JSON_FIELD_LEVEL1);
     mapAttrs.insert(tr("Поле слоя уровня 1"),attr1);
 
     FBFieldAttr *attr2 = new FBFieldAttr(this,FB_JSON_FIELD_LEVEL2);
     mapAttrs.insert(tr("Поле слоя уровня 2"),attr2);
 
-//    FBDoubleListValuesAttr *attr3 = new FBDoubleListValuesAttr(this,FB_JSON_VALUES);
-//    mapAttrs.insert(tr("Значения"),attr3);
-//    connect(attr3,SIGNAL(changeAppearance()),this,SLOT(updateAppearance()));
+    FBDoubleListValuesAttr *attr3 = new FBDoubleListValuesAttr(this,FB_JSON_VALUES);
+    mapAttrs.insert(tr("Значения"),attr3);
+    connect(attr3,SIGNAL(changeAppearance()),this,SLOT(updateAppearance()));
 
     FBYesNoAttr *attr4 = new FBYesNoAttr(this,FB_JSON_LAST,false);
     mapAttrs.insert(tr("Запоминать последнее значение"),attr4);
-*/
+
+    FBYesNoAttr *attr5 = new FBYesNoAttr(this,FB_JSON_IS_DIALOG_LEVEL1,false);
+    mapAttrs.insert(tr("Диалог для уровня 1"),attr5);
+
+    FBYesNoAttr *attr6 = new FBYesNoAttr(this,FB_JSON_IS_DIALOG_LEVEL2,false);
+    mapAttrs.insert(tr("Диалог для уровня 2"),attr6);
+
     updateAppearance();
 }
 
 void FBDoubleComboBoxElem::updateAppearance ()
 {
-//    labText1->setText(" " + static_cast<FBListValuesAttr*>
-//                     (mapAttrs.value(tr("Значения")))->getDefValueText1());
-//    labText2->setText(" " + static_cast<FBListValuesAttr*>
-//                     (mapAttrs.value(tr("Значения")))->getDefValueText2());
+    QString text1, text2;
+    static_cast<FBDoubleListValuesAttr*>
+                         (mapAttrs.value(tr("Значения")))->getDefValueTexts(text1,text2);
+    labText1->setText(" " + text1);
+    labText2->setText(" " + text2);
 }
 
 
@@ -772,22 +779,34 @@ FBDateTimeElem::FBDateTimeElem (FBFactory *factoryPtr): FBElem(factoryPtr)
     vlayAll->addLayout(hlayTop);
     vlayAll->addWidget(widDecor);
 
+    FBFieldAttr *attr1 = new FBFieldAttr(this,FB_JSON_FIELD);
+    mapAttrs.insert(tr("Поле слоя"),attr1);
+
+    QList<QString> strsTypes;
+    strsTypes.append(tr("Дата"));
+    strsTypes.append(tr("Время"));
+    strsTypes.append(tr("Дата и время"));
+    FBSelectAttr *attr2 = new FBSelectAttr(this,FB_JSON_DATE_TYPE,strsTypes,0);
+    mapAttrs.insert(tr("Тип"),attr2);
+
+    FBYesNoAttr *attr5 = new FBYesNoAttr(this,FB_JSON_LAST,false);
+    mapAttrs.insert(tr("Запоминать последнее значение"),attr5);
+
+    FBYesNoAttr *attr6 = new FBYesNoAttr(this,FB_JSON_IS_DIALOG,false);
+    mapAttrs.insert(tr("Диалог для ввода"),attr6);
+
+    FBTextAttr *attr7 = new FBTextAttr(this,FB_JSON_TEXT,"01.01.2016");
+    mapAttrs.insert(tr("Начальный текст"),attr7);
+    connect(attr7,SIGNAL(changeAppearance()),this,SLOT(updateAppearance()));
+
     updateAppearance();
 }
 
 void FBDateTimeElem::updateAppearance ()
 {
-    labText->setText(" 01.01.2016");
+    QString newText = static_cast<FBTextAttr*>(mapAttrs.value(tr("Начальный текст")))->getValue();
+    labText->setText(" " + newText);
 }
-
-
-
-
-
-
-
-
-
 
 
 
