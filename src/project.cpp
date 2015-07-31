@@ -138,6 +138,9 @@ bool FBProject::init (char *datasetName)
                             case OFTInteger:
                                 json_mas_elem[FB_JSON_META_DATATYPE] = "INTEGER";
                             break;
+                            case OFTInteger64:
+                                json_mas_elem[FB_JSON_META_DATATYPE] = "INTEGER";
+                            break;
                             case OFTReal:
                                 json_mas_elem[FB_JSON_META_DATATYPE] = "REAL";
                             break;

@@ -131,6 +131,22 @@ class FBDateTimeFactory: public FBFactory
      FBElem *Create ();
 };
 
+class FBPhotoFactory: public FBFactory
+{
+    public:
+     FBPhotoFactory (bool isFull);
+     ~FBPhotoFactory () {}
+     FBElem *Create ();
+};
+
+class FBSignatureFactory: public FBFactory
+{
+    public:
+     FBSignatureFactory (bool isFull);
+     ~FBSignatureFactory () {}
+     FBElem *Create ();
+};
+
 
 #endif // FACTORIES_H
 

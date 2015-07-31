@@ -55,5 +55,9 @@
         <file>img/nextgis.png</file>
         <file>img/cc.png</file>
         <file>img/for_date.png</file>
+        <file>img/photo.png</file>
+        <file>img/signature.png</file>
+        <file>img/for_photo.png</file>
+        <file>img/for_signature.png</file>
     </qresource>
 </RCC>

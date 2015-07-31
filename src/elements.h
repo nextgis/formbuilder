@@ -217,6 +217,29 @@ class FBDateTimeElem: public FBElem
      QLabel *labText;
 };
 
+class FBPhotoElem: public FBElem
+{
+    Q_OBJECT
+    public:
+     FBPhotoElem (FBFactory *factoryPtr);
+     ~FBPhotoElem () {}
+    public slots:
+     virtual void updateAppearance ();
+    private:
+     QHBoxLayout *hAll;
+     QList<QLabel*> labImgs2;
+};
+
+class FBSignatureElem: public FBElem
+{
+    Q_OBJECT
+    public:
+     FBSignatureElem (FBFactory *factoryPtr);
+     ~FBSignatureElem () {}
+    public slots:
+     virtual void updateAppearance () {}
+};
+
 
 
 #endif // ELEMENTS_H

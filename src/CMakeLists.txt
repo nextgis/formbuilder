@@ -10,6 +10,8 @@ project(fb)
 #    set(...)
 #endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
+#set (FILES_TO_TRANSLATE ) #http://www.itk.org/Wiki/CMake:How_To_Build_Qt4_Software
+
 # Tell CMake to run moc when necessary:
 set(CMAKE_AUTOMOC ON)
 # As moc files are generated in the binary dir, tell CMake
@@ -19,11 +21,13 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Widgets finds its own dependencies (QtGui and QtCore).  
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Network REQUIRED)
+find_package(Qt5LinguistTools)
 
 # The Qt5Widgets_INCLUDES also includes the include directories for
 # dependencies QtCore and QtGui
 include_directories(${Qt5Widgets_INCLUDES})
 include_directories(${Qt5Network_INCLUDES})
+include_directories(${Qt5LinguistTools_INCLUDES})
 
 #TODO:
 #find_package(GDAL REQUIRED)
@@ -51,11 +55,13 @@ find_library(GDAL_LIBRARY NAMES "gdal_i.lib" PATHS "D:\\libs\\gdal_2.1.0_for_use
 include_directories("D:\\libs\\gdal_2.1.0_for_use-build\\include")
 #########################################################################################
 
-qt5_wrap_ui(fb_ui fb.ui)
-qt5_add_resources(fb_res res.qrc)
-
-
 set(APP_NAME fb)
+
+qt5_wrap_ui(fb_ui fb.ui)
+set(UIS_HDRS ${fb_ui})
+
+qt5_add_resources(fb_res res.qrc)
+set(RESOURCES ${fb_res})
 
 set(PROJECT_SOURCES
 jsoncpp.cpp
@@ -72,18 +78,17 @@ dlistvaluesdialog.cpp
 progressdialog.cpp
 aboutdialog.cpp)
 
-set(RESOURCES ${fb_res})
-
-set(UIS_HDRS ${fb_res})
-
+# TODO: make automatic updating *.ts files via qt5_create_translation()
+# Use lupdate utility directly for now.
+set(TS_FILES translations/fb_tr_en.ts) # manually written .ts files
+qt5_add_translation(QM_FILES ${TS_FILES}) # no lupdate calling.
 
 if(WIN32)
-    add_executable(${APP_NAME} WIN32 ${PROJECT_SOURCES} ${RESOURCES} ${UIS_HDRS})
+    add_executable(${APP_NAME} WIN32 ${PROJECT_SOURCES} ${RESOURCES} ${UIS_HDRS} ${QM_FILES})
 else(WIN32)
-    add_executable(${APP_NAME} ${PROJECT_SOURCES} ${RESOURCES} ${UIS_HDRS})
+    add_executable(${APP_NAME} ${PROJECT_SOURCES} ${RESOURCES} ${UIS_HDRS} ${QM_FILES})
 endif(WIN32)
-
 
 target_link_libraries(${APP_NAME} ${GDAL_LIBRARY})
 
-qt5_use_modules(${APP_NAME} Widgets Network)
+qt5_use_modules(${APP_NAME} Widgets Network LinguistTools)

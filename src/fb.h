@@ -57,6 +57,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 //#include <QAuthenticator>
+#include <QSettings>
 
 //#include "gdal/ogrsf_frmts.h"
 #include "ogrsf_frmts.h"
@@ -92,7 +93,6 @@
 #define FB_LIMIT_BOTTOM_STRING_LEN_LONG 70
 #define FB_LIMIT_COMBOBOX_ELEMS 65535
 #define FB_LIMIT_RADIOGROUP_ELEMS 15
-#define FB_LIMIT_ATTR_MAXSTRINGS 65535
 
 // Ключи для json-файла метаданных:
 #define FB_JSON_META_VERSION "version"
@@ -125,6 +125,7 @@
 #define FB_JSON_DATE_TIME "date_time"
 #define FB_JSON_DOUBLE_COMBOBOX "double_combobox"
 #define FB_JSON_PHOTO "photo"
+#define FB_JSON_SIGNATURE "signature"
 #define FB_JSON_SPACE "space"
 #define FB_JSON_GROUP_START "group_start"
 #define FB_JSON_GROUP_END "group_end"
@@ -147,6 +148,8 @@
 #define FB_JSON_MAX_STRING_COUNT "max_string_count"
 #define FB_JSON_LAST "last"
 #define FB_JSON_DATE_TYPE "date_type"
+#define FB_JSON_REQUIRED "required"
+#define FB_JSON_GALLERY_SIZE "gallery_size"
 // - ещё для атрибутов:
 #define FB_JSON_ALIAS "alias"
 #define FB_JSON_NAME "name"
@@ -254,6 +257,7 @@ class FB: public QWidget
      explicit FB (QWidget *parent = 0);
      ~FB();
      Json::Value formToJson ();
+     static QString shortenStringForOutput (QString inStr);
 
     public:
      static FBProject *CUR_PROJECT; // Текущий проект - переменная доступна всем извне.
@@ -294,6 +298,11 @@ class FB: public QWidget
      // проскроллился на него. При удалении (и во всех других случаях изменения формы)
      // скроллить не нужно - и эта переменная = false.
      bool canScrollToEnd;
+     // Эти пути читаются и пишутся через QSettings. Запоминаем именно полный абсолютный
+     // путь до файлов.
+     QString strLastNewShapeFile;
+     QString strLastOpenFile;
+     QString strLastSaveAsFile;
     public:
      QVBoxLayout *getLayScreenPtr () { return layScreen; }
 
@@ -312,6 +321,8 @@ class FB: public QWidget
      void setBottomProjectString (QString datasetPath);
      void onNewAnyClick (bool isNgw);
      void fillForm (Json::Value jsonForm);
+     void writeSettings ();
+     void readSettings ();
 
     private slots:
      void onLeftArrowClicked ();
@@ -493,6 +504,9 @@ class FBProgressDialog: public QDialog
 
 class FBAboutDialog: public QDialog
 {
+    // Если не поставить здесь, и в других местах Q_OBJECT, то при переводе на другой язык
+    // через tr() - строки не будут переведены.
+    Q_OBJECT
     public:
      FBAboutDialog(QWidget *parent);
      ~FBAboutDialog();

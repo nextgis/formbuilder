@@ -139,4 +139,22 @@ FBElem *FBDateTimeFactory::Create()
     return new FBDateTimeElem(this);
 }
 
+FBPhotoFactory::FBPhotoFactory(bool isFull):
+    FBFactory(isFull,FB_JSON_PHOTO,":/img/photo.png",QObject::tr("Фото"))
+{
+}
+FBElem *FBPhotoFactory::Create()
+{
+    return new FBPhotoElem(this);
+}
+
+FBSignatureFactory::FBSignatureFactory(bool isFull):
+    FBFactory(isFull,FB_JSON_SIGNATURE,":/img/signature.png",QObject::tr("Подпись"))
+{
+}
+FBElem *FBSignatureFactory::Create()
+{
+    return new FBSignatureElem(this);
+}
+
 

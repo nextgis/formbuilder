@@ -271,11 +271,15 @@ FBTextEditElem::FBTextEditElem(FBFactory *factoryPtr): FBElem(factoryPtr)
     FBYesNoAttr *attr3 = new FBYesNoAttr(this,FB_JSON_ONLY_FIGURES,false);
     mapAttrs.insert(tr("Только цифры"),attr3);
 
-    FBNumberAttr *attr4 = new FBNumberAttr(this,FB_JSON_MAX_STRING_COUNT,FB_INIT_ATTR_MAXSTRINGS);
+    FBNumberAttr *attr4 = new FBNumberAttr(this,FB_JSON_MAX_STRING_COUNT,
+                                           FB_INIT_ATTR_MAXSTRINGS,1,65535);
     mapAttrs.insert(tr("Макс. число строк"),attr4);
 
     FBYesNoAttr *attr5 = new FBYesNoAttr(this,FB_JSON_LAST,false);
     mapAttrs.insert(tr("Запоминать последнее значение"),attr5);
+
+    FBYesNoAttr *attr6 = new FBYesNoAttr(this,FB_JSON_REQUIRED,false);
+    mapAttrs.insert(tr("Обязательный"),attr6);
 
     updateAppearance();
 }
@@ -358,8 +362,11 @@ FBComboBoxElem::FBComboBoxElem(FBFactory *factoryPtr): FBElem(factoryPtr)
     mapAttrs.insert(tr("Значения"),attr2);
     connect(attr2,SIGNAL(changeAppearance()),this,SLOT(updateAppearance()));
 
-    FBYesNoAttr *attr5 = new FBYesNoAttr(this,FB_JSON_LAST,false);
-    mapAttrs.insert(tr("Запоминать последнее значение"),attr5);
+    FBYesNoAttr *attr3 = new FBYesNoAttr(this,FB_JSON_LAST,false);
+    mapAttrs.insert(tr("Запоминать последнее значение"),attr3);
+
+    FBYesNoAttr *attr4 = new FBYesNoAttr(this,FB_JSON_REQUIRED,false);
+    mapAttrs.insert(tr("Обязательный"),attr4);
 
     updateAppearance();
 }
@@ -488,6 +495,9 @@ FBDoubleComboBoxElem::FBDoubleComboBoxElem(FBFactory *factoryPtr): FBElem(factor
     FBYesNoAttr *attr6 = new FBYesNoAttr(this,FB_JSON_IS_DIALOG_LEVEL2,false);
     mapAttrs.insert(tr("Диалог для уровня 2"),attr6);
 
+    FBYesNoAttr *attr7 = new FBYesNoAttr(this,FB_JSON_REQUIRED,false);
+    mapAttrs.insert(tr("Обязательный"),attr7);
+
     updateAppearance();
 }
 
@@ -556,8 +566,8 @@ FBCheckBoxElem::FBCheckBoxElem(FBFactory *factoryPtr): FBElem(factoryPtr)
     mapAttrs.insert(tr("Текст"),attr3);
     connect(attr3,SIGNAL(changeAppearance()),this,SLOT(updateAppearance()));
 
-    FBYesNoAttr *attr5 = new FBYesNoAttr(this,FB_JSON_LAST,false);
-    mapAttrs.insert(tr("Запоминать последнее значение"),attr5);
+    FBYesNoAttr *attr4 = new FBYesNoAttr(this,FB_JSON_LAST,false);
+    mapAttrs.insert(tr("Запоминать последнее значение"),attr4);
 
     updateAppearance();
 }
@@ -789,15 +799,18 @@ FBDateTimeElem::FBDateTimeElem (FBFactory *factoryPtr): FBElem(factoryPtr)
     FBSelectAttr *attr2 = new FBSelectAttr(this,FB_JSON_DATE_TYPE,strsTypes,0);
     mapAttrs.insert(tr("Тип"),attr2);
 
-    FBYesNoAttr *attr5 = new FBYesNoAttr(this,FB_JSON_LAST,false);
-    mapAttrs.insert(tr("Запоминать последнее значение"),attr5);
+    FBYesNoAttr *attr3 = new FBYesNoAttr(this,FB_JSON_LAST,false);
+    mapAttrs.insert(tr("Запоминать последнее значение"),attr3);
 
-    FBYesNoAttr *attr6 = new FBYesNoAttr(this,FB_JSON_IS_DIALOG,false);
-    mapAttrs.insert(tr("Диалог для ввода"),attr6);
+    FBYesNoAttr *attr4 = new FBYesNoAttr(this,FB_JSON_IS_DIALOG,false);
+    mapAttrs.insert(tr("Диалог для ввода"),attr4);
 
-    FBTextAttr *attr7 = new FBTextAttr(this,FB_JSON_TEXT,"01.01.2016");
-    mapAttrs.insert(tr("Начальный текст"),attr7);
-    connect(attr7,SIGNAL(changeAppearance()),this,SLOT(updateAppearance()));
+    FBTextAttr *attr5 = new FBTextAttr(this,FB_JSON_TEXT,"01.01.2016");
+    mapAttrs.insert(tr("Начальный текст"),attr5);
+    connect(attr5,SIGNAL(changeAppearance()),this,SLOT(updateAppearance()));
+
+    FBYesNoAttr *attr6 = new FBYesNoAttr(this,FB_JSON_REQUIRED,false);
+    mapAttrs.insert(tr("Обязательный"),attr6);
 
     updateAppearance();
 }
@@ -809,11 +822,122 @@ void FBDateTimeElem::updateAppearance ()
 }
 
 
+// ================================================================================= //
+//                                    Фото                                           //
+// ================================================================================= //
+
+FBPhotoElem::FBPhotoElem (FBFactory *factoryPtr): FBElem(factoryPtr)
+{
+    this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+    this->setMaximumHeight(60);
+    this->setCursor(Qt::PointingHandCursor);
+    this->setDeselectStyle();
+
+    QLabel *labImg = new QLabel(this);
+    QPixmap pixmap = QPixmap(":/img/for_photo.png");
+    labImg->setStyleSheet("QLabel"
+                           "{"
+                               "border: none;"
+                               "background-color: rgb(170,170,170);"
+                               "border-top-left-radius: 2px;"
+                               "border-top-right-radius: 2px;"
+                               "border-bottom-left-radius: 2px;"
+                               "border-bottom-right-radius: 2px;"
+                           "}");
+    labImg->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
+    labImg->setFixedWidth(56);
+    labImg->setFixedHeight(56);
+    labImg->setAlignment(Qt::AlignCenter);
+    labImg->setPixmap(pixmap);
+    labImg->setContentsMargins(0,0,0,0);
+
+    hAll = new QHBoxLayout(this);
+    hAll->setContentsMargins(2,2,2,2);
+    hAll->setSpacing(10);
+
+    hAll->addWidget(labImg);
+
+    hAll->addStretch();
+
+    FBNumberAttr *attr1 = new FBNumberAttr(this,FB_JSON_GALLERY_SIZE,3,1,5);
+    mapAttrs.insert(tr("Макс. число фото"),attr1);
+    connect(attr1,SIGNAL(changeAppearance()),this,SLOT(updateAppearance()));
+
+    updateAppearance();
+}
 
 
+void FBPhotoElem::updateAppearance ()
+{
+    int num = static_cast<FBNumberAttr*>(mapAttrs.value(tr("Макс. число фото")))->getValue();
 
 
+    QLayoutItem *childIem;
+    for (int i=0; i<labImgs2.size(); i++)
+    {
+        childIem = hAll->takeAt(hAll->indexOf(labImgs2[i]));
+        delete childIem->widget();
+    }
 
+    labImgs2.clear();
+
+    for (int i=0; i<num; i++)
+    {
+        QLabel *labImg2 = new QLabel(this);
+        labImg2->setStyleSheet("QLabel"
+                               "{"
+                                   "border: 2px solid rgb(170,170,170);"
+                                   "background-color: rgba(0,0,0,0);"
+                                   "border-top-left-radius: 2px;"
+                                   "border-top-right-radius: 2px;"
+                                   "border-bottom-left-radius: 2px;"
+                                   "border-bottom-right-radius: 2px;"
+                               "}");
+        labImg2->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
+        labImg2->setFixedWidth(56);
+        labImg2->setFixedHeight(56);
+        labImg2->setObjectName("lab_photo_"+QString::number(i));
+
+        //hAll->addWidget(labImg2);
+        hAll->insertWidget(1,labImg2);
+
+        labImgs2.append(labImg2); // чтобы потом удалить
+    }
+}
+
+
+// ================================================================================= //
+//                            Официальная подпись                                    //
+// ================================================================================= //
+
+FBSignatureElem::FBSignatureElem (FBFactory *factoryPtr): FBElem(factoryPtr)
+{
+    this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+    this->setMaximumHeight(60);
+    this->setCursor(Qt::PointingHandCursor);
+    this->setDeselectStyle();
+
+    QLabel *labImg = new QLabel(this);
+    QPixmap pixmap = QPixmap(":/img/for_signature.png");
+    labImg->setStyleSheet("QLabel"
+                           "{"
+                               "border: 2px solid rgb(170,170,170);"
+                               "background-color: rgb(255,255,255);"
+                               "border-top-left-radius: 1px;"
+                               "border-top-right-radius: 1px;"
+                               "border-bottom-left-radius: 1px;"
+                               "border-bottom-right-radius: 1px;"
+                           "}");
+    labImg->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+    labImg->setFixedHeight(56);
+    labImg->setAlignment(Qt::AlignCenter);
+    labImg->setPixmap(pixmap);
+    labImg->setContentsMargins(0,0,0,0);
+
+    QHBoxLayout *hl = new QHBoxLayout(this);
+    hl->setContentsMargins(2,2,2,2);
+    hl->addWidget(labImg);
+}
 
 
 

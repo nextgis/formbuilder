@@ -30,9 +30,27 @@
 #include "fb.h"
 #include "ui_fb.h"
 
+/*
+static const char *file_dialog_strings[] = {
+    QT_TRANSLATE_NOOP("QFileDialog", "Открыть"),
+    QT_TRANSLATE_NOOP("QFileDialog", "Сохранить"),
+    QT_TRANSLATE_NOOP("QFileDialog", "Отмена"),
+    QT_TRANSLATE_NOOP("QFileDialog", "Тип файла"),
+    QT_TRANSLATE_NOOP("QFileDialog", "Имя файла"),
+    QT_TRANSLATE_NOOP("QFileDialog", "Путь:"),
+    QT_TRANSLATE_NOOP("QFileDialog", "Выбрать")
+};
+QString global_translate(int type)
+{
+    return qApp->translate("QFileDialog",
+           file_dialog_strings[type]);
+}
+*/
 
 FB::~FB()
 {
+    writeSettings();
+
     // TODO: удаляем всякие диалоги и другие виджеты? Или они удалятся как виджеты-дети?
     //delete dlgProgress;
     delete ui;
@@ -66,6 +84,8 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     this->layout()->setSpacing(10);
 
     canScrollToEnd = false;
+
+    readSettings();
 
 //---------------------------------------------------------------------------
 //                              Главное меню
@@ -513,62 +533,76 @@ void FB::recreateFactories ()
         FBFactory *item;
         FBFactory *item2;
 
-        //(decorationItems,":/img/text.png",tr("Текст"));
+        //Текст
         item = new FBTextLabelFactory(true);
         decorationItem->addChild(item);
         item2 = new FBTextLabelFactory(false);
         treeWidget2->addTopLevelItem(item2);
 
-        //(decorationItems,":/img/image.png",tr("Изображение"));
+        //Изображение
+        //...
 
-        //(decorationItems,":/img/space.png",tr("Пробел"));
+        //Пробел
         item = new FBSpaceFactory(true);
         decorationItem->addChild(item);
         item2 = new FBSpaceFactory(false);
         treeWidget2->addTopLevelItem(item2);
 
-        //(inputItems,":/img/textedit.png",tr("Текстовое поле"));
+        //Текстовое поле
         item = new FBTextEditFactory(true);
         inputItem->addChild(item);
         item2 = new FBTextEditFactory(false);
         treeWidget2->addTopLevelItem(item2);
 
-        //(inputItems,":/img/combo.png",tr("Список"));
+        //Список
         item = new FBComboBoxFactory(true);
         inputItem->addChild(item);
         item2 = new FBComboBoxFactory(false);
         treeWidget2->addTopLevelItem(item2);
 
-        //(inputItems,":/img/double_combo.png",tr("Двойной список"));
+        //Двойной список
         item = new FBDoubleComboBoxFactory(true);
         inputItem->addChild(item);
         item2 = new FBDoubleComboBoxFactory(false);
         treeWidget2->addTopLevelItem(item2);
 
-        //(inputItems,":/img/check.png",tr("Флажок"));
+        //Флажок
         item = new FBCheckBoxFactory(true);
         inputItem->addChild(item);
         item2 = new FBCheckBoxFactory(false);
         treeWidget2->addTopLevelItem(item2);
 
-        //(inputItems,":/img/radio.png",tr("Радио-группа"));
+        //Радио-группа
         item = new FBRadioGroupFactory(true);
         inputItem->addChild(item);
         item2 = new FBRadioGroupFactory(false);
         treeWidget2->addTopLevelItem(item2);
 
-        //(inputItems,":/img/compass.png",tr("Компас"));
+        //Компас
+        //...
 
-        //(inputItems,":/img/button.png",tr("Кнопка"));
+        //Кнопка
         item = new FBButtonFactory(true);
         inputItem->addChild(item);
         item2 = new FBButtonFactory(false);
         treeWidget2->addTopLevelItem(item2);
 
-        //(inputItems,":/img/date.png",tr("Дата и время"));
+        //Дата и время
         item = new FBDateTimeFactory(true);
         inputItem->addChild(item);
         item2 = new FBDateTimeFactory(false);
+        treeWidget2->addTopLevelItem(item2);
+
+        //Фото
+        item = new FBPhotoFactory(true);
+        inputItem->addChild(item);
+        item2 = new FBPhotoFactory(false);
+        treeWidget2->addTopLevelItem(item2);
+
+        //Официальная подпись
+        item = new FBSignatureFactory(true);
+        inputItem->addChild(item);
+        item2 = new FBSignatureFactory(false);
         treeWidget2->addTopLevelItem(item2);
 
         //(groupItems,":/img/tab.png",tr("Вкладки"));
@@ -869,11 +903,15 @@ void FB::setRightWidgetVisible (bool isVisible)
 
 void FB::onLeftArrowClicked ()
 {
+    if (CUR_PROJECT == NULL)
+        return;
     setLeftWidgetVisible(!treeWidget->isVisible());
 }
 
 void FB::onRightArrowClicked ()
 {
+    if (CUR_PROJECT == NULL)
+        return;
     setRightWidgetVisible(!tableWidget->isVisible());
 }
 
@@ -1128,16 +1166,32 @@ void FB::onNewAnyClick (bool isNgw)
         static_cast<QFileDialog*>(dialog)->setViewMode(QFileDialog::List);
         static_cast<QFileDialog*>(dialog)->setDefaultSuffix("shp");
         static_cast<QFileDialog*>(dialog)->setNameFilter("*.shp");
-        static_cast<QFileDialog*>(dialog)->setLabelText(QFileDialog::LookIn,tr("Путь:"));
-        static_cast<QFileDialog*>(dialog)->setLabelText(QFileDialog::FileName,tr("Имя файла"));
-        static_cast<QFileDialog*>(dialog)->setLabelText(QFileDialog::FileType,tr("Тип файла"));
-        static_cast<QFileDialog*>(dialog)->setLabelText(QFileDialog::Accept,tr("Выбрать"));
-        static_cast<QFileDialog*>(dialog)->setLabelText(QFileDialog::Reject,tr("Отмена"));
-        static_cast<QFileDialog*>(dialog)->setWindowTitle(tr("Создание нового проекта: выберите Shapefile ..."));
-        static_cast<QFileDialog*>(dialog)->setDirectory(QDir()); //ставим текущую директорию
-        #ifdef FB_TEST
-        static_cast<QFileDialog*>(dialog)->setDirectory(QDir("D:\\nextgis\\formbuilder-2.0\\test_data"));
-        #endif
+
+        //static_cast<QFileDialog*>(dialog)->setLabelText(QFileDialog::LookIn,
+        //                                      global_translate(5));
+        //static_cast<QFileDialog*>(dialog)->setLabelText(QFileDialog::FileName,
+        //                                      global_translate(4));
+        //static_cast<QFileDialog*>(dialog)->setLabelText(QFileDialog::FileType,
+        //                                      global_translate(3));
+        //static_cast<QFileDialog*>(dialog)->setLabelText(QFileDialog::Accept,
+        //                                      global_translate(6));
+        //static_cast<QFileDialog*>(dialog)->setLabelText(QFileDialog::Reject,
+        //                                      global_translate(2));
+
+        static_cast<QFileDialog*>(dialog)
+                ->setWindowTitle(tr("Создание нового проекта: выберите Shapefile ..."));
+
+        // Ставим последнюю выбранную директорию, если она ещё существует. Сам ранее
+        // выбранный Шейп не выделяем.
+        if (strLastNewShapeFile != "")
+        {
+            QFileInfo fileInfo(strLastNewShapeFile);
+            static_cast<QFileDialog*>(dialog)->setDirectory(fileInfo.absoluteDir());
+        }
+        else
+        {
+            static_cast<QFileDialog*>(dialog)->setDirectory(QDir());
+        }
     }
 
     // Запускаем диалог и пользователь делает выбор.
@@ -1202,6 +1256,13 @@ void FB::onNewAnyClick (bool isNgw)
             butSave->setEnabled(false);
             butSaveAs->setEnabled(true);
             butClearScreen->setEnabled(true);
+
+            // Изменяем последний выбранный каталог для выбора шейпфайла. Это запишется
+            // в настройки приложения в деструкторе класса.
+            if (!isNgw)
+            {
+                strLastNewShapeFile = strPath;
+            }
         }
     }
 
@@ -1231,17 +1292,37 @@ void FB::onOpenClick ()
     dialog.setViewMode(QFileDialog::List);
     dialog.setDefaultSuffix(FB_PROJECT_EXTENSION);
     dialog.setNameFilter("*."+QString(FB_PROJECT_EXTENSION));
-    dialog.setLabelText(QFileDialog::LookIn,tr("Путь:"));
-    dialog.setLabelText(QFileDialog::FileName,tr("Имя файла"));
-    dialog.setLabelText(QFileDialog::FileType,tr("Тип файла"));
-    dialog.setLabelText(QFileDialog::Accept,tr("Открыть"));
-    dialog.setLabelText(QFileDialog::Reject,tr("Отмена"));
+
+    //dialog.setLabelText(QFileDialog::LookIn,global_translate(5));
+    //dialog.setLabelText(QFileDialog::FileName,global_translate(4));
+    //dialog.setLabelText(QFileDialog::FileType,global_translate(3));
+    //dialog.setLabelText(QFileDialog::Accept,global_translate(0));
+    //dialog.setLabelText(QFileDialog::Reject,global_translate(2));
+    //dialog.setLabelText(QFileDialog::LookIn,tr());
+    //dialog.setLabelText(QFileDialog::FileName,tr());
+    //dialog.setLabelText(QFileDialog::FileType,tr());
+    //dialog.setLabelText(QFileDialog::Accept,tr());
+    //dialog.setLabelText(QFileDialog::Reject,tr());
+
     dialog.setWindowTitle(tr("Открыть проект. Выберите файл"
                   " с расширением .") + QString(FB_PROJECT_EXTENSION) + " ...");
-    dialog.setDirectory(QDir());
-    #ifdef FB_TEST
-    dialog.setDirectory(QDir("D:\\nextgis\\formbuilder-2.0\\test_forms"));
-    #endif
+
+    if (strLastOpenFile != "")
+    {
+        QFileInfo fileInfo(strLastOpenFile);
+        dialog.setDirectory(fileInfo.absoluteDir());
+    }
+    else if (strLastSaveAsFile != "")
+    {
+        // TODO: Исправить - если будет уже несуществующая директория (но не ""), то
+        // он почему-то откроет Documents (под Windows).
+        QFileInfo fileInfo2(strLastSaveAsFile);
+        dialog.setDirectory(fileInfo2.absoluteDir());
+    }
+    else
+    {
+        dialog.setDirectory(QDir());
+    }
 
     if (dialog.exec())
     {
@@ -1285,6 +1366,8 @@ void FB::onOpenClick ()
                 butSave->setEnabled(true);
                 butSaveAs->setEnabled(true);
                 butClearScreen->setEnabled(true);
+
+                strLastOpenFile = strFullPath;
             }
         }
     }
@@ -1325,18 +1408,39 @@ void FB::onSaveAsClick ()
     dialog.setViewMode(QFileDialog::List);
     dialog.setDefaultSuffix(FB_PROJECT_EXTENSION);
     dialog.setNameFilter("*." + QString(FB_PROJECT_EXTENSION));
-    dialog.setLabelText(QFileDialog::LookIn,tr("Путь:"));
-    dialog.setLabelText(QFileDialog::FileName,tr("Имя файла"));
-    dialog.setLabelText(QFileDialog::FileType,tr("Тип файла"));
-    dialog.setLabelText(QFileDialog::Accept,tr("Сохранить"));
-    dialog.setLabelText(QFileDialog::Reject,tr("Отмена"));
+
+    //dialog.setLabelText(QFileDialog::LookIn,global_translate(5));
+    //dialog.setLabelText(QFileDialog::FileName,global_translate(4));
+    //dialog.setLabelText(QFileDialog::FileType,global_translate(3));
+    //dialog.setLabelText(QFileDialog::Accept,global_translate(1));
+    //dialog.setLabelText(QFileDialog::Reject,global_translate(2));
+    //dialog.setLabelText(QFileDialog::LookIn,tr());
+    //dialog.setLabelText(QFileDialog::FileName,tr());
+    //dialog.setLabelText(QFileDialog::FileType,tr());
+    //dialog.setLabelText(QFileDialog::Accept,tr());
+    //dialog.setLabelText(QFileDialog::Reject,tr());
+
     dialog.setWindowTitle(tr("Сохранить проект как ..."));
-    dialog.setDirectory(QDir(CUR_PROJECT->getStrPath())); // для удобства
-#ifdef FB_TEST
-    dialog.setDirectory(QDir("D:\\nextgis\\formbuilder-2.0\\test_forms"));
-#endif
-    dialog.selectFile(QString(FB_INIT_PROJECT_NAMEBASE)
-                      + "." + QString(FB_PROJECT_EXTENSION));
+
+    // Если этот проект уже сохранялся - берём путь по которому ЭТОТ проект уже был сохранён.
+    if (CUR_PROJECT->getStrPath() != "")
+    {
+        dialog.setDirectory(QDir(CUR_PROJECT->getStrPath()));
+        dialog.selectFile(QString(FB_INIT_PROJECT_NAMEBASE)
+                          + "." + QString(FB_PROJECT_EXTENSION));
+    }
+    // Если это новый, ни разу не сохранявшийся проект - выдавать последний путь.
+    else if (strLastSaveAsFile != "")
+    {
+        QFileInfo fileInfo(strLastSaveAsFile);
+        dialog.setDirectory(fileInfo.absoluteDir());
+        dialog.selectFile(QString(FB_INIT_PROJECT_NAMEBASE)
+                          + "." + QString(FB_PROJECT_EXTENSION));
+    }
+    else
+    {
+        dialog.setDirectory(QDir());
+    }
 
     if (dialog.exec())
     {
@@ -1385,6 +1489,7 @@ void FB::onSaveAsEnded (bool result)
         butSave->setEnabled(true);
         showMsgBox(tr("Проект успешно сохранён"));
         setBottomProjectString("");
+        strLastSaveAsFile = CUR_PROJECT->getFullPath();
     }
     else
     {
@@ -1538,6 +1643,36 @@ void FB::fillForm (Json::Value jsonForm)
         // атрибутов, т.к. там сейчас значения, заданные при создании элемента.
         onPressElem();
     }
+}
+
+
+void FB::writeSettings()
+{
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope,
+                       "NextGIS", "FormBuilder");
+    // Для Windows запишется например в: C:\Users\Mikhail\AppData\Roaming\NextGIS
+    settings.setValue("last_new_shp_file",strLastNewShapeFile);
+    settings.setValue("last_open_file",strLastOpenFile);
+    settings.setValue("last_save_as_file",strLastSaveAsFile);
+}
+void FB::readSettings()
+{
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope,
+                       "NextGIS", "FormBuilder");
+    strLastNewShapeFile = settings.value("last_new_shp_file","").toString();
+    strLastOpenFile = settings.value("last_open_file","").toString();
+    strLastSaveAsFile = settings.value("last_save_as_file","").toString();
+}
+
+
+QString FB::shortenStringForOutput(QString inStr)
+{
+    if (inStr.size() > 23)
+    {
+        inStr.remove(0,inStr.size()-23);
+        inStr.append("...");
+    }
+    return inStr;
 }
 
 

@@ -146,10 +146,12 @@ void FBTextAttr::onEditEnd(QString lineEditText)
 //                          FBNumberAttr                              //
 // ================================================================== //
 
-FBNumberAttr::FBNumberAttr(FBElem *elem, QString strJsonName, int nInitValue):
-    FBAttr(elem,strJsonName)
+FBNumberAttr::FBNumberAttr(FBElem *elem, QString strJsonName, int nInitValue,
+                           int nMin, int nMax): FBAttr(elem,strJsonName)
 {
     value = nInitValue;
+    min = nMin;
+    max = nMax;
 }
 
 Json::Value FBNumberAttr::toJson()
@@ -166,7 +168,8 @@ void FBNumberAttr::fromJson(Json::Value jsonVal)
 QWidget* FBNumberAttr::getWidget()
 {
     QSpinBox *widget = new QSpinBox();
-    widget->setMaximum(FB_LIMIT_ATTR_MAXSTRINGS);
+    widget->setMaximum(max);
+    widget->setMinimum(min);
     widget->setValue(value);
     connect(widget,SIGNAL(valueChanged(int)),this,SLOT(onEditEnd(int)));
     return widget;
@@ -287,7 +290,7 @@ void FBListValuesAttr::onEditStart ()
         QListWidgetItem *item = new QListWidgetItem(values[i].second);
         item->setData(Qt::UserRole,values[i].first);
         dialog.listL->addItem(item);
-        dialog.comboL->addItem(values[i].second);
+        dialog.comboL->addItem(FB::shortenStringForOutput(values[i].second));
     }
     int dialogDefIndex;
     if (elem->getJsonName() == FB_JSON_RADIOGROUP)

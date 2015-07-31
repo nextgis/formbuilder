@@ -173,7 +173,8 @@ void FBDoubleListValueDialog::onCell1Changed (int row, int col)
 {
     if (col == 1)
     {
-        combo1->setItemText(row+1,table1->item(row,1)->text()); //+1, т.к. в комбобоксе первый элемент всегда "-"
+        combo1->setItemText(row+1,
+             FB::shortenStringForOutput(table1->item(row,1)->text())); //+1, т.к. в комбобоксе первый элемент всегда "-"
         label2->setText(getTable2String(table1->item(row,1)->text()));
     }
 }
@@ -184,7 +185,8 @@ void FBDoubleListValueDialog::onCell2Changed (int row, int col)
 {
     if (col == 1)
     {
-        curCombo2Ptr->setItemText(row+1,curTable2Ptr->item(row,1)->text());
+        curCombo2Ptr->setItemText(row+1,
+          FB::shortenStringForOutput(curTable2Ptr->item(row,1)->text()));
     }
 }
 
@@ -256,11 +258,7 @@ void FBDoubleListValueDialog::showMsgBox (QString msg)
 
 QString FBDoubleListValueDialog::getTable2String (QString srcStr)
 {
-    if (srcStr.size() > 20)
-    {
-        srcStr.remove(0,srcStr.size()-20);
-        srcStr.append("...");
-    }
+    srcStr = FB::shortenStringForOutput(srcStr);
     srcStr.prepend(tr("Зависимый список для: "));
     return srcStr;
 }

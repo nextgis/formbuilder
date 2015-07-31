@@ -107,7 +107,7 @@ class FBNumberAttr: public FBAttr
 {
     Q_OBJECT
     public:
-     FBNumberAttr(FBElem *elem, QString strJsonName, int nInitValue);
+     FBNumberAttr(FBElem *elem, QString strJsonName, int nInitValue, int nMin, int nMax);
      //~FBNumberAttr();
      Json::Value toJson ();
      void fromJson (Json::Value jsonVal);
@@ -117,6 +117,8 @@ class FBNumberAttr: public FBAttr
      void onEditEnd (int newValue);
     private:
      int value;
+     int min;
+     int max;
 };
 
 class FBYesNoAttr: public FBAttr
@@ -165,6 +167,7 @@ class FBListValuesAttr: public FBAttr
 // - радиогруппа по-другому обновляет свой внешний вид.
 class FBRadioValuesAttr: public FBListValuesAttr
 {
+    Q_OBJECT
     public:
      FBRadioValuesAttr (FBElem *elem, QString strJsonName);
      //void preview (QList<QPair<QString,QString> >, int);
