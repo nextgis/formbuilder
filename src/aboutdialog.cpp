@@ -49,6 +49,8 @@ FBAboutDialog::FBAboutDialog (QWidget *parent): QDialog(parent)
     edit->append("Diego Naive, 2012");
     edit->append("Ilsur Aptukov");
     edit->append("Aha-Soft");
+    edit->append("Jack Zwanenburg");
+    edit->append("Christopher Holm-Hansen");
 
     QLabel *lab2 = new QLabel(this);
     lab2->setText(QString("<a href=\"http://creativecommons.org/licenses/by/3.0/us/legalcode\">")

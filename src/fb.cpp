@@ -178,6 +178,12 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     butDeleteElem = createMainMenuButton(tabTools,layTools,
                   ":/img/delete_elem.png",tr("Удалить элемент"));
     butDeleteElem->setEnabled(false);
+    butImportControls = createMainMenuButton(tabTools,layTools,
+                  ":/img/import_controls.png",tr("Импортировать \nэлементы формы"));
+    butImportControls->setEnabled(false);
+    butUpdateData = createMainMenuButton(tabTools,layTools,
+                  ":/img/update_data.png",tr("Обновить данные\nслоя"));
+    butUpdateData->setEnabled(false);
     layProject->addStretch();
     layDevice->addStretch();
     layTools->addStretch();
@@ -193,6 +199,8 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     connect(butTabletAndrHor,SIGNAL(clicked()),this,SLOT(onAndrTabletHorClick()));
     connect(butClearScreen,SIGNAL(clicked()),this,SLOT(onClearScreenClick()));
     connect(butDeleteElem,SIGNAL(clicked()),this,SLOT(onDeleteElemClick()));
+    connect(butImportControls,SIGNAL(clicked()),this,SLOT(onImportControls()));
+    connect(butUpdateData,SIGNAL(clicked()),this,SLOT(onUpdateData()));
 
 //---------------------------------------------------------------------------
 //                              Левый виджет
@@ -1084,6 +1092,202 @@ void FB::onDeleteElemClick ()
 }
 
 
+
+void FB::onImportControls ()
+{
+    butImportControls->setDown(true);
+
+    if (FB::CUR_PROJECT != NULL)
+    {
+        int ret = showAlertBox(tr("При импорте элементов из другого проекта "
+                                  "текущие элементы формы будут удалены. Продолжить?"));
+        if (ret != QMessageBox::Ok)
+        {
+            butImportControls->setDown(false);
+            return;
+        }
+    }
+
+    QFileDialog dialog(this);
+    dialog.setAcceptMode(QFileDialog::AcceptOpen);
+    dialog.setFileMode(QFileDialog::ExistingFile);
+    dialog.setViewMode(QFileDialog::List);
+    dialog.setDefaultSuffix(FB_PROJECT_EXTENSION);
+    dialog.setNameFilter("*."+QString(FB_PROJECT_EXTENSION));
+    dialog.setWindowTitle(tr("Импортировать элементы формы. Выберите файл"
+                  " с расширением .") + QString(FB_PROJECT_EXTENSION) + " ...");
+
+    if (dialog.exec())
+    {
+        QString strFullPath = dialog.selectedFiles().first();
+        if (!strFullPath.endsWith("." + QString(FB_PROJECT_EXTENSION),Qt::CaseInsensitive))
+        {
+            showMsgBox(tr("Неверное расширение. Выберите файл с расширением .")
+                          + QString(FB_PROJECT_EXTENSION));
+        }
+        else
+        {
+            Json::Value jsonOtherForm;
+            Json::Value jsonOtherMeta;
+
+            // Открываем выбранный проект и возвращаем его форму+метаданные.
+            if (CUR_PROJECT->getNgfpJsonMeta(strFullPath,jsonOtherMeta)
+                && CUR_PROJECT->getNgfpJsonForm(strFullPath,jsonOtherForm))
+            {
+                // Очищаем форму от старых элементов. //см. onClearScreenClick();
+                clearElemSelection();
+                clearAndroidScreen();
+
+                // Добавляем на форму новые элементы.
+                // Но в атрибутах "поле слоя" у элементов будут записаны значения из другого
+                // проекта, несмотря на то что в программе список полей слоя - для текущего
+                // проекта.
+                QList<FBElem*> formElems = fillForm(jsonOtherForm);
+
+                // Заменяем значение атрибута "поле слоя" на неопределённое, если поле из
+                // старого проекта не соответствует полю из текущего.
+                // Просматриваем все только что добавленные элементы.
+                for (int i=0; i<formElems.size(); i++)
+                {
+                    // Просматриваем все атрибуты элемента.
+                    QMap<QString,FBAttr*>::const_iterator it = formElems[i]->mapAttrs.constBegin();
+                    while(it != formElems[i]->mapAttrs.constEnd())
+                    {
+                        FBAttr* attr = it.value();
+
+                        // Для каждого атрибута "Поле слоя":
+                        // NOTE: если добавятся ещё атрибуты полей вида "поле слоя" - добавить
+                        // их в проверку сюда.
+                        if (attr->strJsonName == FB_JSON_FIELD
+                            || attr->strJsonName == FB_JSON_FIELD_LEVEL1
+                                || attr->strJsonName == FB_JSON_FIELD_LEVEL2 )
+                        {
+                            // keyname поля хранится в атрибуте.
+                            QString keyname = static_cast<FBFieldAttr*>(attr)->getValue();
+
+                            // Находим в импортируемом проекте описание этого поля по его keyname.
+                            Json::Value otherJson;
+                            for (int k=0; k<jsonOtherMeta[FB_JSON_META_FIELDS].size(); ++k)
+                            {
+                                otherJson = jsonOtherMeta[FB_JSON_META_FIELDS][k];
+                                if (QString::fromUtf8(otherJson[FB_JSON_META_KEYNAME].asString().data())
+                                        == keyname)
+                                {
+                                    break;
+                                }
+                            }
+
+                            // Ищем, есть ли такое поле в текущем проекте.
+                            bool found = false;
+                            Json::Value jsonThisMeta = CUR_PROJECT->getJsonMeta();
+                            for (int k=0; k<jsonThisMeta[FB_JSON_META_FIELDS].size(); ++k)
+                            {
+                                Json::Value thisJson = jsonThisMeta[FB_JSON_META_FIELDS][k];
+                                if (otherJson == thisJson)
+                                {
+                                    found = true;
+                                    break;
+                                }
+                            }
+
+                            // Заменяем строку с названием старого поля на "неопределённую"
+                            // строку.
+                            if (!found)
+                            {
+                                static_cast<FBFieldAttr*>(attr)->setUndefinedValue();
+
+                                // NOTE: В таблице атрибутов этот элемент визуально УЖЕ имеет
+                                // неопределённое значение, т.к. при формировании
+                                // комбобокса с выбором поля - использовался список полей
+                                // слоя, связанного с ЭТИМ проектом, и метод по выдаче комбобокса -
+                                // не нашёл такого названия поля среди текущих.
+                                // См. FBFieldAttr::getWidget()
+                            }
+
+                        }
+
+                        ++it;
+                    }
+                }
+
+                // Выводим сообщение со списком тех полей слоя, которые не были назначены
+                // в соответствие элементам.
+
+                // TODO: доделать это.
+
+            }
+
+            // else - сообщения об ошибках уже выведены
+        }
+    }
+
+    butImportControls->setDown(false);
+}
+
+
+
+void FB::onUpdateData ()
+{
+    butUpdateData->setDown(true);
+
+    QFileDialog dialog(this);
+    dialog.setAcceptMode(QFileDialog::AcceptOpen);
+    dialog.setFileMode(QFileDialog::ExistingFile);
+    dialog.setViewMode(QFileDialog::List);
+    dialog.setDefaultSuffix("shp");
+    dialog.setNameFilter("*.shp");
+    dialog.setWindowTitle(tr("Обновить данные в проекте. Выберите Shapefile"));
+
+    if (dialog.exec())
+    {
+        QStringList sPaths = dialog.selectedFiles();
+        QString strShapefilePath = sPaths[0];
+
+        // Создаём временный проект для выбранного слоя - для проверки правильности
+        // его структуры.
+        FBProject* tempProj = new FBProject(this);
+        connect(tempProj,SIGNAL(sendMsg(QString)),
+                this,SLOT(showMsgBox(QString)));
+        QByteArray baPath = strShapefilePath.toUtf8();
+        if (tempProj->init(baPath.data()))
+        {
+            // Сравниваем структуры полей текущего проекта и выбранного слоя.
+            Json::Value jsonOtherMeta = tempProj->getJsonMeta();
+            Json::Value jsonThisMeta = CUR_PROJECT->getJsonMeta();
+            delete tempProj;
+            if (jsonOtherMeta[FB_JSON_META_FIELDS] != jsonThisMeta[FB_JSON_META_FIELDS])
+            {
+                butUpdateData->setDown(false);
+                showMsgBox(tr("Ошибка. Данные обновлены не будут так как "
+                              "структура полей выбранного слоя отличается от структуры "
+                              "полей текущего проекта. Выберите другой Shapefile"));
+            }
+            else
+            {
+                // Пересохраняем данные слоя.
+                // Ставим путь для взятия данных слоя при сохранении - один раз,
+                // после этого он будет сброшен. См. метод сохранения проекта.
+                // Так же будут пересохранены и остальные файлы проекта (созданны заново),
+                // т.к. в зип-архиве нельзя заменить только 1 файл.
+                CUR_PROJECT->resetSrcDatasetPath(strShapefilePath);
+
+                // Далее всё аналогично методу onSaveAsClick
+                dlgProgress->setWindowTitle(tr("Сохранение ..."));
+                FBSaveAsThread *thread = new FBSaveAsThread(this,CUR_PROJECT->getFullPath());
+                connect(thread, &FBSaveAsThread::resultReady, this, &FB::onSaveAsEnded);
+                connect(thread, &FBSaveAsThread::finished, thread, &QObject::deleteLater);
+                thread->start();
+                dlgProgress->exec();
+            }
+        }
+    }
+    else
+    {
+        butUpdateData->setDown(false);
+    }
+}
+
+
 // Нужно, чтобы после каждого добавления элемента, скроллилось в конец.
 // Простым setValue() этого не сделать.
 // http://www.qtcentre.org/threads/32852-How-can-I-always-keep-the-scroll-bar-at-the-bottom-of-a-QScrollArea
@@ -1256,6 +1460,8 @@ void FB::onNewAnyClick (bool isNgw)
             butSave->setEnabled(false);
             butSaveAs->setEnabled(true);
             butClearScreen->setEnabled(true);
+            butImportControls->setEnabled(true);
+            butUpdateData->setEnabled(true);
 
             // Изменяем последний выбранный каталог для выбора шейпфайла. Это запишется
             // в настройки приложения в деструкторе класса.
@@ -1366,6 +1572,8 @@ void FB::onOpenClick ()
                 butSave->setEnabled(true);
                 butSaveAs->setEnabled(true);
                 butClearScreen->setEnabled(true);
+                butImportControls->setEnabled(true);
+                butUpdateData->setEnabled(true);
 
                 strLastOpenFile = strFullPath;
             }
@@ -1497,6 +1705,7 @@ void FB::onSaveAsEnded (bool result)
     }
     butSave->setDown(false);
     butSaveAs->setDown(false);
+    butUpdateData->setDown(false);
 }
 
 
@@ -1592,10 +1801,12 @@ Json::Value FB::formToJson()
 
 // Вызывать этот метод только при пустом экране!!!
 // Элементы для создания (фабрики) в левом tree-widget-е должны быть уже созданы!!!
-void FB::fillForm (Json::Value jsonForm)
+QList<FBElem*> FB::fillForm (Json::Value jsonForm)
 {
+    QList<FBElem*> retFormElems;
+
     if (jsonForm.isNull())
-        return;
+        return retFormElems; // пустой
 
     // Считывая элементы формы, добавляем по парам - элемент + виджет для вставки.
     // Первый виджет для вставки уже имеется.
@@ -1642,7 +1853,12 @@ void FB::fillForm (Json::Value jsonForm)
         // Ещё раз нажимаем на последний добавленный элемент, чтобы обновить таблицу
         // атрибутов, т.к. там сейчас значения, заданные при создании элемента.
         onPressElem();
+
+        // Формируем массив всех добавленных элементов - для возврата.
+        retFormElems.append(elem);
     }
+
+    return retFormElems;
 }
 
 

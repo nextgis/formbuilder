@@ -87,9 +87,9 @@ QWidget* FBFieldAttr::getWidget ()
     for (int i=0; i<jsonArFields.size(); ++i)
     {
         Json::Value jsonField = jsonArFields[i];
-        QString strField = QString::fromUtf8(jsonField[FB_JSON_META_KEYNAME].asString().data());
-        widget->addItem(strField);
-        if (strField == value)
+        QString text = QString::fromUtf8(jsonField[FB_JSON_META_KEYNAME].asString().data());
+        widget->addItem(text);
+        if (text == value)
             curIndex = i+1;
     }
     widget->setCurrentIndex(curIndex);
@@ -100,6 +100,11 @@ QWidget* FBFieldAttr::getWidget ()
 void FBFieldAttr::onEditEnd (QString fieldName)
 {
     value = fieldName;
+}
+
+void FBFieldAttr::setUndefinedValue ()
+{
+    value = FB_STR_NOT_SELECTED;
 }
 
 
@@ -137,7 +142,6 @@ QWidget* FBTextAttr::getWidget()
 void FBTextAttr::onEditEnd(QString lineEditText)
 {
     value = lineEditText;
-    //emit preview(value);
     emit changeAppearance();
 }
 

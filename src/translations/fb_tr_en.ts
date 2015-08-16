@@ -211,6 +211,32 @@ program</translation>
         <source>TextLabel</source>
         <translation>TextLabel</translation>
     </message>
+    <message>
+        <source>Импортировать 
+элементы формы</source>
+        <translation type="unfinished">Import form controls</translation>
+    </message>
+    <message>
+        <source>Обновить данные
+слоя</source>
+        <translation type="unfinished">Update data</translation>
+    </message>
+    <message>
+        <source>При импорте элементов из другого проекта текущие элементы формы будут удалены. Продолжить?</source>
+        <translation type="unfinished">If you import controls from another project all current controls will be removed. Continue?</translation>
+    </message>
+    <message>
+        <source>Импортировать элементы формы. Выберите файл с расширением .</source>
+        <translation type="unfinished">Import form controls. Select a file with an extension .</translation>
+    </message>
+    <message>
+        <source>Обновить данные в проекте. Выберите Shapefile</source>
+        <translation type="unfinished">Update data in project. Select a Shapefile</translation>
+    </message>
+    <message>
+        <source>Ошибка. Данные обновлены не будут так как структура полей выбранного слоя отличается от структуры полей текущего проекта. Выберите другой Shapefile</source>
+        <translation type="unfinished">Error. Data can not be updated. Selected layer&apos;s fields structure differs from the project&apos;s current one. Select another Shapefile</translation>
+    </message>
 </context>
 <context>
     <name>FBAboutDialog</name>
@@ -527,7 +553,7 @@ from originals. List of authors:</translation>
     <name>FBProject</name>
     <message>
         <source>Ошибка при попытке открыть источник данных </source>
-        <translation type="unfinished">Error opening dataset</translation>
+        <translation type="unfinished">Error opening dataset </translation>
     </message>
     <message>
         <source>Ошибка: требуется, чтобы источник данных содержал только 1 слой! Выбранный источник данных содержит 0 или больше чем 1 слой.</source>

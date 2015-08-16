@@ -859,7 +859,7 @@ FBPhotoElem::FBPhotoElem (FBFactory *factoryPtr): FBElem(factoryPtr)
 
     hAll->addStretch();
 
-    FBNumberAttr *attr1 = new FBNumberAttr(this,FB_JSON_GALLERY_SIZE,3,1,5);
+    FBNumberAttr *attr1 = new FBNumberAttr(this,FB_JSON_GALLERY_SIZE,1,1,5);
     mapAttrs.insert(tr("Макс. число фото"),attr1);
     connect(attr1,SIGNAL(changeAppearance()),this,SLOT(updateAppearance()));
 

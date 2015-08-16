@@ -81,6 +81,8 @@ class FBFieldAttr: public FBAttr
      Json::Value toJson ();
      void fromJson (Json::Value jsonVal);
      QWidget *getWidget ();
+     QString getValue () { return value; }
+     void setUndefinedValue (); // требуется для метода "импорт контролов"
     private slots:
      void onEditEnd (QString fieldName);
     private:

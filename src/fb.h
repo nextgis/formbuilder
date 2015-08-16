@@ -134,12 +134,15 @@
 #define FB_JSON_HORIZONTAL_LAYOUT "horizontal_layout"
 #define FB_JSON_GRID_LAYOUT "grid_layout"
 // - названия атрибутов:
-#define FB_JSON_FIELD "field"
-#define FB_JSON_FIELD_LEVEL1 "field_level1"
+// --- для связи со слоем:
+#define FB_JSON_FIELD "field" // если добавятся новые field_... атрибуты, то добавить их
+#define FB_JSON_FIELD_LEVEL1 "field_level1" // в метод "импорт контролов"
 #define FB_JSON_FIELD_LEVEL2 "field_level2"
+// --- для способа ввода:
 #define FB_JSON_IS_DIALOG "is_dialog"
 #define FB_JSON_IS_DIALOG_LEVEL1 "big_list_level1"
 #define FB_JSON_IS_DIALOG_LEVEL2 "big_list_level2"
+// --- остальное:
 #define FB_JSON_VALUE "value"
 #define FB_JSON_VALUES "values"
 #define FB_JSON_INIT_VALUE "init_value"
@@ -188,6 +191,9 @@ class FBProject: public QObject
      // идти работа с большими объёмами данных через GDAL.
      bool saveAs (QString strFullPath);
 
+     bool getNgfpJsonMeta (QString strNgfpFullPath, Json::Value &retValue);
+     bool getNgfpJsonForm (QString strNgfpFullPath, Json::Value &retValue);
+
     private:
      FB *fbPtr; // там указатель на раскладку из которой брать элементы при сохранении.
      // Далее поля: для сторонних классов - только для чтения, а задаются внутри своих методов.
@@ -200,6 +206,7 @@ class FBProject: public QObject
     public:
      QString getStrPath () { return strPath; }
      Json::Value getJsonMeta () { return jsonMeta; }
+     void resetSrcDatasetPath (QString strPath) { strFirstTimeDataset = strPath; }
 
     private:
      bool addFileToZip (const CPLString &szFilePathName, const CPLString &szFileName,
@@ -282,6 +289,8 @@ class FB: public QWidget
      QToolButton *butQgis;
      QToolButton *butClearScreen;
      QToolButton *butDeleteElem;
+     QToolButton *butImportControls;
+     QToolButton *butUpdateData;
      QToolButton *butAboutGraphics;
      QPushButton* leftArrow;
      QPushButton* rightArrow;
@@ -320,7 +329,7 @@ class FB: public QWidget
      void setRightWidgetVisible (bool isVisible);
      void setBottomProjectString (QString datasetPath);
      void onNewAnyClick (bool isNgw);
-     void fillForm (Json::Value jsonForm);
+     QList<FBElem*> fillForm (Json::Value jsonForm);
      void writeSettings ();
      void readSettings ();
 
@@ -339,6 +348,8 @@ class FB: public QWidget
      void onAndrTabletHorClick ();
      void onClearScreenClick ();
      void onDeleteElemClick ();
+     void onImportControls ();
+     void onUpdateData ();
      void onAboutGraphicsClick ();
      FBElem *onTreeItemClicked (QTreeWidgetItem* item, int column);
      void onAddElem (FBElem *elem);

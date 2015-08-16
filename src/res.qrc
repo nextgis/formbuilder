@@ -59,5 +59,7 @@
         <file>img/signature.png</file>
         <file>img/for_photo.png</file>
         <file>img/for_signature.png</file>
+        <file>img/import_controls.png</file>
+        <file>img/update_data.png</file>
     </qresource>
 </RCC>

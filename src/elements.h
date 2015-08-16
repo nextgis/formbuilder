@@ -61,11 +61,10 @@ class FBElem: public QWidget
     public:
      static FBElem* SELECTED;
      static bool IS_SELECTED_MOVING;
-     // TODO: список атрибутов возможно сделать через QMap с ключом-названием char*.
-     //QList<QPair<QString,FBAttr*> > listAttrs;
+
      // ключ здесь - это не JSON-ключ, а уникальное название атрибута в элементе,
      // т.к. в элементе м.б. например два FB_JSON_TEXT. Ключи определяются в
-     // конструкторе.
+     // конструкторе конкретного класса.
      QMap<QString,FBAttr*> mapAttrs;
 
     private:

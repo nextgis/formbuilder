@@ -285,112 +285,118 @@ bool FBProject::initFromNgw (char *datasetName, QString strUrl, QString strLogin
 // В параметре retForm возвращается форма, которую потом надо вывести на экран.
 bool FBProject::open(QString strFullPath, Json::Value &retForm)
 {
-    bool progress = true;
+    Json::Value jsonMeta;
+    Json::Value jsonForm;
 
+    if (getNgfpJsonMeta(strFullPath,jsonMeta)
+            && getNgfpJsonForm(strFullPath,jsonForm))
+    {
+        // Если всё считалось успешно - заполняем поля этого проекта.
+        this->jsonMeta = jsonMeta;
+        retForm = jsonForm;
+        getPathComponents(strFullPath,strPath,strNameBase);
+
+        return true;
+    }
+
+    return false;
+}
+
+
+bool FBProject::getNgfpJsonMeta (QString strNgfpFullPath, Json::Value &retValue)
+{
     QByteArray ba;
     VSILFILE *fp;
     Json::Reader jsonReader;
 
-    Json::Value jsonMeta;
-    Json::Value jsonForm;
-
-    // Считываем метаданные.
-    QString strMetaPath = strFullPath;
-    strMetaPath.prepend("/vsizip/");
-    strMetaPath.append("/");
-    strMetaPath.append(FB_PROJECT_META_FILENAME);
-    ba = strMetaPath.toUtf8();
+    strNgfpFullPath.prepend("/vsizip/");
+    strNgfpFullPath.append("/");
+    strNgfpFullPath.append(FB_PROJECT_META_FILENAME);
+    ba = strNgfpFullPath.toUtf8();
     fp = VSIFOpenL(ba.data(), "rb");
     if (fp == NULL)
     {
         emit sendMsg(tr("Ошибка при открытии проекта. Не удалось открыть"
                         " JSON-файл метаданных"));
-        progress = false;
+        return false;
     }
-    else
+
+    std::string jsonConStr = "";
+    do
     {
-        std::string jsonConStr = "";
-        do
-        {
-            const char *str = CPLReadLineL(fp);
-            if (str == NULL)
-                break;
-            jsonConStr += str;
-        }
-        while (true);
-        VSIFCloseL(fp);
-        if (!jsonReader.parse(jsonConStr, jsonMeta, false)
-                || jsonMeta.isNull())
-        {
-            emit sendMsg(tr("Ошибка при открытии проекта. Не удалось считать"
-                            " JSON-файл метаданных"));
-            progress = false;
-        }
-        else
-        {
-            // Проверяем метаданные.
-            // Наличие и правильность: список полей, система координат, строка подключения
-            // к НГВ, тип геометрии.
-            // Так же проверяем на соответствие версию приложения и файла проекта.
-
-            // TODO: доделать здесь.
-        }
+        const char *str = CPLReadLineL(fp);
+        if (str == NULL)
+            break;
+        jsonConStr += str;
     }
-
-    // Считываем форму аналогичным способом.
-    if (progress)
+    while (true);
+    VSIFCloseL(fp);
+    if (!jsonReader.parse(jsonConStr, retValue, false)
+            || retValue.isNull())
     {
-        QString strFormPath = strFullPath;
-        strFormPath.prepend("/vsizip/");
-        strFormPath.append("/");
-        strFormPath.append(FB_PROJECT_FORM_FILENAME);
-        ba = strFormPath.toUtf8();
-        fp = VSIFOpenL(ba.data(), "rb");
-        if (fp == NULL)
-        {
-            emit sendMsg(tr("Ошибка при открытии проекта. Не удалось открыть"
-                            " JSON-файл формы"));
-            progress = false;
-        }
-        else
-        {
-            std::string jsonConStr = "";
-            do
-            {
-                const char *str = CPLReadLineL(fp);
-                if (str == NULL)
-                    break;
-                jsonConStr += str;
-            }
-            while (true);
-            VSIFCloseL(fp);
-            if (!jsonReader.parse(jsonConStr, jsonForm, false)
-                    || jsonForm.isNull())
-            {
-                emit sendMsg(tr("Ошибка при открытии проекта. Не удалось считать"
-                                " JSON-файл формы"));
-                progress = false;
-            }
-            else
-            {
-                // Проверяем правильность формы.
-                // Проверка нужна именно тут, т.к. в главном классе приложения
-                // будет вывод формы на экран без всяких проверок.
-
-                // TODO: доделать здесь.
-            }
-        }
+        emit sendMsg(tr("Ошибка при открытии проекта. Не удалось считать"
+                        " JSON-файл метаданных"));
+        return false;
     }
 
-    // Если всё правильно, то запоняем поля проекта.
-    if (progress)
+    // else:
+
+    // Проверяем метаданные.
+    // Наличие и правильность: список полей, система координат, строка подключения
+    // к НГВ, тип геометрии.
+    // Так же проверяем на соответствие версию приложения и файла проекта.
+
+    // TODO: доделать здесь.
+
+    return true;
+}
+
+
+bool FBProject::getNgfpJsonForm (QString strNgfpFullPath, Json::Value &retValue)
+{
+    QByteArray ba;
+    VSILFILE *fp;
+    Json::Reader jsonReader;
+
+    strNgfpFullPath.prepend("/vsizip/");
+    strNgfpFullPath.append("/");
+    strNgfpFullPath.append(FB_PROJECT_FORM_FILENAME);
+    ba = strNgfpFullPath.toUtf8();
+    fp = VSIFOpenL(ba.data(), "rb");
+    if (fp == NULL)
     {
-        this->jsonMeta = jsonMeta;
-        retForm = jsonForm;
-        getPathComponents(strFullPath,strPath,strNameBase);
+        emit sendMsg(tr("Ошибка при открытии проекта. Не удалось открыть"
+                        " JSON-файл формы"));
+        return false;
     }
 
-    return progress;
+    std::string jsonConStr = "";
+    do
+    {
+        const char *str = CPLReadLineL(fp);
+        if (str == NULL)
+            break;
+        jsonConStr += str;
+    }
+    while (true);
+    VSIFCloseL(fp);
+    if (!jsonReader.parse(jsonConStr, retValue, false)
+            || retValue.isNull())
+    {
+        emit sendMsg(tr("Ошибка при открытии проекта. Не удалось считать"
+                        " JSON-файл формы"));
+        return false;
+    }
+
+    // else:
+
+    // Проверяем правильность формы.
+    // Проверка нужна именно тут, т.к. в главном классе приложения
+    // будет вывод формы на экран без всяких проверок.
+
+    // TODO: доделать здесь.
+
+    return true;
 }
 
 
@@ -729,6 +735,7 @@ bool FBProject::saveAs (QString strFullPath)
 
     return progress;
 }
+
 
 
 bool FBProject::addFileToZip (const CPLString &szFilePathName, const CPLString &szFileName,
