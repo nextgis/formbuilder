@@ -303,6 +303,7 @@ class FB: public QWidget
      QWidget *widScreen;
      QVBoxLayout *layScreen; // потребуется доступ извне, чтобы читать элементы формы
      FBProgressDialog *dlgProgress;
+     QComboBox* comboLang;
      // Ставится в true только чтобы при добавлении нового элемента в конец - экран
      // проскроллился на него. При удалении (и во всех других случаях изменения формы)
      // скроллить не нужно - и эта переменная = false.
@@ -312,6 +313,7 @@ class FB: public QWidget
      QString strLastNewShapeFile;
      QString strLastOpenFile;
      QString strLastSaveAsFile;
+     QString strLastLangSelected; // так же для сохранения выбранного языка
     public:
      QVBoxLayout *getLayScreenPtr () { return layScreen; }
 
@@ -357,6 +359,7 @@ class FB: public QWidget
      void onPressElem ();
      void onSaveAsEnded (bool result);
      void moveScrollBarToBottom (int min, int max);
+     void onLanguageSelected (int index);
 };
 
 

@@ -101,8 +101,8 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     QWidget *tabTools = new QWidget();
     ui->tabWidget->addTab(tabTools, tr(" Инструменты "));
     QHBoxLayout *layTools = new QHBoxLayout(tabTools);
-//    QWidget *tabSettings = new QWidget();
-//    ui->tabWidget->addTab(tabSettings, tr(" Настройки "));
+    QWidget *tabSettings = new QWidget();
+    ui->tabWidget->addTab(tabSettings, tr(" Настройки "));
     QWidget *tabAbout = new QWidget();
     ui->tabWidget->addTab(tabAbout, tr(" О программе "));
 
@@ -459,6 +459,47 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
 //---------------------------------------------------------------------------
 
     dlgProgress = new FBProgressDialog (this);
+
+//---------------------------------------------------------------------------
+//                              Настройки
+//---------------------------------------------------------------------------
+
+    QHBoxLayout *laySettings = new QHBoxLayout(tabSettings);
+    laySettings->setContentsMargins(10,5,10,5);
+    laySettings->setSpacing(30);
+
+    comboLang = new QComboBox(tabSettings);
+    comboLang->addItem(tr("Английский"),QString("en_GB"));
+    comboLang->addItem(tr("Русский"),QString("ru_RU"));
+    // Смотрим строку, которая была задана в настройках, чтобы выбрать в этом комбобоксе
+    // нужный язык.
+    for (int i=0; i<comboLang->count(); i++)
+    {
+        // Выбранное в настройках значение будет либо en_GB (по умолчанию), либо
+        // другим, но не пустым.
+        if (comboLang->itemData(i,Qt::UserRole).toString() == strLastLangSelected)
+        {
+            comboLang->setCurrentIndex(i);
+            break;
+        }
+    }
+    connect(comboLang,SIGNAL(currentIndexChanged(int)),this,SLOT(onLanguageSelected(int)));
+
+    QLabel *labSetts = new QLabel(tabSettings);
+    labSetts->setText(tr("Язык") + ":");
+    labSetts->setAlignment(Qt::AlignCenter);
+    labSetts->setFont(QFont("Candara",9));
+    labSetts->setStyleSheet("QLabel {color: rgb(170,170,170)}");
+    labSetts->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Minimum);
+
+    QHBoxLayout *vSetts1 = new QHBoxLayout();
+    vSetts1->setContentsMargins(0,0,0,0);
+    vSetts1->setSpacing(10);
+    vSetts1->addWidget(labSetts);
+    vSetts1->addWidget(comboLang);
+    laySettings->addLayout(vSetts1);
+
+    laySettings->addStretch();
 
 //---------------------------------------------------------------------------
 //                              О программе
@@ -1862,22 +1903,29 @@ QList<FBElem*> FB::fillForm (Json::Value jsonForm)
 }
 
 
+void FB::onLanguageSelected (int index)
+{
+    strLastLangSelected = comboLang->currentData(Qt::UserRole).toString();
+    showMsgBox(tr("Для изменения языка необходимо перезапустить приложение"));
+}
+
+
 void FB::writeSettings()
 {
-    QSettings settings(QSettings::IniFormat, QSettings::UserScope,
-                       "NextGIS", "FormBuilder");
+    QSettings settings (QSettings::IniFormat, QSettings::UserScope, "NextGIS", "FormBuilder");
     // Для Windows запишется например в: C:\Users\Mikhail\AppData\Roaming\NextGIS
     settings.setValue("last_new_shp_file",strLastNewShapeFile);
     settings.setValue("last_open_file",strLastOpenFile);
     settings.setValue("last_save_as_file",strLastSaveAsFile);
+    settings.setValue("last_language_selected",strLastLangSelected);
 }
 void FB::readSettings()
 {
-    QSettings settings(QSettings::IniFormat, QSettings::UserScope,
-                       "NextGIS", "FormBuilder");
+    QSettings settings (QSettings::IniFormat, QSettings::UserScope, "NextGIS", "FormBuilder");
     strLastNewShapeFile = settings.value("last_new_shp_file","").toString();
     strLastOpenFile = settings.value("last_open_file","").toString();
     strLastSaveAsFile = settings.value("last_save_as_file","").toString();
+    strLastLangSelected = settings.value("last_language_selected","en_GB").toString();
 }
 
 

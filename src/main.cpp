@@ -17,12 +17,20 @@ int main(int argc, char *argv[])
     //        QLibraryInfo::location(QLibraryInfo::TranslationsPath));
     //a.installTranslator(&qtTranslator);
 
-    // Свой перевод:
+    // TODO: сделать определение и попытку использования системного языка.
+    //QString sysLang = QLocale::system().name();
+
+    QSettings settingsIn (QSettings::IniFormat, QSettings::UserScope, "NextGIS", "FormBuilder");
+    QString finalLang;
+    finalLang = settingsIn.value("last_language_selected","en_GB").toString();
+
+    // TODO: заменить во всём приложении язык по умолчанию с русского на английский (заменить
+    // все tr() ).
     QTranslator translator;
-    translator.load("fb_tr_en");
+    translator.load("fb_" + finalLang);
     a.installTranslator(&translator);
 
-    FB w;
+    FB w; // Настройки будут ещё раз считаны в конструкторе, а записаны в деструкторе.
     w.show();
 
     return a.exec();

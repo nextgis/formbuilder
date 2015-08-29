@@ -98,7 +98,7 @@ aboutdialog.cpp)
 
 # TODO: make automatic updating *.ts files via qt5_create_translation()
 # Use lupdate utility directly for now.
-set(TS_FILES translations/fb_tr_en.ts) # manually written .ts files
+set(TS_FILES translations/fb_en_GB.ts) # manually written .ts files
 qt5_add_translation(QM_FILES ${TS_FILES}) # no lupdate calling.
 
 
