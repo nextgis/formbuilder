@@ -16,7 +16,6 @@
         <file>img/save.png</file>
         <file>img/arrow_close.png</file>
         <file>img/arrow_open.png</file>
-        <file>img/icon72.ico</file>
         <file>img/decor_andr_1.png</file>
         <file>img/decor_andr_2.png</file>
         <file>img/decor_andr_3.png</file>
@@ -61,5 +60,7 @@
         <file>img/for_signature.png</file>
         <file>img/import_controls.png</file>
         <file>img/update_data.png</file>
+        <file>img/new_void.png</file>
+        <file>img/ngfb.ico</file>
     </qresource>
 </RCC>

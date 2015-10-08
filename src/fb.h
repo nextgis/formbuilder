@@ -86,7 +86,9 @@
 #define FB_NGW_ITEM_TYPE_RESOURCEGROUP 1
 #define FB_NGW_ITEM_TYPE_VECTORLAYER 2
 #define FB_NGW_ITEM_TYPE_POSTGISLAYER 3
-#define FB_NEXTGIS_URL "http://nextgis.com/nextgis-formbuilder"
+#define FB_NEXTGIS_RU_URL "http://nextgis.ru/nextgis-formbuilder"
+#define FB_NEXTGIS_EN_URL "http://nextgis.ru/en/nextgis-formbuilder"
+
 
 // Ограничения:
 #define FB_LIMIT_BOTTOM_STRING_LEN_SHORT 40
@@ -186,6 +188,7 @@ class FBProject: public QObject
      bool init (char *datasetName);
      bool initFromNgw (char *datasetName, QString strUrl, QString strLogin, QString strPass,
                        QString strId, Json::Value jsonMeta);
+     void initVoid ();
      bool open (QString strFullPath, Json::Value &retForm);
      // Для вызова методов в отдельном потоке. Все следующие методы считаются долгими, т.к. может
      // идти работа с большими объёмами данных через GDAL.
@@ -275,6 +278,7 @@ class FB: public QWidget
 
     private:
      Ui::FB *ui;
+     QToolButton *butNewVoid;
      QToolButton *butNewShp;
      QToolButton *butNewNgw;
      QToolButton *butOpen;
@@ -317,6 +321,9 @@ class FB: public QWidget
     public:
      QVBoxLayout *getLayScreenPtr () { return layScreen; }
 
+    protected:
+     void keyPressEvent (QKeyEvent *);
+
     private:
      void recreateFactories ();
      void clearScreen ();
@@ -338,6 +345,7 @@ class FB: public QWidget
     private slots:
      void onLeftArrowClicked ();
      void onRightArrowClicked ();
+     void onNewVoidClick ();
      void onNewShpClick ();
      void onNewNgwClick ();
      void onOpenClick ();

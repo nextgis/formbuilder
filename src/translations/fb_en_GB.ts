@@ -243,7 +243,7 @@ program</translation>
     </message>
     <message>
         <source>Английский</source>
-        <translation type="unfinished">English</translation>
+        <translation type="obsolete">English</translation>
     </message>
     <message>
         <source>Русский</source>
@@ -256,6 +256,14 @@ program</translation>
     <message>
         <source>Для изменения языка необходимо перезапустить приложение</source>
         <translation type="unfinished">Changing language requires an application restart</translation>
+    </message>
+    <message>
+        <source>Новый</source>
+        <translation type="unfinished">New</translation>
+    </message>
+    <message>
+        <source>English</source>
+        <translation type="unfinished">English</translation>
     </message>
 </context>
 <context>
@@ -698,7 +706,7 @@ from originals. List of authors:</translation>
     </message>
     <message>
         <source>Только цифры</source>
-        <translation type="unfinished">Only figures</translation>
+        <translation type="unfinished">Only numbers</translation>
     </message>
     <message>
         <source>Макс. число строк</source>
@@ -795,7 +803,7 @@ from originals. List of authors:</translation>
     </message>
     <message>
         <source>Фото</source>
-        <translation type="unfinished">Photo control</translation>
+        <translation type="unfinished">Photo</translation>
     </message>
     <message>
         <source>Подпись</source>

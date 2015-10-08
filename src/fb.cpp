@@ -141,6 +141,9 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
                                      "border-bottom-color: rgb(170,170,170);"
                                      "margin-top: 2px; "
                                  "}");
+    butNewVoid = createMainMenuButton(tabProject,layProject,
+                        ":/img/new_void.png",tr("Новый"));
+    butNewVoid->setEnabled(false);
     butNewShp = createMainMenuButton(tabProject,layProject,
                         ":/img/new_shp.png",tr("Новый из\nShapefile"));
     butNewNgw = createMainMenuButton(tabProject,layProject,
@@ -187,6 +190,7 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     layProject->addStretch();
     layDevice->addStretch();
     layTools->addStretch();
+    connect(butNewVoid,SIGNAL(clicked()),this,SLOT(onNewVoidClick()));
     connect(butNewShp,SIGNAL(clicked()),this,SLOT(onNewShpClick()));
     connect(butNewNgw,SIGNAL(clicked()),this,SLOT(onNewNgwClick()));
     connect(butOpen,SIGNAL(clicked()),this,SLOT(onOpenClick()));
@@ -469,7 +473,7 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     laySettings->setSpacing(30);
 
     comboLang = new QComboBox(tabSettings);
-    comboLang->addItem(tr("Английский"),QString("en_GB"));
+    comboLang->addItem(tr("English"),QString("en_GB"));
     comboLang->addItem(tr("Русский"),QString("ru_RU"));
     // Смотрим строку, которая была задана в настройках, чтобы выбрать в этом комбобоксе
     // нужный язык.
@@ -532,8 +536,16 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     labAboutImg->setAlignment(Qt::AlignCenter);
     QLabel *labAboutUrl = new QLabel(tabAbout);
     labAboutUrl->setAlignment(Qt::AlignCenter);
-    labAboutUrl->setText(QString("<a href=\"") + FB_NEXTGIS_URL + QString("\">")
+    if (strLastLangSelected == "ru_RU")
+    {
+        labAboutUrl->setText(QString("<a href=\"") + FB_NEXTGIS_RU_URL + QString("\">")
                          + tr("Скачать последнюю версию програмы") + "</a>");
+    }
+    else
+    {
+        labAboutUrl->setText(QString("<a href=\"") + FB_NEXTGIS_EN_URL + QString("\">")
+                         + tr("Скачать последнюю версию програмы") + "</a>");
+    }
     labAboutUrl->setTextFormat(Qt::RichText);
     labAboutUrl->setTextInteractionFlags(Qt::TextBrowserInteraction);
     labAboutUrl->setOpenExternalLinks(true);
@@ -1134,6 +1146,22 @@ void FB::onDeleteElemClick ()
 
 
 
+// Переобпределённое событие - нажатие кнопки во всём приложении.
+void FB::keyPressEvent (QKeyEvent * event)
+{
+    if (event->key() == Qt::Key_Delete)
+    {
+        onDeleteElemClick();
+        return;
+    }
+
+    // Из доков: If you reimplement this handler, it is very important that you call
+    // the base class implementation if you do not act upon the key.
+    QWidget::keyPressEvent(event);
+}
+
+
+
 void FB::onImportControls ()
 {
     butImportControls->setDown(true);
@@ -1367,6 +1395,28 @@ void FB::onAboutGraphicsClick ()
 {
     FBAboutDialog dialog(this);
     dialog.exec();
+}
+
+
+void FB::onNewVoidClick ()
+{
+    butNewVoid->setDown(true);
+
+    if (FB::CUR_PROJECT != NULL)
+    {
+        int ret = showAlertBox(tr("При создании нового проекта все"
+                            " несохранённые изменения в текущем проекте будут"
+                            " потеряны. Продолжить?"));
+        if (ret != QMessageBox::Ok)
+        {
+            butNewVoid->setDown(false);
+            return;
+        }
+    }
+
+
+
+    butNewVoid->setDown(false);
 }
 
 
