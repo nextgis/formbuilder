@@ -368,6 +368,12 @@ FBComboBoxElem::FBComboBoxElem(FBFactory *factoryPtr): FBElem(factoryPtr)
     FBYesNoAttr *attr4 = new FBYesNoAttr(this,FB_JSON_REQUIRED,false);
     mapAttrs.insert(tr("Обязательный"),attr4);
 
+    FBYesNoAttr *attr5 = new FBYesNoAttr(this,FB_JSON_INPUT_SEARCH,false);
+    mapAttrs.insert(tr("Ввод с поиском"),attr5);
+
+    FBYesNoAttr *attr6 = new FBYesNoAttr(this,FB_JSON_ALLOW_ADDING_VALUES,false);
+    mapAttrs.insert(tr("Разрешить добавлять значения"),attr6);
+
     updateAppearance();
 }
 

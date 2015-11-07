@@ -32,6 +32,8 @@
 
 FBNgwDialog::FBNgwDialog(QWidget *parent): QDialog(parent)
 {
+    this->setStyleSheet("QWidget { color: black }");
+
     strUrl = "";
     strLogin = "";
     strPass = "";

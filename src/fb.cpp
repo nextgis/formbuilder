@@ -47,6 +47,7 @@ QString global_translate(int type)
 }
 */
 
+
 FB::~FB()
 {
     writeSettings();
@@ -68,18 +69,21 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     CPLSetConfigOption("CPL_LOG_ERRORS","ON");
     #endif
 
-    // TODO: проверить это в разных версия Джидала.
     CPLSetConfigOption("CPL_VSIL_ZIP_ALLOWED_EXTENSIONS",FB_PROJECT_EXTENSION);
 
-    #ifndef FB_GDAL_2_X
-    OGRRegisterAll();
-    #else
     GDALAllRegister();
-    #endif
 
     ui->setupUi(this);
 
-    this->setStyleSheet("QWidget { background: white }"); // для всех виджетов в приложении.
+    // Фиксируем стиль всего приложения через style sheets, поскольку из доков:
+    // ... style authors are restricted by the different platforms' guidelines and
+    // (on Windows XP and OS X) by the native theme engine.
+    // При этом, несмотря на фразу из доков, работает утсановка цвета шрифта для всего
+    // приложения:
+    // When using Qt Style Sheets, a widget does not automatically inherit its font and
+    // color setting from its parent widget.
+    this->setStyleSheet("QWidget { background: white; color: black; }");
+
     this->layout()->setContentsMargins(0,5,0,5);
     this->layout()->setSpacing(10);
 
@@ -128,7 +132,8 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
                                     "border-top-left-radius: 4px;"
                                     "border-top-right-radius: 4px;"
                                     "min-width: 8ex;"
-                                    "padding: 2px;}"
+                                    "padding: 2px;"
+                                    "color: black }"
                                  //"QTabBar::tab:selected, QTabBar::tab:hover {"
                                     //"background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
                                        //"stop: 0 #fafafa, stop: 0.4 #f4f4f4,"
@@ -143,7 +148,6 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
                                  "}");
     butNewVoid = createMainMenuButton(tabProject,layProject,
                         ":/img/new_void.png",tr("Новый"));
-    butNewVoid->setEnabled(false);
     butNewShp = createMainMenuButton(tabProject,layProject,
                         ":/img/new_shp.png",tr("Новый из\nShapefile"));
     butNewNgw = createMainMenuButton(tabProject,layProject,
@@ -187,6 +191,9 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     butUpdateData = createMainMenuButton(tabTools,layTools,
                   ":/img/update_data.png",tr("Обновить данные\nслоя"));
     butUpdateData->setEnabled(false);
+    butFieldManager = createMainMenuButton(tabTools,layTools,
+                  ":/img/fields.png",tr("Менеджер полей"));
+    butFieldManager->setEnabled(false);
     layProject->addStretch();
     layDevice->addStretch();
     layTools->addStretch();
@@ -205,6 +212,7 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     connect(butDeleteElem,SIGNAL(clicked()),this,SLOT(onDeleteElemClick()));
     connect(butImportControls,SIGNAL(clicked()),this,SLOT(onImportControls()));
     connect(butUpdateData,SIGNAL(clicked()),this,SLOT(onUpdateData()));
+    connect(butFieldManager,SIGNAL(clicked()),this,SLOT(onFieldManager()));
 
 //---------------------------------------------------------------------------
 //                              Левый виджет
@@ -252,7 +260,7 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     treeWidget->setStyleSheet("QTreeWidget"
                               "{"
                                   "border: none;"
-                                  "icon-size: 20px"
+                                  "icon-size: 20px;"
                               "}"
                               "QTreeView::branch:has-children:opened"
                               "{"
@@ -278,8 +286,12 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
                               "}"
                               "QTreeWidget::item:has-children"
                               "{"
-                                  "text-decoration: underline;"
+                                  //"text-decoration: underline;"
                                   "color: rgb(100, 100, 100);"
+                              "}"
+                              "QTreeWidget::item:!has-children"
+                              "{"
+                                  "color: black;"
                               "}"
                               "QTreeWidget::item:has-children:hover"
                               "{"
@@ -294,7 +306,7 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
                                   "background-color: rgb(255, 255, 255);"
                                   "color: rgb(100,100,100);"
                               "}"
-                              "QTreeWidget::item::!has-children:selected"
+                              "QTreeWidget::item:!has-children:selected"
                               "{"
                                   "background-color: rgb(139, 183, 224);"
                                   "color: rgb(0,0,0);"
@@ -384,6 +396,7 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
                                    "border: none;"
                                    "selection-background-color: rgb(139, 183, 224);"
                                    "gridline-color: white;"
+                                   "color: rgb(100,100,100);"
                                "}"
                                "QTableWidget::item"
                                "{"
@@ -539,12 +552,12 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     if (strLastLangSelected == "ru_RU")
     {
         labAboutUrl->setText(QString("<a href=\"") + FB_NEXTGIS_RU_URL + QString("\">")
-                         + tr("Скачать последнюю версию програмы") + "</a>");
+                         + tr("Официальная страница программы") + "</a>");
     }
     else
     {
         labAboutUrl->setText(QString("<a href=\"") + FB_NEXTGIS_EN_URL + QString("\">")
-                         + tr("Скачать последнюю версию програмы") + "</a>");
+                         + tr("Официальная страница программы") + "</a>");
     }
     labAboutUrl->setTextFormat(Qt::RichText);
     labAboutUrl->setTextInteractionFlags(Qt::TextBrowserInteraction);
@@ -1097,9 +1110,9 @@ void FB::onPressElem ()
         QString alias = it.key();
         QTableWidgetItem *itemAlias;
         itemAlias = new QTableWidgetItem(alias);
-        itemAlias->setFlags(Qt::ItemIsEditable);
-        // TODO: выводить посказку:
-        //itemAlias->setToolTip();
+        //itemAlias->setFlags(Qt::ItemIsEditable);
+        itemAlias->setFlags(Qt::ItemIsEnabled);
+        itemAlias->setToolTip(alias);
         tableWidget->setItem(i,0,itemAlias);
 
         // Выводим виджет для редактирования со значением атрибута, если оно есть.
@@ -1186,6 +1199,8 @@ void FB::onImportControls ()
     dialog.setWindowTitle(tr("Импортировать элементы формы. Выберите файл"
                   " с расширением .") + QString(FB_PROJECT_EXTENSION) + " ...");
 
+    // TODO: сделать подстановку (а до этого запоминание) последнего файла для импорта?
+
     if (dialog.exec())
     {
         QString strFullPath = dialog.selectedFiles().first();
@@ -1200,8 +1215,8 @@ void FB::onImportControls ()
             Json::Value jsonOtherMeta;
 
             // Открываем выбранный проект и возвращаем его форму+метаданные.
-            if (CUR_PROJECT->getNgfpJsonMeta(strFullPath,jsonOtherMeta)
-                && CUR_PROJECT->getNgfpJsonForm(strFullPath,jsonOtherForm))
+            if (CUR_PROJECT->readNgfpJsonMeta(strFullPath,jsonOtherMeta)
+                && CUR_PROJECT->readNgfpJsonForm(strFullPath,jsonOtherForm))
             {
                 // Очищаем форму от старых элементов. //см. onClearScreenClick();
                 clearElemSelection();
@@ -1336,7 +1351,7 @@ void FB::onUpdateData ()
                 // Пересохраняем данные слоя.
                 // Ставим путь для взятия данных слоя при сохранении - один раз,
                 // после этого он будет сброшен. См. метод сохранения проекта.
-                // Так же будут пересохранены и остальные файлы проекта (созданны заново),
+                // Так же будут пересохранены и остальные файлы проекта (созданы заново),
                 // т.к. в зип-архиве нельзя заменить только 1 файл.
                 CUR_PROJECT->resetSrcDatasetPath(strShapefilePath);
 
@@ -1354,6 +1369,84 @@ void FB::onUpdateData ()
     {
         butUpdateData->setDown(false);
     }
+}
+
+
+
+// Вызов менеджера полей.
+void FB::onFieldManager ()
+{
+    butFieldManager->setDown(true);
+    FBFieldManagerDialog dialog(this);
+
+    // Если пользователь потдвердил изменения, изменяем структуру полей в программе,
+    // но пока не в файле .ngfp - для этого надо сохранить проект. Именно тогда бдут
+    // реально удалены (вместе с данными) и добавлены поля в реальном GeoJSON источнике
+    // данных.
+    if (dialog.exec())
+    {
+        clearElemSelection();
+
+        // Формируем новый список полей в метаданных, просто заменяя старый.
+        Json::Value json_mas;
+        for (int i=0; i<dialog.tree->topLevelItemCount(); i++)
+        {
+            Json::Value json_mas_elem;
+            QByteArray baName;
+            QByteArray baType;
+            baName = dialog.tree->topLevelItem(i)->text(0).toUtf8();
+            baType = dialog.tree->topLevelItem(i)->text(1).toUtf8();
+            json_mas_elem[FB_JSON_META_KEYNAME] = baName.data();
+            json_mas_elem[FB_JSON_META_DATATYPE] = baType.data();
+            json_mas_elem[FB_JSON_META_DISPLAY_NAME] = baName.data();
+            json_mas.append(json_mas_elem);
+        }
+        CUR_PROJECT->resetJsonMetaFields(json_mas);
+
+        // Просматриваем все элементы формы и снимаем их соответствия тем полям,
+        // которые были удалены.
+        QMap<int,FBElem*> mapElems = getFormElems();
+        QMap<int,FBElem*>::const_iterator it1 = mapElems.constBegin();
+        while (it1 != mapElems.constEnd())
+        {
+            FBElem* elem = it1.value();
+            // Просамтриваем все атрибуты элемента, т.к. атрибутов-связей с полями
+            // может быть несколько.
+            QMap<QString,FBAttr*>::const_iterator it2 = elem->mapAttrs.constBegin();
+            while(it2 != elem->mapAttrs.constEnd())
+            {
+                FBAttr* attr = it2.value();
+                if (attr->strJsonName == FB_JSON_FIELD
+                    || attr->strJsonName == FB_JSON_FIELD_LEVEL1
+                        || attr->strJsonName == FB_JSON_FIELD_LEVEL2 )
+                {
+                    QString fieldName = static_cast<FBFieldAttr*>(attr)->getValue();
+                    // TODO: пока что для каждого элемента смотрим весь список удалённых полей,
+                    // поскольку в программе вообще нет проверок на то, что пользователь задал
+                    // одно поле нескольким элементам формы. Можно исправить это в будущем, если
+                    // добавятся такие проверки - исправить удалением уже найденного поля из множества.
+                    if (dialog.fieldsDeleted.contains(fieldName))
+                    {
+                        static_cast<FBFieldAttr*>(attr)->setUndefinedValue();
+                    }
+                }
+
+                ++it2;
+            }
+
+            ++it1;
+        }
+
+        // Сохраняем список удалённых полей - чтобы в последствии при сохранении всего
+        // проекта отразить это на реальном GeoJSON источнике данных.
+        // Добавленные поля сохранять не надо, т.к. они уже числятся в обновлённых
+        // метаданных, а поскольку имена полей уникальны, это означает, что до этого
+        // поля с такими именами были удалены, а значит их имена в списке удалённых.
+        CUR_PROJECT->updateDeletedFields(dialog.fieldsDeleted);
+
+    }
+
+    butFieldManager->setDown(false);
 }
 
 
@@ -1401,39 +1494,26 @@ void FB::onAboutGraphicsClick ()
 void FB::onNewVoidClick ()
 {
     butNewVoid->setDown(true);
-
-    if (FB::CUR_PROJECT != NULL)
-    {
-        int ret = showAlertBox(tr("При создании нового проекта все"
-                            " несохранённые изменения в текущем проекте будут"
-                            " потеряны. Продолжить?"));
-        if (ret != QMessageBox::Ok)
-        {
-            butNewVoid->setDown(false);
-            return;
-        }
-    }
-
-
-
+    onNewAnyClick(0);
     butNewVoid->setDown(false);
 }
-
-
 void FB::onNewShpClick ()
 {
     butNewShp->setDown(true);
-    onNewAnyClick(false);
+    onNewAnyClick(1);
     butNewShp->setDown(false);
 }
 void FB::onNewNgwClick ()
 {
     butNewNgw->setDown(true);
-    onNewAnyClick(true);
+    onNewAnyClick(2);
     butNewNgw->setDown(false);
 }
-void FB::onNewAnyClick (bool isNgw)
+void FB::onNewAnyClick (int newProjectType)
 {
+    if (newProjectType != 0 && newProjectType != 1 && newProjectType != 2)
+        return;
+
     // Выдаём предупреждение, что уже есть открытый проект.
     if (FB::CUR_PROJECT != NULL)
     {
@@ -1449,11 +1529,11 @@ void FB::onNewAnyClick (bool isNgw)
 
     // Создаём диалог для выбора источника данных.
     QDialog *dialog;
-    if (isNgw)
+    if (newProjectType == 2)
     {
         dialog = new FBNgwDialog(this);
     }
-    else
+    else if (newProjectType == 1)
     {
         dialog = new QFileDialog(this);
         static_cast<QFileDialog*>(dialog)->setAcceptMode(QFileDialog::AcceptOpen);
@@ -1461,21 +1541,8 @@ void FB::onNewAnyClick (bool isNgw)
         static_cast<QFileDialog*>(dialog)->setViewMode(QFileDialog::List);
         static_cast<QFileDialog*>(dialog)->setDefaultSuffix("shp");
         static_cast<QFileDialog*>(dialog)->setNameFilter("*.shp");
-
-        //static_cast<QFileDialog*>(dialog)->setLabelText(QFileDialog::LookIn,
-        //                                      global_translate(5));
-        //static_cast<QFileDialog*>(dialog)->setLabelText(QFileDialog::FileName,
-        //                                      global_translate(4));
-        //static_cast<QFileDialog*>(dialog)->setLabelText(QFileDialog::FileType,
-        //                                      global_translate(3));
-        //static_cast<QFileDialog*>(dialog)->setLabelText(QFileDialog::Accept,
-        //                                      global_translate(6));
-        //static_cast<QFileDialog*>(dialog)->setLabelText(QFileDialog::Reject,
-        //                                      global_translate(2));
-
         static_cast<QFileDialog*>(dialog)
                 ->setWindowTitle(tr("Создание нового проекта: выберите Shapefile ..."));
-
         // Ставим последнюю выбранную директорию, если она ещё существует. Сам ранее
         // выбранный Шейп не выделяем.
         if (strLastNewShapeFile != "")
@@ -1488,22 +1555,33 @@ void FB::onNewAnyClick (bool isNgw)
             static_cast<QFileDialog*>(dialog)->setDirectory(QDir());
         }
     }
+    else
+    {
+        dialog = new FBNewVoidDialog(this);
+    }
 
     // Запускаем диалог и пользователь делает выбор.
     if (dialog->exec())
     {
-        QString strPath;
+        QString str;
         QString strUrl, strLogin, strPass, strId;
         Json::Value jsonMeta;
-        if (isNgw)
+
+        if (newProjectType == 2)
         {
-            strPath = static_cast<FBNgwDialog*>
+            str = static_cast<FBNgwDialog*>
                     (dialog)->selectedNgwResource(strUrl,strLogin,strPass,strId,jsonMeta);
+        }
+        else if (newProjectType == 1)
+        {
+            QStringList sPaths = static_cast<QFileDialog*>(dialog)->selectedFiles();
+            str = sPaths[0];
         }
         else
         {
-            QStringList sPaths = static_cast<QFileDialog*>(dialog)->selectedFiles();
-            strPath = sPaths[0];
+            // Тут задаём не путь, а некаю строку для описания что за проект открыт (
+            // будет выведена в нижнюю статусную строку).
+            //str = ;
         }
 
         // Создаём новый проект, пока не делая его текущим, т.к. в процессе инициализации
@@ -1517,15 +1595,22 @@ void FB::onNewAnyClick (bool isNgw)
         // Инициализируем проект. В процессе могут быть ошибки, как логические (не
         // поддерживаемые свойства проекта), так и физические (не удалось считать
         // выбранный слой через GDAL).
-        QByteArray baPath = strPath.toUtf8();
+        QByteArray baPath = str.toUtf8();
         bool ok = false;
-        if (isNgw)
+        if (newProjectType == 2)
         {
             ok = newProject->initFromNgw(baPath.data(),strUrl,strLogin,strPass,strId,jsonMeta);
         }
-        else
+        else if (newProjectType == 1)
         {
             ok = newProject->init(baPath.data());
+        }
+        else
+        {
+            ok = true;
+            newProject->initVoid(
+                 static_cast<FBNewVoidDialog*>(dialog)->comboGeom->currentData().toString(),
+                 static_cast<FBNewVoidDialog*>(dialog)->comboSrs->currentData().toString());
         }
 
         if (!ok)
@@ -1541,7 +1626,8 @@ void FB::onNewAnyClick (bool isNgw)
             FB::CUR_PROJECT = newProject;
 
             // Выводим информацию об открытом проекте.
-            setBottomProjectString(baPath.data());
+            //setBottomProjectString(baPath.data());
+            setBottomProjectString(str);
 
             // Очищаем старый экран и изменяем интерфейс.
             clearElemSelection();
@@ -1553,12 +1639,13 @@ void FB::onNewAnyClick (bool isNgw)
             butClearScreen->setEnabled(true);
             butImportControls->setEnabled(true);
             butUpdateData->setEnabled(true);
+            butFieldManager->setEnabled(true);
 
             // Изменяем последний выбранный каталог для выбора шейпфайла. Это запишется
             // в настройки приложения в деструкторе класса.
-            if (!isNgw)
+            if (newProjectType == 1)
             {
-                strLastNewShapeFile = strPath;
+                strLastNewShapeFile = str;
             }
         }
     }
@@ -1665,6 +1752,7 @@ void FB::onOpenClick ()
                 butClearScreen->setEnabled(true);
                 butImportControls->setEnabled(true);
                 butUpdateData->setEnabled(true);
+                butFieldManager->setEnabled(true);
 
                 strLastOpenFile = strFullPath;
             }
@@ -1829,31 +1917,16 @@ void FB::setBottomProjectString (QString datasetPath)
 }
 
 
+
 Json::Value FB::formToJson()
 {
     // Считываем форму в json-объект.
     Json::Value jsonRootArray;
 
-    // Используем метод QLayout::itemAt(int index) для просмотра всех виджетов
-    // в раскладке с последующим доставанием координаты У и сортировке по ней. После
-    // чего формируем итоговый json формы для сохранения.
-
+    // Получаем элементы формы в нужном порядке.
     // Формируем словарь, который будет автоматически упорядочен по ключу, где ключ -
     // Y координата элемента в расклаке.
-    QMap<int,FBElem*> mapElems;
-    QVBoxLayout *layScreenPtr = getLayScreenPtr();
-    for (int i = 0; i < layScreenPtr->count(); ++i)
-    {
-        QWidget *w = layScreenPtr->itemAt(i)->widget();
-        FBElem *e = qobject_cast<FBElem*>(w);
-        if (e != NULL)
-        {
-            // Y координата должна быть уникальной.
-            // TODO: подумать как быть с вложенными элементами - ведь их Y м.б.
-            // может совпадать.
-            mapElems.insert(e->y(),e);
-        }
-    }
+    QMap<int,FBElem*> mapElems = getFormElems();
 
     // Просматриваем словарь и записываем элементы в итоговый json-массив.
     QByteArray ba;
@@ -1868,10 +1941,8 @@ Json::Value FB::formToJson()
 
         Json::Value jsonAttrs;
         QMap<QString,FBAttr*>::const_iterator it2 = elem->mapAttrs.constBegin();
-        //for (int i = 0; i < elem->listAttrs.size(); i++)
         while (it2 != elem->mapAttrs.constEnd())
         {
-            //FBAttr *attr = elem->listAttrs[i].second;
             FBAttr *attr = it2.value();
             ba = attr->strJsonName.toUtf8();
             jsonAttrs[ba.data()] = attr->toJson();
@@ -1887,6 +1958,29 @@ Json::Value FB::formToJson()
     }
 
     return jsonRootArray;
+}
+
+
+// Возвращает все элементы формы.
+// Использует метод QLayout::itemAt(int index) для просмотра всех виджетов
+// в раскладке с последующим извлечением координаты У и сортировке по ней.
+QMap<int,FBElem*> FB::getFormElems ()
+{
+    QMap<int,FBElem*> mapElems;
+    QVBoxLayout *layScreenPtr = getLayScreenPtr();
+    for (int i = 0; i < layScreenPtr->count(); ++i)
+    {
+        QWidget *w = layScreenPtr->itemAt(i)->widget();
+        FBElem *e = qobject_cast<FBElem*>(w);
+        if (e != NULL)
+        {
+            // Y координата должна быть уникальной.
+            // TODO: подумать как быть с вложенными элементами - ведь их Y м.б.
+            // может совпадать.
+            mapElems.insert(e->y(),e);
+        }
+    }
+    return mapElems;
 }
 
 
@@ -1951,6 +2045,7 @@ QList<FBElem*> FB::fillForm (Json::Value jsonForm)
 
     return retFormElems;
 }
+
 
 
 void FB::onLanguageSelected (int index)

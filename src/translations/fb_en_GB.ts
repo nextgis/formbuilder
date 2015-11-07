@@ -104,7 +104,7 @@ program</translation>
     </message>
     <message>
         <source>Скачать последнюю версию програмы</source>
-        <translation>Download latest version</translation>
+        <translation type="vanished">Download latest version</translation>
     </message>
     <message>
         <source>Показать авторов</source>
@@ -265,6 +265,14 @@ program</translation>
         <source>English</source>
         <translation type="unfinished">English</translation>
     </message>
+    <message>
+        <source>Менеджер полей</source>
+        <translation type="unfinished">Fields manager</translation>
+    </message>
+    <message>
+        <source>Официальная страница программы</source>
+        <translation type="unfinished">Official page</translation>
+    </message>
 </context>
 <context>
     <name>FBAboutDialog</name>
@@ -344,6 +352,14 @@ from originals. List of authors:</translation>
     <message>
         <source>Обязательный</source>
         <translation type="unfinished">Required</translation>
+    </message>
+    <message>
+        <source>Ввод с поиском</source>
+        <translation type="unfinished">Input with search</translation>
+    </message>
+    <message>
+        <source>Разрешить добавлять значения</source>
+        <translation type="unfinished">Allow values not from the list</translation>
     </message>
 </context>
 <context>
@@ -455,6 +471,77 @@ from originals. List of authors:</translation>
     </message>
 </context>
 <context>
+    <name>FBFieldManagerDialog</name>
+    <message>
+        <source>Поля слоя в проекте</source>
+        <translation type="unfinished">Fields in project</translation>
+    </message>
+    <message>
+        <source>Имя</source>
+        <translation type="unfinished">Name</translation>
+    </message>
+    <message>
+        <source>Тип данных</source>
+        <translation type="unfinished">Datatype</translation>
+    </message>
+    <message>
+        <source>Добавить новый элемент</source>
+        <translation type="unfinished">Add new element</translation>
+    </message>
+    <message>
+        <source>Удалить выделенный элемент</source>
+        <translation type="unfinished">Remove selected element</translation>
+    </message>
+    <message>
+        <source>Изменить выделенный элемент</source>
+        <translation type="unfinished">Change selected element</translation>
+    </message>
+    <message>
+        <source>Поле</source>
+        <translation type="unfinished">Field</translation>
+    </message>
+    <message>
+        <source>Имя: </source>
+        <translation type="unfinished">Name: </translation>
+    </message>
+    <message>
+        <source>Тип:</source>
+        <translation type="unfinished">Datatype: </translation>
+    </message>
+    <message>
+        <source>Отмена</source>
+        <translation type="unfinished">Cancel</translation>
+    </message>
+    <message>
+        <source>Не введено имя поля</source>
+        <translation type="unfinished">Field&apos;s name has not been defined</translation>
+    </message>
+    <message>
+        <source>Поле с таким именем уже существует, выберите другое</source>
+        <translation type="unfinished">Field with this name already exists. Select another one</translation>
+    </message>
+    <message>
+        <source>В имени поля были заменены неподдерживаемые символы</source>
+        <translation type="unfinished">Unsupported characters have been replaced in the field&apos;s name</translation>
+    </message>
+    <message>
+        <source>В слое должно остаться как минимум одно поле</source>
+        <translation type="unfinished">There can be at least one field in the layer</translation>
+    </message>
+    <message>
+        <source>Удаление поля приведёт к удалению всех его данных (в момент сохранения проекта). Удалить поле?</source>
+        <translation type="unfinished">The deletion of the field will cause the deletion of all corresponding data (at the time of saving project). Delete field?</translation>
+    </message>
+    <message>
+        <source>Сообщение</source>
+        <translation type="unfinished">Message</translation>
+    </message>
+    <message>
+        <source>Предупреждение</source>
+        <translation type="unfinished">Alert</translation>
+    </message>
+</context>
+<context>
     <name>FBListValuesAttr</name>
     <message>
         <source>Задать</source>
@@ -502,6 +589,21 @@ from originals. List of authors:</translation>
     <message>
         <source>Задайте элементы списка ...</source>
         <translation type="unfinished">Define list elements ...</translation>
+    </message>
+</context>
+<context>
+    <name>FBNewVoidDialog</name>
+    <message>
+        <source>Задайте параметры слоя в новом проекте...</source>
+        <translation type="unfinished">Define new layer parameters ...</translation>
+    </message>
+    <message>
+        <source>Тип геометрии:</source>
+        <translation type="unfinished">Geometry type:</translation>
+    </message>
+    <message>
+        <source>Система координат:</source>
+        <translation type="unfinished">SRS:</translation>
     </message>
 </context>
 <context>
@@ -637,7 +739,7 @@ from originals. List of authors:</translation>
     </message>
     <message>
         <source>Ошибка при сохранении проекта. Не удалось скопировать данные слоя в GeoJSON файл</source>
-        <translation type="unfinished">Error saving project. Unable to copy source layer&apos;s data to the GeoJSON file</translation>
+        <translation type="obsolete">Error saving project. Unable to copy source layer&apos;s data to the GeoJSON file</translation>
     </message>
     <message>
         <source>Ошибка при сохранении проекта. Не удалось создать временный JSON-файл метаданных.</source>
@@ -662,6 +764,46 @@ from originals. List of authors:</translation>
     <message>
         <source>Ошибка при сохранении проекта. Не удалось сохранить итоговый файл проекта (ZIP-архив).</source>
         <translation type="unfinished">Error saving project. Unable to save final project file (ZIP-archive)</translation>
+    </message>
+    <message>
+        <source>Ошибка при открытии проекта. Версия проекта не совпадает с версией программы</source>
+        <translation type="unfinished">Error opening project. Project&apos;s version does not correspond to the program&apos;s one</translation>
+    </message>
+    <message>
+        <source>Ошибка при сохранении проекта. Не удалось инициализировать Memory драйвер GDAL</source>
+        <translation type="unfinished">Error saving project. Unable to initialize GDAL Memory driver</translation>
+    </message>
+    <message>
+        <source>Ошибка при сохранении проекта. Не удалось создать Memory источник данных</source>
+        <translation type="unfinished">Error saving project. Unable to create GDAL Memory dataset</translation>
+    </message>
+    <message>
+        <source>Ошибка при сохранении проекта. Не удалось создать Memory слой для сохранения данных</source>
+        <translation type="unfinished">Error saving project. Unable to create Memory layer for saving data</translation>
+    </message>
+    <message>
+        <source>Ошибка при сохранении проекта. Не удалось открыть предыдущий источник данных слоя в файле ngfp</source>
+        <translation type="unfinished">Error saving project. Unable to open the last dataset in ngfp file</translation>
+    </message>
+    <message>
+        <source>Ошибка при сохранении проекта. Не удалось инициализировать Memory драйвер GDAL для сохранения данных слоя</source>
+        <translation type="unfinished">Error saving project. Unable to initialize GDAL Memory driver for saving data</translation>
+    </message>
+    <message>
+        <source>Ошибка при сохранении проекта. Не удалось создать Memory источник данных для сохранения данных слоя</source>
+        <translation type="unfinished">Error saving project. Unable to create Memory dataset for saving data</translation>
+    </message>
+    <message>
+        <source>Ошибка при сохранении проекта. Не удалось создать слой в Memory источнике данных</source>
+        <translation type="unfinished">Error saving project. Unable to create a layer in the Memory dataset</translation>
+    </message>
+    <message>
+        <source>Ошибка при сохранении проекта. Не удалось создать слой в GeoJSON файле данных</source>
+        <translation type="unfinished">Error saving project. Unable to create a layer in GeoJSON file</translation>
+    </message>
+    <message>
+        <source>Ошибка: выбранный слой должен содержать хотя бы одно поле</source>
+        <translation type="unfinished">Error: the selected layer must contain at least one field</translation>
     </message>
 </context>
 <context>

@@ -32,6 +32,8 @@
 
 FBAboutDialog::FBAboutDialog (QWidget *parent): QDialog(parent)
 {
+    this->setStyleSheet("QWidget { color: black }");
+
     setWindowTitle(tr("Графика в программе"));
     setModal(true);
 
@@ -51,6 +53,7 @@ FBAboutDialog::FBAboutDialog (QWidget *parent): QDialog(parent)
     edit->append("Aha-Soft");
     edit->append("Jack Zwanenburg");
     edit->append("Christopher Holm-Hansen");
+    edit->append("trasnik");
 
     QLabel *lab2 = new QLabel(this);
     lab2->setText(QString("<a href=\"http://creativecommons.org/licenses/by/3.0/us/legalcode\">")

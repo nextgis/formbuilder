@@ -94,7 +94,10 @@ ngwdialog.cpp
 listvaluesdialog.cpp
 dlistvaluesdialog.cpp
 progressdialog.cpp
-aboutdialog.cpp)
+aboutdialog.cpp
+newvoiddialog.cpp
+fieldmanagerdialog.cpp
+forappicon.rc)
 
 # TODO: make automatic updating *.ts files via qt5_create_translation()
 # Use lupdate utility directly for now.
@@ -102,6 +105,11 @@ set(TS_FILES translations/fb_en_GB.ts) # manually written .ts files
 qt5_add_translation(QM_FILES ${TS_FILES}) # no lupdate calling.
 
 
+
+#set(CMAKE_EXE_LINKER_FLAGS "/SUBSYSTEM:WINDOWS,5.01")
+if(WIN32)
+  add_definitions(-D_WIN32_WINNT=0x0501)
+endif(WIN32)
 
 
 if(WIN32)

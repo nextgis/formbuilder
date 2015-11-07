@@ -62,5 +62,6 @@
         <file>img/update_data.png</file>
         <file>img/new_void.png</file>
         <file>img/ngfb.ico</file>
+        <file>img/fields.png</file>
     </qresource>
 </RCC>

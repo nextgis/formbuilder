@@ -65,10 +65,9 @@
 
 #define FB_VERSION 2.0
 
-#define FB_GDAL_2_X 1 // Использовать классы GDAL 2.X версии. Если закомментить - GDAL 1.X.
-// Важно: на самом деле не использовать GDAL < 2.0.1, т.к. только после этой версии
+// Для всей программы: не использовать GDAL < 2.0.1, т.к. только после этой версии
 // исправлен GDAL-баг с кэшированием при работе с ИД через /vcizip/, что приводило
-// здесь к невозможности повторного сохранения проекта в тот же файл-архив.
+// к невозможности повторного сохранения проекта в тот же файл-архив.
 // См. https://trac.osgeo.org/gdal/ticket/6005
 
 //#define FB_GDAL_DEBUG "D:/nextgis/formbuilder-2.0/gdal_log.txt" // Куда сохранять лог.
@@ -88,6 +87,7 @@
 #define FB_NGW_ITEM_TYPE_POSTGISLAYER 3
 #define FB_NEXTGIS_RU_URL "http://nextgis.ru/nextgis-formbuilder"
 #define FB_NEXTGIS_EN_URL "http://nextgis.ru/en/nextgis-formbuilder"
+#define FB_INDICATE_MEMORY_DATASET "%memory%"
 
 
 // Ограничения:
@@ -138,7 +138,7 @@
 // - названия атрибутов:
 // --- для связи со слоем:
 #define FB_JSON_FIELD "field" // если добавятся новые field_... атрибуты, то добавить их
-#define FB_JSON_FIELD_LEVEL1 "field_level1" // в метод "импорт контролов"
+#define FB_JSON_FIELD_LEVEL1 "field_level1" // в метод "импорт контролов" и "менеджер полей"
 #define FB_JSON_FIELD_LEVEL2 "field_level2"
 // --- для способа ввода:
 #define FB_JSON_IS_DIALOG "is_dialog"
@@ -154,6 +154,8 @@
 #define FB_JSON_LAST "last"
 #define FB_JSON_DATE_TYPE "date_type"
 #define FB_JSON_REQUIRED "required"
+#define FB_JSON_INPUT_SEARCH "input_search"
+#define FB_JSON_ALLOW_ADDING_VALUES "allow_adding_values"
 #define FB_JSON_GALLERY_SIZE "gallery_size"
 // - ещё для атрибутов:
 #define FB_JSON_ALIAS "alias"
@@ -176,6 +178,8 @@ class FB;
 
 // Один проект = вся текущая информация о единственной открытой форме: метаданные и т.д., кроме
 // самих элементов формы.
+// TODO: сделать наследники от абстрактного класса FBProject для трёх (как минимум) разных
+// тпиов проектов со своими init() функциями - для пустого, шейпа и нгв.
 class FBProject: public QObject
 {
     Q_OBJECT
@@ -188,32 +192,43 @@ class FBProject: public QObject
      bool init (char *datasetName);
      bool initFromNgw (char *datasetName, QString strUrl, QString strLogin, QString strPass,
                        QString strId, Json::Value jsonMeta);
-     void initVoid ();
+     void initVoid (QString strGeomType, QString strSrs);
      bool open (QString strFullPath, Json::Value &retForm);
      // Для вызова методов в отдельном потоке. Все следующие методы считаются долгими, т.к. может
      // идти работа с большими объёмами данных через GDAL.
      bool saveAs (QString strFullPath);
 
-     bool getNgfpJsonMeta (QString strNgfpFullPath, Json::Value &retValue);
-     bool getNgfpJsonForm (QString strNgfpFullPath, Json::Value &retValue);
+     bool readNgfpJsonMeta (QString strNgfpFullPath, Json::Value &retValue);
+     bool readNgfpJsonForm (QString strNgfpFullPath, Json::Value &retValue);
 
     private:
      FB *fbPtr; // там указатель на раскладку из которой брать элементы при сохранении.
-     // Далее поля: для сторонних классов - только для чтения, а задаются внутри своих методов.
+
+     // TODO: сделать хранение метаданных в собственном формате, а не в json. В json
+     // переводить только при сохранении проекта.
      Json::Value jsonMeta; // метаданные проекта
+
      QString strPath; // каталог, где расположен файл проекта
      QString strNameBase; // имя файла проекта (без пути)
      QString strFirstTimeDataset; // путь к ИД, но только при создании нового проекта. В остальных случая строка пустая.
-     QStringList strsNewImgsToSave; // аналогично для изображений.
-     QStringList strsNewImgsToDelete;
+     //QStringList strsNewImgsToSave; // аналогично для изображений.
+     //QStringList strsNewImgsToDelete;
+     QSet<QString> fieldsDeleted; // поля, удалённые в менеджере полей. При сохранении проекта обнуляются. Добавленные хранить не надо, т.к. имена полей уникальны
+     //QSet<QString> fieldsChanged;
     public:
      QString getStrPath () { return strPath; }
      Json::Value getJsonMeta () { return jsonMeta; }
      void resetSrcDatasetPath (QString strPath) { strFirstTimeDataset = strPath; }
+     void resetJsonMetaFields (Json::Value newJsonFields);
+     void updateDeletedFields (QSet<QString> newFieldsDeleted);
 
     private:
      bool addFileToZip (const CPLString &szFilePathName, const CPLString &szFileName,
                        void* hZIP, GByte **pabyBuffer, size_t nBufferSize);
+
+     QString getVersionString();
+     Json::Value getSrsJson (QString strJson);
+     OGRwkbGeometryType getWkbGeomFromNgwString (QString strGeom);
 
     signals:
      void sendMsg (QString msg);
@@ -267,6 +282,7 @@ class FB: public QWidget
      explicit FB (QWidget *parent = 0);
      ~FB();
      Json::Value formToJson ();
+     QMap<int,FBElem*> getFormElems ();
      static QString shortenStringForOutput (QString inStr);
 
     public:
@@ -295,6 +311,7 @@ class FB: public QWidget
      QToolButton *butDeleteElem;
      QToolButton *butImportControls;
      QToolButton *butUpdateData;
+     QToolButton *butFieldManager;
      QToolButton *butAboutGraphics;
      QPushButton* leftArrow;
      QPushButton* rightArrow;
@@ -337,7 +354,7 @@ class FB: public QWidget
      void setLeftWidgetVisible (bool isVisible);
      void setRightWidgetVisible (bool isVisible);
      void setBottomProjectString (QString datasetPath);
-     void onNewAnyClick (bool isNgw);
+     void onNewAnyClick (int newProjectType);
      QList<FBElem*> fillForm (Json::Value jsonForm);
      void writeSettings ();
      void readSettings ();
@@ -360,6 +377,7 @@ class FB: public QWidget
      void onDeleteElemClick ();
      void onImportControls ();
      void onUpdateData ();
+     void onFieldManager ();
      void onAboutGraphicsClick ();
      FBElem *onTreeItemClicked (QTreeWidgetItem* item, int column);
      void onAddElem (FBElem *elem);
@@ -532,6 +550,51 @@ class FBAboutDialog: public QDialog
     public:
      FBAboutDialog(QWidget *parent);
      ~FBAboutDialog();
+};
+
+
+class FBNewVoidDialog: public QDialog
+{
+    Q_OBJECT
+    public:
+     FBNewVoidDialog(QWidget *parent);
+     ~FBNewVoidDialog();
+     QComboBox *comboGeom;
+     QComboBox *comboSrs;
+};
+
+
+class FBFieldManagerDialog: public QDialog
+{
+    Q_OBJECT
+
+    public:
+
+     FBFieldManagerDialog (QWidget *parent);
+     ~FBFieldManagerDialog () { }
+
+     QTreeWidget *tree;
+     QLineEdit *editName;
+     QComboBox *comboType;
+     QToolButton *butAdd;
+     QToolButton *butRemove;
+     QToolButton *butChange;
+     QPushButton *butOk;
+     QPushButton *butCancel;
+
+     QSet<QString> fieldsDeleted;
+     //QSet<QString> fieldsChanged;
+
+    private slots:
+
+     void onAddClicked ();
+     void onRemoveClicked ();
+     void onChangeClicked ();
+
+     void onItemClicked (QTreeWidgetItem *item, int itemCol);
+
+     int showAlertBox (QString msg, QMessageBox::Icon icon);
+     void showMsgBox (QString msg, QMessageBox::Icon icon);
 };
 
 

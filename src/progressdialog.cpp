@@ -31,6 +31,8 @@
 
 FBProgressDialog::FBProgressDialog(QWidget *parent): QDialog(parent)
 {
+    this->setStyleSheet("QWidget { color: black }");
+
     setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint); // Убираем кнопку закрытия.
     setWindowTitle(tr("Выполняется действие ..."));
     setModal(true);
