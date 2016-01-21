@@ -70,6 +70,8 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     #endif
 
     CPLSetConfigOption("CPL_VSIL_ZIP_ALLOWED_EXTENSIONS",FB_PROJECT_EXTENSION);
+    QByteArray ba = QString(QDir::currentPath() + "/gdal_data").toUtf8();
+    CPLSetConfigOption("GDAL_DATA", ba.data());
 
     GDALAllRegister();
 

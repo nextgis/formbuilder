@@ -29,8 +29,11 @@
 
 #include "fb.h"
 
-FBListValuesDialog::FBListValuesDialog(QString elemName)
+FBListValuesDialog::FBListValuesDialog(QString elemName): QDialog()
 {
+    this->setWindowModality(Qt::ApplicationModal);
+    this->setStyleSheet("QWidget { color: black }");
+
     this->elemName = elemName;
 
     QLabel *labelL = new QLabel(this);

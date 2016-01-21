@@ -132,6 +132,10 @@ void FBNgwDialog::onConnectClicked ()
     // считываний с конкатенацией (по мере прихода ответа с сервера).
     receivedJson = "";
 
+    // Добавляем http, если надо.
+    if (!strUrl.startsWith("http://",Qt::CaseInsensitive))
+        strUrl.prepend("http://");
+
     QUrl url;
     #ifdef FB_NGW_API_VERS
     url.setUrl(strUrl+"/login");
@@ -216,6 +220,9 @@ void FBNgwDialog::httpOnItemClicked(QTreeWidgetItem *treeItem, int treeItemColum
 // (если всё было успешно).
 void FBNgwDialog::onSelectClicked ()
 {
+    // TODO: здесь сделать диалог с ожиданием! Т.к. получаемый json около 9Мб
+    // уже ощутимо долго заставляет ждать!
+
     // Так же как и везде перед выполенением http запроса - блокируем кнопки,
     // которые могут вызвать другие запросы.
     wButConnect->setEnabled(false);
@@ -314,6 +321,10 @@ void FBNgwDialog::httpFinished ()
         wTree->insertTopLevelItems(0,newItems);
         wLabelStatus->setText(tr("Соединение успешно"));
         wProgBar->setValue(100);
+
+        // Сохраняем настройки подключения.
+        static_cast<FB*>(this->parent())->strLastNgwUrl = wEditUrl->text();
+        static_cast<FB*>(this->parent())->strLastNgwLogin = wEditLogin->text();
     }
     else
     {
@@ -388,11 +399,6 @@ void FBNgwDialog::httpSelectedFinished ()
                 // Завершаем работу диалога.
                 wLabelStatus->setText(tr("Соединение успешно"));
                 httpSelectedReply->deleteLater();
-
-                // Сохраняем настройки подключения.
-                // Можно преобразовать т.к. FB передавался в параметрах конструктора.
-                static_cast<FB*>(this->parent())->strLastNgwUrl = wEditUrl->text();
-                static_cast<FB*>(this->parent())->strLastNgwLogin = wEditLogin->text();
 
                 this->accept();
 

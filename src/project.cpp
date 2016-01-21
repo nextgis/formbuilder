@@ -660,7 +660,8 @@ bool FBProject::saveAs (QString strFullPath)
                                         // by the application.
                                         // TODO: обойти этот момент как-то. Возможно не копировать слой
                                         // до этого, а создавать заново с указанием нужной СК.
-                                        // TODO: аналогично продумать момент, когда будет несколько геом-полей.
+                                        
+                                        // TODO: удалить остальные колоник с геометриями, если они будут.
                                         layerTemp->GetLayerDefn()->GetGeomFieldDefn(0)->SetSpatialRef(&srsNew); // NULL быть не может
                                     }
 

@@ -30,8 +30,10 @@
 #include "fb.h"
 
 
-FBDoubleListValueDialog::FBDoubleListValueDialog ()
+FBDoubleListValueDialog::FBDoubleListValueDialog (): QDialog()
 {
+    this->setWindowModality(Qt::ApplicationModal);
+    this->setStyleSheet("QWidget { color: black }");
     this->setWindowTitle(tr("Ввод элементов сдвоенного списка..."));
 
     QLabel *label1 = new QLabel(this);

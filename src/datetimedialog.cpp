@@ -30,9 +30,10 @@
 #include "fb.h"
 
 
-FBDateTimeDialog::FBDateTimeDialog()//: QDialog(parent)
+FBDateTimeDialog::FBDateTimeDialog(): QDialog()
 {
-    //this->setStyleSheet("QWidget { color: black }");
+    this->setWindowModality(Qt::ApplicationModal);
+    this->setStyleSheet("QWidget { color: black }");
     this->setWindowTitle(tr("Задайте значение по умолчанию для Даты/Времени ..."));
     this->setFont(QFont("Candara",11));
 
