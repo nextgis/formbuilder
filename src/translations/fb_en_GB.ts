@@ -351,7 +351,7 @@ from originals. List of authors:</translation>
     </message>
     <message>
         <source>Обязательный</source>
-        <translation type="unfinished">Required</translation>
+        <translation type="obsolete">Required</translation>
     </message>
     <message>
         <source>Ввод с поиском</source>
@@ -360,6 +360,39 @@ from originals. List of authors:</translation>
     <message>
         <source>Разрешить добавлять значения</source>
         <translation type="unfinished">Allow values not from the list</translation>
+    </message>
+</context>
+<context>
+    <name>FBCompassElem</name>
+    <message>
+        <source>Поле слоя</source>
+        <translation type="unfinished">Target layer field</translation>
+    </message>
+    <message>
+        <source>Название</source>
+        <translation type="unfinished">Name</translation>
+    </message>
+</context>
+<context>
+    <name>FBDateTimeAttr</name>
+    <message>
+        <source>Задать</source>
+        <translation type="unfinished">Define</translation>
+    </message>
+</context>
+<context>
+    <name>FBDateTimeDialog</name>
+    <message>
+        <source>Задайте значение по умолчанию для Даты/Времени ...</source>
+        <translation type="unfinished">Set default value for Date/Time ...</translation>
+    </message>
+    <message>
+        <source>Текущее значение даты/времени</source>
+        <translation type="unfinished">Current date/time</translation>
+    </message>
+    <message>
+        <source>Отмена</source>
+        <translation type="unfinished">Cancel</translation>
     </message>
 </context>
 <context>
@@ -390,15 +423,19 @@ from originals. List of authors:</translation>
     </message>
     <message>
         <source>Диалог для ввода</source>
-        <translation type="unfinished">Input dialog</translation>
+        <translation type="obsolete">Input dialog</translation>
     </message>
     <message>
         <source>Начальный текст</source>
-        <translation type="unfinished">Initial text</translation>
+        <translation type="obsolete">Initial text</translation>
     </message>
     <message>
         <source>Обязательный</source>
-        <translation type="unfinished">Required</translation>
+        <translation type="obsolete">Required</translation>
+    </message>
+    <message>
+        <source>Начальное значение</source>
+        <translation type="unfinished">Initial value</translation>
     </message>
 </context>
 <context>
@@ -421,15 +458,15 @@ from originals. List of authors:</translation>
     </message>
     <message>
         <source>Диалог для уровня 1</source>
-        <translation type="unfinished">Input dialog for level 1</translation>
+        <translation type="obsolete">Input dialog for level 1</translation>
     </message>
     <message>
         <source>Диалог для уровня 2</source>
-        <translation type="unfinished">Input dialog for level 2</translation>
+        <translation type="obsolete">Input dialog for level 2</translation>
     </message>
     <message>
         <source>Обязательный</source>
-        <translation type="unfinished">Required</translation>
+        <translation type="obsolete">Required</translation>
     </message>
 </context>
 <context>
@@ -542,6 +579,13 @@ from originals. List of authors:</translation>
     </message>
 </context>
 <context>
+    <name>FBGroupElem</name>
+    <message>
+        <source>Заголовок</source>
+        <translation type="unfinished">Label</translation>
+    </message>
+</context>
+<context>
     <name>FBListValuesAttr</name>
     <message>
         <source>Задать</source>
@@ -603,7 +647,7 @@ from originals. List of authors:</translation>
     </message>
     <message>
         <source>Система координат:</source>
-        <translation type="unfinished">SRS:</translation>
+        <translation type="obsolete">SRS:</translation>
     </message>
 </context>
 <context>
@@ -618,7 +662,7 @@ from originals. List of authors:</translation>
     </message>
     <message>
         <source>http://176.9.38.120/wwf</source>
-        <translation type="unfinished">-</translation>
+        <translation type="obsolete">-</translation>
     </message>
     <message>
         <source>Логин: </source>
@@ -626,7 +670,7 @@ from originals. List of authors:</translation>
     </message>
     <message>
         <source>administrator</source>
-        <translation type="unfinished">-</translation>
+        <translation type="obsolete">-</translation>
     </message>
     <message>
         <source>Пароль: </source>
@@ -634,7 +678,7 @@ from originals. List of authors:</translation>
     </message>
     <message>
         <source>***************</source>
-        <translation type="unfinished">-</translation>
+        <translation type="obsolete">-</translation>
     </message>
     <message>
         <source>Соединить</source>
@@ -695,7 +739,7 @@ from originals. List of authors:</translation>
     </message>
     <message>
         <source>Ошибка: слой выбранного источника данных имеет неподдерживаемую систему координат (поддерживаются только EPSG:4326 и EPSG:3857)</source>
-        <translation type="unfinished">Error: layer of the selected dataset has unsupported spatial reference system (only EPSG:4326 and EPSG:3857 supported)</translation>
+        <translation type="obsolete">Error: layer of the selected dataset has unsupported spatial reference system (only EPSG:4326 and EPSG:3857 supported)</translation>
     </message>
     <message>
         <source>Ошибка при открытии проекта. Не удалось открыть JSON-файл метаданных</source>
@@ -805,6 +849,14 @@ from originals. List of authors:</translation>
         <source>Ошибка: выбранный слой должен содержать хотя бы одно поле</source>
         <translation type="unfinished">Error: the selected layer must contain at least one field</translation>
     </message>
+    <message>
+        <source>Ошибка: выбранный слой должен содержать описание своей системы координат</source>
+        <translation type="unfinished">Error. The selected layer must contain its spatial reference system description</translation>
+    </message>
+    <message>
+        <source>Ошибка при сохранении проекта. Не удалось скопировать исходный слой</source>
+        <translation type="unfinished">Error. Unable to copy initial layer</translation>
+    </message>
 </context>
 <context>
     <name>FBRadioGroupElem</name>
@@ -860,7 +912,7 @@ from originals. List of authors:</translation>
     </message>
     <message>
         <source>Обязательный</source>
-        <translation type="unfinished">Required</translation>
+        <translation type="obsolete">Required</translation>
     </message>
 </context>
 <context>
@@ -950,6 +1002,14 @@ from originals. List of authors:</translation>
     <message>
         <source>Подпись</source>
         <translation type="unfinished">Signature</translation>
+    </message>
+    <message>
+        <source>Компас</source>
+        <translation type="unfinished">Compass</translation>
+    </message>
+    <message>
+        <source>Группа</source>
+        <translation type="unfinished">Group</translation>
     </message>
 </context>
 </TS>

@@ -239,6 +239,35 @@ class FBSignatureElem: public FBElem
      virtual void updateAppearance () {}
 };
 
+class FBCompassElem: public FBElem
+{
+    Q_OBJECT
+    public:
+     FBCompassElem (FBFactory *factoryPtr);
+     ~FBCompassElem () {}
+    public slots:
+     virtual void updateAppearance () {}
+
+};
+
+
+// ================================================================================== //
+//                                  Grouping                                          //
+// ===================================================================================//
+
+class FBGroupElem: public FBElem
+{
+    Q_OBJECT
+    public:
+     FBGroupElem (FBFactory *factoryPtr);
+     ~FBGroupElem () {}
+    public slots:
+     virtual void updateAppearance ();
+    private:
+     QLabel *labHeader;
+     QVBoxLayout *layContent;
+};
+
 
 
 #endif // ELEMENTS_H

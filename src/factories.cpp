@@ -157,4 +157,27 @@ FBElem *FBSignatureFactory::Create()
     return new FBSignatureElem(this);
 }
 
+FBCompassFactory::FBCompassFactory(bool isFull):
+    FBFactory(isFull,FB_JSON_COMPASS,":/img/compass.png",QObject::tr("Компас"))
+{
+}
+FBElem *FBCompassFactory::Create()
+{
+    return new FBCompassElem(this);
+}
+
+
+// ================================================================================== //
+//                                  Grouping                                          //
+// ===================================================================================//
+
+FBGroupFactory::FBGroupFactory(bool isFull):
+    FBFactory(isFull,FB_JSON_GROUP,":/img/group_start.png",QObject::tr("Группа"))
+{
+}
+FBElem *FBGroupFactory::Create()
+{
+    return new FBGroupElem(this);
+}
+
 

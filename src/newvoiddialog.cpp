@@ -33,9 +33,7 @@
 FBNewVoidDialog::FBNewVoidDialog(QWidget *parent): QDialog(parent)
 {
     this->setStyleSheet("QWidget { color: black }");
-
     this->setWindowTitle(tr("Задайте параметры слоя в новом проекте..."));
-
     this->setFont(QFont("Candara",11));
 
     QLabel *label1 = new QLabel(this);
@@ -48,11 +46,11 @@ FBNewVoidDialog::FBNewVoidDialog(QWidget *parent): QDialog(parent)
     comboGeom->addItem("MULTILINESTRING",QString("MULTILINESTRING"));
     comboGeom->addItem("MULTIPOLYGON",QString("MULTIPOLYGON"));
 
-    QLabel *label2 = new QLabel(this);
-    label2->setText(tr("Система координат:"));
-    comboSrs = new QComboBox(this);
-    comboSrs->addItem("EPSG:4326",QString("4326"));
-    comboSrs->addItem("EPSG:3857",QString("3857"));
+//    QLabel *label2 = new QLabel(this);
+//    label2->setText(tr("Система координат:"));
+//    comboSrs = new QComboBox(this);
+//    comboSrs->addItem("EPSG:4326",QString("4326"));
+//    comboSrs->addItem("EPSG:3857",QString("3857"));
 
     QPushButton *but1 = new QPushButton(this);
     but1->setText("OK");
@@ -60,15 +58,15 @@ FBNewVoidDialog::FBNewVoidDialog(QWidget *parent): QDialog(parent)
 
     QVBoxLayout *vlall = new QVBoxLayout(this);
     QHBoxLayout *hl1 = new QHBoxLayout();
-    QHBoxLayout *hl2 = new QHBoxLayout();
+//    QHBoxLayout *hl2 = new QHBoxLayout();
     QHBoxLayout *hl3 = new QHBoxLayout();
     hl1->addWidget(label1);
     hl1->addWidget(comboGeom);
-    hl2->addWidget(label2);
-    hl2->addWidget(comboSrs);
+//    hl2->addWidget(label2);
+//    hl2->addWidget(comboSrs);
     hl3->addWidget(but1);
     vlall->addLayout(hl1);
-    vlall->addLayout(hl2);
+//    vlall->addLayout(hl2);
     vlall->addLayout(hl3);
 }
 

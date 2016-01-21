@@ -41,6 +41,7 @@
 #include <QGroupBox>
 #include <QCheckBox>
 #include <QSpinBox>
+#include <QDateTimeEdit>
 
 #include "json/json.h"
 
@@ -52,7 +53,7 @@ class FBElem;
 // 2. Выводить свой виджет для ввода в таблицу атрибутов, когда содержащий
 // его элемент интерфейса выделен на экране, а затем сохранять в себя значения,
 // введённые через этот виджет.
-// 3. (Не все) Возвращать своё значение (возможн окомплексное), для того, чтобы
+// 3. (Не все) Возвращать своё значение (возможно комплексное), для того, чтобы
 // элемент, владеющий этим атрибутом, обновил свой внешний вид на форме.
 class FBAttr: public QObject
 {
@@ -207,12 +208,34 @@ class FBSelectAttr: public FBAttr
      Json::Value toJson ();
      void fromJson (Json::Value jsonVal);
      QWidget *getWidget ();
+     int getValue () { return curIndex; }
     private slots:
      void onEditEnd (int indexSelected);
     private:
      QList<QString> strsValues;
      int curIndex;
+};
 
+
+// Для ввода даты-времени из особого пикера даты.
+class FBDateTimeAttr: public FBAttr
+{
+    Q_OBJECT
+    public:
+     FBDateTimeAttr(FBElem *elem, QString strJsonName);
+     //~FBDateTimeAttr();
+     Json::Value toJson ();
+     void fromJson (Json::Value jsonVal);
+     QWidget *getWidget ();
+     QString getDateTimeString ();
+     void updateFormat (int indexOfSelectAttr); // см. FBSelectAttr за индексом
+    private slots:
+     void onEditStart ();
+    private:
+     void setDefault ();
+     bool isDefaultCurrent; // текущая дата/время вместо заданной в curFormat.
+     QString curFormat; // приходится хранить здесь повторно, т.к. сам тип даты - это другой атрибут
+     QDateTime curDateTime;
 };
 
 

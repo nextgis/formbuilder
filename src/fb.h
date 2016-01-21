@@ -46,6 +46,7 @@
 #include <QMouseEvent>
 #include <QMessageBox>
 #include <QFileDialog>
+#include <QDateTimeEdit>
 #include <QProgressBar>
 #include <QTemporaryDir>
 //#include <QTemporaryFile>
@@ -71,7 +72,6 @@
 // См. https://trac.osgeo.org/gdal/ticket/6005
 
 //#define FB_GDAL_DEBUG "D:/nextgis/formbuilder-2.0/gdal_log.txt" // Куда сохранять лог.
-//#define FB_TEST 1 // Если раскомменчено: включить тестовый код.
 #define FB_NGW_API_VERS 1 // Какую версию NextGIS Web API использовать. TODO: реализовать по-настоящему.
 
 #define FB_STR_NOT_SELECTED "-"
@@ -88,7 +88,9 @@
 #define FB_NEXTGIS_RU_URL "http://nextgis.ru/nextgis-formbuilder"
 #define FB_NEXTGIS_EN_URL "http://nextgis.ru/en/nextgis-formbuilder"
 #define FB_INDICATE_MEMORY_DATASET "%memory%"
-
+#define FB_DISPLAY_FORMAT_DATE "yyyy.MM.dd"
+#define FB_DISPLAY_FORMAT_TIME "HH:mm:ss"
+#define FB_DISPLAY_FORMAT_DATETIME "yyyy.MM.dd  HH:mm:ss"
 
 // Ограничения:
 #define FB_LIMIT_BOTTOM_STRING_LEN_SHORT 40
@@ -129,12 +131,12 @@
 #define FB_JSON_PHOTO "photo"
 #define FB_JSON_SIGNATURE "signature"
 #define FB_JSON_SPACE "space"
-#define FB_JSON_GROUP_START "group_start"
-#define FB_JSON_GROUP_END "group_end"
 #define FB_JSON_TABS "tabs"
-#define FB_JSON_VERTICAL_LAYOUT "vertical_layout"
-#define FB_JSON_HORIZONTAL_LAYOUT "horizontal_layout"
-#define FB_JSON_GRID_LAYOUT "grid_layout"
+#define FB_JSON_GROUP "group"
+//#define FB_JSON_GROUP_START "group_start"
+//#define FB_JSON_GROUP_END "group_end"
+#define FB_JSON_VERTICAL_LAYOUT "ver_layout"
+#define FB_JSON_HORIZONTAL_LAYOUT "hor_layout"
 // - названия атрибутов:
 // --- для связи со слоем:
 #define FB_JSON_FIELD "field" // если добавятся новые field_... атрибуты, то добавить их
@@ -152,6 +154,7 @@
 #define FB_JSON_ONLY_FIGURES "only_figures"
 #define FB_JSON_MAX_STRING_COUNT "max_string_count"
 #define FB_JSON_LAST "last"
+#define FB_JSON_INITIAL_DATETIME "datetime"
 #define FB_JSON_DATE_TYPE "date_type"
 #define FB_JSON_REQUIRED "required"
 #define FB_JSON_INPUT_SEARCH "input_search"
@@ -192,7 +195,7 @@ class FBProject: public QObject
      bool init (char *datasetName);
      bool initFromNgw (char *datasetName, QString strUrl, QString strLogin, QString strPass,
                        QString strId, Json::Value jsonMeta);
-     void initVoid (QString strGeomType, QString strSrs);
+     void initVoid (QString strGeomType);//, QString strSrs);
      bool open (QString strFullPath, Json::Value &retForm);
      // Для вызова методов в отдельном потоке. Все следующие методы считаются долгими, т.к. может
      // идти работа с большими объёмами данных через GDAL.
@@ -225,7 +228,8 @@ class FBProject: public QObject
     private:
      bool addFileToZip (const CPLString &szFilePathName, const CPLString &szFileName,
                        void* hZIP, GByte **pabyBuffer, size_t nBufferSize);
-
+     bool reprojectToInnerSrs(OGRLayer *layerTemp, OGRSpatialReference *srsOld,
+                                               OGRSpatialReference *srsNew);
      QString getVersionString();
      Json::Value getSrsJson (QString strJson);
      OGRwkbGeometryType getWkbGeomFromNgwString (QString strGeom);
@@ -256,7 +260,7 @@ class FBSaveAsThread: public QThread
 // Виджет для вставки элементов интерфеса (сам не является элементом).
 // При отпускании кнопки на этом виджете, новый элемент интерфейса
 // добавляется на экран вместо него.
-class FBInsertWidget: public QWidget
+class FBInsertWidget: public QWidget // NOTE: в коде есть проверки по имени этого класса.
 {
     Q_OBJECT  // Q_OBJECT здесь требуется ещё и для определения типа виджета взятого из общей раскладки экрана
 
@@ -293,7 +297,9 @@ class FB: public QWidget
      int showAlertBox (QString msg);
 
     private:
+
      Ui::FB *ui;
+
      QToolButton *butNewVoid;
      QToolButton *butNewShp;
      QToolButton *butNewNgw;
@@ -313,30 +319,41 @@ class FB: public QWidget
      QToolButton *butUpdateData;
      QToolButton *butFieldManager;
      QToolButton *butAboutGraphics;
+     QComboBox* comboLang;
+
+     // Для интерфейса рабочей области приложения:
      QPushButton* leftArrow;
      QPushButton* rightArrow;
      QTreeWidget* treeWidget; // Расширенный (основной).
      QTreeWidget* treeWidget2; // Минималистичный (дополнительный).
      QTableWidget* tableWidget;
      QLabel *labTableCaption;
+
+     // Основные виджеты для работы с контролами на экране:
+     //QWidget *ui::centerWidget; // иерархически первый для всего экрана
      QVBoxLayout *layCenter;
      QScrollArea *wScrollArea;
      QWidget *widScreen;
      QVBoxLayout *layScreen; // потребуется доступ извне, чтобы читать элементы формы
+
      FBProgressDialog *dlgProgress;
-     QComboBox* comboLang;
+
      // Ставится в true только чтобы при добавлении нового элемента в конец - экран
      // проскроллился на него. При удалении (и во всех других случаях изменения формы)
      // скроллить не нужно - и эта переменная = false.
      bool canScrollToEnd;
+
      // Эти пути читаются и пишутся через QSettings. Запоминаем именно полный абсолютный
      // путь до файлов.
      QString strLastNewShapeFile;
      QString strLastOpenFile;
      QString strLastSaveAsFile;
      QString strLastLangSelected; // так же для сохранения выбранного языка
+
     public:
      QVBoxLayout *getLayScreenPtr () { return layScreen; }
+     QString strLastNgwUrl;
+     QString strLastNgwLogin;
 
     protected:
      void keyPressEvent (QKeyEvent *);
@@ -397,7 +414,7 @@ class FBNgwDialog: public QDialog
 
     public:
 
-     FBNgwDialog(QWidget *parent);
+     FBNgwDialog(FB *parent);
      QString selectedNgwResource (QString &strUrl, QString &strLogin,
                                   QString &strPass, QString &strId, Json::Value &jsonMeta);
 
@@ -560,7 +577,7 @@ class FBNewVoidDialog: public QDialog
      FBNewVoidDialog(QWidget *parent);
      ~FBNewVoidDialog();
      QComboBox *comboGeom;
-     QComboBox *comboSrs;
+//     QComboBox *comboSrs;
 };
 
 
@@ -595,6 +612,19 @@ class FBFieldManagerDialog: public QDialog
 
      int showAlertBox (QString msg, QMessageBox::Icon icon);
      void showMsgBox (QString msg, QMessageBox::Icon icon);
+};
+
+
+class FBDateTimeDialog: public QDialog
+{
+    Q_OBJECT
+    public:
+     FBDateTimeDialog();
+     ~FBDateTimeDialog();
+     QDateTimeEdit *wDateTime; // видно извне для чтения виджетов
+     QCheckBox *chbCurrent;
+    private slots:
+     void onCheckboxClicked (bool isChecked);
 };
 
 

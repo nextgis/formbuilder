@@ -147,6 +147,26 @@ class FBSignatureFactory: public FBFactory
      FBElem *Create ();
 };
 
+class FBCompassFactory: public FBFactory
+{
+    public:
+     FBCompassFactory (bool isFull);
+     ~FBCompassFactory () {}
+     FBElem *Create ();
+};
+
+// ================================================================================== //
+//                                  Grouping                                          //
+// ===================================================================================//
+
+class FBGroupFactory: public FBFactory
+{
+    public:
+     FBGroupFactory (bool isFull);
+     ~FBGroupFactory () {}
+     FBElem *Create ();
+};
+
 
 #endif // FACTORIES_H
 

@@ -72,14 +72,19 @@ QString FBElem::getDisplayName ()
 
 void FBElem::mousePressEvent (QMouseEvent *event)
 {
-    // Выделяем элемент.
+    // Снимаем выделение со старого элемента.
     if (SELECTED != NULL)
         SELECTED->setDeselectStyle();
+
+    // Если элемент составной, то сюда зайдёт только если курсор мыши не попал
+    // на элемент внутри этого элемент - что как раз и нужно.
+
+    // Выделяем этот элемент.
     this->setSelectStyle();
     SELECTED = this;
 
-    // Выводим его артибуты в правую колонку.
-    emit pressElem ();
+    // Выводим его атрибуты в правую колонку.
+    emit pressElem();
 
     IS_SELECTED_MOVING = true;
 }
@@ -105,14 +110,29 @@ void FBElem::mouseMoveEvent (QMouseEvent *event)
     // плюс - из-за того что grab мыши будет всегда на виджете, на который мы нажали до его
     // отпускания - мы можем сделать всю работу по отрисовке внутри трёх событий FBElem:
     // press, move и release.
+
     if (IS_SELECTED_MOVING)
     {
-        // Используя координаты родителя (виджет экрана) мы ищем, над каким из
+        // Используя координаты родителя мы ищем, над каким из
         // виджетов для вставки находится сейчас курсор и выделяем его.
-        QWidget* screenWidget = this->parentWidget();
-        QPoint coords = screenWidget->mapFromGlobal(QPoint(event->globalX(),
+        // Родителем может быть как виджет экрана, так и виджет-элемент,
+        // способный содержать другие элементы. Главное что InsertWidget-ы
+        // везде одни и те же, и одновременно показывается только один
+        // виджет для вставки где бы он не находился.
+
+        QWidget* parentWidget = this->parentWidget();
+        QPoint coords = parentWidget->mapFromGlobal(QPoint(event->globalX(),
                                                            event->globalY()));
-        QWidget* widget = screenWidget->childAt(coords);
+
+        // Если координаты вылезли за пределы этого виджета-родителя, то смещаемся
+        // в иерархии родителей наверх на 1 - таким образом элемент можно перетаскивать
+        // из составных элементов на экран или на более старший родительский виджет.
+        //if ()
+        //{
+        //    parentWidget = parentWidget->parentWidget();
+        //}
+
+        QWidget* widget = parentWidget->childAt(coords);
         if (widget == 0)
             return;
         QString className = widget->metaObject()->className();
@@ -137,7 +157,6 @@ void FBElem::mouseReleaseEvent (QMouseEvent *event)
         return;
 
     // Снимаем выделение с виджета для вставки.
-    // См. FBElem::mouseMoveEvent за комментами.
     FBInsertWidget::SHOWED->setHideStyle();
     FBInsertWidget* insWidget = FBInsertWidget::SHOWED;
     FBInsertWidget::SHOWED = NULL;
@@ -278,8 +297,8 @@ FBTextEditElem::FBTextEditElem(FBFactory *factoryPtr): FBElem(factoryPtr)
     FBYesNoAttr *attr5 = new FBYesNoAttr(this,FB_JSON_LAST,false);
     mapAttrs.insert(tr("Запоминать последнее значение"),attr5);
 
-    FBYesNoAttr *attr6 = new FBYesNoAttr(this,FB_JSON_REQUIRED,false);
-    mapAttrs.insert(tr("Обязательный"),attr6);
+    //FBYesNoAttr *attr6 = new FBYesNoAttr(this,FB_JSON_REQUIRED,false);
+    //mapAttrs.insert(tr("Обязательный"),attr6);
 
     updateAppearance();
 }
@@ -365,8 +384,8 @@ FBComboBoxElem::FBComboBoxElem(FBFactory *factoryPtr): FBElem(factoryPtr)
     FBYesNoAttr *attr3 = new FBYesNoAttr(this,FB_JSON_LAST,false);
     mapAttrs.insert(tr("Запоминать последнее значение"),attr3);
 
-    FBYesNoAttr *attr4 = new FBYesNoAttr(this,FB_JSON_REQUIRED,false);
-    mapAttrs.insert(tr("Обязательный"),attr4);
+    //FBYesNoAttr *attr4 = new FBYesNoAttr(this,FB_JSON_REQUIRED,false);
+    //mapAttrs.insert(tr("Обязательный"),attr4);
 
     FBYesNoAttr *attr5 = new FBYesNoAttr(this,FB_JSON_INPUT_SEARCH,false);
     mapAttrs.insert(tr("Ввод с поиском"),attr5);
@@ -495,14 +514,14 @@ FBDoubleComboBoxElem::FBDoubleComboBoxElem(FBFactory *factoryPtr): FBElem(factor
     FBYesNoAttr *attr4 = new FBYesNoAttr(this,FB_JSON_LAST,false);
     mapAttrs.insert(tr("Запоминать последнее значение"),attr4);
 
-    FBYesNoAttr *attr5 = new FBYesNoAttr(this,FB_JSON_IS_DIALOG_LEVEL1,false);
-    mapAttrs.insert(tr("Диалог для уровня 1"),attr5);
+    //FBYesNoAttr *attr5 = new FBYesNoAttr(this,FB_JSON_IS_DIALOG_LEVEL1,false);
+    //mapAttrs.insert(tr("Диалог для уровня 1"),attr5);
 
-    FBYesNoAttr *attr6 = new FBYesNoAttr(this,FB_JSON_IS_DIALOG_LEVEL2,false);
-    mapAttrs.insert(tr("Диалог для уровня 2"),attr6);
+    //FBYesNoAttr *attr6 = new FBYesNoAttr(this,FB_JSON_IS_DIALOG_LEVEL2,false);
+    //mapAttrs.insert(tr("Диалог для уровня 2"),attr6);
 
-    FBYesNoAttr *attr7 = new FBYesNoAttr(this,FB_JSON_REQUIRED,false);
-    mapAttrs.insert(tr("Обязательный"),attr7);
+    //FBYesNoAttr *attr7 = new FBYesNoAttr(this,FB_JSON_REQUIRED,false);
+    //mapAttrs.insert(tr("Обязательный"),attr7);
 
     updateAppearance();
 }
@@ -795,6 +814,8 @@ FBDateTimeElem::FBDateTimeElem (FBFactory *factoryPtr): FBElem(factoryPtr)
     vlayAll->addLayout(hlayTop);
     vlayAll->addWidget(widDecor);
 
+    // Атрибуты:
+
     FBFieldAttr *attr1 = new FBFieldAttr(this,FB_JSON_FIELD);
     mapAttrs.insert(tr("Поле слоя"),attr1);
 
@@ -804,26 +825,36 @@ FBDateTimeElem::FBDateTimeElem (FBFactory *factoryPtr): FBElem(factoryPtr)
     strsTypes.append(tr("Дата и время"));
     FBSelectAttr *attr2 = new FBSelectAttr(this,FB_JSON_DATE_TYPE,strsTypes,0);
     mapAttrs.insert(tr("Тип"),attr2);
+    connect(attr2,SIGNAL(changeAppearance()),this,SLOT(updateAppearance()));
 
     FBYesNoAttr *attr3 = new FBYesNoAttr(this,FB_JSON_LAST,false);
     mapAttrs.insert(tr("Запоминать последнее значение"),attr3);
 
-    FBYesNoAttr *attr4 = new FBYesNoAttr(this,FB_JSON_IS_DIALOG,false);
-    mapAttrs.insert(tr("Диалог для ввода"),attr4);
+    //FBYesNoAttr *attr4 = new FBYesNoAttr(this,FB_JSON_IS_DIALOG,false);
+    //mapAttrs.insert(tr("Диалог для ввода"),attr4);
 
-    FBTextAttr *attr5 = new FBTextAttr(this,FB_JSON_TEXT,"01.01.2016");
-    mapAttrs.insert(tr("Начальный текст"),attr5);
+    //FBTextAttr *attr5 = new FBTextAttr(this,FB_JSON_TEXT,"01.01.2016");
+    //mapAttrs.insert(tr("Начальный текст"),attr5);
+    //connect(attr5,SIGNAL(changeAppearance()),this,SLOT(updateAppearance()));
+    FBDateTimeAttr *attr5 = new FBDateTimeAttr(this,FB_JSON_INITIAL_DATETIME);
+    mapAttrs.insert(tr("Начальное значение"),attr5);
     connect(attr5,SIGNAL(changeAppearance()),this,SLOT(updateAppearance()));
 
-    FBYesNoAttr *attr6 = new FBYesNoAttr(this,FB_JSON_REQUIRED,false);
-    mapAttrs.insert(tr("Обязательный"),attr6);
+    //FBYesNoAttr *attr6 = new FBYesNoAttr(this,FB_JSON_REQUIRED,false);
+    //mapAttrs.insert(tr("Обязательный"),attr6);
 
     updateAppearance();
 }
 
 void FBDateTimeElem::updateAppearance ()
 {
-    QString newText = static_cast<FBTextAttr*>(mapAttrs.value(tr("Начальный текст")))->getValue();
+    // Обновляем формат даты/времени для вывода - меняем внутреннее значение
+    // соотвествующего атрибута контрола.
+    int index = static_cast<FBSelectAttr*>(mapAttrs.value(tr("Тип")))->getValue();
+    static_cast<FBDateTimeAttr*>(mapAttrs.value(tr("Начальное значение")))->updateFormat(index);
+    // Получаем строку даты/времени (м.б. даже пустую) и выводим её.
+    QString newText = static_cast<FBDateTimeAttr*>(
+                mapAttrs.value(tr("Начальное значение")))->getDateTimeString();
     labText->setText(" " + newText);
 }
 
@@ -945,6 +976,122 @@ FBSignatureElem::FBSignatureElem (FBFactory *factoryPtr): FBElem(factoryPtr)
     hl->addWidget(labImg);
 }
 
+
+// ================================================================================= //
+//                                     Компас                                        //
+// ================================================================================= //
+
+FBCompassElem::FBCompassElem (FBFactory *factoryPtr): FBElem(factoryPtr)
+{
+    this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+    this->setMaximumHeight(124);
+    this->setCursor(Qt::PointingHandCursor);
+    this->setDeselectStyle();
+
+    QLabel *labImg = new QLabel(this);
+    QPixmap pixmap = QPixmap(":/img/for_compass.png");
+    labImg->setStyleSheet("QLabel {border: none}");
+    labImg->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+    labImg->setFixedHeight(120);
+    labImg->setAlignment(Qt::AlignCenter);
+    labImg->setPixmap(pixmap);
+    labImg->setScaledContents(false);
+    labImg->setContentsMargins(0,0,0,0);
+
+    QHBoxLayout *hl = new QHBoxLayout(this);
+    hl->setContentsMargins(2,2,2,2);
+    hl->addWidget(labImg);
+
+    // Атрибуты:
+
+    FBFieldAttr *attr1 = new FBFieldAttr(this,FB_JSON_FIELD);
+    mapAttrs.insert(tr("Поле слоя"),attr1);
+
+    FBTextAttr *attr2 = new FBTextAttr(this,FB_JSON_NAME,tr(""));
+    mapAttrs.insert(tr("Название"),attr2);
+}
+
+
+// ================================================================================= //
+//                                     Группа                                        //
+// ================================================================================= //
+
+FBGroupElem::FBGroupElem (FBFactory *factoryPtr): FBElem(factoryPtr)
+{
+    this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+    this->setMaximumHeight(145);
+    this->setCursor(Qt::PointingHandCursor);
+    this->setDeselectStyle();
+
+    labHeader = new QLabel(this);
+    labHeader->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+    labHeader->setFont(QFont("Candara",14));
+    labHeader->setStyleSheet("QLabel"
+                           "{"
+                               "color: rgb(46,46,46);"
+                               "border-top: none;"
+                               "border-left: none;"
+                               "border-right: none;"
+                               "border-bottom: none;"
+                           "}");
+
+    QWidget *widTop = new QWidget(this);
+    widTop->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+    widTop->setFixedHeight(2);
+    widTop->setStyleSheet("QWidget"
+                            "{"
+                                "border-top: none;"
+                                "border-left: none;"
+                                "border-right: none;"
+                                "border-bottom: 2px solid rgb(170,170,170);"
+                            "}");
+
+    QWidget *widContent = new QWidget(this);
+    widContent->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+    widContent->setFixedHeight(100);
+    widContent->setStyleSheet("QWidget"
+                            "{"
+                                "border-top: 2px dotted rgb(170,170,170);"
+                                "border-left: 2px dotted rgb(170,170,170);"
+                                "border-right: 2px dotted rgb(170,170,170);"
+                                "border-bottom: 2px dotted rgb(170,170,170);"
+                            "}");
+
+    QWidget *widBottom = new QWidget(this);
+    widBottom->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+    widBottom->setFixedHeight(2);
+    widBottom->setStyleSheet("QWidget"
+                            "{"
+                                "border-top: none;"
+                                "border-left: none;"
+                                "border-right: none;"
+                                "border-bottom: 2px solid rgb(170,170,170);"
+                            "}");
+
+    QVBoxLayout *vlayAll = new QVBoxLayout(this);
+    vlayAll->setContentsMargins(4,2,4,2); // т.к. иначе будут залезать на рамку выделения
+    vlayAll->setSpacing(2);
+    vlayAll->addWidget(labHeader);
+    vlayAll->addWidget(widTop);
+    vlayAll->addWidget(widContent);
+    vlayAll->addWidget(widBottom);
+
+    // Атрибуты:
+
+    FBTextAttr *attr1 = new FBTextAttr(this,FB_JSON_TEXT,"Группа");
+    mapAttrs.insert(tr("Заголовок"),attr1);
+    connect(attr1,SIGNAL(changeAppearance()),this,SLOT(updateAppearance()));
+
+    this->updateAppearance();
+}
+
+
+void FBGroupElem::updateAppearance ()
+{
+    QString newText
+            = static_cast<FBTextAttr*>(mapAttrs.value(tr("Заголовок")))->getValue();
+    labHeader->setText(" " + newText);
+}
 
 
 

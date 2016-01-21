@@ -127,6 +127,7 @@ Json::Value FBTextAttr::toJson()
 
 void FBTextAttr::fromJson(Json::Value jsonVal)
 {
+    // TODO: все проверки на некорректный json?
     QByteArray ba = jsonVal.asString().data();
     value = QString::fromUtf8(ba);
 }
@@ -166,6 +167,7 @@ Json::Value FBNumberAttr::toJson()
 
 void FBNumberAttr::fromJson(Json::Value jsonVal)
 {
+    // TODO: все проверки на некорректный json?
     value = jsonVal.asInt();
 }
 
@@ -204,6 +206,7 @@ Json::Value FBYesNoAttr::toJson()
 
 void FBYesNoAttr::fromJson(Json::Value jsonVal)
 {
+    // TODO: все проверки на некорректный json?
     value = jsonVal.asBool();
 }
 
@@ -257,6 +260,7 @@ Json::Value FBListValuesAttr::toJson ()
 
 void FBListValuesAttr::fromJson (Json::Value jsonVal)
 {
+    // TODO: все проверки на некорректный json?
     values.clear();
     defIndex = -1;
     for (int i=0; i<jsonVal.size(); ++i)
@@ -432,6 +436,7 @@ Json::Value FBDoubleListValuesAttr::toJson ()
 
 void FBDoubleListValuesAttr::fromJson (Json::Value jsonVal)
 {
+    // TODO: все проверки на некорректный json?
     values.clear();
     values2.clear();
     defIndex = -1;
@@ -615,6 +620,7 @@ Json::Value FBSelectAttr::toJson()
 
 void FBSelectAttr::fromJson(Json::Value jsonVal)
 {
+    // TODO: все проверки на некорректный json?
     curIndex = jsonVal.asInt();
 }
 
@@ -633,4 +639,173 @@ QWidget *FBSelectAttr::getWidget ()
 void FBSelectAttr::onEditEnd (int indexSelected)
 {
     curIndex = indexSelected;
+    emit changeAppearance();
 }
+
+
+
+// ================================================================== //
+//                         FBDateTimeAttr                             //
+// ================================================================== //
+
+FBDateTimeAttr::FBDateTimeAttr(FBElem *elem, QString strJsonName):
+    FBAttr (elem,strJsonName)
+{
+    setDefault();
+}
+
+void FBDateTimeAttr::setDefault ()
+{
+    isDefaultCurrent = false;
+    curDateTime.setDate(QDate(2016,1,1));
+    curDateTime.setTime(QTime(0,0,0));
+    curFormat = FB_DISPLAY_FORMAT_DATE;
+}
+
+Json::Value FBDateTimeAttr::toJson ()
+{
+    Json::Value jsonFinal;
+
+    if (isDefaultCurrent)
+    {
+        // Пользователь ставил текущую дату/время - возвращаем null.
+        return jsonFinal;
+    }
+
+    // Формат записи даты и времени должны соответствовать geojson формату (т.е. не тому,
+    // что отображается на экране формы) согласно договорённости. Преобразовываем формат
+    // для записи в .ngfp.
+    QString strFormat;
+    if (curFormat == FB_DISPLAY_FORMAT_DATE)
+    {
+        strFormat = "yyyy-MM-dd";
+    }
+    else if (curFormat == FB_DISPLAY_FORMAT_TIME)
+    {
+        strFormat = "HH:mm:ss";
+    }
+    else //if (curFormat == FB_DISPLAY_FORMAT_DATETIME)
+    {
+        strFormat = "yyyy-MM-dd HH:mm:ss";
+    }
+
+    QByteArray baFinal = curDateTime.toString(strFormat).toUtf8();
+    jsonFinal = baFinal.data();
+    return jsonFinal;
+}
+
+void FBDateTimeAttr::fromJson (Json::Value jsonVal)
+{
+    // TODO: все проверки на некорректный json?
+
+    // Сразу проверяем, является ли дата/время текущими.
+    if (jsonVal.isNull())
+    {
+        isDefaultCurrent = true;
+        return;
+    }
+    isDefaultCurrent = false;
+
+    QByteArray ba = jsonVal.asString().data();
+    QString strDateTime = QString::fromUtf8(ba);
+
+    // Поочерёдно пробуем считать дату-время и угадать формат (доступа к другим
+    // атрибутам контрола тут нет, поэтому приходится угадывать).
+    curDateTime = QDateTime::fromString(strDateTime,"yyyy-MM-dd HH:mm:ss");
+    if (curDateTime.isValid())
+    {
+        curFormat = FB_DISPLAY_FORMAT_DATETIME;
+        return;
+    }
+
+    curDateTime = QDateTime::fromString(strDateTime,"yyyy-MM-dd");
+    if (curDateTime.isValid())
+    {
+        curDateTime.setTime(QTime(0,0,0)); // Задаём ненужное время, иначе поставится случайное.
+        curFormat = FB_DISPLAY_FORMAT_DATE;
+        return;
+    }
+
+    curDateTime = QDateTime::fromString(strDateTime,"HH:mm:ss");
+    if (curDateTime.isValid())
+    {
+        curDateTime.setDate(QDate(2016,1,1)); // Задаём ненужную дату, иначе поставится случайная.
+        curFormat = FB_DISPLAY_FORMAT_TIME;
+        return;
+    }
+
+    // Значит дата-время каким-то образом сформированы внутри .ngfp некорректно. Создаём
+    // дату-время по умолчанию.
+    // TODO: тут нужно выдавать сообщения пользователю (что вероятно файл был изменён
+    // вручную) иначе можно не заметить, сохранить и заменить все даты!
+    setDefault();
+}
+
+QWidget* FBDateTimeAttr::getWidget ()
+{
+    QPushButton *widget = new QPushButton();
+    widget->setText(tr("Задать"));
+    connect(widget, SIGNAL(clicked()), this, SLOT(onEditStart()));
+    return widget;
+}
+
+void FBDateTimeAttr::onEditStart()
+{
+    FBDateTimeDialog dialog;
+
+    // Загружаем старое значение.
+    if (isDefaultCurrent)
+    {
+        dialog.chbCurrent->setChecked(true);
+        dialog.wDateTime->setEnabled(false);
+    }
+    else
+    {
+        dialog.chbCurrent->setChecked(false);
+        dialog.wDateTime->setEnabled(true);
+    }
+
+    // Формат и дату для датапикера ставим в любом случае, на случай отмены даты/времени
+    // по умолчанию.
+    dialog.wDateTime->setDateTime(curDateTime);
+    dialog.wDateTime->setDisplayFormat(curFormat);
+
+    // Сохраняем новое значение.
+    if (dialog.exec())
+    {
+        if (dialog.chbCurrent->isChecked())
+        {
+            isDefaultCurrent = true;
+        }
+        else
+        {
+            isDefaultCurrent = false;
+            curDateTime = dialog.wDateTime->dateTime();
+        }
+
+        emit changeAppearance();
+    }
+}
+
+
+QString FBDateTimeAttr::getDateTimeString ()
+{
+    if (isDefaultCurrent)
+        return "...";
+    return curDateTime.toString(curFormat);
+}
+
+
+void FBDateTimeAttr::updateFormat (int indexOfSelectAttr)
+{
+    switch (indexOfSelectAttr)
+    {
+        case 0: curFormat = FB_DISPLAY_FORMAT_DATE; break;
+        case 1: curFormat = FB_DISPLAY_FORMAT_TIME; break;
+        default: curFormat = FB_DISPLAY_FORMAT_DATETIME; break;
+    }
+}
+
+
+
+

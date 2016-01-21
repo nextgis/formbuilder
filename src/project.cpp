@@ -91,32 +91,11 @@ bool FBProject::init (char *datasetName)
 
                 else
                 {
-                    // Проверяем правильность системы координат.
-                    OGRSpatialReference SpaRef1(SRS_WKT_WGS84);
-                    OGRSpatialReference SpaRef2;
-                    SpaRef2.SetFromUserInput("EPSG:3857");
-                    //OGRSpatialReference SpaRef22;
-                    //SpaRef22.SetFromUserInput("EPSG:3857");
-                    //SpaRef22.morphToESRI(); // У Shape-файлов свой формат записи СК.
                     OGRSpatialReference *layerSpaRef = poLayer->GetSpatialRef();
-                    QString srsNumber;
-                    if (layerSpaRef == NULL) // Допускаем пустую систему координат.
+                    if (layerSpaRef == NULL)
                     {
-                        srsNumber = "null";
-                    }
-                    else if (layerSpaRef->IsSame(&SpaRef1) == TRUE)
-                    {
-                        srsNumber = "4326";
-                    }
-                    else if (layerSpaRef->IsSame(&SpaRef2) == TRUE)
-                    {
-                        srsNumber = "3857";
-                    }
-                    else
-                    {
-                        emit sendMsg(tr("Ошибка: слой выбранного источника данных"
-                                       " имеет неподдерживаемую систему координат"
-                                       " (поддерживаются только EPSG:4326 и EPSG:3857)"));
+                        emit sendMsg(tr("Ошибка: выбранный слой должен содержать "
+                                        "описание своей системы координат"));
                         progress = false;
                     }
 
@@ -194,7 +173,8 @@ bool FBProject::init (char *datasetName)
                             break;
                         }
 
-                        // Система координат.
+                        // Система координат устанавливается на фиксированную внутреннюю.
+                        QString srsNumber = "4326";
                         jsonMeta[FB_JSON_META_SRS] = getSrsJson(srsNumber);
 
                         // Заполняем пустую связь с НГВ. Если этот метод вызван при создании проекта
@@ -243,7 +223,7 @@ bool FBProject::initFromNgw (char *datasetName, QString strUrl, QString strLogin
         // уже корректно заполнены).
         this->jsonMeta[FB_JSON_META_FIELDS] = jsonMeta[FB_JSON_META_FIELDS];
         this->jsonMeta[FB_JSON_META_GEOMETRY_TYPE] = jsonMeta[FB_JSON_META_GEOMETRY_TYPE];
-        this->jsonMeta[FB_JSON_META_SRS] = jsonMeta[FB_JSON_META_SRS];
+        // СК не считываем, т.к. будет установлена специальная внутренняя.
 
         // Так же заменяем незаполненный параметр с адресом ресурса NGW.
         QByteArray ngwBa;
@@ -272,7 +252,7 @@ bool FBProject::initFromNgw (char *datasetName, QString strUrl, QString strLogin
 /* --------------------------------------------------------------------------------- */
 /*                     Пустой новый проект - инициализация                           */
 /* --------------------------------------------------------------------------------- */
-void FBProject::initVoid (QString strGeomType, QString strSrs)
+void FBProject::initVoid (QString strGeomType)//, QString strSrs)
 {
     Json::Value nullVal;
     QByteArray baGeomType = strGeomType.toUtf8();
@@ -280,6 +260,7 @@ void FBProject::initVoid (QString strGeomType, QString strSrs)
 
     jsonMeta[FB_JSON_META_VERSION] = baVers.data();
     jsonMeta[FB_JSON_META_GEOMETRY_TYPE] = baGeomType.data();
+    QString strSrs = "4326";
     jsonMeta[FB_JSON_META_SRS] = getSrsJson(strSrs);
     jsonMeta[FB_JSON_META_NGW_CONNECTION] = nullVal;
     // Создаём поле по умолчанию. Причина - иначе это не валидный слой в NextGIS Web.
@@ -529,12 +510,8 @@ bool FBProject::saveAs (QString strFullPath)
                     }
                     else
                     {
-                        // Создаём объект СК.
-                        OGRSpatialReference spaRef;
-                        if (jsonMeta[FB_JSON_META_SRS][FB_JSON_META_ID].asString() == "3857")
-                            spaRef.SetFromUserInput("EPSG:3857");
-                        else
-                            spaRef.SetFromUserInput("EPSG:4326");
+                        // Создаём объект внутренней СК.
+                        OGRSpatialReference spaRef (SRS_WKT_WGS84);
 
                         // Выбираем тип геометрии.
                         OGRwkbGeometryType geomType = getWkbGeomFromNgwString(
@@ -594,12 +571,13 @@ bool FBProject::saveAs (QString strFullPath)
                 }
             }
 
+            // Копируем данные.
             if (progress)
             {
                 // В любом случае всегда создаём новый ИД формата GeoJSON куда будут
                 // копироваться данные.
                 GDALDriver *driverNew = GetGDALDriverManager()->GetDriverByName("GeoJSON");
-                if(driverNew == NULL)
+                if (driverNew == NULL)
                 {
                     emit sendMsg(tr("Ошибка при сохранении проекта. Не удалось инициализировать"
                                     " GeoJSON драйвер GDAL для сохранения данных слоя"));
@@ -632,7 +610,7 @@ bool FBProject::saveAs (QString strFullPath)
 
                         // Создаём Memory ИД.
                         GDALDriver *driverTemp = GetGDALDriverManager()->GetDriverByName("Memory");
-                        if(driverTemp == NULL)
+                        if (driverTemp == NULL)
                         {
                             emit sendMsg(tr("Ошибка при сохранении проекта. Не удалось инициализировать"
                                             " Memory драйвер GDAL для сохранения данных слоя"));
@@ -640,8 +618,7 @@ bool FBProject::saveAs (QString strFullPath)
                         }
                         else
                         {
-                            GDALDataset *datasetTemp = driverTemp
-                                ->Create("temp", 0, 0, 0, GDT_Unknown, NULL);
+                            GDALDataset *datasetTemp = driverTemp->Create("temp", 0, 0, 0, GDT_Unknown, NULL);
                             if (datasetTemp == NULL)
                             {
                                 emit sendMsg(tr("Ошибка при сохранении проекта. Не удалось создать"
@@ -650,9 +627,11 @@ bool FBProject::saveAs (QString strFullPath)
                             }
                             else
                             {
+                                // Копируем старый слой в новый (промежуточный).
                                 OGRLayer *layerOld = datasetOld->GetLayer(0);
                                 OGRLayer *layerTemp = datasetTemp->CopyLayer(layerOld,layerOld->GetName());
-                                if(layerTemp == NULL)
+
+                                if (layerTemp == NULL)
                                 {
                                     emit sendMsg(tr("Ошибка при сохранении проекта. Не удалось создать"
                                                 " слой в Memory источнике данных"));
@@ -660,63 +639,93 @@ bool FBProject::saveAs (QString strFullPath)
                                 }
                                 else
                                 {
-                                    // Изменяем состав полей слоя.
-                                    // 1) Удаляем поля с их данными.
-                                    QSet<QString>::const_iterator it = fieldsDeleted.constBegin();
-                                    while (it != fieldsDeleted.constEnd())
+                                    // Трансформируем все объекты слоя во внутреннюю СК, если
+                                    // это необходимо: это сторонний исходный ИД и его СК не
+                                    // та, что требуется.
+
+                                    OGRSpatialReference *srsOld = layerOld->GetSpatialRef(); // проверка на NULL была в init()
+                                    OGRSpatialReference srsNew(SRS_WKT_WGS84);
+                                    if (strFirstTimeDataset != FB_INDICATE_MEMORY_DATASET
+                                         && strFirstTimeDataset != ""
+                                            && srsOld->IsSame(&srsNew) == FALSE)
                                     {
-                                        QByteArray ba = (*it).toUtf8();
-                                        layerTemp->DeleteField(layerTemp
-                                                      ->FindFieldIndex(ba.data(),TRUE));
-                                        ++it;
+                                        progress = reprojectToInnerSrs(layerTemp, srsOld, &srsNew);
+
+                                        // Геометрии объектов слоя трансформированы. Но общая СК
+                                        // слоя не изменена, после его копирования и её надо
+                                        // каким-то образом изменить.
+
+                                        // Согласно документации GDAL про OGRFeatureDefn::GetGeomFieldDefn():
+                                        // ... This object should not be modified or freed
+                                        // by the application.
+                                        // TODO: обойти этот момент как-то. Возможно не копировать слой
+                                        // до этого, а создавать заново с указанием нужной СК.
+                                        // TODO: аналогично продумать момент, когда будет несколько геом-полей.
+                                        layerTemp->GetLayerDefn()->GetGeomFieldDefn(0)->SetSpatialRef(&srsNew); // NULL быть не может
                                     }
-                                    // 2) Создаём новые пустые поля.
-                                    // Просто просматриваем список полей и добавляем тех, что
-                                    // не хватает.
-                                    for (int k=0; k<jsonMeta[FB_JSON_META_FIELDS].size(); ++k)
+
+                                    if (progress)
                                     {
-                                        std::string strFieldName
-                                         = jsonMeta[FB_JSON_META_FIELDS][k][FB_JSON_META_KEYNAME].asString();
-                                        std::string strFieldType
-                                         = jsonMeta[FB_JSON_META_FIELDS][k][FB_JSON_META_DATATYPE].asString();
-                                        if (layerTemp->FindFieldIndex(strFieldName.data(),TRUE) == -1)
+                                        // Изменяем состав полей слоя:
+
+                                        // 1) Удаляем поля с их данными.
+                                        QSet<QString>::const_iterator it = fieldsDeleted.constBegin();
+                                        while (it != fieldsDeleted.constEnd())
                                         {
-                                            // Обратное процессу создания списка полей в методе init().
-                                            // (но тут мы создаём именно поля, которых не было, поэтому можно не так
-                                            // опасаться за типы, например что целочисленный всегда будет
-                                            // OFTInteger64, как если бы поля пересоздавались).
-                                            OGRFieldType fieldType;
-                                            if (strFieldType == "INTEGER")
-                                                fieldType = OFTInteger64; // Максимально возможный
-                                            else if (strFieldType == "REAL")
-                                                fieldType = OFTReal;
-                                            else if (strFieldType == "DATE")
-                                                fieldType = OFTDate;
-                                            else
-                                                fieldType = OFTString;
-                                            OGRFieldDefn fieldDefn(strFieldName.data(), fieldType);
-                                            layerTemp->CreateField(&fieldDefn);
+                                            QByteArray ba = (*it).toUtf8();
+                                            layerTemp->DeleteField(layerTemp
+                                                          ->FindFieldIndex(ba.data(),TRUE));
+                                            ++it;
+                                        }
+                                        // 2) Создаём новые пустые поля.
+                                        // Просто просматриваем список полей и добавляем тех, что
+                                        // не хватает.
+                                        for (int k=0; k<jsonMeta[FB_JSON_META_FIELDS].size(); ++k)
+                                        {
+                                            std::string strFieldName
+                                             = jsonMeta[FB_JSON_META_FIELDS][k][FB_JSON_META_KEYNAME].asString();
+                                            std::string strFieldType
+                                             = jsonMeta[FB_JSON_META_FIELDS][k][FB_JSON_META_DATATYPE].asString();
+                                            if (layerTemp->FindFieldIndex(strFieldName.data(),TRUE) == -1)
+                                            {
+                                                // Обратное процессу создания списка полей в методе init().
+                                                // (но тут мы создаём именно поля, которых не было, поэтому можно не так
+                                                // опасаться за типы, например что целочисленный всегда будет
+                                                // OFTInteger64, как если бы поля пересоздавались).
+                                                OGRFieldType fieldType;
+                                                if (strFieldType == "INTEGER")
+                                                    fieldType = OFTInteger64; // Максимально возможный
+                                                else if (strFieldType == "REAL")
+                                                    fieldType = OFTReal;
+                                                else if (strFieldType == "DATE")
+                                                    fieldType = OFTDate;
+                                                else
+                                                    fieldType = OFTString;
+                                                OGRFieldDefn fieldDefn(strFieldName.data(), fieldType);
+                                                layerTemp->CreateField(&fieldDefn);
+                                            }
+                                        }
+
+                                        // Копируем модифицированный слой в итоговый GeoJSON ИД.
+                                        OGRLayer *layerNew = datasetNew->CopyLayer(layerTemp,layerTemp->GetName());
+                                        if(layerNew == NULL)
+                                        {
+                                            emit sendMsg(tr("Ошибка при сохранении проекта. Не удалось создать"
+                                                        " слой в GeoJSON файле данных"));
+                                            progress = false;
+                                        }
+                                        else
+                                        {
+                                            // СОХРАНЕНИЕ УСПЕШНО.
+
+                                            // Не забываем после каждого успешного сохранения очистить
+                                            // список удалённых полей, т.к. теперь эти поля - часть
+                                            // слоя данных.
+                                            fieldsDeleted.clear();
                                         }
                                     }
-
-                                    // Копируем модифицированный слой в GeoJSON ИД.
-                                    OGRLayer *layerNew = datasetNew->CopyLayer(layerTemp,layerTemp->GetName());
-                                    if(layerNew == NULL)
-                                    {
-                                        emit sendMsg(tr("Ошибка при сохранении проекта. Не удалось создать"
-                                                    " слой в GeoJSON файле данных"));
-                                        progress = false;
-                                    }
-                                    else
-                                    {
-                                        // СОХРАНЕНИЕ УСПЕШНО.
-
-                                        // Не забываем после каждого успешного сохранения очистить
-                                        // список удалённых полей, т.к. теперь эти поля - часть
-                                        // слоя данных.
-                                        fieldsDeleted.clear();
-                                    }
                                 }
+
 
                                 GDALClose(datasetTemp);
                             }
@@ -916,6 +925,57 @@ bool FBProject::addFileToZip (const CPLString &szFilePathName, const CPLString &
     VSIFCloseL(fp);
 
     return true;
+}
+
+
+bool FBProject::reprojectToInnerSrs (OGRLayer *layerTemp, OGRSpatialReference *srsOld,
+                                          OGRSpatialReference *srsNew)
+{
+    // TODO: в GDAL нельзя принудительно поменять СК всего слоя (т.к. например
+    // для шейпа она считывается каждый раз из отдельного файла), но можно
+    // трансформировать координаты каждого объекта в отдельности. Надо проверить
+    // что в нашем случае в итоговом GeoJSON (уже после копирования из этого
+    // mem-слоя) будет правильно указана итоговая внутренняя СК в которую
+    // мы трансформируем (WGS84). Но то, что координаты объектов будут правильны -
+    // это гарантировано.
+
+    bool progress = true;
+    OGRCoordinateTransformation *transform
+            = OGRCreateCoordinateTransformation(srsOld, srsNew);
+    if (transform == NULL)
+    {
+        emit sendMsg(tr("Ошибка при сохранении проекта. Не удалось скопировать исходный слой"));
+        progress = false;
+    }
+    else
+    {
+        OGRFeature *featTemp;
+        layerTemp->ResetReading();
+        while((featTemp = layerTemp->GetNextFeature()) != NULL)
+        {
+            OGRGeometry *geomTemp = featTemp->StealGeometry();
+            if (geomTemp != NULL
+                && geomTemp->transform(transform) == OGRERR_NONE
+                && featTemp->SetGeometryDirectly(geomTemp) == OGRERR_NONE
+                && layerTemp->SetFeature(featTemp) == OGRERR_NONE)
+            {
+                OGRFeature::DestroyFeature(featTemp);
+            }
+            else
+            {
+                OGRFeature::DestroyFeature(featTemp);
+                emit sendMsg(tr("Ошибка при сохранении проекта. Не удалось скопировать исходный слой"));
+                progress = false;
+                break;
+            }
+        }
+        // Т.к. здесь мы работаем с memory-слоем, вызывать
+        // syncToDisk() чтобы сразу же после этого
+        // опять считывать объекты слоя - не требуется.
+
+        OCTDestroyCoordinateTransformation((OGRCoordinateTransformationH)transform);
+    }
+    return progress;
 }
 
 

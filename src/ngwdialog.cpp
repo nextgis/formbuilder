@@ -30,7 +30,7 @@
 #include "fb.h"
 
 
-FBNgwDialog::FBNgwDialog(QWidget *parent): QDialog(parent)
+FBNgwDialog::FBNgwDialog(FB *parent): QDialog(parent)
 {
     this->setStyleSheet("QWidget { color: black }");
 
@@ -51,9 +51,7 @@ FBNgwDialog::FBNgwDialog(QWidget *parent): QDialog(parent)
     label->setText(tr("URL: "));
     hLayout->addWidget(label);
     wEditUrl = new QLineEdit(this);
-#ifdef FB_TEST
-    wEditUrl->setText(tr("http://176.9.38.120/wwf"));
-#endif
+    wEditUrl->setText(parent->strLastNgwUrl);
     hLayout->addWidget(wEditUrl);
     dialogLayout->addLayout(hLayout);
 
@@ -62,9 +60,7 @@ FBNgwDialog::FBNgwDialog(QWidget *parent): QDialog(parent)
      label->setText(tr("Логин: "));
      hLayout->addWidget(label);
      wEditLogin = new QLineEdit(this);
-#ifdef FB_TEST
-     wEditLogin->setText(tr("administrator"));
-#endif
+     wEditLogin->setText(parent->strLastNgwLogin);
      hLayout->addWidget(wEditLogin);
      dialogLayout->addLayout(hLayout);
 
@@ -73,9 +69,6 @@ FBNgwDialog::FBNgwDialog(QWidget *parent): QDialog(parent)
       label->setText(tr("Пароль: "));
       hLayout->addWidget(label);
       wEditPass = new QLineEdit(this);
-#ifdef FB_TEST
-      wEditPass->setText(tr("***************"));
-#endif
       wEditPass->setEchoMode(QLineEdit::Password);
       hLayout->addWidget(wEditPass);
       dialogLayout->addLayout(hLayout);
@@ -395,7 +388,14 @@ void FBNgwDialog::httpSelectedFinished ()
                 // Завершаем работу диалога.
                 wLabelStatus->setText(tr("Соединение успешно"));
                 httpSelectedReply->deleteLater();
+
+                // Сохраняем настройки подключения.
+                // Можно преобразовать т.к. FB передавался в параметрах конструктора.
+                static_cast<FB*>(this->parent())->strLastNgwUrl = wEditUrl->text();
+                static_cast<FB*>(this->parent())->strLastNgwLogin = wEditLogin->text();
+
                 this->accept();
+
                 return; // TODO: нужен возврат здесь?
             }
             else

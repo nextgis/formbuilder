@@ -63,5 +63,6 @@
         <file>img/new_void.png</file>
         <file>img/ngfb.ico</file>
         <file>img/fields.png</file>
+        <file>img/for_compass.png</file>
     </qresource>
 </RCC>

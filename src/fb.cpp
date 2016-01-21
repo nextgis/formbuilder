@@ -598,7 +598,7 @@ void FB::recreateFactories ()
         inputItem->setText(0,tr("Ввод данных"));
         treeWidget->addTopLevelItem(inputItem);
     //    QTreeWidgetItem *groupItem = new QTreeWidgetItem();
-    //    groupItem->setText(0,tr("Группировка"));
+    //    groupItem->setText(0,tr("Компоновка"));
     //    treeWidget->addTopLevelItem(groupItem);
     //    QTreeWidgetItem *positionItem = new QTreeWidgetItem();
     //    positionItem->setText(0,tr("Расположение"));
@@ -652,14 +652,20 @@ void FB::recreateFactories ()
         item2 = new FBRadioGroupFactory(false);
         treeWidget2->addTopLevelItem(item2);
 
-        //Компас
-        //...
-
         //Кнопка
         item = new FBButtonFactory(true);
         inputItem->addChild(item);
         item2 = new FBButtonFactory(false);
         treeWidget2->addTopLevelItem(item2);
+
+        //Сетка кнопок с изображениями
+        //...
+
+        //Пикер с барабанами
+        //...
+
+        //Инкрементный счётчик
+        //...
 
         //Дата и время
         item = new FBDateTimeFactory(true);
@@ -679,15 +685,26 @@ void FB::recreateFactories ()
         item2 = new FBSignatureFactory(false);
         treeWidget2->addTopLevelItem(item2);
 
-        //(groupItems,":/img/tab.png",tr("Вкладки"));
+        //Компас
+     //   item = new FBCompassFactory(true);
+     //   inputItem->addChild(item);
+     //   item2 = new FBCompassFactory(false);
+     //   treeWidget2->addTopLevelItem(item2);
 
-        //(groupItems,":/img/group_start.png",tr("Начало группы"));
+        //Вкладки
+        //...
 
-        //(groupItems,":/img/group_end.png",tr("Конец группы"));
+        //Группа
+    //    item = new FBGroupFactory(true);
+    //    groupItem->addChild(item);
+    //    item2 = new FBGroupFactory(false);
+    //    treeWidget2->addTopLevelItem(item2);
 
-        //(positionItems,":/img/ver_layout.png",tr("Раскладка Вер"));
+        //Вертикальная раскладка
+        //...
 
-        //(positionItems,":/img/hor_layout.png",tr("Раскладка Гор"));
+        //Горизонтальная раскладка
+        //...
 }
 
 
@@ -794,7 +811,7 @@ void FB::recreateAndroidScreen ()
     FBInsertWidget *insWidget = new FBInsertWidget(widScreen);
     layScreen->addWidget(insWidget);
 
-    // Добавляем в конец раскладки растянивающий не-виджет элемент. Не забываем
+    // Добавляем в конец раскладки растягивающий не-виджет элемент. Не забываем
     // об этом далее, т.к. будет просмотр в цикле всех элементов в раскладке
     // и преобразование к QWidget, тогда как этот элемент - не виджет!
     // Все последующие элементы-виджеты добавлять ПЕРЕД этим элементом.
@@ -1058,10 +1075,10 @@ void FB::onAddElem (FBElem *elem)
     // гарантированно имеется.
     // На самом деле вызываем не addWidget(), а insertWidget() и вставляем
     // элемент на предпоследнее место, т.к. последним всегда идёт растягивающий
-    // не-виджет элемент.
-    layScreen->insertWidget(layScreen->count()-1,elem);
+    // не-виджет элемент ~ Vertical Spacer.
+    layScreen->insertWidget(layScreen->count()-1, elem);
     FBInsertWidget *insWidget2 = new FBInsertWidget(widScreen);
-    layScreen->insertWidget(layScreen->count()-1,insWidget2);
+    layScreen->insertWidget(layScreen->count()-1, insWidget2);
 
     // Выделяем элемент сразу после добавления.
     elem->mousePressEvent(NULL);
@@ -1609,8 +1626,8 @@ void FB::onNewAnyClick (int newProjectType)
         {
             ok = true;
             newProject->initVoid(
-                 static_cast<FBNewVoidDialog*>(dialog)->comboGeom->currentData().toString(),
-                 static_cast<FBNewVoidDialog*>(dialog)->comboSrs->currentData().toString());
+                 static_cast<FBNewVoidDialog*>(dialog)->comboGeom->currentData().toString());
+                 //,static_cast<FBNewVoidDialog*>(dialog)->comboSrs->currentData().toString());
         }
 
         if (!ok)
@@ -2023,10 +2040,12 @@ QList<FBElem*> FB::fillForm (Json::Value jsonForm)
             QByteArray ba = attrName.toUtf8();
             Json::Value jsonAttr = jsonAttrs[ba.data()];
 
-            if (!jsonAttr.isNull()) // какое-то неизвестное имя атрибута.
-            {
+            //if (!jsonAttr.isNull())
+            //{
+                // Если значение атрибута в файле == null, то это тоже нужно считать, поскольку
+                // некоторые атрибуты могут быть настроены из-за этого по-особому.
                 it2.value()->fromJson(jsonAttr);
-            }
+            //}
 
             ++it2;
         }
@@ -2063,6 +2082,8 @@ void FB::writeSettings()
     settings.setValue("last_open_file",strLastOpenFile);
     settings.setValue("last_save_as_file",strLastSaveAsFile);
     settings.setValue("last_language_selected",strLastLangSelected);
+    settings.setValue("last_ngw_url",strLastNgwUrl);
+    settings.setValue("last_ngw_login",strLastNgwLogin);
 }
 void FB::readSettings()
 {
@@ -2071,6 +2092,8 @@ void FB::readSettings()
     strLastOpenFile = settings.value("last_open_file","").toString();
     strLastSaveAsFile = settings.value("last_save_as_file","").toString();
     strLastLangSelected = settings.value("last_language_selected","en_GB").toString();
+    strLastNgwUrl = settings.value("last_ngw_url","").toString();
+    strLastNgwLogin = settings.value("last_ngw_login","").toString();
 }
 
 

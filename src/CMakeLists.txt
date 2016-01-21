@@ -97,6 +97,7 @@ progressdialog.cpp
 aboutdialog.cpp
 newvoiddialog.cpp
 fieldmanagerdialog.cpp
+datetimedialog.cpp
 forappicon.rc)
 
 # TODO: make automatic updating *.ts files via qt5_create_translation()
