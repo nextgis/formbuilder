@@ -1,6 +1,6 @@
 /******************************************************************************
  * Project:  NextGIS Formbuilder
- * Purpose:  basic project implementations
+ * Purpose:  element factories main definitions
  * Author:   Mikhail Gusev, gusevmihs@gmail.com
  ******************************************************************************
 *   Copyright (C) 2014-2016 NextGIS
@@ -19,24 +19,36 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
-#include <QByteArray>
-#include <QDir>
+#ifndef FACTORY_H
+#define FACTORY_H
 
-#include "project.h"
- 
+#include <QTreeWidget>
 
-void FBProject::init ()
+/**
+ * 
+ */
+class FBFact
 {
-    #ifdef _FB_GDAL_DEBUG
-    CPLSetConfigOption("CPL_DEBUG","ON");
-    CPLSetConfigOption("CPL_CURL_VERBOSE","YES");
-    CPLSetConfigOption("CPL_LOG",_FB_GDAL_DEBUG);
-    CPLSetConfigOption("CPL_LOG_ERRORS","ON");
-    #endif
+    public:
+     virtual FBElem *Create() = 0;
 
-    CPLSetConfigOption("CPL_VSIL_ZIP_ALLOWED_EXTENSIONS",FB_PROJECT_EXTENSION);
-    QByteArray ba = QString(QDir::currentPath() + _FB_INSTALLPATH_GDALDATA).toUtf8();
-    CPLSetConfigOption("GDAL_DATA", ba.data());
+    protected:
+    
+    private:
+    
+};
 
-    GDALAllRegister();
-}
+// ...
+class FBFactTree: public FBFact, QTreeWidgetItem
+{
+    public:
+     virtual FBElem *Create() = 0;
+     
+    protected:
+    
+    private:
+    
+};
+
+
+#endif //FACTORY_H

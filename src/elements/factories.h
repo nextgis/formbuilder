@@ -1,6 +1,6 @@
 /******************************************************************************
  * Project:  NextGIS Formbuilder
- * Purpose:  basic project implementations
+ * Purpose:  additional elements' factories
  * Author:   Mikhail Gusev, gusevmihs@gmail.com
  ******************************************************************************
 *   Copyright (C) 2014-2016 NextGIS
@@ -19,24 +19,11 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
-#include <QByteArray>
-#include <QDir>
+#ifndef FACTORIES_H
+#define FACTORIES_H
 
-#include "project.h"
- 
 
-void FBProject::init ()
-{
-    #ifdef _FB_GDAL_DEBUG
-    CPLSetConfigOption("CPL_DEBUG","ON");
-    CPLSetConfigOption("CPL_CURL_VERBOSE","YES");
-    CPLSetConfigOption("CPL_LOG",_FB_GDAL_DEBUG);
-    CPLSetConfigOption("CPL_LOG_ERRORS","ON");
-    #endif
+#endif // FACTORIES_H
 
-    CPLSetConfigOption("CPL_VSIL_ZIP_ALLOWED_EXTENSIONS",FB_PROJECT_EXTENSION);
-    QByteArray ba = QString(QDir::currentPath() + _FB_INSTALLPATH_GDALDATA).toUtf8();
-    CPLSetConfigOption("GDAL_DATA", ba.data());
 
-    GDALAllRegister();
-}
+

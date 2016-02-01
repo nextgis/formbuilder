@@ -1,6 +1,6 @@
 /******************************************************************************
  * Project:  NextGIS Formbuilder
- * Purpose:  basic project implementations
+ * Purpose:  common declarations
  * Author:   Mikhail Gusev, gusevmihs@gmail.com
  ******************************************************************************
 *   Copyright (C) 2014-2016 NextGIS
@@ -19,24 +19,22 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
-#include <QByteArray>
-#include <QDir>
+#ifndef FB_CORE_H
+#define FB_CORE_H
 
-#include "project.h"
- 
+// TODO: think about how to set these constants via build system:
+#define _FB_VERSION 2.1
 
-void FBProject::init ()
+// Colors for stylesheets.
+#define FB_COLOR_LIGHTGREY "rgb(238,238,238)"
+#define FB_COLOR_DARKGREY "rgb(170,170,170)"
+
+
+// Different final screens can have one screen style, e.g. there are android 
+// vertical, horizontal and maximized screens.
+enum FBScreenStyle
 {
-    #ifdef _FB_GDAL_DEBUG
-    CPLSetConfigOption("CPL_DEBUG","ON");
-    CPLSetConfigOption("CPL_CURL_VERBOSE","YES");
-    CPLSetConfigOption("CPL_LOG",_FB_GDAL_DEBUG);
-    CPLSetConfigOption("CPL_LOG_ERRORS","ON");
-    #endif
+    FBScreenAndroid,
+};
 
-    CPLSetConfigOption("CPL_VSIL_ZIP_ALLOWED_EXTENSIONS",FB_PROJECT_EXTENSION);
-    QByteArray ba = QString(QDir::currentPath() + _FB_INSTALLPATH_GDALDATA).toUtf8();
-    CPLSetConfigOption("GDAL_DATA", ba.data());
-
-    GDALAllRegister();
-}
+#endif //FB_CORE_H
