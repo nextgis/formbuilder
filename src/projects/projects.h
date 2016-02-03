@@ -1,6 +1,6 @@
 /******************************************************************************
  * Project:  NextGIS Formbuilder
- * Purpose:  additional elements' factories
+ * Purpose:  different types of projects
  * Author:   Mikhail Gusev, gusevmihs@gmail.com
  ******************************************************************************
 *   Copyright (C) 2014-2016 NextGIS
@@ -19,11 +19,27 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
-#ifndef FACTORIES_H
-#define FACTORIES_H
+#ifndef PROJECTS_H
+#define PROJECTS_H
+
+#include "../project.h"
 
 
-#endif // FACTORIES_H
+class FBProjectGDAL: public FBProject
+{
+    
+}
+
+class FBProjectShapefile: public FBProjectGDAL
+{
+    
+}
+
+class FBProjectNGW: public FBProjectGDAL
+{
+    
+}
 
 
-
+#endif //PROJECTS_H
+ 

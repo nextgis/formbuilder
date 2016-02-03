@@ -24,74 +24,113 @@
 
 #include <QWidget>
 
+#include "json/json.h"
+
 #include "fb_general.h"
 
 
 /**
- * 
+ * Attributes.
+ * One attribute equals to one value in the project (in form.json of ngfp file).
+ * That's why complex attribute (e.g. lists of values for Double-list elem) is
+ * usually edited in complex way: with the help of special dialogs.
  */
-class FBAttr: QObject
+class FBAttr: public QObject
 {
     Q_OBJECT
     
     public:
      FBAttr ();
-     ~FBAttr ();
+     virtual ~FBAttr ();
+     virtual Json::Value toJson () = 0;
+     virtual void fromJson (Json::Value jsonVal) = 0;
+     virtual QWidget *getWidget () = 0;
     
     protected:
-    
-    private:
+     FBElem* elemPtr;
     
     signals: 
      void valueChanged (); // in order to signalize to other attrs of this element
                            // that they must be changed
-    
+};
+
+class FBAttrWidget: public FBAttr
+{
+    protected slots:
+     void onEditEnd ();
+};
+
+class FBAttrDialog: public FBAttr
+{
+    public:
+     virtual QPushButton *getWidget () = 0;
+    protected slots:
+     void onEditStart ();
 };
 
 
 /**
  * 
+ * Elements.
+ *
  */
+
+// Default elem - has its own graphical representation so it will be possible
+// for form to manage unknown-unsupported elements in common way.
 class FBElem: public QWidget
 {
     public:
      FBElem ();
-     ~FBElem ();
-     
-     void changeStyle (FBScreenStyle styleNew);
+     virtual ~FBElem ();
+     virtual Json::Value toJson ();
+     virtual FBErr fromJson ();
+     void changeStyle (FBScreenStyle style);
     
     protected:
-    
-    private:
-     FBScreenStyle style;
-    
+     FBForm* formPtr;
 };
 
-// ...
+// Abstract simple element for displaying.
+class FBElemDecor: protected FBElem
+{
+    public:
+     virtual Json::Value toJson ();
+     virtual FBErr fromJson ();
+};
+
+// Element which can write values to the layer fields.
 class FBElemInput: protected FBElem
 {
     public:
-    
+     virtual Json::Value toJson ();
+     virtual FBErr fromJson ();
+
     protected:
-    
-    private:
-     QString strCaption; 
+     QString strFieldKeyName; // common attr for all elems with input
+     QString strCaption; // common attr for all elems with input
 };
 
 // This compound element may contain other elements which are even also compound.
-class FBElemComplex: protected FBElem
+class FBElemCompound: protected FBElem
 {
     public:
+     void addElem (FBElem* afterElem); // afterElem can be NULL
+     void removeElem (FBElem* elem);
+     void removeAllElems ();
+
+     virtual Json::Value toJson (); // also calls toJson() of inner elems
+     virtual FBErr fromJson (); // also calls fromJson() of inner elems
     
     protected:
-    
-    private:
+     QList<FBElem*> elemPtrs;
        
 };
 
 
 /**
  * 
+ * Helper class for elements movement.
+ *
  */
 class FBInsertWidget: public QWidget 
 {
@@ -102,25 +141,35 @@ class FBInsertWidget: public QWidget
 /**
  * Final form class. Form contains elements and provides the capability to
  * manage them using app events (via mouse).
- * The form will be rendered to the screen. Visually form is "transparent" and 
- * only its elements are rendered to the screen.
+ *
+ * Visually form is "transparent" and only its elements are rendered to the
+ * screen. Technically form is a QWidget which contains elements in its layout
+ * like any simple Qt-widget.
+ *
  * All elements are always followed each other in the form vertically. This
  * is because the structure of the final JSON file where form is saved. All
  * other layouts and groupings is made via specific elements.
+ *
+ * The special insert-element is placed between any pair of elements  so it can
+ * be possible to move them via mouse.
+ *
  */
 class FBForm: public QWidget
 {
+    public: // static fields
+     static FBElem *SELECTED;
+     static bool IS_SELECTED_MOVING;
+
     public:
      FBForm ();
      ~FBForm ();
-     
-     static FBElem *SELECTED;
-     static bool IS_SELECTED_MOVING;
-    
-     void addElem (FBElem* afterElem);
-    
-    protected:
-    
+     void addElem (FBElem* afterElem); // afterElem can be NULL
+     void removeElem (FBElem* elem);
+     void removeAllElems ();
+     bool isVoid ();
+     Json::Value toJson ();
+     void fromJson (Json::Value jsonVal);
+
     private:
      bool modified; // will be set to true/false in order to signalize that the
                     // form's elements structure has been changed and there is

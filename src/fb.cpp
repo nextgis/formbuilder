@@ -23,14 +23,22 @@
 #include "ui_fb.h"
 
 
-/****************************************************************************/
-/*                                Constructor                               */
-/****************************************************************************/
 /**
- * Creates all GUI. Inits and registers all arrays and types.
+ * Constructor. Creates all GUI. Registers all factories and creates according
+ * GUI components.
  */
 FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
 {
+    //----------------------------------------------------------------------
+    //                              Main settings
+    //----------------------------------------------------------------------
+
+    project = NULL;
+
+    //----------------------------------------------------------------------
+    //                                 UI
+    //----------------------------------------------------------------------
+
     ui->setupUi(this);
     
     //----------------------------------------------------------------------
@@ -41,7 +49,7 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     tabMenuTop->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
     tabMenuTop->setMaximumHeight(120);
     tabMenuTop->setMinimumHeight(100);
-    tabMenuTop->setFont(QFont("Candara",FB_GUI_FONTSIZE));
+    tabMenuTop->setFont(QFont("Candara",FB_GUI_FONTSIZE_NORMAL));
 
     wProject = new QWidget();
     tabMenuTop->addTab(wProject, tr(" Project "));
@@ -70,26 +78,40 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     layAbout->addStretch();
     
     // All new project buttons.
+    toolbsNew.append(addTopMenuButton(wProject,":/img/new_void.png",
+                                      tr("New"),tr("New void project")));
+    dProjectNew = new FBDialogProjectNew(this); // now use only exec() for it
     //for ()
     //{
-        
+    //
     //}
     
-    // Open button.
+    // Open and save buttons.
+    toolbOpen = addTopMenuButton(wProject,":/img/open.png",
+                                 tr("Open"),tr("Open .ngfp file"));
+    toolbSave = addTopMenuButton(wProject,":/img/save.png",
+                                 tr("Save"),tr("Save to .ngfp file"));
+    toolbSaveAs = addTopMenuButton(wProject,":/img/save_as.png",
+                                   tr("Save as"),tr("Save to .ngfp file as ..."));
     
-    
-    // Save buttons.
-    
-    // All view buttons.
+    // All view pickers and combos.
     //for ()
     //{
-        
+    //
     //}
-    
-    // All tools buttons.
+
+    // Tools.
+//    toolbUndo = addTopMenuButton(wTools,":/img/undo.png",
+//                         tr("Undo"),tr("Cancel last form operation"));
+//    toolbRedo = addTopMenuButton(wTools,":/img/redo.png",
+//                         tr("Redo"),tr("Return last canceled form operation"));
+    toolbClearScreen = addTopMenuButton(wTools,":/img/clear_screen.png",
+                         tr("Clear screen"),tr("Clear all screen elements"));
+    toolbDeleteElem = addTopMenuButton(wTools,":/img/delete_elem.png",
+                         tr("Delete element"),tr("Delete selected element"));
     //for ()
     //{
-        
+    //
     //}
     
     // Settings.
@@ -127,9 +149,7 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     //                              Working area
     //----------------------------------------------------------------------
     
-    wWorkingArea = new QWidget(this);
-    wWorkingArea->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
-    QVBoxLayout *lvWorkingArea = new QVBoxLayout(wWorkingArea);
+    wWorkingArea = new FBWorkingArea(this);
     
     //----------------------------------------------------------------------
     //                              Other gui
@@ -138,6 +158,8 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     labBottom = new QLabel(this);
     labBottom->setText(" ...");
     labBottom->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+    labBottom->setFont(QFont("Candara",FB_GUI_FONTSIZE_NORMAL));
+    labBottom->setText(tr("  Create new or open existing project ..."));
 
     //----------------------------------------------------------------------
     //                            Layout all window
@@ -171,10 +193,10 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
 
     tabMenuTop->setStyleSheet("QTabWidget::pane {"
                               "border-top: 1px solid "
-                              +QString(FB_COLOR_DARKGREY)+";"
-                              "border-bottom: 1px solid "+FB_COLOR_DARKGREY+";"
-                              //"border-left: 1px solid "+FB_COLOR_DARKGREY+";"
-                              //"border-right: 1px solid "+FB_COLOR_DARKGREY+";"
+                              +QString(FB_COLOR_MEDIUMGREY)+";"
+                              "border-bottom: 1px solid "+FB_COLOR_MEDIUMGREY+";"
+                              //"border-left: 1px solid "+FB_COLOR_MEDIUMGREY+";"
+                              //"border-right: 1px solid "+FB_COLOR_MEDIUMGREY+";"
                               "}"
                               "QTabWidget::tab-bar {"
                               "left: 5px; "
@@ -183,7 +205,7 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
                               //"background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
                               //"stop: 0 #E1E1E1, stop: 0.4 #DDDDDD,"
                               //"stop: 0.5 #D8D8D8, stop: 1.0 #D3D3D3);"
-                              "border: 1px solid "+FB_COLOR_DARKGREY+";"
+                              "border: 1px solid "+FB_COLOR_MEDIUMGREY+";"
                               "border-bottom-color: white; "
                               "border-top-left-radius: 4px;"
                               "border-top-right-radius: 4px;"
@@ -199,45 +221,313 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
                               //"border-bottom-color: rgb(255,255,255); }"
                               "QTabBar::tab:!selected {"
                               "border: 1px solid white;"
-                              "border-bottom-color: "+FB_COLOR_DARKGREY+";"
+                              "border-bottom-color: "+FB_COLOR_MEDIUMGREY+";"
                               "margin-top: 2px; }");
 
     wMenuLeft->setStyleSheet("QWidget#"+wMenuLeft->objectName()+"{"
-                             "border-top: 1px solid "+FB_COLOR_DARKGREY+";"
-                             "border-bottom: 1px solid "+FB_COLOR_DARKGREY+";"
-                             "border-right: 1px solid "+FB_COLOR_DARKGREY+";"
+                             "border-top: 1px solid "+FB_COLOR_MEDIUMGREY+";"
+                             "border-bottom: 1px solid "+FB_COLOR_MEDIUMGREY+";"
+                             "border-right: 1px solid "+FB_COLOR_MEDIUMGREY+";"
                              "border-top-right-radius: 4px;"
                              "border-bottom-right-radius: 4px;}");
 
     wMenuRight->setStyleSheet("QWidget#"+wMenuRight->objectName()+"{"
-                              "border-top: 1px solid "+FB_COLOR_DARKGREY+";"
-                              "border-bottom: 1px solid "+FB_COLOR_DARKGREY+";"
-                              "border-left: 1px solid "+FB_COLOR_DARKGREY+";"
+                              "border-top: 1px solid "+FB_COLOR_MEDIUMGREY+";"
+                              "border-bottom: 1px solid "+FB_COLOR_MEDIUMGREY+";"
+                              "border-left: 1px solid "+FB_COLOR_MEDIUMGREY+";"
                               "border-top-left-radius: 4px;"
                               "border-bottom-left-radius: 4px; }");
 
-    wWorkingArea->setStyleSheet("QWidget {background-color: "
-                                +QString(FB_COLOR_LIGHTGREY)+";"
-                                "border-top-left-radius: 4px;"
-                                "border-top-right-radius: 4px;"
-                                "border-bottom-left-radius: 4px;"
-                                "border-bottom-right-radius: 4px;}");
+    labBottom->setStyleSheet("QLabel {color: "+QString(FB_COLOR_DARKGREY)+"}");
 
     //----------------------------------------------------------------------
-    //                              Other settings
+    //                      Other general gui settings
     //----------------------------------------------------------------------
 
-    project = NULL;
+    updateEnableness();
 }
 
 
-/****************************************************************************/
-/*                                Destructor                                */
-/****************************************************************************/
 /**
- *
+ * Destructor
  */
 FB::~FB()
 {
     delete ui;
 }
+
+
+/****************************************************************************/
+/*                          Private FB slots                                */
+/****************************************************************************/
+
+void FB::onElemPress ()
+{
+
+}
+
+void FB::onNewClick ()
+{
+
+}
+
+void FB::onOpenClick ()
+{
+
+}
+
+void FB::onSaveClick ()
+{
+
+}
+
+void FB::onSaveAsClick ()
+{
+
+}
+
+void FB::onScreenStylePick ()
+{
+
+}
+
+void FB::onScreenTypePick ()
+{
+
+}
+
+void FB::onScreenRatioSelect ()
+{
+
+}
+
+void FB::onScreenResolutionSelect ()
+{
+
+}
+
+void FB::onUndoClick ()
+{
+
+}
+
+void FB::onRedoClick ()
+{
+
+}
+
+void FB::onClearScreenClick ()
+{
+
+}
+
+void FB::onDeleteElemClick ()
+{
+
+}
+
+void FB::onSettingLanguageSelect ()
+{
+
+}
+
+void FB::onAboutGraphicsClick ()
+{
+
+}
+
+void FB::onElemHighlight ()
+{
+
+}
+
+void FB::onLeftArrowClick ()
+{
+
+}
+
+void FB::onRightArrowClick ()
+{
+
+}
+
+
+// Show messages.
+void FB::showInfo(QString msg)
+{
+    showBox(msg,tr("Information"));
+}
+int FB::showWarning (QString msg)
+{
+    return showBox(msg,tr("Warning"));
+}
+void FB::showError (QString msg)
+{
+    showBox(msg,tr("Error"));
+}
+int FB::showBox (QString msg, QString caption)
+{
+    QMessageBox msgBox;
+    msgBox.setText(msg);
+    msgBox.setWindowTitle(caption);
+    QMessageBox::Icon icon;
+    if (caption == "Warning")
+    {
+        icon = QMessageBox::Warning;
+        msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+    }
+    else
+    {
+        if (caption == "Error")
+        {
+            icon = QMessageBox::Critical;
+        }
+        else
+        {
+            icon = QMessageBox::Information;
+        }
+        msgBox.setStandardButtons(QMessageBox::Ok);
+    }
+    msgBox.setIcon(icon);
+    return msgBox.exec();
+}
+
+
+/****************************************************************************/
+/*                        Private FB methods                                */
+/****************************************************************************/
+
+
+//void FB::addTopSwitcher ()
+//{
+//
+//}
+
+//void FB::addTopSwitcherGroup ()
+//{
+//
+//}
+
+//void FB::addTopCombo ()
+//{
+//
+//}
+
+// Create new button for any tab of the top menu.
+QToolButton *FB::addTopMenuButton (QWidget *parentTab, QString imgPath, QString name,
+                                   QString description)
+{
+    QToolButton *but = new QToolButton(parentTab);
+    QHBoxLayout *parentHl = (QHBoxLayout*)parentTab->layout();
+    but->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
+    but->setAutoRaise(true);
+    but->setIcon(QIcon(imgPath));
+    //but->setText(name);
+    but->setFont(QFont("Candara",FB_GUI_FONTSIZE_SMALL));
+    but->setIconSize(QSize(60,60));
+    but->setMaximumWidth(90);
+    //but->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    but->setCursor(Qt::PointingHandCursor);
+    parentHl->insertWidget(parentHl->count()-1,but); // last is stretch item.
+    but->setStyleSheet("QToolButton"
+                       "{"
+                           "border: none;"
+                       "}"
+                       "QToolButton:hover"
+                       "{"
+                           "background-color: "+QString(FB_COLOR_DARKBLUE)+";"
+                       "}"
+                       "QToolButton:pressed"
+                       "{"
+                           "background-color: "+FB_COLOR_DARKBLUE+";"
+                       "}"
+                       "QToolButton:disabled"
+                       "{"
+                            // TODO: Make real semitransparent style (~20%).
+                       "}");
+    but->setToolTip(description);
+    return but;
+}
+
+
+void FB::updateEnableness ()
+{
+    if (project == NULL)
+    {
+        toolbSave->setEnabled(false);
+        toolbSaveAs->setEnabled(false);
+    }
+    else
+    {
+        toolbSaveAs->setEnabled(true);
+        if (project->wasFirstSaved())
+        {
+            toolbSave->setEnabled(true);
+        }
+    }
+}
+
+
+
+/****************************************************************************/
+/*                                                                */
+/****************************************************************************/
+/**
+ *
+ */
+FBDialogProjectNew::FBDialogProjectNew (QWidget *parent): QDialog(parent)
+{
+    this->setWindowTitle(tr("Set layer parameters in new project ..."));
+
+    // TODO: set OS-specific colors and fonts (now are parent colors).
+    this->setStyleSheet("QWidget { color: black }");
+    this->setFont(QFont("Candara",FB_GUI_FONTSIZE_SMALL));
+
+    QLabel *label1 = new QLabel(this);
+    label1->setText(tr("Geometry type: "));
+
+    comboGeom = new QComboBox(this);
+    for (int i=0; i<FBProject::GEOM_TYPES.size(); i++)
+    {
+        comboGeom->addItem(FBProject::GEOM_TYPES[i]);
+    }
+
+    QPushButton *but1 = new QPushButton(this);
+    but1->setText(tr("OK"));
+    connect(but1,SIGNAL(clicked()),this,SLOT(accept()));
+
+    QVBoxLayout *vlall = new QVBoxLayout(this);
+    QHBoxLayout *hl1 = new QHBoxLayout();
+    hl1->addWidget(label1);
+    hl1->addWidget(comboGeom);
+    vlall->addLayout(hl1);
+    vlall->addWidget(but1);
+}
+
+
+/*
+FBProject *FBDialogProjectNew::exec ()
+{
+    int ret = QDialog::exec();
+
+    if (ret)
+    {
+        FBProject *newProj = new FBProjectVoid(comboGeom->currentText());
+        FBErr err = newProj->create();
+        if (err == FBErrNone)
+        {
+            return newProj;
+        }
+        else
+        {
+            delete newProj;
+            emit sendMsg(tr("Unable create project"));
+        }
+    }
+
+    return NULL;
+}*/
+
+
+
+

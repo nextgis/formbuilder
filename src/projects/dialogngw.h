@@ -1,6 +1,6 @@
 /******************************************************************************
  * Project:  NextGIS Formbuilder
- * Purpose:  progress dialog
+ * Purpose:  nextgisweb access dialog
  * Author:   Mikhail Gusev, gusevmihs@gmail.com
  ******************************************************************************
 *   Copyright (C) 2014-2016 NextGIS
@@ -19,4 +19,9 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
+#ifndef DIALOGNGW_H
+#define DIALOGNGW_H
 
+
+#endif //DIALOGNGW_H
+ 

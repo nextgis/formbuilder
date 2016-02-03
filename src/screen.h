@@ -23,30 +23,73 @@
 #define SCREEN_H
 
 #include <QWidget>
+#include <QGridLayout>
+#include <QLabel>
+#include <QScrollArea>
 
 #include "fb_general.h"
-#include "form.h"
+//#include "form.h"
+
+
+enum FBScreenStyle
+{
+    FBNoStyle, FBAndroid, //FBWeb, FBQGIS
+};
+
+enum FBScreenType
+{
+    FBMaximized, FBPhonePortrait, //FBPhoneLandscape, FBTabletPortrait,
+    // FBTabletLandscape
+};
+
+enum FBScreenRatio
+{
+    //FB15to9, FB16to9, ...
+};
+
+enum FBScreenResolution
+{
+    //FB480x800, FB800x600, ...
+};
 
 
 /**
- * Abstract screen class. Each final screen will be rendered to the working area
- * of the application with its specific decorations. Contains the scrolled area 
- * to which the form will be rendered.
+ * Final screen class which contains the form and render it.
+ *
+ * Screen can change its appearance: decoration, sizes, "resolution", etc.
  */
-class FBScreen: public QWidget
+class FBWorkingArea: public QWidget
 {
     public:
-    
-     void setForm (FBForm* form);
-     void changeStyle (FBScreenStyle styleNew);
-     void maximize ();
-    
-    protected:
+
+     FBWorkingArea (QWidget *parent);
+     ~FBWorkingArea () {}
+
+     //void setForm (FBForm* form);
+     //void removeForm ();
+
+     void changeStyle (FBScreenStyle newStyle);
+     void changeType (FBScreenType newType);
     
     private:
-     FBForm *form; 
+
+     // visual
+     QGridLayout *glWorkingArea;
+     QList<QWidget*> wsWorkingArea;
+     QWidget *wScreen;
+     QVBoxLayout *vlScreen;
+     QList<QLabel*> labsScreenDecor;
+     QScrollArea *scrollScreen;
+
+     // form
+     //FBForm *form;
+
+     // params
      FBScreenStyle style;
-    
+     FBScreenType type;
+     FBScreenRatio ratio;
+     FBScreenResolution resolution;
 };
+
 
 #endif //SCREEN_H

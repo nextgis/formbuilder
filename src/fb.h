@@ -23,29 +23,73 @@
 #define FB_H
 
 #include <QWidget>
+#include <QDialog>
+#include <QMessageBox>
 #include <QLabel>
+#include <QComboBox>
+#include <QPushButton>
 #include <QTabWidget>
 #include <QTreeWidget>
+#include <QTableWidget>
 #include <QScrollArea>
+#include <QToolButton>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 
 #include "fb_general.h"
 #include "project.h"
 #include "screen.h"
+//#include "factory.h"
 
 
 // Different sizes for GUI.
-#define FB_GUI_FONTSIZE 11
-
+#define FB_GUI_FONTSIZE_NORMAL 11
+#define FB_GUI_FONTSIZE_SMALL 8
 
 namespace Ui
 {
     class FB;
 }
 
+
 /**
- * App's window class. Aggregates all GUI of the app, except specific dialogues. 
+ *
+ */
+class FBDialogProjectNew: public QDialog
+{
+    Q_OBJECT
+
+    public:
+     FBDialogProjectNew (QWidget *parent);
+     ~FBDialogProjectNew () {}
+
+    //public slots:
+     //virtual FBProject *exec ();
+
+    private:
+     QComboBox *comboGeom;
+};
+
+/**
+ *
+ */
+class FBDialogProgress: public QDialog
+{
+
+};
+
+/**
+ *
+ */
+class FBDialogAbout: public QDialog
+{
+
+};
+
+
+/**
+ * App's window class. Aggregates all GUI of the app, except specific dialogues.
+ *
  * Contains the working area to which the screen with its form is rendered.
  */
 class FB: public QWidget
@@ -56,10 +100,47 @@ class FB: public QWidget
     
      explicit FB (QWidget *parent = 0);
      ~FB();
-    
-    protected:
-    
-    private:
+
+    private slots:
+
+     // main gui slots
+     void onElemPress ();
+     void onNewClick ();
+     void onOpenClick ();
+     void onSaveClick ();
+     void onSaveAsClick ();
+     void onScreenStylePick ();
+     void onScreenTypePick ();
+     void onScreenRatioSelect ();
+     void onScreenResolutionSelect ();
+     void onUndoClick ();
+     void onRedoClick ();
+     void onClearScreenClick ();
+     void onDeleteElemClick ();
+     void onSettingLanguageSelect ();
+     void onAboutGraphicsClick ();
+
+     // other gui slots
+     void onElemHighlight ();
+     void onLeftArrowClick ();
+     void onRightArrowClick ();
+     void showInfo (QString msg);
+     int showWarning (QString msg);
+     void showError (QString msg);
+     int showBox (QString msg, QString caption);
+
+    private: // methods
+
+     QToolButton *addTopMenuButton (QWidget *parentTab, QString imgPath,
+                                    QString name, QString description);
+     void updateEnableness ();
+
+    private: // fields
+
+     // Current project of the app.
+     // For future here can be an array of projects - but that requires changes
+     // in FB behaviour and appearance.
+     FBProject *project;
 
      // main gui
      Ui::FB *ui;
@@ -72,6 +153,15 @@ class FB: public QWidget
      QWidget *wTools;
      QWidget *wSettings;
      QWidget *wAbout;
+     QList<QToolButton*> toolbsNew;
+     QToolButton* toolbOpen;
+     QToolButton* toolbSave;
+     QToolButton* toolbSaveAs;
+     FBDialogProjectNew *dProjectNew;
+     QToolButton* toolbUndo;
+     QToolButton* toolbRedo;
+     QToolButton* toolbClearScreen;
+     QToolButton* toolbDeleteElem;
      
      // left menu
      QWidget *wMenuLeft;
@@ -80,20 +170,51 @@ class FB: public QWidget
      
      // right menu
      QWidget *wMenuRight;
+     QTableWidget *tableRight;
      
      // working area
-     QWidget *wWorkingArea;
-     QScrollArea *scrWorkingArea;
-     FBScreen *screen;
+     FBWorkingArea *wWorkingArea;
           
      // other gui
      QLabel *labBottom;
-
-     // Current project of the app.
-     // For future here can be an array of projects - but that needs changes
-     // in FB behaviour and appearance.
-     FBProject *project;
-    
 };
+
+
+/*
+class FBGui
+{
+    public:
+     FBGui(FB *fbPtr);
+     virtual void arrangeWidgets () = 0;
+};
+
+class FBGuiButton: public FBGui, public QToolButton
+{
+    public:
+     FBGuiButton(FB *fbPtr, QWidget parentTab, QString imgPath,
+                 QString caption, QString hint);
+
+};
+
+class FBGuiSwitcherGroup: public FBGui
+{
+    public:
+
+    protected:
+     QList<FBGuiButton*> switchers;
+
+};
+
+class FBGuiCombo: public FBGui
+{
+
+};
+
+class FBGuiTreeItem: public FBGui, public QTreeWidgetItem
+{
+
+};
+*/
+
 
 #endif //FB_H

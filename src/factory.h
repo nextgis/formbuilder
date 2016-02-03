@@ -1,6 +1,6 @@
 /******************************************************************************
  * Project:  NextGIS Formbuilder
- * Purpose:  element factories main definitions
+ * Purpose:  factories for virtual creation
  * Author:   Mikhail Gusev, gusevmihs@gmail.com
  ******************************************************************************
 *   Copyright (C) 2014-2016 NextGIS
@@ -23,32 +23,69 @@
 #define FACTORY_H
 
 #include <QTreeWidget>
+#include <QToolButton>
 
-/**
- * 
- */
-class FBFact
+#include "project.h"
+#include "form.h"
+#include "tool.h"
+
+
+class FBRegistrar
 {
     public:
-     virtual FBElem *Create() = 0;
-
-    protected:
-    
+     static void registerAllFactories ();
+     void registerFactory (FBFactory fct);
     private:
-    
+     QList<FBFactoryProject*> fctsProj;
+     QMap<QString,FBFactoryElem*> fctsElem; // key = elem's keyname
+     QList<FBFactoryTool*> fctsTool;
 };
 
-// ...
-class FBFactTree: public FBFact, QTreeWidgetItem
+
+class FBFactory
 {
     public:
-     virtual FBElem *Create() = 0;
-     
-    protected:
-    
-    private:
-    
+
 };
+
+class FBFactoryButton: public FBFactory
+{
+    public:
+     virtual QToolButton *createButton ();
+};
+
+class FBFactoryProject: public FBFactoryButton
+{
+    public:
+     FBFactoryProject (QString imgPath, QString name);
+     virtual FBProject *create () = 0;
+
+    protected:
+
+};
+
+class FBFactoryElem: public FBFactory
+{
+    public:
+     FBFactoryElem (bool isFull, QString keyName, QString keyGroupName,
+                    QString imgPath, QString name);
+     virtual FBElem *create () = 0;
+     virtual QTreeWidgetItem *createTreeItem ();
+
+    protected:
+
+};
+
+class FBFactoryTool: public FBFactoryButton
+{
+    public:
+     FBFactoryTool (QString imgPath, QString name);
+     virtual QToolButton *createButton (); // returns FBToolButton
+
+    protected:
+
+};
+
 
 
 #endif //FACTORY_H

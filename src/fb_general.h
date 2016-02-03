@@ -19,22 +19,25 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
-#ifndef FB_CORE_H
-#define FB_CORE_H
+#ifndef FB_GENERAL_H
+#define FB_GENERAL_H
 
 // TODO: think about how to set these constants via build system:
 #define _FB_VERSION 2.1
 
 // Colors for stylesheets.
 #define FB_COLOR_LIGHTGREY "rgb(238,238,238)"
-#define FB_COLOR_DARKGREY "rgb(170,170,170)"
+#define FB_COLOR_MEDIUMGREY "rgb(170,170,170)"
+#define FB_COLOR_DARKGREY "rgb(100,100,100)"
+#define FB_COLOR_LIGHTBLUE "rgb(139,183,224)"
+#define FB_COLOR_DARKBLUE "rgb(23,111,193)"
 
 
-// Different final screens can have one screen style, e.g. there are android 
-// vertical, horizontal and maximized screens.
-enum FBScreenStyle
+enum FBErr
 {
-    FBScreenAndroid,
+    FBErrNone, FBErrUnableCreateProject, FBErrAlreadyInited
 };
 
-#endif //FB_CORE_H
+
+
+#endif //FB_GENERAL_H

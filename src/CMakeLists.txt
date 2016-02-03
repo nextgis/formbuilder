@@ -35,7 +35,6 @@ endif(WIN32)
 #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/projects)
 #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/elements)
 #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/tools)
-#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/screens)
 
 ###############################################################################
 ## target definitions #########################################################
@@ -49,12 +48,10 @@ main.cpp
 fb.cpp
 project.cpp
 screen.cpp
-form.cpp
-factory.cpp
-dialognewvoid.cpp
-dialogprogress.cpp
-dialogabout.cpp
-appicon.rc)
+#form.cpp
+#factory.cpp
+appicon.rc
+)
 
 qt5_wrap_ui(fb_ui fb.ui)
 set(UI_HDRS ${fb_ui})
