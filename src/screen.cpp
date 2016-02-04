@@ -20,7 +20,42 @@
  ****************************************************************************/
 
 #include "screen.h"
+
+QList<QPair<QString,QString> > FBWorkingArea::STYLES;
+QList<QPair<QString,QString> > FBWorkingArea::TYPES;
+QList<QString> FBWorkingArea::RATIOS;
+QList<QString> FBWorkingArea::RESOLS;
+
+void FBWorkingArea::initAll ()
+{
+    STYLES.append(QPair<QString,QString>(FB_SCREEN_ANDROID,
+                                         ":/img/android.png"));
+    STYLES.append(QPair<QString,QString>(FB_SCREEN_QGIS,
+                                         ":/img/qgis.png"));
+    STYLES.append(QPair<QString,QString>(FB_SCREEN_WEB,
+                                         ":/img/web.png"));
+
+    TYPES.append(QPair<QString,QString>(FB_SCREEN_MAXIMIZED,
+                                        ":/img/maximized.png"));
+    TYPES.append(QPair<QString,QString>(FB_SCREEN_PHONEPORT,
+                                        ":/img/phone_port.png"));
+    TYPES.append(QPair<QString,QString>(FB_SCREEN_PHONELAND,
+                                        ":/img/phone_land.png"));
+    TYPES.append(QPair<QString,QString>(FB_SCREEN_TABLETPORT,
+                                        ":/img/tablet_port.png"));
+    TYPES.append(QPair<QString,QString>(FB_SCREEN_TABLETLAND,
+                                        ":/img/tablet_land.png"));
+
+    RATIOS.append("15:9");
+    RATIOS.append("16:9");
+    RATIOS.append("3:4");
+
+    RESOLS.append("480x800");
+    RESOLS.append("1366x768");
+    RESOLS.append("1280x1024");
+}
  
+
 FBWorkingArea::FBWorkingArea (QWidget *parent): QWidget(parent)
 {
     glWorkingArea = new QGridLayout(this);
@@ -36,7 +71,7 @@ FBWorkingArea::FBWorkingArea (QWidget *parent): QWidget(parent)
             QWidget *w = new QWidget(this);
             w->setSizePolicy(QSizePolicy::Expanding,
                              QSizePolicy::Expanding);
-            glWorkingArea->addWidget(w,i,j); // top row will be 0, 1, 2
+            glWorkingArea->addWidget(w,i,j); // will be 7 items in array
             wsWorkingArea.append(w);
         }
     }
@@ -57,22 +92,25 @@ FBWorkingArea::FBWorkingArea (QWidget *parent): QWidget(parent)
     scrollScreen->setWidgetResizable(true);
     vlScreen->addWidget(scrollScreen);
 
-    this->changeStyle(FBNoStyle);
-    this->changeType(FBMaximized);
+    // We must set default style at the construction time, becuse
+    // it will be no project rendering at first and at the same time
+    // no style of target device specified.
+    this->changeStyle("default"); // just any string to set defaults
+    this->changeType("default");
 }
 
 
 
-void FBWorkingArea::changeStyle (FBScreenStyle newStyle)
+void FBWorkingArea::changeStyle (QString styleStr)
 {
-    if (style == FBAndroid)
+    if (style == FB_SCREEN_ANDROID)
     {
 
     }
 
     // ...
 
-    else // FBNoStyle
+    else // default style
     {
         //labsScreenDecor.clear();
         wScreen->setStyleSheet("QWidget {background-color: "
@@ -83,13 +121,14 @@ void FBWorkingArea::changeStyle (FBScreenStyle newStyle)
                                "border-bottom-right-radius: 4px;}");
     }
 
-    this->style = newStyle;
+    this->style = styleStr;
 }
 
 
-void FBWorkingArea::changeType (FBScreenType newType)
+void FBWorkingArea::changeType (QString typeStr)
 {
-    if (newType == FBPhonePortrait)
+    if (typeStr == FB_SCREEN_PHONEPORT
+            || typeStr == FB_SCREEN_TABLETPORT)
     {
         for (int i=0; i<3; i++) wsWorkingArea[i]->setSizePolicy(
                     QSizePolicy::Minimum, QSizePolicy::Minimum);
@@ -101,19 +140,43 @@ void FBWorkingArea::changeType (FBScreenType newType)
                     QSizePolicy::Expanding, QSizePolicy::Expanding);
     }
 
+    else if (typeStr == FB_SCREEN_PHONELAND)
+    {
+        for (int i=0; i<3; i++) wsWorkingArea[i]->setSizePolicy(
+                    QSizePolicy::Expanding, QSizePolicy::Expanding);
+        for (int i=5; i<8; i++) wsWorkingArea[i]->setSizePolicy(
+                    QSizePolicy::Expanding, QSizePolicy::Expanding);
+        wsWorkingArea[3]->setSizePolicy(
+                    QSizePolicy::Minimum, QSizePolicy::Minimum);
+        wsWorkingArea[4]->setSizePolicy(
+                    QSizePolicy::Minimum, QSizePolicy::Minimum);
+    }
+
     //...
 
-    else // FBMaximized
+    else // default type = FB_SCREEN_MAXIMIZED
     {
         for (int i=0; i<wsWorkingArea.size(); i++)
         {
-            wsWorkingArea[i]->setMinimumSize(0,0);
+            //wsWorkingArea[i]->setMinimumSize(0,0);
             wsWorkingArea[i]->setSizePolicy(QSizePolicy::Minimum,
                                             QSizePolicy::Minimum);
         }
     }
 
-    this->type = newType;
+    this->type = typeStr;
+}
+
+
+void FBWorkingArea::changeRatio (int index)
+{
+
+}
+
+
+void FBWorkingArea::changeResol (int index)
+{
+
 }
 
 

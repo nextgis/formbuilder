@@ -27,6 +27,7 @@
 
 // Colors for stylesheets.
 #define FB_COLOR_LIGHTGREY "rgb(238,238,238)"
+#define FB_COLOR_LIGHTMEDIUMGREY "rgb(210,210,210)"
 #define FB_COLOR_MEDIUMGREY "rgb(170,170,170)"
 #define FB_COLOR_DARKGREY "rgb(100,100,100)"
 #define FB_COLOR_LIGHTBLUE "rgb(139,183,224)"

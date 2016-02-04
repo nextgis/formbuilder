@@ -4,12 +4,6 @@
         <file>img/arrow_right.png</file>
         <file>img/textedit.png</file>
         <file>img/date.png</file>
-        <file>img/dev_andrphone_hor.png</file>
-        <file>img/dev_andrphone_ver.png</file>
-        <file>img/dev_andrtablet_hor.png</file>
-        <file>img/dev_andrtablet_ver.png</file>
-        <file>img/dev_qgis.png</file>
-        <file>img/dev_web.png</file>
         <file>img/new_ngw.png</file>
         <file>img/new_shp.png</file>
         <file>img/open.png</file>
@@ -50,7 +44,6 @@
         <file>img/for_check_on.png</file>
         <file>img/for_radio_off.png</file>
         <file>img/for_radio_on.png</file>
-        <file>img/dev_andrall.png</file>
         <file>img/nextgis.png</file>
         <file>img/cc.png</file>
         <file>img/for_date.png</file>
@@ -64,5 +57,15 @@
         <file>img/ngfb.ico</file>
         <file>img/fields.png</file>
         <file>img/for_compass.png</file>
+        <file>img/android.png</file>
+        <file>img/maximized.png</file>
+        <file>img/phone_port.png</file>
+        <file>img/qgis.png</file>
+        <file>img/tablet_port.png</file>
+        <file>img/web.png</file>
+        <file>img/phone_land.png</file>
+        <file>img/tablet_land.png</file>
+        <file>img/redo.png</file>
+        <file>img/undo.png</file>
     </qresource>
 </RCC>

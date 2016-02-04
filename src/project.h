@@ -98,6 +98,7 @@ class FBProject
 
      // info
      bool wasFirstSaved () {return false;}
+     bool isSaveRequired () {return false;}
 
     protected: // methods
 
@@ -131,6 +132,21 @@ class FBProjectVoid: public FBProject
      ~FBProjectVoid ();
      virtual FBErr create ();
 //     virtual FBErr saveFirst (QString strPathNgfp, FBForm *formPtr);
+};
+
+class FBProjectGDAL: public FBProject
+{
+
+};
+
+class FBProjectShapefile: public FBProjectGDAL
+{
+
+};
+
+class FBProjectNGW: public FBProjectGDAL
+{
+
 };
 
 

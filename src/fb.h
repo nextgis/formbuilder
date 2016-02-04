@@ -42,9 +42,13 @@
 //#include "factory.h"
 
 
+// Constants and limits.
+#define FB_MENURIGHT_TABLES_COUNT 3
+
 // Different sizes for GUI.
 #define FB_GUI_FONTSIZE_NORMAL 11
-#define FB_GUI_FONTSIZE_SMALL 8
+#define FB_GUI_FONTSIZE_SMALL 9
+
 
 namespace Ui
 {
@@ -105,14 +109,16 @@ class FB: public QWidget
 
      // main gui slots
      void onElemPress ();
-     void onNewClick ();
+     void onNewVoidClick ();
+     void onNewShapeClick ();
+     void onNewNgwClick ();
      void onOpenClick ();
      void onSaveClick ();
      void onSaveAsClick ();
      void onScreenStylePick ();
      void onScreenTypePick ();
-     void onScreenRatioSelect ();
-     void onScreenResolutionSelect ();
+     void onScreenRatioSelect (int index);
+     void onScreenResolSelect (int index);
      void onUndoClick ();
      void onRedoClick ();
      void onClearScreenClick ();
@@ -128,11 +134,20 @@ class FB: public QWidget
      int showWarning (QString msg);
      void showError (QString msg);
      int showBox (QString msg, QString caption);
+     bool askToLeaveUnsafeProject ();
 
     private: // methods
 
+     // gui
      QToolButton *addTopMenuButton (QWidget *parentTab, QString imgPath,
-                                    QString name, QString description);
+                           QString name, QString description, bool small=false);
+     void addTopMenuSplitter (QWidget *parentTab);
+     QComboBox *addTopMenuCombo(QWidget *parentTab, QString caption,
+                     QStringList values);
+     void flipLeftMenu (bool isFull);
+     void flipRightMenu (bool isFull);
+     QTableWidget* addRightMenuTable (int rowCount);
+     void setRightMenuCaption (bool isElemSelected);
      void updateEnableness ();
 
     private: // fields
@@ -153,24 +168,33 @@ class FB: public QWidget
      QWidget *wTools;
      QWidget *wSettings;
      QWidget *wAbout;
-     QList<QToolButton*> toolbsNew;
-     QToolButton* toolbOpen;
-     QToolButton* toolbSave;
-     QToolButton* toolbSaveAs;
-     FBDialogProjectNew *dProjectNew;
-     QToolButton* toolbUndo;
-     QToolButton* toolbRedo;
-     QToolButton* toolbClearScreen;
-     QToolButton* toolbDeleteElem;
+     QToolButton *toolbNewVoid;
+     QToolButton *toolbNewShape;
+     QToolButton *toolbNewNgw;
+     QToolButton *toolbOpen;
+     QToolButton *toolbSave;
+     QToolButton *toolbSaveAs;
+     QList<QToolButton*> toolbsScreenStyle;
+     QList<QToolButton*> toolbsScreenType;
+     QComboBox *comboScreenRatio;
+     QComboBox *comboScreenResol;
+     QToolButton *toolbUndo;
+     QToolButton *toolbRedo;
+     QToolButton *toolbClearScreen;
+     QToolButton *toolbDeleteElem;
      
      // left menu
      QWidget *wMenuLeft;
-     QTreeWidget *treeLeft1;
-     QTreeWidget *treeLeft2;
+     QPushButton *butArrowLeft;
+     QTreeWidget *treeLeftFull;
+     QTreeWidget *treeLeftShort;
      
      // right menu
      QWidget *wMenuRight;
-     QTableWidget *tableRight;
+     QPushButton *butArrowRight;
+     QVBoxLayout *vlRight; // for attr tables adding
+     QList<QTableWidget*> tablesRight;
+     QLabel *labRight;
      
      // working area
      FBWorkingArea *wWorkingArea;

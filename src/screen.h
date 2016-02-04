@@ -31,26 +31,15 @@
 //#include "form.h"
 
 
-enum FBScreenStyle
-{
-    FBNoStyle, FBAndroid, //FBWeb, FBQGIS
-};
+#define FB_SCREEN_ANDROID "Android"
+#define FB_SCREEN_QGIS "QGIS"
+#define FB_SCREEN_WEB "Web"
 
-enum FBScreenType
-{
-    FBMaximized, FBPhonePortrait, //FBPhoneLandscape, FBTabletPortrait,
-    // FBTabletLandscape
-};
-
-enum FBScreenRatio
-{
-    //FB15to9, FB16to9, ...
-};
-
-enum FBScreenResolution
-{
-    //FB480x800, FB800x600, ...
-};
+#define FB_SCREEN_MAXIMIZED "Maximized"
+#define FB_SCREEN_PHONEPORT "Phone portrait"
+#define FB_SCREEN_PHONELAND "Phone landscape"
+#define FB_SCREEN_TABLETPORT "Tablet portrait"
+#define FB_SCREEN_TABLETLAND "Tablet landscape"
 
 
 /**
@@ -60,7 +49,15 @@ enum FBScreenResolution
  */
 class FBWorkingArea: public QWidget
 {
-    public:
+    public: // static fields
+
+     static void initAll ();
+     static QList<QPair<QString,QString> > STYLES;
+     static QList<QPair<QString,QString> > TYPES;
+     static QList<QString> RATIOS;
+     static QList<QString> RESOLS;
+
+    public: // methods
 
      FBWorkingArea (QWidget *parent);
      ~FBWorkingArea () {}
@@ -68,8 +65,10 @@ class FBWorkingArea: public QWidget
      //void setForm (FBForm* form);
      //void removeForm ();
 
-     void changeStyle (FBScreenStyle newStyle);
-     void changeType (FBScreenType newType);
+     void changeStyle (QString styleStr);
+     void changeType (QString typeStr);
+     void changeRatio (int indexOfRatio); // all indexes refers to global
+     void changeResol (int indexOfResol); // static arrays
     
     private:
 
@@ -85,10 +84,10 @@ class FBWorkingArea: public QWidget
      //FBForm *form;
 
      // params
-     FBScreenStyle style;
-     FBScreenType type;
-     FBScreenRatio ratio;
-     FBScreenResolution resolution;
+     QString style;
+     QString type;
+     QString ratio;
+     QString resolution;
 };
 
 

@@ -60,6 +60,7 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     wView = new QWidget();
     tabMenuTop->addTab(wView, tr("  View  "));
     QHBoxLayout *layView = new QHBoxLayout(wView);
+    layView->setContentsMargins(4,4,4,4);
     layView->addStretch();
     
     wTools = new QWidget();
@@ -77,38 +78,71 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     QHBoxLayout *layAbout = new QHBoxLayout(wAbout);
     layAbout->addStretch();
     
-    // All new project buttons.
-    toolbsNew.append(addTopMenuButton(wProject,":/img/new_void.png",
-                                      tr("New"),tr("New void project")));
-    dProjectNew = new FBDialogProjectNew(this); // now use only exec() for it
-    //for ()
-    //{
-    //
-    //}
-    
-    // Open and save buttons.
+    // Project buttons.
+    toolbNewVoid = addTopMenuButton(wProject,":/img/new_void.png",
+                        tr("New"),tr("New void project"));
+    QObject::connect(toolbNewVoid, SIGNAL(clicked()),
+                     this, SLOT(onNewVoidClick()));
+    toolbNewShape = addTopMenuButton(wProject,":/img/new_shp.png",
+            tr("New from Shapefile"),tr("New project from \nShapefile"));
+    QObject::connect(toolbNewShape, SIGNAL(clicked()),
+                     this, SLOT(onNewShapeClick()));
+    toolbNewNgw = addTopMenuButton(wProject,":/img/new_ngw.png",
+      tr("New from NextGIS Web"),tr("New project from \nNextGIS Web connection"));
+    QObject::connect(toolbNewNgw, SIGNAL(clicked()),
+                     this, SLOT(onNewNgwClick()));
     toolbOpen = addTopMenuButton(wProject,":/img/open.png",
-                                 tr("Open"),tr("Open .ngfp file"));
+                         tr("Open"),tr("Open .ngfp file"));
+    QObject::connect(toolbOpen, SIGNAL(clicked()),
+                     this, SLOT(onOpenClick()));
     toolbSave = addTopMenuButton(wProject,":/img/save.png",
-                                 tr("Save"),tr("Save to .ngfp file"));
+                          tr("Save"),tr("Save to .ngfp file"));
+    QObject::connect(toolbSave, SIGNAL(clicked()),
+                     this, SLOT(onSaveClick()));
     toolbSaveAs = addTopMenuButton(wProject,":/img/save_as.png",
-                                   tr("Save as"),tr("Save to .ngfp file as ..."));
+                    tr("Save as"),tr("Save to .ngfp file \nas ..."));
+    QObject::connect(toolbSaveAs, SIGNAL(clicked()),
+                     this, SLOT(onSaveAsClick()));
     
     // All view pickers and combos.
-    //for ()
-    //{
-    //
-    //}
+    for (int i=0; i<FBWorkingArea::STYLES.size(); i++)
+    {
+        toolbsScreenStyle.append(addTopMenuButton(wView,
+               FBWorkingArea::STYLES[i].second, FBWorkingArea::STYLES[i].first,
+               FBWorkingArea::STYLES[i].first + tr(" screen style"),true));
+        QObject::connect(toolbsScreenStyle.last(),SIGNAL(clicked()),
+                         this,SLOT(onScreenStylePick()));
+    }
+    addTopMenuSplitter(wView);
+    for (int i=0; i<FBWorkingArea::TYPES.size(); i++)
+    {
+        toolbsScreenType.append(addTopMenuButton(wView,
+               FBWorkingArea::TYPES[i].second, FBWorkingArea::TYPES[i].first,
+               FBWorkingArea::TYPES[i].first + tr(" screen type")));
+        QObject::connect(toolbsScreenType.last(),SIGNAL(clicked()),
+                         this,SLOT(onScreenTypePick()));
+    }
+    addTopMenuSplitter(wView);
+    comboScreenRatio = addTopMenuCombo(wView,tr("Aspect ratio"),
+                                       FBWorkingArea::RATIOS);
+    QObject::connect(comboScreenRatio,SIGNAL(currentIndexChanged(int)),
+                     this,SLOT(onScreenRatioSelect(int)));
+    comboScreenResol = addTopMenuCombo(wView,tr("Resolution"),
+                                       FBWorkingArea::RESOLS);
+    QObject::connect(comboScreenResol,SIGNAL(currentIndexChanged(int)),
+                     this,SLOT(onScreenResolSelect(int)));
 
     // Tools.
-//    toolbUndo = addTopMenuButton(wTools,":/img/undo.png",
-//                         tr("Undo"),tr("Cancel last form operation"));
-//    toolbRedo = addTopMenuButton(wTools,":/img/redo.png",
-//                         tr("Redo"),tr("Return last canceled form operation"));
+    toolbUndo = addTopMenuButton(wTools,":/img/undo.png",
+                    tr("Undo"),tr("Cancel last form \noperation"),false);
+    toolbRedo = addTopMenuButton(wTools,":/img/redo.png",
+                    tr("Redo"),tr("Return last canceld \nform operation"),false);
+    addTopMenuSplitter(wTools);
     toolbClearScreen = addTopMenuButton(wTools,":/img/clear_screen.png",
-                         tr("Clear screen"),tr("Clear all screen elements"));
+                      tr("Clear screen"),tr("Clear all screen \nelements"),false);
     toolbDeleteElem = addTopMenuButton(wTools,":/img/delete_elem.png",
-                         tr("Delete element"),tr("Delete selected element"));
+                      tr("Delete element"),tr("Delete selected \nelement"),false);
+    addTopMenuSplitter(wTools);
     //for ()
     //{
     //
@@ -126,13 +160,54 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     wMenuLeft->setObjectName("wMenuLeft");
     wMenuLeft->setMaximumWidth(240);
     wMenuLeft->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
+
+    butArrowLeft = new QPushButton(wMenuLeft);
+    butArrowLeft->setIcon(QIcon(":/img/arrow_left.png"));
+    butArrowLeft->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Minimum);
+    //butArrowLeft->setAlignment(Qt::AlignTop);
+    butArrowLeft->setFlat(true);
+    butArrowLeft->setCursor(Qt::PointingHandCursor);
+    QObject::connect(butArrowLeft,SIGNAL(clicked()),
+                     this,SLOT(onLeftArrowClick()));
+
+    treeLeftFull = new QTreeWidget(wMenuLeft);
+    treeLeftFull->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
+    treeLeftFull->setFont(QFont("Candara",FB_GUI_FONTSIZE_NORMAL));
+    treeLeftFull->setColumnCount(1);
+    treeLeftFull->setHeaderHidden(true);
+    treeLeftFull->setCursor(Qt::PointingHandCursor);
+    treeLeftFull->setFocusPolicy(Qt::NoFocus); // so not to show dotted frame
+    treeLeftFull->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    treeLeftShort = new QTreeWidget(wMenuLeft);
+    treeLeftShort->setMaximumWidth(35);
+    treeLeftShort->setMinimumWidth(35);
+    treeLeftShort->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
+    treeLeftShort->setIndentation(0);
+    treeLeftShort->setItemsExpandable(false);
+    treeLeftShort->setColumnCount(1);
+    treeLeftShort->setHeaderHidden(true);
+    treeLeftShort->setCursor(Qt::PointingHandCursor);
+    treeLeftShort->setFocusPolicy(Qt::NoFocus);
+    treeLeftShort->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
     QHBoxLayout *lhMenuLeft = new QHBoxLayout(wMenuLeft);
+    QVBoxLayout *lvMenuLeft1 = new QVBoxLayout();
+    QVBoxLayout *lvMenuLeft2 = new QVBoxLayout();
+    lvMenuLeft1->addWidget(treeLeftFull);
+    lvMenuLeft1->addWidget(treeLeftShort);
+    lvMenuLeft2->addWidget(butArrowLeft);
+    lvMenuLeft2->addStretch();
+    lhMenuLeft->addLayout(lvMenuLeft1);
+    lhMenuLeft->addLayout(lvMenuLeft2);
 
     //registerAllElements();
     //for ()
     //{
         
     //}
+
+    this->flipLeftMenu(true); // just open menu
     
     //----------------------------------------------------------------------
     //                              Right menu
@@ -143,13 +218,43 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     wMenuRight->setObjectName("wMenuRight");
     wMenuRight->setMaximumWidth(300);
     wMenuRight->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
+    //wMenuRight->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+
+    butArrowRight = new QPushButton(wMenuRight);
+    butArrowRight->setIcon(QIcon(":/img/arrow_right.png"));
+    butArrowRight->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Minimum);
+    butArrowRight->setFlat(true);
+    butArrowRight->setCursor(Qt::PointingHandCursor);
+    QObject::connect(butArrowRight,SIGNAL(clicked()),
+            this,SLOT(onRightArrowClick()));
+
+    labRight = new QLabel(wMenuRight);
+    labRight->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Minimum);
+    labRight->setAlignment(Qt::AlignCenter);
+    labRight->setFont(QFont("Candara",FB_GUI_FONTSIZE_NORMAL));
+
+    this->setRightMenuCaption(false);
+
     QHBoxLayout *lhMenuRight = new QHBoxLayout(wMenuRight);
+    QVBoxLayout *lvRight1 = new QVBoxLayout();
+    vlRight = new QVBoxLayout();
+    lvRight1->addWidget(butArrowRight);
+    lvRight1->addStretch();
+    lhMenuRight->addLayout(lvRight1);
+    vlRight->addWidget(labRight);
+    vlRight->addStretch();
+    lhMenuRight->addLayout(vlRight);
+
+    this->flipRightMenu(true); // just open menu
     
     //----------------------------------------------------------------------
     //                              Working area
     //----------------------------------------------------------------------
     
     wWorkingArea = new FBWorkingArea(this);
+    // Set default for app screen's style.
+    this->onScreenStylePick(); // sets style to first occurs and rewrite
+    this->onScreenTypePick();  // FBWorkingArea defaults
     
     //----------------------------------------------------------------------
     //                              Other gui
@@ -231,12 +336,77 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
                              "border-top-right-radius: 4px;"
                              "border-bottom-right-radius: 4px;}");
 
+    butArrowLeft->setStyleSheet("QPushButton:default{border:none;}"
+                             "QPushButton:flat{border:none;}"
+                             "QPushButton:checked{border:none;}");
+
+    treeLeftFull->setStyleSheet("QTreeWidget"
+                              "{"
+                                  "border: none;"
+                                  "icon-size: 20px;"
+                              "}"
+                              "QTreeView::branch:has-children:opened"
+                              "{"
+                                   "image: url(:/img/arrow_open.png);"
+                              "}"
+                              "QTreeView::branch:has-children:closed"
+                              "{"
+                                   "image: url(:/img/arrow_close.png);"
+                              "}"
+                              "QTreeView::branch:!has-children:opened"
+                              "{"
+                                   "image: none;"
+                              "}"
+                              "QTreeView::branch:!has-children:closed"
+                              "{"
+                                   "image: none;"
+                              "}"
+                              "QTreeWidget::item"
+                              "{"
+                                  "border: none;"
+                                  "padding-top: 5;"
+                                  "padding-bottom: 5;"
+                              "}"
+                              "QTreeWidget::item:has-children"
+                              "{"
+                                  //"text-decoration: underline;"
+                                  "color: "+QString(FB_COLOR_LIGHTGREY)+";"
+                              "}"
+                              "QTreeWidget::item:!has-children"
+                              "{"
+                                  "color: black;"
+                              "}"
+                              "QTreeWidget::item:has-children:hover"
+                              "{"
+                                  "background-color: white;"
+                              "}"
+                              "QTreeWidget::item:!has-children:hover"
+                              "{"
+                                  "background-color: "+FB_COLOR_DARKBLUE+";"
+                              "}"
+                              "QTreeWidget::item:has-children:selected"
+                              "{"
+                                  "background-color: white;"
+                                  "color: "+FB_COLOR_LIGHTGREY+";"
+                              "}"
+                              "QTreeWidget::item:!has-children:selected"
+                              "{"
+                                  "background-color: "+FB_COLOR_LIGHTBLUE+";"
+                                  "color: black;"
+                              "}");
+
+    treeLeftShort->setStyleSheet(treeLeftFull->styleSheet());
+
     wMenuRight->setStyleSheet("QWidget#"+wMenuRight->objectName()+"{"
                               "border-top: 1px solid "+FB_COLOR_MEDIUMGREY+";"
                               "border-bottom: 1px solid "+FB_COLOR_MEDIUMGREY+";"
                               "border-left: 1px solid "+FB_COLOR_MEDIUMGREY+";"
                               "border-top-left-radius: 4px;"
                               "border-bottom-left-radius: 4px; }");
+
+    butArrowRight->setStyleSheet("QPushButton:default{border:none;}"
+                             "QPushButton:flat{border:none;}"
+                             "QPushButton:checked{border:none;}");
 
     labBottom->setStyleSheet("QLabel {color: "+QString(FB_COLOR_DARKGREY)+"}");
 
@@ -266,7 +436,27 @@ void FB::onElemPress ()
 
 }
 
-void FB::onNewClick ()
+void FB::onNewVoidClick ()
+{
+    toolbNewVoid->setDown(true);
+
+    if (askToLeaveUnsafeProject())
+    {
+        toolbNewVoid->setDown(false);
+        return;
+    }
+
+
+
+    toolbNewVoid->setDown(false);
+}
+
+void FB::onNewShapeClick ()
+{
+
+}
+
+void FB::onNewNgwClick ()
 {
 
 }
@@ -286,24 +476,65 @@ void FB::onSaveAsClick ()
 
 }
 
+
+// No problems to call as simple method, while we check obj for NULL here.
 void FB::onScreenStylePick ()
 {
-
+    QObject *obj = this->sender();
+    if (obj == NULL)
+    {
+        // We do not need to have default screen style, for example
+        // at app construction time - we must render grey screen.
+        // So there is no change style call here.
+        return;
+    }
+    int index = 0;
+    for (int i=0; i<toolbsScreenStyle.size(); i++)
+    {
+        // Find the buuton which is pressed now.
+        if (toolbsScreenStyle[i] == static_cast<QToolButton*>(obj))
+            index = i;
+        else
+            toolbsScreenStyle[i]->setDown(false);
+    }
+    static_cast<QToolButton*>(obj)->setDown(true);
+    wWorkingArea->changeStyle(toolbsScreenStyle[index]->text());
 }
 
+
+// No problems to call as simple method, while we check obj for NULL here.
 void FB::onScreenTypePick ()
 {
-
+    QObject *obj = this->sender();
+    if (obj == NULL)
+    {
+        // We must always have the default screen type - so here we set
+        // the first occur type in the array, which must be "maximized".
+        toolbsScreenType.first()->setDown(true);
+        wWorkingArea->changeStyle(toolbsScreenType.first()->text());
+        return;
+    }
+    int index = 0;
+    for (int i=0; i<toolbsScreenType.size(); i++)
+    {
+        // Find the buuton which is pressed now.
+        if (toolbsScreenType[i] == static_cast<QToolButton*>(obj))
+            index = i;
+        else
+            toolbsScreenType[i]->setDown(false);
+    }
+    static_cast<QToolButton*>(obj)->setDown(true);
+    wWorkingArea->changeType(toolbsScreenType[index]->text());
 }
 
-void FB::onScreenRatioSelect ()
+void FB::onScreenRatioSelect (int index)
 {
-
+    wWorkingArea->changeRatio(index); // index fully corresponds to array of ratios
 }
 
-void FB::onScreenResolutionSelect ()
+void FB::onScreenResolSelect (int index)
 {
-
+    wWorkingArea->changeResol(index); // index fully corresponds to array of resols
 }
 
 void FB::onUndoClick ()
@@ -343,12 +574,12 @@ void FB::onElemHighlight ()
 
 void FB::onLeftArrowClick ()
 {
-
+    this->flipLeftMenu(!treeLeftFull->isVisible());
 }
 
 void FB::onRightArrowClick ()
 {
-
+    this->flipRightMenu(!labRight->isVisible());
 }
 
 
@@ -367,7 +598,8 @@ void FB::showError (QString msg)
 }
 int FB::showBox (QString msg, QString caption)
 {
-    QMessageBox msgBox;
+    QMessageBox msgBox; //(this);
+    //msgBox.setStyleSheet(); // TODO: set OS stylesheet. Now is parent's one.
     msgBox.setText(msg);
     msgBox.setWindowTitle(caption);
     QMessageBox::Icon icon;
@@ -392,43 +624,44 @@ int FB::showBox (QString msg, QString caption)
     return msgBox.exec();
 }
 
+bool FB::askToLeaveUnsafeProject ()
+{
+    return (project != NULL
+            && project->isSaveRequired()
+            && this->showWarning(tr("Project hasn't been saved. Continue?"))
+                != QMessageBox::Ok);
+}
+
 
 /****************************************************************************/
 /*                        Private FB methods                                */
 /****************************************************************************/
 
-
-//void FB::addTopSwitcher ()
-//{
-//
-//}
-
-//void FB::addTopSwitcherGroup ()
-//{
-//
-//}
-
-//void FB::addTopCombo ()
-//{
-//
-//}
-
 // Create new button for any tab of the top menu.
-QToolButton *FB::addTopMenuButton (QWidget *parentTab, QString imgPath, QString name,
-                                   QString description)
+QToolButton *FB::addTopMenuButton (QWidget *parentTab, QString imgPath,
+                                   QString name, QString description, bool small)
 {
     QToolButton *but = new QToolButton(parentTab);
-    QHBoxLayout *parentHl = (QHBoxLayout*)parentTab->layout();
+    QHBoxLayout *hlParent = (QHBoxLayout*)parentTab->layout();
     but->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
     but->setAutoRaise(true);
     but->setIcon(QIcon(imgPath));
-    //but->setText(name);
+    but->setText(name); // necessarily do this because it will store correspondance
+                        // to screen arrays for screen menu buttons
     but->setFont(QFont("Candara",FB_GUI_FONTSIZE_SMALL));
-    but->setIconSize(QSize(60,60));
-    but->setMaximumWidth(90);
+    if (small)
+    {
+        but->setIconSize(QSize(60,60));
+        but->setMaximumWidth(45);
+    }
+    else
+    {
+        but->setIconSize(QSize(60,60));
+        but->setMaximumWidth(90);
+    }
     //but->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     but->setCursor(Qt::PointingHandCursor);
-    parentHl->insertWidget(parentHl->count()-1,but); // last is stretch item.
+    hlParent->insertWidget(hlParent->count()-1,but); // last is stretch item.
     but->setStyleSheet("QToolButton"
                        "{"
                            "border: none;"
@@ -439,7 +672,7 @@ QToolButton *FB::addTopMenuButton (QWidget *parentTab, QString imgPath, QString 
                        "}"
                        "QToolButton:pressed"
                        "{"
-                           "background-color: "+FB_COLOR_DARKBLUE+";"
+                           "background-color: "+FB_COLOR_LIGHTBLUE+";"
                        "}"
                        "QToolButton:disabled"
                        "{"
@@ -449,6 +682,140 @@ QToolButton *FB::addTopMenuButton (QWidget *parentTab, QString imgPath, QString 
     return but;
 }
 
+QComboBox *FB::addTopMenuCombo (QWidget *parentTab, QString caption,
+                                QStringList values)
+{
+    QComboBox *combo = new QComboBox(parentTab);
+    combo->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Fixed);
+    combo->setFont(QFont("Segoe UI",FB_GUI_FONTSIZE_NORMAL));
+    for (int i=0; i<values.size(); i++)
+    {
+        combo->addItem(values[i]);
+    }
+
+    QLabel *lab = new QLabel(parentTab);
+    lab->setText(caption);
+    lab->setAlignment(Qt::AlignCenter);
+    lab->setFont(QFont("Candara",FB_GUI_FONTSIZE_SMALL));
+    lab->setStyleSheet("QLabel {color: "+QString(FB_COLOR_MEDIUMGREY)+"}");
+    lab->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Fixed);
+
+    QHBoxLayout *hlParent = (QHBoxLayout*)parentTab->layout();
+    QVBoxLayout *vl = new QVBoxLayout();
+    vl->setContentsMargins(0,0,0,0);
+    vl->setSpacing(10);
+    vl->addWidget(combo);
+    vl->addWidget(lab);
+    hlParent->insertLayout(hlParent->count()-1,vl);
+
+    return combo;
+}
+
+
+void FB::addTopMenuSplitter (QWidget *parentTab)
+{
+    QWidget *wid = new QWidget(wView);
+    wid->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Expanding);
+    wid->setFixedWidth(1);
+    wid->setStyleSheet("QWidget {background-color: "
+                             +QString(FB_COLOR_LIGHTMEDIUMGREY)+"}");
+    QHBoxLayout *hlParent = (QHBoxLayout*)parentTab->layout();
+    hlParent->insertWidget(hlParent->count()-1,wid); // last is stretch item.
+}
+
+
+void FB::flipLeftMenu (bool isFull)
+{
+    treeLeftFull->setVisible(isFull);
+    treeLeftShort->setVisible(!isFull);
+    if (!isFull)
+        butArrowLeft->setIcon(QIcon(":/img/arrow_right.png"));
+    else
+        butArrowLeft->setIcon(QIcon(":/img/arrow_left.png"));
+
+    // TODO: open and select elems in the one tree, that was selected in another.
+}
+
+void FB::flipRightMenu (bool isFull)
+{
+    labRight->setVisible(isFull);
+    for (int i=0; i<tablesRight.size(); i++)
+    {
+        tablesRight[i]->setVisible(isFull);
+    }
+    if (!isFull)
+        butArrowRight->setIcon(QIcon(":/img/arrow_left.png"));
+    else
+        butArrowRight->setIcon(QIcon(":/img/arrow_right.png"));
+}
+
+
+QTableWidget* FB::addRightMenuTable (int rowCount)
+{
+    QTableWidget *table = new QTableWidget(wMenuRight);
+    table->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
+    table->setFocusPolicy(Qt::NoFocus);
+    table->setFont(QFont("Candara",FB_GUI_FONTSIZE_NORMAL));
+    table->verticalHeader()->hide();
+    table->horizontalHeader()->hide();
+    table->setRowCount(rowCount);
+    table->setColumnCount(2);
+    table->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+    table->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    table->horizontalHeader()->setSectionResizeMode(0,QHeaderView::Stretch);
+    table->setStyleSheet("QTableWidget"
+                         "{"
+                             "border: none;"
+                             "selection-background-color: "
+                         +QString(FB_COLOR_LIGHTBLUE)+";"
+                             "gridline-color: white;"
+                             "color: "+FB_COLOR_LIGHTGREY+";"
+                         "}"
+                         "QTableWidget::item"
+                         "{"
+                    //"background-color:"
+                    //"qlineargradient(x1: 0, y1: 0.5, x2: 1, y2: 0.5,"
+                    //"stop: 0 rgb(240,240,240), stop: 1 rgb(255,255,255));"
+                      "border: 1px solid "+FB_COLOR_LIGHTMEDIUMGREY+";"
+                         "}"
+                         "QTableWidget::item:selected"
+                         "{"
+                             "border: 1px solid white;"
+                           "background-color: "+FB_COLOR_LIGHTBLUE+";"
+                          "}"
+                          "QTableWidget::item:focus"
+                          "{"
+                                //"border: 2px solid red;"
+                           "}");
+
+    vlRight->insertWidget(vlRight->count()-1,table); // before stretch item
+    tablesRight.append(table);
+    return table;
+}
+
+
+void FB::setRightMenuCaption (bool isElemSelected)
+{
+    /*
+    if (isElemSelected)
+    {
+        labRight->setStyleSheet("QLabel{border: none;color: "
+                                +QString(FB_COLOR_DARKBLUE)+";}");
+        FBElem *elemSelected = wWorkingArea->getForm()->getElemSelectedPtr();
+        if (elemSelected != NULL)
+            labRight->setText(elemSelected->getDisplayName());
+        else
+            labRight->setText("...");
+    }
+    else
+    {*/
+        labRight->setStyleSheet("QLabel{border: none;color: "
+                                +QString(FB_COLOR_LIGHTBLUE)+";}");
+        labRight->setText(tr("Select an element ..."));
+    /*}*/
+
+}
+
 
 void FB::updateEnableness ()
 {
@@ -456,10 +823,13 @@ void FB::updateEnableness ()
     {
         toolbSave->setEnabled(false);
         toolbSaveAs->setEnabled(false);
+        toolbClearScreen->setEnabled(false);
+        toolbDeleteElem->setEnabled(false);
     }
     else
     {
         toolbSaveAs->setEnabled(true);
+        toolbClearScreen->setEnabled(true);
         if (project->wasFirstSaved())
         {
             toolbSave->setEnabled(true);
