@@ -28,7 +28,7 @@
 #include <QScrollArea>
 
 #include "fb_general.h"
-//#include "form.h"
+#include "form.h"
 
 
 #define FB_SCREEN_ANDROID "Android"
@@ -42,10 +42,58 @@
 #define FB_SCREEN_TABLETLAND "Tablet landscape"
 
 
+/*
+enum FBScreenType
+{
+    FBWindow, FBPhone, FBTablet
+};
+QMap<FBScreenType,QPair<QString,QString> > screenTypes;
+
+QMap<int,QPair<short,short> > screenRatios;
+
+QMap<int,QPair<int,int> > screenResols;
+
+
+class FBFactoryScreen
+{
+    public:
+     static QList<FBFactoryScreen*> fctsScreen;
+     static void registerScreen (FBFactoryScreen* fct) {fctsScreen.append(fct);}
+     FBFactoryScreen (QString name, QString imgPath);
+    protected:
+     QList<FBScreenType> types;
+     QList<QString> ratios;
+     QList<QString> resols;
+};
+
+class FBScreen: public QWidget
+{
+    public:
+
+     FBScreen (FBWorkingArea *parent);
+     ~FBScreen () {}
+     virtual void applyToScreen (QWidget *wScreen, QScrollArea *scrollScreen);
+    protected:
+
+};
+
+class FBScreenAndroid: public FBScreen
+{
+    public:
+     virtual void applyToScreen (QWidget *wScreen, QScrollArea *scrollScreen);
+    protected:
+     QVBoxLayout *vlScreen;
+     QList<QLabel*> labsScreenDecor;
+};
+*/
+
 /**
  * Final screen class which contains the form and render it.
  *
- * Screen can change its appearance: decoration, sizes, "resolution", etc.
+ * Screen can change its appearance: decoration, sizes, "resolution", etc. We do
+ * not make derived classes for each screen, because that means that we must
+ * recreate such classes' objects and reinsert them into main window each time we
+ * want to change appearance, type, etc., while the form will be still untouched.
  */
 class FBWorkingArea: public QWidget
 {
@@ -62,8 +110,8 @@ class FBWorkingArea: public QWidget
      FBWorkingArea (QWidget *parent);
      ~FBWorkingArea () {}
 
-     //void setForm (FBForm* form);
-     //void removeForm ();
+     void setForm (FBForm* form);
+     void removeForm ();
 
      void changeStyle (QString styleStr);
      void changeType (QString typeStr);
@@ -75,13 +123,13 @@ class FBWorkingArea: public QWidget
      // visual
      QGridLayout *glWorkingArea;
      QList<QWidget*> wsWorkingArea;
-     QWidget *wScreen;
-     QVBoxLayout *vlScreen;
+     QWidget *wScreen; // parent widget for decor labels and scroll area
+     QVBoxLayout *vlScreen; // the layout of screen widget
      QList<QLabel*> labsScreenDecor;
-     QScrollArea *scrollScreen;
 
      // form
-     //FBForm *form;
+     QScrollArea *scrollScreen; // actual parent of form
+     FBForm *form;
 
      // params
      QString style;

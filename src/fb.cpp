@@ -23,10 +23,11 @@
 #include "ui_fb.h"
 
 
-/**
- * Constructor. Creates all GUI. Registers all factories and creates according
- * GUI components.
- */
+FB::~FB()
+{
+    delete ui;
+}
+
 FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
 {
     //----------------------------------------------------------------------
@@ -266,6 +267,8 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     labBottom->setFont(QFont("Candara",FB_GUI_FONTSIZE_NORMAL));
     labBottom->setText(tr("  Create new or open existing project ..."));
 
+    dlgProgress = new FBDialogProgress(this);
+
     //----------------------------------------------------------------------
     //                            Layout all window
     //----------------------------------------------------------------------
@@ -414,32 +417,24 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     //                      Other general gui settings
     //----------------------------------------------------------------------
 
-    updateEnableness();
-}
-
-
-/**
- * Destructor
- */
-FB::~FB()
-{
-    delete ui;
+    this->updateEnableness();
 }
 
 
 /****************************************************************************/
-/*                          Private FB slots                                */
+/*                         Private main FB slots                            */
 /****************************************************************************/
+
 
 void FB::onElemPress ()
 {
 
 }
 
+
 void FB::onNewVoidClick ()
 {
     toolbNewVoid->setDown(true);
-
     if (askToLeaveUnsafeProject())
     {
         toolbNewVoid->setDown(false);
@@ -451,25 +446,97 @@ void FB::onNewVoidClick ()
     toolbNewVoid->setDown(false);
 }
 
+
 void FB::onNewShapeClick ()
 {
 
 }
+
 
 void FB::onNewNgwClick ()
 {
 
 }
 
+
 void FB::onOpenClick ()
 {
+    toolbOpen->setDown(true);
+    if (askToLeaveUnsafeProject())
+    {
+        toolbOpen->setDown(false);
+        return;
+    }
 
+    QFileDialog dialog(this);
+    dialog.setAcceptMode(QFileDialog::AcceptOpen);
+    dialog.setFileMode(QFileDialog::ExistingFile);
+    dialog.setViewMode(QFileDialog::List);
+    dialog.setDefaultSuffix(FB_PROJECT_EXTENSION);
+    dialog.setNameFilter("*."+QString(FB_PROJECT_EXTENSION));
+    dialog.setWindowTitle(tr("Open project ..."));
+    QString lastPath = this->getSettingLastPath();
+    if (lastPath == "")
+    {
+        dialog.setDirectory(QDir());
+    }
+    else
+    {
+        QFileInfo fileInfo(lastPath);
+        dialog.setDirectory(fileInfo.absoluteDir());
+    }
+    QObject::connect(&dialog, SIGNAL(finished(int)), // to do common gui actions after
+                     this, SLOT(onProjDialogFinished(int)));
+
+    // Show dialog.
+    if (dialog.exec())
+    {
+        QString strFullPath = dialog.selectedFiles().first();
+        if (!strFullPath.endsWith("." + QString(FB_PROJECT_EXTENSION),
+                                  Qt::CaseInsensitive))
+        {
+            this->showError(tr("Wrong file extension. Must be .")
+                          + QString(FB_PROJECT_EXTENSION));
+            return;
+        }
+
+        // Create new project.
+        FBProject *projNew = new FBProject();
+//        QObject::connect(projNew, SIGNAL(changeProgress(int)),
+//                         dlgProgress, SLOT(onChangeProgress(int)));
+        FBErr err = projNew->open(strFullPath);
+        if (err != FBErrNone)
+        {
+            delete projNew;
+            this->showErrorFull(tr("Unable to open project!"), err);
+            return;
+        }
+
+        // Replace new project, deleting old one.
+        delete project;
+        project = projNew;
+
+        // Delete old form.
+
+
+        // Create and show new form.
+
+        // Fill form with elems from project.
+
+        // Common actions.
+        this->updateSettings();
+        this->updateMenus();
+        this->updateEnableness();
+        this->setBottomString(".............................");
+    }
 }
+
 
 void FB::onSaveClick ()
 {
 
 }
+
 
 void FB::onSaveAsClick ()
 {
@@ -584,22 +651,10 @@ void FB::onRightArrowClick ()
 
 
 // Show messages.
-void FB::showInfo(QString msg)
-{
-    showBox(msg,tr("Information"));
-}
-int FB::showWarning (QString msg)
-{
-    return showBox(msg,tr("Warning"));
-}
-void FB::showError (QString msg)
-{
-    showBox(msg,tr("Error"));
-}
 int FB::showBox (QString msg, QString caption)
 {
-    QMessageBox msgBox; //(this);
-    //msgBox.setStyleSheet(); // TODO: set OS stylesheet. Now is parent's one.
+    QMessageBox msgBox(this);
+    msgBox.setStyleSheet("");
     msgBox.setText(msg);
     msgBox.setWindowTitle(caption);
     QMessageBox::Icon icon;
@@ -624,6 +679,36 @@ int FB::showBox (QString msg, QString caption)
     return msgBox.exec();
 }
 
+void FB::showInfo(QString msg)
+{
+    showBox(msg,tr("Information"));
+}
+
+int FB::showWarning (QString msg)
+{
+    return showBox(msg,tr("Warning"));
+}
+
+void FB::showError (QString msg)
+{
+    showBox(msg,tr("Error"));
+}
+
+int FB::showErrorFull (QString msgMain, FBErr err)
+{
+    QMessageBox msgBox(this);
+    msgBox.setStyleSheet("");
+    msgBox.setWindowTitle(tr("Error"));
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.setIcon(QMessageBox::Critical);
+    msgBox.setText(msgMain);
+    msgBox.setInformativeText(this->getErrString(err));
+    msgBox.setDetailedText(FBProject::CUR_ERR_INFO);
+    FBProject::CUR_ERR_INFO = "";
+    return msgBox.exec();
+}
+
+
 bool FB::askToLeaveUnsafeProject ()
 {
     return (project != NULL
@@ -633,9 +718,22 @@ bool FB::askToLeaveUnsafeProject ()
 }
 
 
+// Some GUI actions after closing project dialogs.
+void FB::onProjDialogFinished (int code)
+{
+    toolbNewVoid->setDown(false);
+    toolbNewShape->setDown(false);
+    toolbNewNgw->setDown(false);
+    toolbOpen->setDown(false);
+    toolbSave->setDown(false);
+    toolbSaveAs->setDown(false);
+}
+
+
 /****************************************************************************/
 /*                        Private FB methods                                */
 /****************************************************************************/
+
 
 // Create new button for any tab of the top menu.
 QToolButton *FB::addTopMenuButton (QWidget *parentTab, QString imgPath,
@@ -838,13 +936,45 @@ void FB::updateEnableness ()
 }
 
 
+void FB::updateMenus ()
+{
+
+}
+
+
+void FB::setBottomString (QString str)
+{
+    labBottom->setText(" " + str);
+}
+
+
+void FB::updateSettings ()
+{
+
+}
+
+
+QString FB::getSettingLastPath ()
+{
+    return "";
+}
+
+
+QString FB::getErrString (FBErr err)
+{
+    return "...";
+}
+
 
 /****************************************************************************/
-/*                                                                */
+/*                           New project dialog                             */
 /****************************************************************************/
-/**
- *
- */
+
+FBDialogProjectNew::~FBDialogProjectNew ()
+{
+
+}
+
 FBDialogProjectNew::FBDialogProjectNew (QWidget *parent): QDialog(parent)
 {
     this->setWindowTitle(tr("Set layer parameters in new project ..."));
@@ -875,28 +1005,26 @@ FBDialogProjectNew::FBDialogProjectNew (QWidget *parent): QDialog(parent)
 }
 
 
-/*
-FBProject *FBDialogProjectNew::exec ()
+/****************************************************************************/
+/*                            Progress dialog                               */
+/****************************************************************************/
+
+FBDialogProgress::~FBDialogProgress()
 {
-    int ret = QDialog::exec();
 
-    if (ret)
-    {
-        FBProject *newProj = new FBProjectVoid(comboGeom->currentText());
-        FBErr err = newProj->create();
-        if (err == FBErrNone)
-        {
-            return newProj;
-        }
-        else
-        {
-            delete newProj;
-            emit sendMsg(tr("Unable create project"));
-        }
-    }
+}
 
-    return NULL;
-}*/
+FBDialogProgress::FBDialogProgress (QWidget *parent): QDialog(parent)
+{
+
+}
+
+
+
+
+
+
+
 
 
 

@@ -48,7 +48,7 @@ main.cpp
 fb.cpp
 project.cpp
 screen.cpp
-#form.cpp
+form.cpp
 #factory.cpp
 appicon.rc
 )

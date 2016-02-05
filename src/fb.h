@@ -23,7 +23,10 @@
 #define FB_H
 
 #include <QWidget>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
 #include <QDialog>
+#include <QFileDialog>
 #include <QMessageBox>
 #include <QLabel>
 #include <QComboBox>
@@ -33,8 +36,8 @@
 #include <QTableWidget>
 #include <QScrollArea>
 #include <QToolButton>
-#include <QHBoxLayout>
-#include <QVBoxLayout>
+
+#include <QFileInfo>
 
 #include "fb_general.h"
 #include "project.h"
@@ -57,33 +60,32 @@ namespace Ui
 
 
 /**
- *
+ * New project's dialog.
  */
 class FBDialogProjectNew: public QDialog
 {
     Q_OBJECT
-
     public:
      FBDialogProjectNew (QWidget *parent);
-     ~FBDialogProjectNew () {}
-
-    //public slots:
-     //virtual FBProject *exec ();
-
+     ~FBDialogProjectNew ();
     private:
      QComboBox *comboGeom;
 };
 
+
 /**
- *
+ * Progress dialog.
  */
 class FBDialogProgress: public QDialog
 {
-
+    public:
+     FBDialogProgress (QWidget *parent);
+     ~FBDialogProgress();
 };
 
+
 /**
- *
+ * About dialog.
  */
 class FBDialogAbout: public QDialog
 {
@@ -130,11 +132,13 @@ class FB: public QWidget
      void onElemHighlight ();
      void onLeftArrowClick ();
      void onRightArrowClick ();
+     int showBox (QString msg, QString caption);
      void showInfo (QString msg);
      int showWarning (QString msg);
      void showError (QString msg);
-     int showBox (QString msg, QString caption);
+     int showErrorFull (QString msgMain, FBErr err);
      bool askToLeaveUnsafeProject ();
+     void onProjDialogFinished (int code);
 
     private: // methods
 
@@ -149,6 +153,15 @@ class FB: public QWidget
      QTableWidget* addRightMenuTable (int rowCount);
      void setRightMenuCaption (bool isElemSelected);
      void updateEnableness ();
+     void updateMenus ();
+     void setBottomString (QString str);
+
+     // settings
+     void updateSettings ();
+     QString getSettingLastPath ();
+
+     //errors
+     QString getErrString (FBErr err);
 
     private: // fields
 
@@ -201,44 +214,8 @@ class FB: public QWidget
           
      // other gui
      QLabel *labBottom;
+     FBDialogProgress *dlgProgress;
 };
-
-
-/*
-class FBGui
-{
-    public:
-     FBGui(FB *fbPtr);
-     virtual void arrangeWidgets () = 0;
-};
-
-class FBGuiButton: public FBGui, public QToolButton
-{
-    public:
-     FBGuiButton(FB *fbPtr, QWidget parentTab, QString imgPath,
-                 QString caption, QString hint);
-
-};
-
-class FBGuiSwitcherGroup: public FBGui
-{
-    public:
-
-    protected:
-     QList<FBGuiButton*> switchers;
-
-};
-
-class FBGuiCombo: public FBGui
-{
-
-};
-
-class FBGuiTreeItem: public FBGui, public QTreeWidgetItem
-{
-
-};
-*/
 
 
 #endif //FB_H

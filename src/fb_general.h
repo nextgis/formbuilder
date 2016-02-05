@@ -36,7 +36,8 @@
 
 enum FBErr
 {
-    FBErrNone, FBErrUnableCreateProject, FBErrAlreadyInited
+    FBErrNone, FBErrUnsupported, FBErrUnableCreateProject, FBErrAlreadyInited,
+    FBErrWrongVersion, FBErrIncorrectJson, FBErrIncorrectFileStructure,
 };
 
 

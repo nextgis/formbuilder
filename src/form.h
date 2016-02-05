@@ -28,6 +28,9 @@
 
 #include "fb_general.h"
 
+class FBElem;
+class FBForm;
+
 
 /**
  * Attributes.
@@ -38,7 +41,6 @@
 class FBAttr: public QObject
 {
     Q_OBJECT
-    
     public:
      FBAttr ();
      virtual ~FBAttr ();
@@ -47,26 +49,30 @@ class FBAttr: public QObject
      virtual QWidget *getWidget () = 0;
     
     protected:
-     FBElem* elemPtr;
+     FBElem *elemPtr;
     
     signals: 
      void valueChanged (); // in order to signalize to other attrs of this element
                            // that they must be changed
 };
 
+/*
 class FBAttrWidget: public FBAttr
 {
+    Q_OBJECT
     protected slots:
      void onEditEnd ();
 };
 
 class FBAttrDialog: public FBAttr
 {
+    Q_OBJECT
     public:
      virtual QPushButton *getWidget () = 0;
     protected slots:
      void onEditStart ();
 };
+*/
 
 
 /**
@@ -74,7 +80,6 @@ class FBAttrDialog: public FBAttr
  * Elements.
  *
  */
-
 // Default elem - has its own graphical representation so it will be possible
 // for form to manage unknown-unsupported elements in common way.
 class FBElem: public QWidget
@@ -84,12 +89,13 @@ class FBElem: public QWidget
      virtual ~FBElem ();
      virtual Json::Value toJson ();
      virtual FBErr fromJson ();
-     void changeStyle (FBScreenStyle style);
+//     void changeStyle (FBScreenStyle style);
     
     protected:
      FBForm* formPtr;
 };
 
+/*
 // Abstract simple element for displaying.
 class FBElemDecor: protected FBElem
 {
@@ -125,6 +131,7 @@ class FBElemCompound: protected FBElem
      QList<FBElem*> elemPtrs;
        
 };
+*/
 
 
 /**
@@ -152,6 +159,9 @@ class FBInsertWidget: public QWidget
  *
  * The special insert-element is placed between any pair of elements  so it can
  * be possible to move them via mouse.
+ *
+ * The form, as well as its elements and attributes, has specific methods of
+ * converting self to/from JSON.
  *
  */
 class FBForm: public QWidget

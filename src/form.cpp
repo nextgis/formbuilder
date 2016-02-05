@@ -19,3 +19,43 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
+#include "form.h"
+
+
+FBElem *FBForm::SELECTED = NULL;
+bool FBForm::IS_SELECTED_MOVING = false;
+
+FBForm::~FBForm ()
+{
+
+}
+
+FBForm::FBForm ()
+{
+    /*
+            // Экран:
+        wScrollArea = new QScrollArea(ui->centerWidget);
+        layCenter->addWidget(wScrollArea);
+        wScrollArea->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+        connect(wScrollArea->verticalScrollBar(), SIGNAL(rangeChanged(int,int)),
+                this, SLOT(moveScrollBarToBottom(int, int)));
+        wScrollArea->setStyleSheet("QScrollArea{border: 0px;}");
+        widScreen = new QWidget();
+        widScreen->setStyleSheet("QWidget{background-color:rgba(0,0,0,0);}");
+        wScrollArea->setWidget(widScreen);
+        wScrollArea->setWidgetResizable(true);
+        layScreen = new QVBoxLayout(widScreen);
+        layScreen->setContentsMargins(0,0,0,0);
+        layScreen->setSpacing(0);
+
+        // В самом начале мы добавляем всего один виджет для вставки элементов.
+        FBInsertWidget *insWidget = new FBInsertWidget(widScreen);
+        layScreen->addWidget(insWidget);
+
+        // Добавляем в конец раскладки растягивающий не-виджет элемент. Не забываем
+        // об этом далее, т.к. будет просмотр в цикле всех элементов в раскладке
+        // и преобразование к QWidget, тогда как этот элемент - не виджет!
+        // Все последующие элементы-виджеты добавлять ПЕРЕД этим элементом.
+        layScreen->addStretch();
+        */
+}

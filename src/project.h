@@ -32,24 +32,44 @@
 #include "json/json.h"
 
 #include "fb_general.h"
-//#include "form.h"
+#include "form.h"
 
 // TODO: think about how to set these constants via build system:
-// Uncomment for GDAL debug output.
-#define _FB_GDAL_DEBUG "D:/nextgis/formbuilder/gdal-log.txt"
+#define _FB_GDAL_DEBUG "D:/nextgis/formbuilder/gdal-log.txt" // uncomment for GDAL
+                                                             // debug output
 #define _FB_INSTALLPATH_GDALDATA "/gdal_data"
 
-// Key names.
+// Names.
 #define FB_PROJECT_EXTENSION "ngfp"
 #define FB_PROJECT_FORM_FILENAME "form.json"
 #define FB_PROJECT_DATA_FILENAME "data.geojson"
 #define FB_PROJECT_META_FILENAME "meta.json"
+
+// Keys for JSON.
+// Change this carefully, or do not change this in future versions! These keys are
+// written in older versions of .ngfp files.
+#define FB_JSON_META_VERSION "version"
+#define FB_JSON_META_FIELDS "fields"
+#define FB_JSON_META_KEYNAME "keyname"
+#define FB_JSON_META_DATATYPE "datatype"
+#define FB_JSON_META_DISPLAY_NAME "display_name"
+#define FB_JSON_META_GEOMETRY_TYPE "geometry_type"
+#define FB_JSON_META_NGW_CONNECTION "ngw_connection"
+#define FB_JSON_META_SRS "srs"
+#define FB_JSON_META_ID "id"
+#define FB_JSON_META_LOGIN "login"
+#define FB_JSON_META_PASSWORD "password"
+#define FB_JSON_META_URL "url"
 
 
 struct FBFieldDescr // see NextGISWeb fields description syntax
 {
     QString datataype;
     QString display_name;
+    FBFieldDescr () {}
+    FBFieldDescr (QString datataype,QString display_name)
+        {this->datataype=datataype; this->display_name=display_name;}
+    //~FBFieldDescr();
 };
 
 struct FBNgwConnection
@@ -58,11 +78,15 @@ struct FBNgwConnection
     QString login;
     QString password;
     QString url;
+    FBNgwConnection () {}
+    FBNgwConnection (int id, QString login, QString password, QString url)
+        {this->id=id; this->login=login, this->password=password; this->url=url;}
+    //~FBNgwConnection();
 };
 
 
 /**
- * Abstract project class which represents its file on disk (.ngfp file).
+ * Project class which represents its file on disk (.ngfp file).
  * Project contains 1) form, 2) layer (data) and 3) metadata.
  * Note: this class does not keep the layer's data in memory (it
  * will be accessed on disk each time) and the form itself (it is owned
@@ -77,11 +101,11 @@ class FBProject
 {
     public: // static members
 
-     static void initAll ();
+     static void init ();
      static QStringList DATA_TYPES; // see NextGISWeb types syntax
      static QStringList GEOM_TYPES;
      static QList<int> SRS_TYPES;
-     static QString strCurErrInfo; // additional error text if was some
+     static QString CUR_ERR_INFO; // additional error text if was some
 
     public: // methods
 
@@ -89,65 +113,77 @@ class FBProject
      virtual ~FBProject ();
 
      // main methods
-//     virtual FBErr create (QString strPathAny) = 0;
-//     virtual FBErr saveFirst (QString strPathNgfp, FBForm *formPtr) = 0;
-//     FBErr saveAs (QString strPathNgfp, FBForm *formPtr);
-//     FBErr save (FBForm *formPtr);
-//     FBErr open (QString strPathNgfp);
-//     FBErr fillFormFromJson (FBForm *formPtr); // return form reading from disk
+     virtual FBErr create (QString anyPath) { return FBErrUnsupported; }
+     virtual FBErr saveFirst (QString ngfpFullPath,
+                              FBForm *formPtr) { return FBErrUnsupported; }
+     FBErr saveAs (QString ngfpFullPath, FBForm *formPtr);
+     FBErr save (FBForm *formPtr);
+     FBErr open (QString ngfpFullPath);
+     Json::Value readForm (QString ngfpFullPath);
+     Json::Value readMeta (QString ngfpFullPath);
+     bool checkData (QString ngfpFullPath);
 
      // info
-     bool wasFirstSaved () {return false;}
-     bool isSaveRequired () {return false;}
+     bool wasFirstSaved ();
+     bool isSaveRequired () ;
 
     protected: // methods
 
-     // working with ngfp
-//     FBErr writeFormToJson (FBForm *formPtr);
-     FBErr readJsonMeta ();
-     FBErr writeJsonMeta ();
+//     FBErr writeForm (FBForm *formPtr);
+//     FBErr writeMeta (QString strPathNgfp);
 
     protected: // fields
      
      // current state and link to the disk representation - i.e. ngfp file
      bool isInited; // whether the project had been already created or opened
-     QString ngfpPath; // if path is void - project needs to be saved first time
+     QString strNgfpPath; // if path is void - project needs to be saved first time
 
      // project's images
-     // QList<QImage> images;
+//     QList<QImage> images;
 
      // project's metadata
      QMap<QString,FBFieldDescr> fields; // keyname is a unique key in the map
      QString geometry_type;
      FBNgwConnection ngw_connection; // it is here because of ngfp file syntax
      int srs;
-     float version;
+     QString version;
 };
 
 
+/*
 class FBProjectVoid: public FBProject
 {
     public:
      FBProjectVoid (QString geometry_type);
-     ~FBProjectVoid ();
-     virtual FBErr create ();
-//     virtual FBErr saveFirst (QString strPathNgfp, FBForm *formPtr);
+     virtual ~FBProjectVoid ();
+     virtual FBErr create (QString anyPath);
+     virtual FBErr saveFirst (QString ngfpFullPath, FBForm *formPtr);
 };
 
 class FBProjectGDAL: public FBProject
 {
-
+    public:
+     FBProjectGDAL ();
+     virtual ~FBProjectGDAL ();
 };
 
 class FBProjectShapefile: public FBProjectGDAL
 {
-
+    public:
+     FBProjectShapefile ();
+     virtual ~FBProjectShapefile ();
+     virtual FBErr create (QString anyPath);
+     virtual FBErr saveFirst (QString ngfpFullPath, FBForm *formPtr);
 };
 
 class FBProjectNGW: public FBProjectGDAL
 {
-
+    public:
+     FBProjectNGW ();
+     virtual ~FBProjectNGW ();
+     virtual FBErr create (QString anyPath);
+     virtual FBErr saveFirst (QString ngfpFullPath, FBForm *formPtr);
 };
-
+*/
 
 #endif //PROJECT_H
