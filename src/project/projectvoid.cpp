@@ -1,6 +1,6 @@
 /******************************************************************************
  * Project:  NextGIS Formbuilder
- * Purpose:  fields manager dialog
+ * Purpose:  
  * Author:   Mikhail Gusev, gusevmihs@gmail.com
  ******************************************************************************
 *   Copyright (C) 2014-2016 NextGIS
@@ -19,5 +19,42 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
+#include "project.h"
  
- 
+
+FBProjectVoid::~FBProjectVoid ()
+{
+}
+
+FBProjectVoid::FBProjectVoid (FBGeomType geometry_type): FBProject()
+{
+    this->geometry_type = geometry_type;
+}
+
+FBErr FBProjectVoid::create (QString anyPath)
+{
+    if (isInited)
+        return FBErrAlreadyInited;
+
+    // Create default field for future layer, because in project must be at least
+    // one field. Also layers with no fields are incorrect for NextGIS Web.
+    FBFieldDescr fd(FBInteger,"ID");
+    fields.insert("ID",fd);
+    srs = FBSrs4326;
+    version = FBProject::getProgVersionStr();
+
+    strNgfpPath = ""; // need to be saved first time
+    isInited = true;
+
+    return FBErrNone;
+}
+
+FBErr FBProjectVoid::saveFirst (QString ngfpFullPath, Json::Value jsonForm)
+{
+    if (!isInited)
+        return FBErrNotInited;
+
+
+    return FBErrNone;
+}
+

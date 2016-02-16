@@ -19,6 +19,18 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #***************************************************************************
 
+set(LIB_NAME "fbproject")
 
+set(LIB_HHEADERS
+project.h
+)
+
+set(LIB_CSOURCES
+project.cpp
+projectvoid.cpp
+)
+
+set(FB_TARGET_OBJECTS ${FB_TARGET_OBJECTS} $<TARGET_OBJECTS:${LIB_NAME}> PARENT_SCOPE)
+add_library(${LIB_NAME} OBJECT ${LIB_HHEADERS} ${LIB_CSOURCES})
 
 

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Project:  NextGIS Formbuilder
- * Purpose:  additional elements' factories
+ * Purpose:  
  * Author:   Mikhail Gusev, gusevmihs@gmail.com
  ******************************************************************************
 *   Copyright (C) 2014-2016 NextGIS
@@ -20,4 +20,5 @@
  ****************************************************************************/
 
 
-
+#include "project.h"
+ 

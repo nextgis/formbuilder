@@ -27,116 +27,115 @@
 #include <QLabel>
 #include <QScrollArea>
 
-#include "fb_general.h"
-#include "form.h"
+#include "fb_common.h"
+#include "form/form_core.h"
 
 
-#define FB_SCREEN_ANDROID "Android"
-#define FB_SCREEN_QGIS "QGIS"
-#define FB_SCREEN_WEB "Web"
-
-#define FB_SCREEN_MAXIMIZED "Maximized"
-#define FB_SCREEN_PHONEPORT "Phone portrait"
-#define FB_SCREEN_PHONELAND "Phone landscape"
-#define FB_SCREEN_TABLETPORT "Tablet portrait"
-#define FB_SCREEN_TABLETLAND "Tablet landscape"
-
-
-/*
-enum FBScreenType
+struct FBState
 {
-    FBWindow, FBPhone, FBTablet
-};
-QMap<FBScreenType,QPair<QString,QString> > screenTypes;
+    QString name;
+    QString descr;
+    QString imgPath;
 
-QMap<int,QPair<short,short> > screenRatios;
-
-QMap<int,QPair<int,int> > screenResols;
-
-
-class FBFactoryScreen
-{
-    public:
-     static QList<FBFactoryScreen*> fctsScreen;
-     static void registerScreen (FBFactoryScreen* fct) {fctsScreen.append(fct);}
-     FBFactoryScreen (QString name, QString imgPath);
-    protected:
-     QList<FBScreenType> types;
-     QList<QString> ratios;
-     QList<QString> resols;
+    FBState (QString name, QString descr, QString imgPath)
+        { this->name = name; this->descr = descr; this->imgPath = imgPath; }
 };
 
+struct FBDevice
+{
+    //QPair<int,int> aspectRatio;
+    QPair<int,int> resolution;
+    float diagonal; // inches
+    float dpi;
+    QString name;
+    QString imgPath;
+
+    FBDevice (QPair<int,int> resolution, float diagonal, float dpi, QString name,
+              QString imgPath)
+        { this->resolution = resolution; this->diagonal = diagonal; this->dpi = dpi;
+        this->name = name; this->imgPath = imgPath; }
+    QString getDisplayString ()
+        { return name; }
+};
+
+
+/**
+ * Screen class which contains the form and render it.
+ *
+ * Screen can change its appearance: decoration, sizes, "resolution", etc.
+ */
 class FBScreen: public QWidget
 {
     public:
 
-     FBScreen (FBWorkingArea *parent);
-     ~FBScreen () {}
-     virtual void applyToScreen (QWidget *wScreen, QScrollArea *scrollScreen);
-    protected:
-
-};
-
-class FBScreenAndroid: public FBScreen
-{
-    public:
-     virtual void applyToScreen (QWidget *wScreen, QScrollArea *scrollScreen);
-    protected:
-     QVBoxLayout *vlScreen;
-     QList<QLabel*> labsScreenDecor;
-};
-*/
-
-/**
- * Final screen class which contains the form and render it.
- *
- * Screen can change its appearance: decoration, sizes, "resolution", etc. We do
- * not make derived classes for each screen, because that means that we must
- * recreate such classes' objects and reinsert them into main window each time we
- * want to change appearance, type, etc., while the form will be still untouched.
- */
-class FBWorkingArea: public QWidget
-{
-    public: // static fields
-
-     static void initAll ();
-     static QList<QPair<QString,QString> > STYLES;
-     static QList<QPair<QString,QString> > TYPES;
-     static QList<QString> RATIOS;
-     static QList<QString> RESOLS;
-
-    public: // methods
-
-     FBWorkingArea (QWidget *parent);
-     ~FBWorkingArea () {}
-
+     FBScreen (QWidget *parent);
+     virtual ~FBScreen ();
      void setForm (FBForm* form);
      void removeForm ();
+     FBForm *takeForm ();
+     FBForm *getFormPtr ();
+     virtual void updateStyle ();
+     QList<FBState> getStates () { return states; }
+     QList<FBDevice> getDevices() { return devices; }
+     virtual void setState (int index);
+     virtual void setDevice (int index);
 
-     void changeStyle (QString styleStr);
-     void changeType (QString typeStr);
-     void changeRatio (int indexOfRatio); // all indexes refers to global
-     void changeResol (int indexOfResol); // static arrays
-    
-    private:
+    protected:
 
-     // visual
      QGridLayout *glWorkingArea;
      QList<QWidget*> wsWorkingArea;
-     QWidget *wScreen; // parent widget for decor labels and scroll area
-     QVBoxLayout *vlScreen; // the layout of screen widget
+     QVBoxLayout *lvScreen; // the layout of screen widget
+     QWidget *wScreen; // parent widget for decor labels (if some) and scroll area
+     QScrollArea *scrollScreen; // actual parent of form widget
+
+     FBForm *formPtr; // actually form widget is owned by scroll area
+
+     QList<FBState> states;
+     int curState;
+     QList<FBDevice> devices;
+     int curDevice;
+};
+
+class FBScreenMobile: public FBScreen
+{
+    public:
+
+     FBScreenMobile (QWidget *parent);
+     virtual ~FBScreenMobile ();
+     virtual void updateStyle () = 0;
+     void setState (int index); // common for all mobile, so not virtual
+     void setDevice (int index); // common for all mobile, so not virtual
+
+    protected:
+
      QList<QLabel*> labsScreenDecor;
 
-     // form
-     QScrollArea *scrollScreen; // actual parent of form
-     FBForm *form;
-
-     // params
-     QString style;
-     QString type;
-     QString ratio;
-     QString resolution;
+     QList<FBElem*> otherElemsSet; // the order of elems is important
 };
+
+class FBScreenAndroid: public FBScreenMobile
+{
+    public:
+     FBScreenAndroid (QWidget* parent);
+     ~FBScreenAndroid ();
+     void updateStyle ();
+};
+
+/*
+
+class FBScreenApple: public FBScreenMobile
+{
+};
+
+class FBScreenWeb: public FBScreen
+{
+};
+
+class FBScreenQgis: public FBScreen
+{
+};
+
+*/
 
 
 #endif //SCREEN_H

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Project:  NextGIS Formbuilder
- * Purpose:  additional form elements
+ * Purpose:  attributes declaration
  * Author:   Mikhail Gusev, gusevmihs@gmail.com
  ******************************************************************************
 *   Copyright (C) 2014-2016 NextGIS
@@ -18,6 +18,12 @@
 *    You should have received a copy of the GNU General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
+
+#ifndef ATTRIBUTES_H
+#define ATTRIBUTES_H
+
+
+#endif //ATTRIBUTES_H
 
 
 

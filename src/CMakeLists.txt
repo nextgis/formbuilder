@@ -21,7 +21,7 @@
 
 cmake_minimum_required(VERSION 2.8.11)
 
-# To correctly build for Win XP
+# To correctly build for Win XP?
 #set(CMAKE_EXE_LINKER_FLAGS "/SUBSYSTEM:WINDOWS,5.01")
 if(WIN32)
   add_definitions(-D_WIN32_WINNT=0x0501)
@@ -31,10 +31,8 @@ endif(WIN32)
 ## subdirs ####################################################################
 ###############################################################################
 
-# additional libraries
-#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/projects)
-#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/elements)
-#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/tools)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/form)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/project)
 
 ###############################################################################
 ## target definitions #########################################################
@@ -46,10 +44,10 @@ set(PROJECT_SOURCES
 jsoncpp.cpp
 main.cpp
 fb.cpp
-project.cpp
 screen.cpp
-form.cpp
-#factory.cpp
+dialognewvoid.cpp
+dialogngw.cpp
+dialogfieldmanager.cpp
 appicon.rc
 )
 
@@ -60,9 +58,9 @@ qt5_add_resources(fb_res res.qrc)
 set(RESOURCES ${fb_res})
 
 if(WIN32)
-    add_executable(${APP_NAME} WIN32 ${PROJECT_SOURCES} ${RESOURCES} ${UI_HDRS})# ${QM_FILES})
+    add_executable(${APP_NAME} WIN32 ${PROJECT_SOURCES} ${FB_TARGET_OBJECTS} ${RESOURCES} ${UI_HDRS})# ${QM_FILES})
 else(WIN32)
-    add_executable(${APP_NAME} ${PROJECT_SOURCES} ${RESOURCES} ${UI_HDRS})# ${QM_FILES})
+    add_executable(${APP_NAME} ${PROJECT_SOURCES} ${FB_TARGET_OBJECTS} ${RESOURCES} ${UI_HDRS})# ${QM_FILES})
 endif(WIN32)
 
 #
@@ -76,9 +74,5 @@ endif(WIN32)
 ## dependencies ###############################################################
 ###############################################################################
 
-qt5_use_modules(${APP_NAME} Widgets Network LinguistTools)
-
-#message(STATUS "TARGET_LINK_LIB ${TARGET_LINK_LIB}")
-
-#target_link_libraries(${APP_NAME} ${GDAL_LIBRARIES})
-target_link_extlibraries(${APP_NAME} ${GDAL_LIBRARIES})
+target_link_libraries(${APP_NAME} Qt5::Widgets Qt5::Network)# Qt5::LinguistTools)
+target_link_extlibraries(${APP_NAME}) # will link GDAL automatically

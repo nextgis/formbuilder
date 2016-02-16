@@ -1,6 +1,6 @@
 /******************************************************************************
  * Project:  NextGIS Formbuilder
- * Purpose:  formbuilder's project and its basic implementations
+ * Purpose:  project declarations
  * Author:   Mikhail Gusev, gusevmihs@gmail.com
  ******************************************************************************
 *   Copyright (C) 2014-2016 NextGIS
@@ -31,12 +31,11 @@
 #include "ogrsf_frmts.h"
 #include "json/json.h"
 
-#include "fb_general.h"
-#include "form.h"
+#include "fb_common.h"
 
 // TODO: think about how to set these constants via build system:
-#define _FB_GDAL_DEBUG "D:/nextgis/formbuilder/gdal-log.txt" // uncomment for GDAL
-                                                             // debug output
+#define _FB_VERSION 2.1
+#define _FB_GDAL_DEBUG "D:/nextgis/formbuilder/gdal-log.txt" // uncomment for debugging
 #define _FB_INSTALLPATH_GDALDATA "/gdal_data"
 
 // Names.
@@ -62,22 +61,40 @@
 #define FB_JSON_META_URL "url"
 
 
+enum FBDataType
+{
+    FBString, FBInteger, FBReal, FBDate,
+};
+
+enum FBGeomType
+{
+    FBPoint, FBLinestring, FBPolygon,
+    FBMultiPoint, FBMultiLinestring, FBMultiPolygon
+};
+
+enum FBSrsType
+{
+    FBSrs4326,
+};
+
 struct FBFieldDescr // see NextGISWeb fields description syntax
 {
-    QString datataype;
+    FBDataType datataype;
     QString display_name;
+
     FBFieldDescr () {}
-    FBFieldDescr (QString datataype,QString display_name)
-        {this->datataype=datataype; this->display_name=display_name;}
+    FBFieldDescr (FBDataType datataype,QString display_name)
+        { this->datataype=datataype; this->display_name=display_name; }
     //~FBFieldDescr();
 };
 
 struct FBNgwConnection
 {
-    int id;
+    int id; // = -1 if no NGW connection
     QString login;
     QString password;
     QString url;
+
     FBNgwConnection () {}
     FBNgwConnection (int id, QString login, QString password, QString url)
         {this->id=id; this->login=login, this->password=password; this->url=url;}
@@ -87,7 +104,7 @@ struct FBNgwConnection
 
 /**
  * Project class which represents its file on disk (.ngfp file).
- * Project contains 1) form, 2) layer (data) and 3) metadata.
+ * Project file contains 1) form, 2) layer (data) and 3) metadata.
  * Note: this class does not keep the layer's data in memory (it
  * will be accessed on disk each time) and the form itself (it is owned
  * by the screen widget), but it is able to read/write them into project
@@ -99,12 +116,13 @@ struct FBNgwConnection
  */
 class FBProject
 {
-    public: // static members
+    public: // static global members
 
      static void init ();
-     static QStringList DATA_TYPES; // see NextGISWeb types syntax
-     static QStringList GEOM_TYPES;
-     static QList<int> SRS_TYPES;
+     static QString getProgVersionStr ();
+     static QMap<QString,FBDataType> DATA_TYPES; // see NextGISWeb types syntax
+     static QMap<QString,FBGeomType> GEOM_TYPES; // the names must be unique => key
+     static QMap<int,FBSrsType> SRS_TYPES; // int because of NGW SRS syntax
      static QString CUR_ERR_INFO; // additional error text if was some
 
     public: // methods
@@ -114,23 +132,25 @@ class FBProject
 
      // main methods
      virtual FBErr create (QString anyPath) { return FBErrUnsupported; }
-     virtual FBErr saveFirst (QString ngfpFullPath,
-                              FBForm *formPtr) { return FBErrUnsupported; }
-     FBErr saveAs (QString ngfpFullPath, FBForm *formPtr);
-     FBErr save (FBForm *formPtr);
+     virtual FBErr saveFirst (QString ngfpFullPath, Json::Value jsonForm)
+                                { return FBErrUnsupported; }
+     FBErr saveAs (QString ngfpFullPath, Json::Value jsonForm);
+     FBErr save (Json::Value jsonForm);
      FBErr open (QString ngfpFullPath);
-     Json::Value readForm (QString ngfpFullPath);
-     Json::Value readMeta (QString ngfpFullPath);
-     bool checkData (QString ngfpFullPath);
+     static Json::Value readForm (QString ngfpFullPath);
+     static Json::Value readMeta (QString ngfpFullPath);
+     static bool checkData (QString ngfpFullPath);
 
      // info
      bool wasFirstSaved ();
      bool isSaveRequired () ;
+     QString getProjectfilePath () { return strNgfpPath; }
 
     protected: // methods
 
-//     FBErr writeForm (FBForm *formPtr);
-//     FBErr writeMeta (QString strPathNgfp);
+     FBErr writeForm (Json::Value jsonForm);
+     FBErr writeMeta (QString strPathNgfp);
+     static Json::Value readJsonInNgfp (QString ngfpFullPath, QString fileName);
 
     protected: // fields
      
@@ -143,23 +163,23 @@ class FBProject
 
      // project's metadata
      QMap<QString,FBFieldDescr> fields; // keyname is a unique key in the map
-     QString geometry_type;
+     FBGeomType geometry_type;
      FBNgwConnection ngw_connection; // it is here because of ngfp file syntax
-     int srs;
+     FBSrsType srs;
      QString version;
+};
+
+class FBProjectVoid: public FBProject
+{
+    public:
+     FBProjectVoid (FBGeomType geometry_type);
+     virtual ~FBProjectVoid ();
+     virtual FBErr create (QString anyPath);
+     virtual FBErr saveFirst (QString ngfpFullPath, Json::Value jsonForm);
 };
 
 
 /*
-class FBProjectVoid: public FBProject
-{
-    public:
-     FBProjectVoid (QString geometry_type);
-     virtual ~FBProjectVoid ();
-     virtual FBErr create (QString anyPath);
-     virtual FBErr saveFirst (QString ngfpFullPath, FBForm *formPtr);
-};
-
 class FBProjectGDAL: public FBProject
 {
     public:
@@ -173,7 +193,7 @@ class FBProjectShapefile: public FBProjectGDAL
      FBProjectShapefile ();
      virtual ~FBProjectShapefile ();
      virtual FBErr create (QString anyPath);
-     virtual FBErr saveFirst (QString ngfpFullPath, FBForm *formPtr);
+     virtual FBErr saveFirst (QString ngfpFullPath, Json::Value jsonForm);
 };
 
 class FBProjectNGW: public FBProjectGDAL
@@ -182,7 +202,7 @@ class FBProjectNGW: public FBProjectGDAL
      FBProjectNGW ();
      virtual ~FBProjectNGW ();
      virtual FBErr create (QString anyPath);
-     virtual FBErr saveFirst (QString ngfpFullPath, FBForm *formPtr);
+     virtual FBErr saveFirst (QString ngfpFullPath, Json::Value jsonForm);
 };
 */
 

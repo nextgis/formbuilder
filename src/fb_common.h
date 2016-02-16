@@ -1,6 +1,6 @@
 /******************************************************************************
  * Project:  NextGIS Formbuilder
- * Purpose:  additional form elements
+ * Purpose:  common declarations
  * Author:   Mikhail Gusev, gusevmihs@gmail.com
  ******************************************************************************
 *   Copyright (C) 2014-2016 NextGIS
@@ -19,12 +19,23 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
-#ifndef ELEMENTS_H
-#define ELEMENTS_H
+#ifndef FB_COMMON_H
+#define FB_COMMON_H
 
+// Common colors for stylesheets: app's gui, screen, elements, etc.
+#define FB_COLOR_LIGHTGREY "rgb(238,238,238)"
+#define FB_COLOR_LIGHTMEDIUMGREY "rgb(210,210,210)"
+#define FB_COLOR_MEDIUMGREY "rgb(170,170,170)"
+#define FB_COLOR_DARKGREY "rgb(100,100,100)"
+#define FB_COLOR_LIGHTBLUE "rgb(139,183,224)"
+#define FB_COLOR_DARKBLUE "rgb(23,111,193)"
 
-#endif // ELEMENTS_H
+// Error codes.
+enum FBErr
+{
+    FBErrNone, FBErrUnsupported, FBErrUnableCreateProject, FBErrNotInited,
+    FBErrAlreadyInited, FBErrWrongVersion, FBErrIncorrectJson,
+    FBErrIncorrectFileStructure,
+};
 
-
-
-
+#endif //FB_COMMON_H

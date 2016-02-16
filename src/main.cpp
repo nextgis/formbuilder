@@ -6,7 +6,6 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     FBProject::init();
-    FBWorkingArea::initAll();
 
     FB w; 
     w.show();

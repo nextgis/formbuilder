@@ -1,6 +1,6 @@
 /******************************************************************************
  * Project:  NextGIS Formbuilder
- * Purpose:  common declarations
+ * Purpose:  factories implementation
  * Author:   Mikhail Gusev, gusevmihs@gmail.com
  ******************************************************************************
 *   Copyright (C) 2014-2016 NextGIS
@@ -19,27 +19,5 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
-#ifndef FB_GENERAL_H
-#define FB_GENERAL_H
-
-// TODO: think about how to set these constants via build system:
-#define _FB_VERSION 2.1
-
-// Colors for stylesheets.
-#define FB_COLOR_LIGHTGREY "rgb(238,238,238)"
-#define FB_COLOR_LIGHTMEDIUMGREY "rgb(210,210,210)"
-#define FB_COLOR_MEDIUMGREY "rgb(170,170,170)"
-#define FB_COLOR_DARKGREY "rgb(100,100,100)"
-#define FB_COLOR_LIGHTBLUE "rgb(139,183,224)"
-#define FB_COLOR_DARKBLUE "rgb(23,111,193)"
 
 
-enum FBErr
-{
-    FBErrNone, FBErrUnsupported, FBErrUnableCreateProject, FBErrAlreadyInited,
-    FBErrWrongVersion, FBErrIncorrectJson, FBErrIncorrectFileStructure,
-};
-
-
-
-#endif //FB_GENERAL_H

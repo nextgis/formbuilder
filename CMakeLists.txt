@@ -19,8 +19,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #***************************************************************************
 
-#Note that setting the minimum required CMake version to 2.8.11 
-#is required for automatic linking to the qtmain.lib library on Windows.
+#Note that setting the minimum required CMake version to 2.8.11 is required for 
+#automatic linking to the qtmain.lib library on Windows.
 cmake_minimum_required(VERSION 2.8.11)
 project(fb)
 
@@ -34,33 +34,33 @@ if(WIN32)
     set(CMAKE_PREFIX_PATH ${QT_DIR_PREFIX_PATH})
 endif(WIN32)
 
-# Tell CMake to run moc when necessary:
-set(CMAKE_AUTOMOC ON)
-# As moc files are generated in the binary dir, tell CMake
-# to always look for includes there:
+# Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+# Instruct CMake to run moc automatically when needed.
+set(CMAKE_AUTOMOC ON)
 
 ###############################################################################
 ## includes & find ############################################################
 ###############################################################################
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/form)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/project)
 
 include(FindAnyProject)
 
 # path example: <qt core dir>/qtbase/lib/cmake/Qt5Core
 find_package(Qt5Widgets REQUIRED) # finds its own dependencies (QtGui and QtCore)
+# do not need to use if(Qt5Widgets_FOUND) because Qt will check it automatically
 find_package(Qt5Network REQUIRED)
 find_package(Qt5LinguistTools) # TODO: do we need it here?
 
-include_directories(${Qt5Widgets_INCLUDES}) # also includes QtCore and QtGui
-include_directories(${Qt5Network_INCLUDES})
-include_directories(${Qt5LinguistTools_INCLUDES})
-
+include_directories(${Qt5Widgets_INCLUDE_DIRS})
+include_directories(${Qt5Network_INCLUDE_DIRS})
+include_directories(${Qt5LinguistTools_INCLUDE_DIRS})
 
 #find_package(GDAL REQUIRED)
 find_anyproject(GDAL REQUIRED)# VERSION 2.1)
-
 if(GDAL_FOUND)
     include_directories(${GDAL_INCLUDE_DIR})
     FOREACH(FILE_PATH ${GDAL_INCLUDE_DIR})

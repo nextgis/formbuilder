@@ -19,8 +19,24 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #***************************************************************************
 
+set(LIB_NAME "fbform")
+
+set(LIB_HHEADERS
+form_core.h
+attributes.h
+elements.h
+factories.h
+)
+
+set(LIB_CSOURCES
+form_core.cpp
+attributes.cpp
+elements.cpp
+factories.cpp
+registrar.cpp
+)
+
+set(FB_TARGET_OBJECTS ${FB_TARGET_OBJECTS} $<TARGET_OBJECTS:${LIB_NAME}> PARENT_SCOPE)
+add_library(${LIB_NAME} OBJECT ${LIB_HHEADERS} ${LIB_CSOURCES})
 
 
-
-#set(ELEM_TRAGET_OBJECTS ${ELEM_TRAGET_OBJECTS} $<TARGET_OBJECTS:${LIB_NAME}> PARENT_SCOPE)
-#add_library(${LIB_NAME} OBJECT ${LIB_HHEADERS} ${LIB_CSOURCES})

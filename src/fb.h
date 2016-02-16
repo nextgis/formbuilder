@@ -1,6 +1,6 @@
 /******************************************************************************
  * Project:  NextGIS Formbuilder
- * Purpose:  main app class definitions
+ * Purpose:  main app+gui class definitions
  * Author:   Mikhail Gusev, gusevmihs@gmail.com
  ******************************************************************************
 *   Copyright (C) 2014-2016 NextGIS
@@ -39,14 +39,14 @@
 
 #include <QFileInfo>
 
-#include "fb_general.h"
-#include "project.h"
+#include "fb_common.h"
+#include "form/form_core.h"
+#include "project/project.h"
 #include "screen.h"
-//#include "factory.h"
-
 
 // Constants and limits.
-#define FB_MENURIGHT_TABLES_COUNT 3
+#define FB_MENURIGHT_TABLES_MAX 5
+#define FB_BOTTOMSTRING_LEN_MAX 40
 
 // Different sizes for GUI.
 #define FB_GUI_FONTSIZE_NORMAL 11
@@ -68,10 +68,10 @@ class FBDialogProjectNew: public QDialog
     public:
      FBDialogProjectNew (QWidget *parent);
      ~FBDialogProjectNew ();
+     QString getSelectedGeom () { return comboGeom->currentText(); }
     private:
      QComboBox *comboGeom;
 };
-
 
 /**
  * Progress dialog.
@@ -83,7 +83,6 @@ class FBDialogProgress: public QDialog
      ~FBDialogProgress();
 };
 
-
 /**
  * About dialog.
  */
@@ -91,7 +90,6 @@ class FBDialogAbout: public QDialog
 {
 
 };
-
 
 /**
  * App's window class. Aggregates all GUI of the app, except specific dialogues.
@@ -110,17 +108,16 @@ class FB: public QWidget
     private slots:
 
      // main gui slots
-     void onElemPress ();
+     void onAddElemPress (QTreeWidgetItem* item, int column);
      void onNewVoidClick ();
      void onNewShapeClick ();
      void onNewNgwClick ();
      void onOpenClick ();
      void onSaveClick ();
      void onSaveAsClick ();
-     void onScreenStylePick ();
-     void onScreenTypePick ();
-     void onScreenRatioSelect (int index);
-     void onScreenResolSelect (int index);
+     void onScreenPick ();
+     void onScreenStatePick ();
+     void onScreenDeviceSelect (int index);
      void onUndoClick ();
      void onRedoClick ();
      void onClearScreenClick ();
@@ -129,7 +126,7 @@ class FB: public QWidget
      void onAboutGraphicsClick ();
 
      // other gui slots
-     void onElemHighlight ();
+     void onElemSelect ();
      void onLeftArrowClick ();
      void onRightArrowClick ();
      int showBox (QString msg, QString caption);
@@ -138,7 +135,6 @@ class FB: public QWidget
      void showError (QString msg);
      int showErrorFull (QString msgMain, FBErr err);
      bool askToLeaveUnsafeProject ();
-     void onProjDialogFinished (int code);
 
     private: // methods
 
@@ -151,10 +147,13 @@ class FB: public QWidget
      void flipLeftMenu (bool isFull);
      void flipRightMenu (bool isFull);
      QTableWidget* addRightMenuTable (int rowCount);
-     void setRightMenuCaption (bool isElemSelected);
      void updateEnableness ();
-     void updateMenus ();
-     void setBottomString (QString str);
+     void updateLeftTrees ();
+     void updateRightMenu ();
+     void updateMenuView ();
+     void setBottomString (QString strToShorten, QString strToPrepend = "");
+     void updateProjectString ();
+     void finishProjDialog ();
 
      // settings
      void updateSettings ();
@@ -187,14 +186,18 @@ class FB: public QWidget
      QToolButton *toolbOpen;
      QToolButton *toolbSave;
      QToolButton *toolbSaveAs;
-     QList<QToolButton*> toolbsScreenStyle;
-     QList<QToolButton*> toolbsScreenType;
-     QComboBox *comboScreenRatio;
-     QComboBox *comboScreenResol;
+     QHBoxLayout *lhView;
+     QList<QToolButton*> toolbsScreen;
+     QList<QToolButton*> toolbsScreenState;
+     QComboBox *comboScreenDevice;
+     QWidget *wScreenInfo;
      QToolButton *toolbUndo;
      QToolButton *toolbRedo;
      QToolButton *toolbClearScreen;
      QToolButton *toolbDeleteElem;
+     QToolButton *toolbImportControls;
+     QToolButton *toolbUpdateData;
+     QToolButton *toolbFieldManager;
      
      // left menu
      QWidget *wMenuLeft;
@@ -205,12 +208,12 @@ class FB: public QWidget
      // right menu
      QWidget *wMenuRight;
      QPushButton *butArrowRight;
-     QVBoxLayout *vlRight; // for attr tables adding
+     QVBoxLayout *lvRight; // for attr tables adding
      QList<QTableWidget*> tablesRight;
      QLabel *labRight;
      
      // working area
-     FBWorkingArea *wWorkingArea;
+     FBScreen *wScreen;
           
      // other gui
      QLabel *labBottom;
