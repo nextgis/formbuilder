@@ -22,9 +22,37 @@
 #ifndef ELEMENTS_H
 #define ELEMENTS_H
 
+#include <QVBoxLayout>
+#include <QLabel>
 
 #include "form_core.h"
 
+
+class FBElemText: public FBElem
+{
+    public:
+     FBElemText (FBFactory *fctPtr);
+     ~FBElemText () {}
+     void changeStyle (QString styleName);
+    protected slots:
+     void changeAttrValue ();
+     void updateAppearance ();
+    protected:
+     QLabel *labText;
+};
+
+class FBElemTextedit: public FBElem
+{
+    public:
+     FBElemTextedit (FBFactory *fctPtr);
+     ~FBElemTextedit () {}
+     void changeStyle (QString styleName);
+    protected slots:
+     void changeAttrValue ();
+     void updateAppearance ();
+    protected:
+     QLabel *labText;
+};
 
 
 #endif //ELEMENTS_H

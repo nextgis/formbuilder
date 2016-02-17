@@ -1,6 +1,6 @@
 /******************************************************************************
  * Project:  NextGIS Formbuilder
- * Purpose:  factories declarations
+ * Purpose:  factories
  * Author:   Mikhail Gusev, gusevmihs@gmail.com
  ******************************************************************************
 *   Copyright (C) 2014-2016 NextGIS
@@ -22,6 +22,26 @@
 #ifndef FACTORIES_H
 #define FACTORIES_H
 
+#include "form_core.h"
+#include "elements.h"
+
+class FBFactoryText: public FBFactory
+{
+    public:
+     FBFactoryText (): FBFactory ("text",
+          QObject::tr("Text label"), FBDecoration, ":/img/text.png") { }
+     ~FBFactoryText () {}
+     FBElem *create () { return new FBElemText(this); }
+};
+
+class FBFactoryTextedit: public FBFactory
+{
+    public:
+     FBFactoryTextedit (): FBFactory ("text_edit",
+          QObject::tr("Text edit"), FBInput, ":/img/textedit.png") { }
+     ~FBFactoryTextedit () {}
+     FBElem *create () { return new FBElemTextedit(this); }
+};
 
 
 #endif // FACTORIES_H

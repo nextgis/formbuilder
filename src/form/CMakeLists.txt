@@ -32,7 +32,6 @@ set(LIB_CSOURCES
 form_core.cpp
 attributes.cpp
 elements.cpp
-factories.cpp
 registrar.cpp
 )
 

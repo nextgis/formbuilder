@@ -44,14 +44,17 @@
 #include "project/project.h"
 #include "screen.h"
 
+// Visual.
+#define FB_GUI_FONTSIZE_NORMAL 11
+#define FB_GUI_FONTSIZE_SMALL 9
+enum FBTableType // how to draw attribute table
+{
+    FBSimple, FBBold,
+};
+
 // Constants and limits.
 #define FB_MENURIGHT_TABLES_MAX 5
 #define FB_BOTTOMSTRING_LEN_MAX 40
-
-// Different sizes for GUI.
-#define FB_GUI_FONTSIZE_NORMAL 11
-#define FB_GUI_FONTSIZE_SMALL 9
-
 
 namespace Ui
 {
@@ -115,7 +118,10 @@ class FB: public QWidget
      void onOpenClick ();
      void onSaveClick ();
      void onSaveAsClick ();
-     void onScreenPick ();
+     void onScreenAndroidPick ();
+     void onScreenIosPick ();
+     void onScreenWebPick ();
+     void onScreenQgisPick ();
      void onScreenStatePick ();
      void onScreenDeviceSelect (int index);
      void onUndoClick ();
@@ -124,19 +130,27 @@ class FB: public QWidget
      void onDeleteElemClick ();
      void onSettingLanguageSelect ();
      void onAboutGraphicsClick ();
-
-     // other gui slots
      void onElemSelect ();
      void onLeftArrowClick ();
      void onRightArrowClick ();
+
+     // other gui slots
      int showBox (QString msg, QString caption);
      void showInfo (QString msg);
      int showWarning (QString msg);
      void showError (QString msg);
      int showErrorFull (QString msgMain, FBErr err);
      bool askToLeaveUnsafeProject ();
+     void onProjDialogFinished (int code);
 
     private: // methods
+
+     // settings
+     void updateSettings ();
+     QString getSettingLastPath ();
+
+     //errors
+     QString getErrString (FBErr err);
 
      // gui
      QToolButton *addTopMenuButton (QWidget *parentTab, QString imgPath,
@@ -150,17 +164,17 @@ class FB: public QWidget
      void updateEnableness ();
      void updateLeftTrees ();
      void updateRightMenu ();
-     void updateMenuView ();
      void setBottomString (QString strToShorten, QString strToPrepend = "");
      void updateProjectString ();
-     void finishProjDialog ();
+     void updateMenuView ();
+     QString getGroupNameStr (FBGroupType group);
+     void afterPickScreen (QToolButton *toolbDown);
 
-     // settings
-     void updateSettings ();
-     QString getSettingLastPath ();
-
-     //errors
-     QString getErrString (FBErr err);
+     // screen
+     void pickDefaultScreen ();
+     void pickVoidScreen ();
+     void recreateScreen (FBScreen *newScreen, bool destroyForm);
+     void updateScreen ();
 
     private: // fields
 
@@ -172,6 +186,7 @@ class FB: public QWidget
      // main gui
      Ui::FB *ui;
      QVBoxLayout *lvAll;
+     QHBoxLayout *lhMiddle;
     
      // top menu
      QTabWidget *tabMenuTop;
@@ -187,9 +202,12 @@ class FB: public QWidget
      QToolButton *toolbSave;
      QToolButton *toolbSaveAs;
      QHBoxLayout *lhView;
-     QList<QToolButton*> toolbsScreen;
-     QList<QToolButton*> toolbsScreenState;
+     QToolButton *toolbScreenAndroid;
+     QToolButton *toolbScreenIos;
+     QToolButton *toolbScreenWeb;
+     QToolButton *toolbScreenQgis;
      QComboBox *comboScreenDevice;
+     QList<QToolButton*> toolbsScreenState;
      QWidget *wScreenInfo;
      QToolButton *toolbUndo;
      QToolButton *toolbRedo;

@@ -53,6 +53,11 @@
 #define FB_JSONVALUE_ATTRVAL_NONAME "-1"
 #define FB_JSONVALUE_ATTRVAL_NOALIAS "--"
 
+enum FBGroupType
+{
+    FBDecoration, FBInput, FBGrouping, FBLayout
+};
+
 
 class FBForm;
 class FBElem;
@@ -151,22 +156,23 @@ class FBElem: public QWidget
      virtual ~FBElem ();
      virtual Json::Value toJson ();
      virtual FBErr fromJson (Json::Value jsonValue);
-     void updateStyle (QString styleName);
      virtual QList<QList<QPair<QString,FBAttr*> > > getAttrsLists ();
      FBFactory *getFctPtr () { return fctPtr; }
      QString getDisplayName ();
 
-    public slots:
+    protected slots:
      virtual void changeAttrValue () = 0;
      virtual void updateAppearance () = 0;
 
     protected:
-     virtual void mousePressEvent (QMouseEvent *event);
-     virtual void mouseReleaseEvent (QMouseEvent *event);
-     virtual void mouseMoveEvent (QMouseEvent *event);
-     virtual void paintEvent (QPaintEvent *event);
+     virtual void changeStyle (QString styleName);
+     void clearContents ();
      void setSelectStyle ();
      void setDeselectStyle ();
+     void mousePressEvent (QMouseEvent *event);
+     void mouseReleaseEvent (QMouseEvent *event);
+     void mouseMoveEvent (QMouseEvent *event);
+     void paintEvent (QPaintEvent *event);
 
     signals:
      void pressed (FBElem *thisElem);
@@ -175,8 +181,9 @@ class FBElem: public QWidget
     
     protected: // fields
      FBFactory *fctPtr; // parent factory
-     FBForm *formPtr; // parent form (actual QWidget-parent)
+     //FBForm *formPtr; // parent form (actual QWidget-parent)
      QMap<QString,FBAttr*> mapAttrs;
+     QVBoxLayout *lvMain; // for deleting style decorations & inner elems
 };
 
 /*
@@ -311,6 +318,8 @@ class FBForm: public QWidget
      FBElem *SELECTED; //QList<FBElem*> SELECTED;
      bool IS_SELECTED_MOVING;
      FBInsertWidget* INSERT_SHOWED;
+
+     QString curStyle;
 };
 
 
@@ -325,21 +334,33 @@ class FBForm: public QWidget
 class FBFactory
 {
     public:
+
+     static void initAll ();
+     static void deinitAll ();
+     static FBFactory *getFctByName (QString keyName);
+     static QList<FBFactory*> getAllFcts () { return fctsElem; }
+
+    public:
+
      FBFactory (QString keyName, QString displayName,
-                QString keyGroupName, QString imgPath)
+                FBGroupType group, QString imgPath)
         { this->keyName = keyName; this->displayName = displayName;
-          this->keyGroupName = keyGroupName; this->imgPath = imgPath; }
+          this->group = group; this->imgPath = imgPath; }
      virtual ~FBFactory () {}
-     virtual FBElem *create ();
+     virtual FBElem *create () = 0;
      QString getKeyName () { return keyName; }
      QString getDisplayName () { return displayName; }
-     QString getKeyGroupName () { return keyGroupName; }
+     FBGroupType getGroupType () { return group; }
      QString getImgPath () { return imgPath; }
+
     protected:
+
      QString keyName;
      QString displayName;
-     QString keyGroupName;
+     FBGroupType group;
      QString imgPath;
+
+     static QList<FBFactory*> fctsElem;
 };
 
 
@@ -350,6 +371,7 @@ class FBFactory
  * For developers: add new elem's factory to the main initAll() method of this
  * class.
  */
+/*
 class FBRegistrar
 {
     public:
@@ -360,6 +382,7 @@ class FBRegistrar
     protected:
      static QList<FBFactory*> fctsElem;
 };
+*/
 
 
 

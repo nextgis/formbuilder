@@ -44,7 +44,8 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
 
     wScreen = new FBScreen(this);
     wScreen->updateStyle();
-    wScreen->setState(0);
+    wScreen->setDevice(0);
+    wScreen->setState(0); // default maximized grey area
     
     //----------------------------------------------------------------------
     //                              Top menu
@@ -110,31 +111,33 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
                      this, SLOT(onSaveAsClick()));
     
     // All view pickers and combos.
-    toolbsScreen.append(this->addTopMenuButton(wView,
-               ":/img/android.png", tr("Android"), tr("Android screen"),true));
-    QObject::connect(toolbsScreen.last(),SIGNAL(clicked()),
-                         this,SLOT(onScreenPick()));
-    toolbsScreen.append(this->addTopMenuButton(wView,
-               ":/img/ios.png", tr("iOS"), tr("iOS screen"),true));
-    QObject::connect(toolbsScreen.last(),SIGNAL(clicked()),
-                         this,SLOT(onScreenPick()));
-    toolbsScreen.append(this->addTopMenuButton(wView,
-               ":/img/web.png", tr("Web"), tr("Web screen"),true));
-    QObject::connect(toolbsScreen.last(),SIGNAL(clicked()),
-                         this,SLOT(onScreenPick()));
-    toolbsScreen.append(this->addTopMenuButton(wView,
-               ":/img/qgis.png", tr("QGIS"), tr("QuantumGIS screen"),true));
-    QObject::connect(toolbsScreen.last(),SIGNAL(clicked()),
-                         this,SLOT(onScreenPick()));
+    toolbScreenAndroid = this->addTopMenuButton(wView,
+               ":/img/android.png", tr("Android"), tr("Android screen"),false);
+    QObject::connect(toolbScreenAndroid,SIGNAL(clicked()),
+                         this,SLOT(onScreenAndroidPick()));
+    toolbScreenIos = this->addTopMenuButton(wView,
+               ":/img/ios.png", tr("iOS"), tr("iOS screen"),false);
+    QObject::connect(toolbScreenIos,SIGNAL(clicked()),
+                         this,SLOT(onScreenIosPick()));
+    toolbScreenWeb = this->addTopMenuButton(wView,
+               ":/img/web.png", tr("Web"), tr("Web screen"),false);
+    QObject::connect(toolbScreenWeb,SIGNAL(clicked()),
+                         this,SLOT(onScreenWebPick()));
+    toolbScreenQgis = this->addTopMenuButton(wView,
+               ":/img/qgis.png", tr("QGIS"), tr("QuantumGIS screen"),false);
+    QObject::connect(toolbScreenQgis,SIGNAL(clicked()),
+                         this,SLOT(onScreenQgisPick()));
     this->addTopMenuSplitter(wView);
     QStringList stubList;
     comboScreenDevice = this->addTopMenuCombo(wView, tr("Device\nsettings"),
                                               stubList);
-    QObject::connect(comboScreenDevice, SIGNAL(currentIndexChanged(int)),
+    QObject::connect(comboScreenDevice, SIGNAL(activated(int)),
                      this, SLOT(onScreenDeviceSelect(int)));
-    //TODO: ... add widget with device info ...
+
+    // TODO: ... add widget with device info ...
+
     this->addTopMenuSplitter(wView);
-    this->updateMenuView(); // update states buttons and combo, filling by default
+    this->updateMenuView(); // just for first appearance
 
     // Tools.
     toolbUndo = addTopMenuButton(wTools,":/img/undo.png",
@@ -182,6 +185,8 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     treeLeftFull->setCursor(Qt::PointingHandCursor);
     treeLeftFull->setFocusPolicy(Qt::NoFocus); // so not to show dotted frame
     treeLeftFull->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    QObject::connect(treeLeftFull,SIGNAL(itemClicked(QTreeWidgetItem*,int)),
+            this,SLOT(onAddElemPress(QTreeWidgetItem*,int)));
 
     treeLeftShort = new QTreeWidget(wMenuLeft);
     treeLeftShort->setMaximumWidth(35);
@@ -194,6 +199,8 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     treeLeftShort->setCursor(Qt::PointingHandCursor);
     treeLeftShort->setFocusPolicy(Qt::NoFocus);
     treeLeftShort->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    QObject::connect(treeLeftShort,SIGNAL(itemClicked(QTreeWidgetItem*,int)),
+            this,SLOT(onAddElemPress(QTreeWidgetItem*,int)));
 
     QHBoxLayout *lhMenuLeft = new QHBoxLayout(wMenuLeft);
     QVBoxLayout *lvMenuLeft1 = new QVBoxLayout();
@@ -212,7 +219,7 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     //}
 
     this->updateLeftTrees(); // fill trees with elements' representations
-    this->flipLeftMenu(true); // just open menu
+    this->flipLeftMenu(false);
     
     //----------------------------------------------------------------------
     //                              Right menu
@@ -249,7 +256,7 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     lhMenuRight->addLayout(lvRight);
 
     this->updateRightMenu(); // initial menu settings
-    this->flipRightMenu(true); // just open menu
+    this->flipRightMenu(false);
     
     //----------------------------------------------------------------------
     //                              Other gui
@@ -267,17 +274,17 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     //                            Layout all window
     //----------------------------------------------------------------------
 
-    QHBoxLayout *lhMiddle = new QHBoxLayout();
+    lhMiddle = new QHBoxLayout();
     lhMiddle->addWidget(wMenuLeft);
     lhMiddle->addWidget(wScreen);
     lhMiddle->addWidget(wMenuRight);
 
     lvAll = new QVBoxLayout(this);
+    lvAll->setContentsMargins(0,5,0,5);
+    lvAll->setSpacing(10);
     lvAll->addWidget(tabMenuTop);
     lvAll->addLayout(lhMiddle);
     lvAll->addWidget(labBottom);
-    lvAll->setContentsMargins(0,5,0,5);
-    lvAll->setSpacing(10);
     
     //----------------------------------------------------------------------
     //                   Set application general stylesheets
@@ -368,7 +375,7 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
                               "QTreeWidget::item:has-children"
                               "{"
                                   //"text-decoration: underline;"
-                                  "color: "+QString(FB_COLOR_LIGHTGREY)+";"
+                                  "color: "+QString(FB_COLOR_DARKGREY)+";"
                               "}"
                               "QTreeWidget::item:!has-children"
                               "{"
@@ -385,7 +392,7 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
                               "QTreeWidget::item:has-children:selected"
                               "{"
                                   "background-color: white;"
-                                  "color: "+FB_COLOR_LIGHTGREY+";"
+                                  "color: "+FB_COLOR_DARKGREY+";"
                               "}"
                               "QTreeWidget::item:!has-children:selected"
                               "{"
@@ -432,11 +439,10 @@ void FB::onAddElemPress (QTreeWidgetItem* item, int column)
         return;
 
     QString keyName = item->data(0,Qt::UserRole).toString();
-    FBFactory *fct = FBRegistrar::getFctByName(keyName);
+    FBFactory *fct = FBFactory::getFctByName(keyName);
     if (fct == NULL)
         return;
     FBElem *elem = fct->create();
-
     form->addElem(elem,NULL);
 }
 
@@ -451,7 +457,10 @@ void FB::onNewVoidClick ()
     }
 
     FBDialogProjectNew dialog(this);
-
+    QObject::connect(&dialog,SIGNAL(finished(int)),      // connect with slot because
+                  this,SLOT(onProjDialogFinished(int))); // we need some GUI actions
+                                                         // after any way of dialog
+                                                         // destroying
     if (dialog.exec())
     {
         QString geomType = dialog.getSelectedGeom();
@@ -476,10 +485,12 @@ void FB::onNewVoidClick ()
         FBForm *formNew = new FBForm();
         wScreen->setForm(formNew);
 
+        this->pickDefaultScreen(); // will be helpful if there is void screen now
+        this->updateRightMenu();
+        this->updateEnableness();
+        this->updateProjectString();
         this->updateSettings();
     }
-
-    this->finishProjDialog();
 }
 
 
@@ -521,6 +532,8 @@ void FB::onOpenClick ()
         QFileInfo fileInfo(lastPath);
         dialog.setDirectory(fileInfo.absoluteDir());
     }
+    QObject::connect(&dialog,SIGNAL(finished(int)),
+                     this,SLOT(onProjDialogFinished(int)));
 
     if (dialog.exec())
     {
@@ -557,10 +570,12 @@ void FB::onOpenClick ()
         formNew->fromJson(FBProject::readForm(strFullPath));
         wScreen->setForm(formNew);
 
+        this->pickDefaultScreen(); // will be helpful if there is void screen now
+        this->updateRightMenu();
+        this->updateEnableness();
+        this->updateProjectString();
         this->updateSettings();
     }
-
-    this->finishProjDialog();
 }
 
 
@@ -576,64 +591,56 @@ void FB::onSaveAsClick ()
 }
 
 
-// No problems to call as simple method, while we check obj for NULL here.
-void FB::onScreenPick ()
+void FB::onScreenAndroidPick ()
 {
-    /*
-    QObject *obj = this->sender();
-    if (obj == NULL)
-    {
-        // We do not need to have default screen style, for example
-        // at app construction time - we must render grey screen.
-        // So there is no change style call here.
-        return;
-    }
-    int index = 0;
-    for (int i=0; i<toolbsScreenStyle.size(); i++)
-    {
-        // Find the buuton which is pressed now.
-        if (toolbsScreenStyle[i] == static_cast<QToolButton*>(obj))
-            index = i;
-        else
-            toolbsScreenStyle[i]->setDown(false);
-    }
-    static_cast<QToolButton*>(obj)->setDown(true);
-    wWorkingArea->changeStyle(toolbsScreenStyle[index]->text());
-    */
+    FBScreenAndroid *screen = new FBScreenAndroid(this);
+    this->recreateScreen(screen,false);
+    this->afterPickScreen(toolbScreenAndroid);
+}
+void FB::onScreenIosPick ()
+{
+    FBScreenIos *screen = new FBScreenIos(this);
+    this->recreateScreen(screen,false);
+    this->afterPickScreen(toolbScreenIos);
+}
+void FB::onScreenWebPick ()
+{
+    FBScreen *screen = new FBScreen(this);
+    this->recreateScreen(screen,false);
+    this->afterPickScreen(toolbScreenWeb);
+}
+void FB::onScreenQgisPick ()
+{
+    FBScreen *screen = new FBScreen(this);
+    this->recreateScreen(screen,false);
+    this->afterPickScreen(toolbScreenQgis);
 }
 
 
-// No problems to call as simple method, while we check obj for NULL here.
 void FB::onScreenStatePick ()
 {
-    /*
+    // We must always have the default screen type - so here we set
+    // the first occur state in the array.
+
     QObject *obj = this->sender();
     if (obj == NULL)
     {
-        // We must always have the default screen type - so here we set
-        // the first occur type in the array, which must be "maximized".
-        toolbsScreenType.first()->setDown(true);
-        wWorkingArea->changeStyle(toolbsScreenType.first()->text());
         return;
     }
-    int index = 0;
-    for (int i=0; i<toolbsScreenType.size(); i++)
+
+    for (int i=0; i<toolbsScreenState.size(); i++)
     {
-        // Find the buuton which is pressed now.
-        if (toolbsScreenType[i] == static_cast<QToolButton*>(obj))
-            index = i;
-        else
-            toolbsScreenType[i]->setDown(false);
+        toolbsScreenState[i]->setDown(false);
     }
     static_cast<QToolButton*>(obj)->setDown(true);
-    wWorkingArea->changeType(toolbsScreenType[index]->text());
-    */
+
+    this->updateScreen();
 }
 
 
 void FB::onScreenDeviceSelect (int index)
 {
-
+    this->updateScreen();
 }
 
 
@@ -751,9 +758,38 @@ bool FB::askToLeaveUnsafeProject ()
 }
 
 
+// Some common GUI actions after closing project dialogs.
+void FB::onProjDialogFinished (int code)
+{
+    toolbNewVoid->setDown(false);
+    toolbNewShape->setDown(false);
+    toolbNewNgw->setDown(false);
+    toolbOpen->setDown(false);
+    toolbSave->setDown(false);
+    toolbSaveAs->setDown(false);
+}
+
+
 /****************************************************************************/
 /*                        Private FB methods                                */
 /****************************************************************************/
+
+void FB::updateSettings ()
+{
+
+}
+
+
+QString FB::getSettingLastPath ()
+{
+    return "";
+}
+
+
+QString FB::getErrString (FBErr err)
+{
+    return "...";
+}
 
 
 // Create new button for any tab of the top menu.
@@ -805,7 +841,7 @@ QComboBox *FB::addTopMenuCombo (QWidget *parentTab, QString caption,
                                 QStringList values)
 {
     QComboBox *combo = new QComboBox(parentTab);
-    combo->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Fixed);
+    combo->setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::Fixed);
     combo->setFont(QFont("Segoe UI",FB_GUI_FONTSIZE_NORMAL));
     for (int i=0; i<values.size(); i++)
     {
@@ -918,12 +954,14 @@ void FB::updateEnableness ()
 {
     if (project == NULL)
     {
+        wMenuLeft->setEnabled(false);
+        wMenuRight->setEnabled(false);
         toolbSave->setEnabled(false);
         toolbSaveAs->setEnabled(false);
-        for (int i=0; i<toolbsScreen.size(); i++)
-        {
-            toolbsScreen[i]->setEnabled(false);
-        }
+        toolbScreenAndroid->setEnabled(false);
+        toolbScreenIos->setEnabled(false);
+        toolbScreenWeb->setEnabled(false);
+        toolbScreenQgis->setEnabled(false);
         comboScreenDevice->setEnabled(false);
         for (int i=0; i<toolbsScreenState.size(); i++)
         {
@@ -936,8 +974,19 @@ void FB::updateEnableness ()
     }
     else
     {
+        wMenuLeft->setEnabled(true);
+        wMenuRight->setEnabled(true);
         toolbSaveAs->setEnabled(true);
         toolbClearScreen->setEnabled(true);
+        toolbScreenAndroid->setEnabled(true);
+        toolbScreenIos->setEnabled(true);
+        toolbScreenWeb->setEnabled(true);
+        toolbScreenQgis->setEnabled(true);
+        comboScreenDevice->setEnabled(true);
+        for (int i=0; i<toolbsScreenState.size(); i++)
+        {
+            toolbsScreenState[i]->setEnabled(true);
+        }
         if (project->wasFirstSaved())
         {
             toolbSave->setEnabled(true);
@@ -948,27 +997,36 @@ void FB::updateEnableness ()
 
 void FB::updateLeftTrees ()
 {
-    /*
     treeLeftFull->clear();
     treeLeftShort->clear();
 
     // Create elements' representations for all trees.
-    QTreeWidgetItem *groupItems;
-    QList<FBFactory*> fcts = FBRegistrar::getAllFcts();
+    QMap<FBGroupType,QTreeWidgetItem*> groupItems;
+    QList<FBFactory*> fcts = FBFactory::getAllFcts();
     for (int i=0; i<fcts.size(); i++)
     {
-        if (fcts[i]->getKeyGroupName())
+        if (!groupItems.contains(fcts[i]->getGroupType()))
         {
-
+            QTreeWidgetItem *item = new QTreeWidgetItem();
+            item->setText(0,this->getGroupNameStr(fcts[i]->getGroupType()));
+            groupItems.insert(fcts[i]->getGroupType(),item);
+            treeLeftFull->addTopLevelItem(item);
         }
 
         QTreeWidgetItem *item1 = new QTreeWidgetItem();
+        item1->setText(0,fcts[i]->getDisplayName());
         item1->setData(0,Qt::UserRole,fcts[i]->getKeyName());
+        item1->setIcon(0,QIcon(fcts[i]->getImgPath()));
+        groupItems[fcts[i]->getGroupType()]->addChild(item1);
 
         QTreeWidgetItem *item2 = new QTreeWidgetItem();
         item2->setData(0,Qt::UserRole,fcts[i]->getKeyName());
+        item2->setIcon(0,QIcon(fcts[i]->getImgPath()));
+        item2->setToolTip(0,fcts[i]->getDisplayName());
+        treeLeftShort->addTopLevelItem(item2);
     }
-    */
+
+    treeLeftFull->sortItems(0,Qt::AscendingOrder);
 }
 
 
@@ -1039,35 +1097,6 @@ void FB::updateRightMenu ()
 }
 
 
-void FB::updateMenuView ()
-{
-    // Devices combobox.
-    comboScreenDevice->clear();
-    QList<FBDevice> devices = wScreen->getDevices();
-    for (int i=0; i<devices.size(); i++)
-    {
-        comboScreenDevice->addItem(QIcon(devices[i].imgPath),
-                                   devices[i].getDisplayString());
-    }
-
-    // States buttons.
-    for (int i=0; i<toolbsScreenState.size(); i++)
-    {
-        lhView->removeWidget(toolbsScreenState[i]);
-        delete toolbsScreenState[i];
-    }
-    toolbsScreenState.clear();
-    QList<FBState> states = wScreen->getStates();
-    for (int i=0; i<states.size(); i++)
-    {
-        toolbsScreenState.append(this->addTopMenuButton(wView,states[i].imgPath,
-                                 states[i].name,states[i].descr));
-        QObject::connect(toolbsScreenState.last(),SIGNAL(clicked()),
-                         this,SLOT(onScreenStatePick()));
-    }
-}
-
-
 void FB::setBottomString (QString strToShorten, QString strToPrepend)
 {
     if (strToShorten.size() > FB_BOTTOMSTRING_LEN_MAX)
@@ -1105,36 +1134,131 @@ void FB::updateProjectString ()
 }
 
 
-// Some common GUI actions after closing project dialogs.
-void FB::finishProjDialog ()
+void FB::updateMenuView ()
 {
-    this->updateRightMenu();
-    this->updateEnableness();
-    this->updateProjectString();
-    toolbNewVoid->setDown(false);
-    toolbNewShape->setDown(false);
-    toolbNewNgw->setDown(false);
-    toolbOpen->setDown(false);
-    toolbSave->setDown(false);
-    toolbSaveAs->setDown(false);
+    // Devices combobox.
+    comboScreenDevice->clear();
+    QList<FBDevice> devices = wScreen->getDevices();
+    for (int i=0; i<devices.size(); i++)
+    {
+        comboScreenDevice->addItem(QIcon(devices[i].imgPath),
+                                   devices[i].getDisplayString());
+    }
+
+    // States buttons.
+    for (int i=0; i<toolbsScreenState.size(); i++)
+    {
+        lhView->removeWidget(toolbsScreenState[i]);
+        delete toolbsScreenState[i];
+    }
+    toolbsScreenState.clear();
+    QList<FBState> states = wScreen->getStates();
+    for (int i=0; i<states.size(); i++)
+    {
+        toolbsScreenState.append(this->addTopMenuButton(wView,states[i].imgPath,
+                                 states[i].name,states[i].descr));
+        QObject::connect(toolbsScreenState.last(),SIGNAL(clicked()),
+                         this,SLOT(onScreenStatePick()));
+    }
+
+    // Select defaults in GUI.
+    // Do not call slots connecting to buttons and combobox.
+    for (int i=0; i<toolbsScreenState.size(); i++)
+    {
+        toolbsScreenState[i]->setDown(false);
+    }
+    toolbsScreenState[0]->setDown(true);
+    comboScreenDevice->setCurrentIndex(0); // will not trigger slot
 }
 
 
-void FB::updateSettings ()
+QString FB::getGroupNameStr (FBGroupType group)
 {
-
+    QString str = tr("Unknown");
+    switch (group)
+    {
+        case FBDecoration: str = tr("Decoration"); break;
+        case FBInput: str = tr("Input"); break;
+        case FBGrouping: str = tr("Grouping"); break;
+        case FBLayout: str = tr("Layout"); break;
+    }
+    return str;
 }
 
 
-QString FB::getSettingLastPath ()
+// Some common GUI actions: after change screen settings.
+void FB::afterPickScreen (QToolButton *toolbDown)
 {
-    return "";
+    this->updateMenuView();
+    this->updateScreen();
+    toolbScreenAndroid->setDown(false);
+    toolbScreenIos->setDown(false);
+    toolbScreenWeb->setDown(false);
+    toolbScreenQgis->setDown(false);
+    if (toolbDown != NULL)
+        toolbDown->setDown(true);
 }
 
 
-QString FB::getErrString (FBErr err)
+// Recreate screen to default.
+void FB::pickDefaultScreen ()
 {
-    return "...";
+    // TODO: think about what other screen to set in this situation - may be
+    // read it from the current project structure. Currently we set Android
+    // screen.
+    FBScreenAndroid *screen = new FBScreenAndroid(this);
+    this->recreateScreen(screen,false); // with form copy, if was some
+    this->afterPickScreen(toolbScreenAndroid);
+}
+
+
+// Recreate screen to void. Just "reset to grey screen".
+void FB::pickVoidScreen ()
+{
+    FBScreen *screen = new FBScreen(this);
+    this->recreateScreen(screen,true); // do not copy form
+    this->afterPickScreen(NULL);
+}
+
+
+// Update device and state settings of the screen.
+void FB::updateScreen ()
+{
+    int index;
+    index = comboScreenDevice->currentIndex();
+    if (index == -1)
+    {
+        index = 0;
+    }
+    wScreen->setDevice(index);
+    index = 0;
+    for (int i=0; i<toolbsScreenState.size(); i++)
+    {
+        if (toolbsScreenState[i]->isDown())
+        {
+            index = i;
+            break;
+        }
+    }
+    wScreen->setState(index);
+}
+
+
+// Create new screen with copying old form or not.
+void FB::recreateScreen (FBScreen *newScreen, bool destroyForm)
+{
+    if (newScreen == NULL)
+        return;
+    if (!destroyForm)
+    {
+        FBForm *curForm = wScreen->takeForm();
+        newScreen->setForm(curForm);
+    }
+    lhMiddle->removeWidget(wScreen);
+    delete wScreen;
+    lhMiddle->insertWidget(1,newScreen);
+    newScreen->updateStyle(); // this will also update the style of form elems
+    wScreen = newScreen;
 }
 
 

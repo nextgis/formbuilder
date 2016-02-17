@@ -1,6 +1,6 @@
 /******************************************************************************
  * Project:  NextGIS Formbuilder
- * Purpose:  registrar for elem types
+ * Purpose:  registrar for types
  * Author:   Mikhail Gusev, gusevmihs@gmail.com
  ******************************************************************************
 *   Copyright (C) 2014-2016 NextGIS
@@ -21,42 +21,37 @@
 
 #include "form_core.h"
 
-QList<FBFactory*> FBRegistrar::fctsElem;
+#include "factories.h"
 
-void FBRegistrar::initAll ()
+QList<FBFactory*> FBFactory::fctsElem;
+
+void FBFactory::initAll ()
 {
-    FBRegistrar::deinitAll(); // clear list
-/*
-    FBRegistrar::fctsElem.append(new FBFctElemText("text",
-               tr("Text label"), tr("Decoration"), ":/img/text.png"));
-    FBRegistrar::fctsElem.append(new FBFctElemTextedit("textedit",
-               tr("Text edit"), tr("Input"), ":/img/textedit.png"));
-    FBRegistrar::fctsElem.append(new FBFctElemCombobox("combobox",
-               tr("Combobox"), tr("Input"), ":/img/combo.png"));
-    FBRegistrar::fctsElem.append(new FBFctElemCheckbox("checkbox",
-               tr("Checkbox"), tr("Input"), ":/img/check.png"));
-*/
-    // DEVELOPERS: add new elem factories here.
-    // WARNING. Keynames of elements must be unique.
+    deinitAll(); // clear list
+
+    fctsElem.append(new FBFactoryText());
+    fctsElem.append(new FBFactoryTextedit());
+
+    // DEVELOPERS: register new factories here.
     //...
 }
 
-void FBRegistrar::deinitAll ()
+void FBFactory::deinitAll ()
 {
-    for (int i=0; i<FBRegistrar::fctsElem.size(); i++)
+    for (int i=0; i<fctsElem.size(); i++)
     {
-        delete FBRegistrar::fctsElem[i];
+        delete fctsElem[i];
     }
-    FBRegistrar::fctsElem.clear();
+    fctsElem.clear();
 }
 
-FBFactory *FBRegistrar::getFctByName (QString keyName)
+FBFactory *FBFactory::getFctByName (QString keyName)
 {
-    for (int i=0; i<FBRegistrar::fctsElem.size(); i++)
+    for (int i=0; i<fctsElem.size(); i++)
     {
-        if (FBRegistrar::fctsElem[i]->getKeyName() == keyName)
+        if (fctsElem[i]->getKeyName() == keyName)
         {
-            return FBRegistrar::fctsElem[i];
+            return fctsElem[i];
         }
     }
     return NULL;

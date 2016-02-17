@@ -67,5 +67,6 @@
         <file>img/tablet_land.png</file>
         <file>img/redo.png</file>
         <file>img/undo.png</file>
+        <file>img/ios.png</file>
     </qresource>
 </RCC>

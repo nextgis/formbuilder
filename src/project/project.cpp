@@ -209,7 +209,7 @@ bool FBProject::wasFirstSaved ()
 
 bool FBProject::isSaveRequired ()
 {
-    return false;
+    return true;
 }
 
 

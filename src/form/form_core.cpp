@@ -51,6 +51,11 @@ FBElem::~FBElem ()
 FBElem::FBElem (FBFactory *fctPtr): QWidget()
 {
     this->fctPtr = fctPtr;
+
+    this->setCursor(Qt::PointingHandCursor);
+    this->setDeselectStyle();
+
+    lvMain = new QVBoxLayout(this);
 }
 
 Json::Value FBElem::toJson ()
@@ -64,11 +69,6 @@ FBErr FBElem::fromJson (Json::Value jsonValue)
 {
 
     return FBErrNone;
-}
-
-void FBElem::updateStyle (QString styleName)
-{
-
 }
 
 QList<QList<QPair<QString,FBAttr*> > > FBElem::getAttrsLists()
@@ -90,6 +90,41 @@ QString FBElem::getDisplayName ()
     return fctPtr->getDisplayName();
 }
 
+void FBElem::changeStyle (QString styleName)
+{
+
+}
+
+// Will delete all widgets in the element: decorational and other elements.
+void FBElem::clearContents ()
+{
+    QLayoutItem *child;
+    while ((child = lvMain->takeAt(0)) != 0)
+    {
+        // TODO: test such deletion - when the child layouts (not widgets) will
+        // be deleted.
+
+        if (child->widget() != 0)
+            delete child->widget(); // we must call widget() for its destructor
+        else
+            delete child;
+    }
+}
+
+void FBElem::setSelectStyle ()
+{
+    // We must set select and deselect style only for top elem widget (i.e. this
+    // widget), but not for its decoration inner widgets.
+    this->setStyleSheet("QWidget"//#" + this->objectName() +
+                        "{background-color: rgba(0,0,0,0); "
+                        "border: 2px dashed red;}");
+}
+void FBElem::setDeselectStyle ()
+{
+    this->setStyleSheet("QWidget"//#" + this->objectName() +
+                        "{background-color: rgba(0,0,0,0); "
+                        "border: 2px dashed rgba(0,0,0,0);}");
+}
 
 void FBElem::mousePressEvent (QMouseEvent *event)
 {
@@ -115,23 +150,6 @@ void FBElem::paintEvent (QPaintEvent *event)
     QPainter p(this);
     style()->drawPrimitive(QStyle::PE_Widget, &o, &p, this);
 }
-
-void FBElem::setSelectStyle ()
-{
-    // We must set select and deselect style only for top elem widget (i.e. this
-    // widget), but not for its decoration inner widgets.
-    this->setStyleSheet("QWidget"//#" + this->objectName() +
-                        "{background-color: rgba(0,0,0,0); "
-                        "border: 2px dashed red;}");
-}
-void FBElem::setDeselectStyle ()
-{
-    this->setStyleSheet("QWidget"//#" + this->objectName() +
-                        "{background-color: rgba(0,0,0,0); "
-                        "border: 2px dashed rgba(0,0,0,0);}");
-}
-
-
 
 /*****************************************************************************/
 /*                                                                           */
@@ -192,6 +210,7 @@ FBForm::FBForm (): QWidget()
     IS_SELECTED_MOVING = false;
     INSERT_SHOWED = NULL;
 
+    // Set transparent background.
     this->setStyleSheet("QWidget{background-color:rgba(0,0,0,0);}");
 
     lvForm = new QVBoxLayout(this);
@@ -200,12 +219,14 @@ FBForm::FBForm (): QWidget()
 
     // Add initial form components.
     this->clear();
+
+    curStyle = FB_STYLENAME_DEFAULT;
 }
 
 
 // Add already outside-created elem to the form after the passed element
 // or at the end.
-// WARNING. Do not pass the elem from the form to this method.
+// WARNING. Do not pass the elem which is already in the form to this method.
 void FBForm::addElem (FBElem *newElem, FBElem *afterThisElem)
 {
     if (newElem == NULL)
@@ -225,16 +246,20 @@ void FBForm::addElem (FBElem *newElem, FBElem *afterThisElem)
 
     }
 
+    // Visualize elem.
+    newElem->changeStyle(curStyle);
+
     // Connect all elem and form events.
     QObject::connect(newElem, SIGNAL(pressed(FBElem*)),
                      this, SLOT(onElemPressed(FBElem*)));
-    QObject::connect(newElem, SIGNAL(moved()),
-                     this, SLOT(onElemMoved()));
+    QObject::connect(newElem, SIGNAL(moved(QMouseEvent*)),
+                     this, SLOT(onElemMoved(QMouseEvent*)));
     QObject::connect(newElem, SIGNAL(released()),
-                     this, SLOT(released()));
+                     this, SLOT(onElemReleased()));
 
-    // Select element right after addition.
-    //this->sel
+    // Select element right after addition and signalize about it.
+    this->selectElem(newElem);
+    emit elemPressed();
 }
 
 
@@ -347,7 +372,7 @@ QList<FBElem*> FBForm::getSelectedElems()
 
 // Returns all form elements in a map, which is sorted by Y coordinate.
 // The map will contain all FBElem elements of top level, where containers
-// will hold thair inner elements inside.
+// will hold their inner elements inside.
 // The map will be void if there is no elems in a form.
 QMap<int,FBElem*> FBForm::getElems ()
 {
@@ -424,7 +449,7 @@ QList<FBElem*> FBForm::parseJson (Json::Value jsonVal)
             break;
         }
         QString keyElemName = QString::fromUtf8(jsonValItem.asString().data());
-        FBFactory *fct = FBRegistrar::getFctByName(keyElemName);
+        FBFactory *fct = FBFactory::getFctByName(keyElemName);
         FBElem *elem = fct->create();
 
         // 2. And only than the element "will know" how to convert itself from JSON.
@@ -483,9 +508,11 @@ void FBForm::updateStyle (QString styleName)
     QMap<int,FBElem*>::const_iterator it = elems.constBegin();
     while (it != elems.constEnd())
     {
-        it.value()->updateStyle(styleName);
+        it.value()->changeStyle(styleName);
         ++it;
     }
+
+    curStyle = styleName;
 }
 
 

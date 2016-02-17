@@ -54,6 +54,7 @@ struct FBDevice
               QString imgPath)
         { this->resolution = resolution; this->diagonal = diagonal; this->dpi = dpi;
         this->name = name; this->imgPath = imgPath; }
+
     QString getDisplayString ()
         { return name; }
 };
@@ -62,8 +63,9 @@ struct FBDevice
 /**
  * Screen class which contains the form and render it.
  *
- * Screen can change its appearance: decoration, sizes, "resolution", etc.
+ * Each concrete screen must have at least one device and according state (orientation).
  */
+// Default void grey screen.
 class FBScreen: public QWidget
 {
     public:
@@ -75,14 +77,14 @@ class FBScreen: public QWidget
      FBForm *takeForm ();
      FBForm *getFormPtr ();
      virtual void updateStyle ();
-     QList<FBState> getStates () { return states; }
      QList<FBDevice> getDevices() { return devices; }
+     QList<FBState> getStates () { return states; }
      virtual void setState (int index);
      virtual void setDevice (int index);
 
     protected:
 
-     QGridLayout *glWorkingArea;
+     QGridLayout *lgWorkingArea;
      QList<QWidget*> wsWorkingArea;
      QVBoxLayout *lvScreen; // the layout of screen widget
      QWidget *wScreen; // parent widget for decor labels (if some) and scroll area
@@ -96,23 +98,22 @@ class FBScreen: public QWidget
      int curDevice;
 };
 
+// Abstract screen for mobiles with portrait and landscape orientations.
 class FBScreenMobile: public FBScreen
 {
     public:
-
      FBScreenMobile (QWidget *parent);
      virtual ~FBScreenMobile ();
      virtual void updateStyle () = 0;
-     void setState (int index); // common for all mobile, so not virtual
      void setDevice (int index); // common for all mobile, so not virtual
+     void setState (int index); // common for all mobile, so not virtual
 
     protected:
-
      QList<QLabel*> labsScreenDecor;
-
      QList<FBElem*> otherElemsSet; // the order of elems is important
 };
 
+// Screen with Android style.
 class FBScreenAndroid: public FBScreenMobile
 {
     public:
@@ -121,12 +122,16 @@ class FBScreenAndroid: public FBScreenMobile
      void updateStyle ();
 };
 
-/*
-
-class FBScreenApple: public FBScreenMobile
+// Screen with iPhone/iPad style.
+class FBScreenIos: public FBScreenMobile
 {
+    public:
+     FBScreenIos (QWidget* parent);
+     ~FBScreenIos ();
+     void updateStyle ();
 };
 
+/*
 class FBScreenWeb: public FBScreen
 {
 };
