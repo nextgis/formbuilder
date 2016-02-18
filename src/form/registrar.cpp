@@ -31,6 +31,7 @@ void FBFactory::initAll ()
 
     fctsElem.append(new FBFactoryText());
     fctsElem.append(new FBFactoryTextedit());
+    fctsElem.append(new FBFactoryDatetime());
 
     // DEVELOPERS: register new factories here.
     //...

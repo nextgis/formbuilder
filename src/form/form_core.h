@@ -277,6 +277,7 @@ class FBForm: public QWidget
      void addElem (FBElem *newElem, FBElem *afterThisElem = NULL);
      void moveElem (FBElem* elem, FBInsertWidget *insteadInsWidget);
      void deleteElem (FBElem* elem);
+     void deleteSelected ();
      void clear ();
 
      // selection

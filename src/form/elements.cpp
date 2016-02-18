@@ -31,18 +31,21 @@
 FBElemText::FBElemText (FBFactory *fctPtr):
     FBElem(fctPtr)
 {
+
 }
 
 void FBElemText::changeStyle (QString styleName)
 {
     this->clearContents();
 
+    // For all styles:
+    this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+    this->setMaximumHeight(30);
+    lvMain->setContentsMargins(2,2,2,2);
+    lvMain->setSpacing(0);
+
     if (styleName == FB_STYLENAME_ANDROID)
     {
-        this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
-        this->setMaximumHeight(30);
-        lvMain->setContentsMargins(2,2,2,2);
-        lvMain->setSpacing(0);
         labText = new QLabel(this);
         labText->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
         labText->setFont(QFont(FB_ANDROIDSCREEN_FONTTYPE,
@@ -60,7 +63,13 @@ void FBElemText::changeStyle (QString styleName)
 
     else
     {
-        //FBElem::changeStyle(styleName);
+        labText = new QLabel(this);
+        lvMain->addWidget(labText);
+        labText->setStyleSheet("QLabel{"
+                               "border-top: none;"
+                               "border-left: none;"
+                               "border-right: none;"
+                               "border-bottom: none;}");
     }
 
     this->updateAppearance();
@@ -73,7 +82,7 @@ void FBElemText::changeAttrValue ()
 
 void FBElemText::updateAppearance ()
 {
-
+    labText->setText("Label");
 }
 
 
@@ -86,6 +95,7 @@ void FBElemText::updateAppearance ()
 FBElemTextedit::FBElemTextedit (FBFactory *fctPtr):
     FBElem(fctPtr)
 {
+
 }
 
 void FBElemTextedit::changeStyle (QString styleName)
@@ -129,10 +139,10 @@ void FBElemTextedit::changeStyle (QString styleName)
         labText = new QLabel(this);
         lvMain->addWidget(labText);
         labText->setStyleSheet("QLabel{"
-                               "border-top: none;"
-                               "border-left: none;"
-                               "border-right: none;"
-                               "border-bottom: none;}");
+                               "border-top: 1px solid black;"
+                               "border-left: 1px solid black;"
+                               "border-right: 1px solid black;"
+                               "border-bottom: 1px solid black;}");
     }
 
     this->updateAppearance();
@@ -145,6 +155,98 @@ void FBElemTextedit::changeAttrValue ()
 
 void FBElemTextedit::updateAppearance ()
 {
-    labText->setText("1234567890-=");
+    labText->setText("Text edit");
 }
+
+
+/******************************************************************************/
+/*                                                                            */
+/*                              FBElemDatetime                                */
+/*                                                                            */
+/******************************************************************************/
+
+FBElemDatetime::FBElemDatetime (FBFactory *fctPtr):
+    FBElem(fctPtr)
+{
+
+}
+
+void FBElemDatetime::changeStyle (QString styleName)
+{
+    this->clearContents();
+
+    // For all styles:
+    this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+    this->setMaximumHeight(30);
+    lvMain->setContentsMargins(2,2,2,2);
+    lvMain->setSpacing(0);
+
+    if (styleName == FB_STYLENAME_ANDROID)
+    {
+        labText = new QLabel(this);
+        labText->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+        labText->setFont(QFont(FB_ANDROIDSCREEN_FONTTYPE,
+                               FB_ANDROIDSCREEN_FONTSIZE_NORMAL));
+        labText->setStyleSheet("QLabel"
+                               "{color: "+QString(FB_COLOR_VERYDARKGREY)+";"
+                               "border-top: none;"
+                               "border-left: none;"
+                               "border-right: none;"
+                               "border-bottom: none;}");
+
+        QLabel *labImg = new QLabel(this);
+        QPixmap pixmap = QPixmap(":/img/for_date.png");
+        labImg->setStyleSheet("QLabel{border: none;}");
+        labImg->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Expanding);
+        labImg->setFixedWidth(pixmap.width());
+        labImg->setAlignment(Qt::AlignTop);
+        labImg->setPixmap(pixmap);
+        labImg->setContentsMargins(0,0,0,0);
+
+        QWidget *widDecor = new QWidget(this);
+        widDecor->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+        widDecor->setFixedHeight(3);
+        widDecor->setStyleSheet("QWidget {border-top: none;"
+                  "border-left: none;"
+                  "border-right: none;"
+                  "border-bottom: 2px solid "+QString(FB_COLOR_MEDIUMGREY)+";}");
+
+        QHBoxLayout *hlayTop = new QHBoxLayout();
+        hlayTop->setContentsMargins(0,0,0,0);
+        hlayTop->setSpacing(0);
+        hlayTop->addWidget(labText);
+        hlayTop->addWidget(labImg);
+        lvMain->addLayout(hlayTop);
+        lvMain->addWidget(widDecor);
+    }
+
+    //...
+
+    else // default
+    {
+        labText = new QLabel(this);
+        lvMain->addWidget(labText);
+        labText->setStyleSheet("QLabel{"
+                               "border-top: none;"
+                               "border-left: none;"
+                               "border-right: none;"
+                               "border-bottom: none;}");
+    }
+
+    this->updateAppearance();
+}
+
+void FBElemDatetime::changeAttrValue ()
+{
+
+}
+
+void FBElemDatetime::updateAppearance ()
+{
+    labText->setText("11.08.2016");
+}
+
+
+
+
 

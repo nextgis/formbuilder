@@ -74,6 +74,9 @@ FBScreen::FBScreen (QWidget *parent):
     curState = 0;
 }
 
+// Destructor.
+// The form will be deleted automatically, because it is owned by the scroll widget,
+// while scroll widget is owned by screen.
 FBScreen::~FBScreen ()
 {
 }
@@ -83,12 +86,12 @@ void FBScreen::setForm (FBForm* form)
     if (form == NULL)
         return;
     if (formPtr != NULL)
-        this->removeForm();
+        this->deleteForm();
     scrollScreen->setWidget(form);
     formPtr = form;
 }
 
-void FBScreen::removeForm ()
+void FBScreen::deleteForm ()
 {
     if (formPtr == NULL)
         return;

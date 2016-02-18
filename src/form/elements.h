@@ -54,6 +54,19 @@ class FBElemTextedit: public FBElem
      QLabel *labText;
 };
 
+class FBElemDatetime: public FBElem
+{
+    public:
+     FBElemDatetime (FBFactory *fctPtr);
+     ~FBElemDatetime () {}
+     void changeStyle (QString styleName);
+    protected slots:
+     void changeAttrValue ();
+     void updateAppearance ();
+    protected:
+     QLabel *labText;
+};
+
 
 #endif //ELEMENTS_H
 

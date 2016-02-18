@@ -42,7 +42,7 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     //                              Working area
     //----------------------------------------------------------------------
 
-    wScreen = new FBScreen(this);
+    wScreen = new FBScreen(this); // currently with no form
     wScreen->updateStyle();
     wScreen->setDevice(0);
     wScreen->setState(0); // default maximized grey area
@@ -133,9 +133,7 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
                                               stubList);
     QObject::connect(comboScreenDevice, SIGNAL(activated(int)),
                      this, SLOT(onScreenDeviceSelect(int)));
-
-    // TODO: ... add widget with device info ...
-
+    // TODO: add widget with device info here ...
     this->addTopMenuSplitter(wView);
     this->updateMenuView(); // just for first appearance
 
@@ -146,9 +144,13 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
                     tr("Redo"),tr("Return last canceld \nform operation"),false);
     this->addTopMenuSplitter(wTools);
     toolbClearScreen = addTopMenuButton(wTools,":/img/clear_screen.png",
-                      tr("Clear screen"),tr("Clear all screen \nelements"),false);
+                    tr("Clear screen"),tr("Clear all screen \nelements"),false);
+    QObject::connect(toolbClearScreen, SIGNAL(clicked()),
+                     this, SLOT(onClearScreenClick()));
     toolbDeleteElem = addTopMenuButton(wTools,":/img/delete_elem.png",
-                      tr("Delete element"),tr("Delete selected \nelement"),false);
+                    tr("Delete element"),tr("Delete selected \nelement"),false);
+    QObject::connect(toolbDeleteElem, SIGNAL(clicked()),
+                     this, SLOT(onDeleteElemClick()));
     this->addTopMenuSplitter(wTools);
     //for ()
     //{
@@ -211,12 +213,6 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     lvMenuLeft2->addStretch();
     lhMenuLeft->addLayout(lvMenuLeft1);
     lhMenuLeft->addLayout(lvMenuLeft2);
-
-    //registerAllElements();
-    //for ()
-    //{
-        
-    //}
 
     this->updateLeftTrees(); // fill trees with elements' representations
     this->flipLeftMenu(false);
@@ -305,16 +301,11 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
                               "border-top: 1px solid "
                               +QString(FB_COLOR_MEDIUMGREY)+";"
                               "border-bottom: 1px solid "+FB_COLOR_MEDIUMGREY+";"
-                              //"border-left: 1px solid "+FB_COLOR_MEDIUMGREY+";"
-                              //"border-right: 1px solid "+FB_COLOR_MEDIUMGREY+";"
                               "}"
                               "QTabWidget::tab-bar {"
                               "left: 5px; "
                               "top: 1px; }"
                               "QTabBar::tab {"
-                              //"background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
-                              //"stop: 0 #E1E1E1, stop: 0.4 #DDDDDD,"
-                              //"stop: 0.5 #D8D8D8, stop: 1.0 #D3D3D3);"
                               "border: 1px solid "+FB_COLOR_MEDIUMGREY+";"
                               "border-bottom-color: white; "
                               "border-top-left-radius: 4px;"
@@ -322,13 +313,6 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
                               "min-width: 8ex;"
                               "padding: 2px;"
                               "color: black }"
-                              //"QTabBar::tab:selected, QTabBar::tab:hover {"
-                              //"background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
-                              //"stop: 0 #fafafa, stop: 0.4 #f4f4f4,"
-                              //"stop: 0.5 #e7e7e7, stop: 1.0 #fafafa);}"
-                              //"QTabBar::tab:selected {"
-                              //"border-color: #9B9B9B;"
-                              //"border-bottom-color: rgb(255,255,255); }"
                               "QTabBar::tab:!selected {"
                               "border: 1px solid white;"
                               "border-bottom-color: "+FB_COLOR_MEDIUMGREY+";"
@@ -431,7 +415,7 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
 void FB::onAddElemPress (QTreeWidgetItem* item, int column)
 {
     FBForm *form = wScreen->getFormPtr();
-    if (form == NULL || project == NULL)
+    if (form == NULL)
         return;
 
     // Check if it is not a header of group in tree.
@@ -479,9 +463,7 @@ void FB::onNewVoidClick ()
         project = projNew;
 
         // Create and show new void form replacing old one.
-        FBForm *formOld = wScreen->takeForm();
-        if (formOld != NULL)
-            delete formOld;
+        wScreen->deleteForm();
         FBForm *formNew = new FBForm();
         wScreen->setForm(formNew);
 
@@ -548,8 +530,6 @@ void FB::onOpenClick ()
 
         // Create project replacing old one.
         FBProject *projNew = new FBProject();
-//        QObject::connect(projNew, SIGNAL(changeProgress(int)),
-//                         dlgProgress, SLOT(onChangeProgress(int)));
         FBErr err = projNew->open(strFullPath);
         if (err != FBErrNone)
         {
@@ -563,9 +543,7 @@ void FB::onOpenClick ()
 
         // Create and show new form, replacing old one. Fill it with elems from
         // project.
-        FBForm *formOld = wScreen->takeForm();
-        if (formOld != NULL)
-            delete formOld;
+        wScreen->deleteForm();
         FBForm *formNew = new FBForm();
         formNew->fromJson(FBProject::readForm(strFullPath));
         wScreen->setForm(formNew);
@@ -621,19 +599,16 @@ void FB::onScreenStatePick ()
 {
     // We must always have the default screen type - so here we set
     // the first occur state in the array.
-
     QObject *obj = this->sender();
     if (obj == NULL)
     {
         return;
     }
-
     for (int i=0; i<toolbsScreenState.size(); i++)
     {
         toolbsScreenState[i]->setDown(false);
     }
     static_cast<QToolButton*>(obj)->setDown(true);
-
     this->updateScreen();
 }
 
@@ -656,12 +631,27 @@ void FB::onRedoClick ()
 
 void FB::onClearScreenClick ()
 {
-
+    toolbClearScreen->setDown(true);
+    FBForm *form = wScreen->getFormPtr();
+    if (form == NULL || form->isVoid())
+        return;
+    if (this->showWarning(tr("Clear screen from all elements?"))
+            != QMessageBox::Ok)
+        return;
+    form->clear();
+    this->updateRightMenu();
+    toolbClearScreen->setDown(false);
 }
 
 void FB::onDeleteElemClick ()
 {
-
+    toolbDeleteElem->setDown(true);
+    FBForm *form = wScreen->getFormPtr();
+    if (form == NULL || form->isVoid())
+        return;
+    form->deleteSelected();
+    this->updateRightMenu();
+    toolbDeleteElem->setDown(false);
 }
 
 void FB::onSettingLanguageSelect ()
@@ -817,22 +807,14 @@ QToolButton *FB::addTopMenuButton (QWidget *parentTab, QString imgPath,
     //but->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     but->setCursor(Qt::PointingHandCursor);
     hlParent->insertWidget(hlParent->count()-1,but); // last is stretch item.
+    // TODO: Make real semitransparent style (~20%).
     but->setStyleSheet("QToolButton"
-                       "{"
-                           "border: none;"
-                       "}"
+                       "{border: none;}"
                        "QToolButton:hover"
-                       "{"
-                           "background-color: "+QString(FB_COLOR_DARKBLUE)+";"
-                       "}"
-                       "QToolButton:pressed"
-                       "{"
-                           "background-color: "+FB_COLOR_LIGHTBLUE+";"
-                       "}"
-                       "QToolButton:disabled"
-                       "{"
-                            // TODO: Make real semitransparent style (~20%).
-                       "}");
+                       "{background-color: "+QString(FB_COLOR_DARKBLUE)+";}"
+                       "QToolButton:pressed{"
+                           "background-color: "+FB_COLOR_LIGHTBLUE+";}"
+                       "QToolButton:disabled{}");
     but->setToolTip(description);
     return but;
 }
@@ -978,6 +960,7 @@ void FB::updateEnableness ()
         wMenuRight->setEnabled(true);
         toolbSaveAs->setEnabled(true);
         toolbClearScreen->setEnabled(true);
+        toolbDeleteElem->setEnabled(true);
         toolbScreenAndroid->setEnabled(true);
         toolbScreenIos->setEnabled(true);
         toolbScreenWeb->setEnabled(true);
@@ -1221,6 +1204,24 @@ void FB::pickVoidScreen ()
 }
 
 
+// Create new screen with copying old form or not.
+void FB::recreateScreen (FBScreen *newScreen, bool destroyForm)
+{
+    if (newScreen == NULL)
+        return;
+    if (!destroyForm)
+    {
+        FBForm *curForm = wScreen->takeForm();
+        newScreen->setForm(curForm);
+    }
+    lhMiddle->removeWidget(wScreen);
+    delete wScreen;
+    lhMiddle->insertWidget(1,newScreen);
+    newScreen->updateStyle(); // this will also update the style of form elems
+    wScreen = newScreen;
+}
+
+
 // Update device and state settings of the screen.
 void FB::updateScreen ()
 {
@@ -1243,23 +1244,6 @@ void FB::updateScreen ()
     wScreen->setState(index);
 }
 
-
-// Create new screen with copying old form or not.
-void FB::recreateScreen (FBScreen *newScreen, bool destroyForm)
-{
-    if (newScreen == NULL)
-        return;
-    if (!destroyForm)
-    {
-        FBForm *curForm = wScreen->takeForm();
-        newScreen->setForm(curForm);
-    }
-    lhMiddle->removeWidget(wScreen);
-    delete wScreen;
-    lhMiddle->insertWidget(1,newScreen);
-    newScreen->updateStyle(); // this will also update the style of form elems
-    wScreen = newScreen;
-}
 
 
 /****************************************************************************/

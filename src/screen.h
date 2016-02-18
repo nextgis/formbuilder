@@ -73,7 +73,7 @@ class FBScreen: public QWidget
      FBScreen (QWidget *parent);
      virtual ~FBScreen ();
      void setForm (FBForm* form);
-     void removeForm ();
+     void deleteForm ();
      FBForm *takeForm ();
      FBForm *getFormPtr ();
      virtual void updateStyle ();

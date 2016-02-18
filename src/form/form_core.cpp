@@ -96,20 +96,32 @@ void FBElem::changeStyle (QString styleName)
 }
 
 // Will delete all widgets in the element: decorational and other elements.
+// This is equivalent to element re-creation - it will be fully clear at the end.
 void FBElem::clearContents ()
 {
+    // See FBForm::clear() for comments.
+    QObjectList list = this->children();
+    for (int i=0; i<list.size(); i++)
+    {
+        if (list[i]->isWidgetType())
+            delete list[i]; // will delete all child widgets of these widgets also
+    }
     QLayoutItem *child;
     while ((child = lvMain->takeAt(0)) != 0)
     {
-        // TODO: test such deletion - when the child layouts (not widgets) will
-        // be deleted.
-
-        if (child->widget() != 0)
-            delete child->widget(); // we must call widget() for its destructor
+        if (child->layout() != 0)
+        {
+            delete child->layout();
+        }
+        else if (child->spacerItem() != 0)
+        {
+            delete child->spacerItem();
+        }
         else
             delete child;
     }
 }
+
 
 void FBElem::setSelectStyle ()
 {
@@ -231,8 +243,11 @@ void FBForm::addElem (FBElem *newElem, FBElem *afterThisElem)
 {
     if (newElem == NULL)
         return;
-
     // TODO: do the check if the passed newElem is already the form's one.
+
+    // Set the form as the parent widget, because the form must delete its
+    // child widgets when it is deleted self.
+    newElem->setParent(this);
 
     // We do not use addWidget() because the last item in layout is stretch item.
     if (afterThisElem == NULL)
@@ -309,21 +324,43 @@ void FBForm::deleteElem (FBElem* elem)
 }
 
 
+void FBForm::deleteSelected ()
+{
+    if (SELECTED == NULL)
+        return;
+    this->deleteElem(SELECTED); // will deselect elem automatically
+}
+
+
+// Delete ALL items which are placed in the main form layout: form elements,
+// insert widgets and the last stretch layout. After that insert initial items.
 void FBForm::clear ()
 {
-    // Delete ALL items which are placed in the main form layout: form elements,
-    // insert widgets and tha last stretch layout.
-    QLayoutItem *child;
-    while ((child = lvForm->takeAt(0)) != NULL)
+    this->deselectElem();
+
+    // Delete all widgets. We must do this, because layouts do not delete their
+    // widgets self.
+    QObjectList list = this->children();
+    for (int i=0; i<list.size(); i++)
     {
-        // TODO: think about why here we can delete only casting to QWidget, while
-        // in other method e.g. ~ recreateVoidScreen() we can delete without it.
-        // Possible reason: if children are layouts they delete their items self,
-        // but here all children are widgets.
+        if (list[i]->isWidgetType())
+            delete list[i]; // will delete all child widgets of these widgets also
+    }
 
-        // TODO: why the last stretch item (not widget) is deleted without error?
-
-        delete child->widget();
+    // Clear main layout.
+    QLayoutItem *child;
+    while ((child = lvForm->takeAt(0)) != 0)
+    {
+        if (child->layout() != 0)
+        {
+            delete child->layout();
+        }
+        else if (child->spacerItem() != 0)
+        {
+            delete child->spacerItem();
+        }
+        else
+            delete child; // TODO: do we need this here?
     }
 
     // Firstly we add one insert widget so it can be possible to add elems to the form.

@@ -30,7 +30,7 @@ class FBFactoryText: public FBFactory
     public:
      FBFactoryText (): FBFactory ("text",
           QObject::tr("Text label"), FBDecoration, ":/img/text.png") { }
-     ~FBFactoryText () {}
+     ~FBFactoryText () { }
      FBElem *create () { return new FBElemText(this); }
 };
 
@@ -39,10 +39,18 @@ class FBFactoryTextedit: public FBFactory
     public:
      FBFactoryTextedit (): FBFactory ("text_edit",
           QObject::tr("Text edit"), FBInput, ":/img/textedit.png") { }
-     ~FBFactoryTextedit () {}
+     ~FBFactoryTextedit () { }
      FBElem *create () { return new FBElemTextedit(this); }
 };
 
+class FBFactoryDatetime: public FBFactory
+{
+    public:
+     FBFactoryDatetime (): FBFactory ("date_time",
+          QObject::tr("Date & time"), FBInput, ":/img/date.png") { }
+     ~FBFactoryDatetime () { }
+     FBElem *create () { return new FBElemDatetime(this); }
+};
 
 #endif // FACTORIES_H
 
