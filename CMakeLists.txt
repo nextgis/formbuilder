@@ -46,6 +46,7 @@ set(CMAKE_AUTOMOC ON)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/form)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/project)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/screen)
 
 include(FindAnyProject)
 

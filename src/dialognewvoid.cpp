@@ -32,7 +32,7 @@ FBDialogProjectNew::FBDialogProjectNew (QWidget *parent): QDialog(parent)
     // TODO: set OS-specific colors and fonts (now are parent colors).
     this->setStyleSheet("");
     this->setStyleSheet("QWidget { color: black }");
-    this->setFont(QFont("Candara",FB_GUI_FONTSIZE_SMALL));
+    this->setFont(QFont(FB_GUI_FONTTYPE,FB_GUI_FONTSIZE_SMALL));
 
     QLabel *label1 = new QLabel(this);
     label1->setText(tr("Geometry type: "));

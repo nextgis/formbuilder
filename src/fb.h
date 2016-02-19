@@ -42,15 +42,12 @@
 #include "fb_common.h"
 #include "form/form_core.h"
 #include "project/project.h"
-#include "screen.h"
+#include "screen/screen.h"
 
 // Visual.
+#define FB_GUI_FONTTYPE "Candara"
 #define FB_GUI_FONTSIZE_NORMAL 11
 #define FB_GUI_FONTSIZE_SMALL 9
-enum FBTableType // how to draw attribute table
-{
-    FBSimple, FBBold,
-};
 
 // Constants and limits.
 #define FB_MENURIGHT_TABLES_MAX 5
@@ -107,6 +104,8 @@ class FB: public QWidget
     
      explicit FB (QWidget *parent = 0);
      ~FB();
+     void initGui ();
+     void setFbStyle ();
 
     private slots:
 
@@ -145,6 +144,8 @@ class FB: public QWidget
 
     private: // methods
 
+     bool isInited;
+
      // settings
      void updateSettings ();
      QString getSettingLastPath ();
@@ -153,6 +154,7 @@ class FB: public QWidget
      QString getErrString (FBErr err);
 
      // gui
+     FBForm *createForm();
      QToolButton *addTopMenuButton (QWidget *parentTab, QString imgPath,
                            QString name, QString description, bool small=false);
      void addTopMenuSplitter (QWidget *parentTab);
@@ -160,14 +162,14 @@ class FB: public QWidget
                      QStringList values);
      void flipLeftMenu (bool isFull);
      void flipRightMenu (bool isFull);
-     QTableWidget* addRightMenuTable (int rowCount);
+     QTableWidget* addRightMenuTable ();
      void updateEnableness ();
      void updateLeftTrees ();
      void updateRightMenu ();
      void setBottomString (QString strToShorten, QString strToPrepend = "");
      void updateProjectString ();
      void updateMenuView ();
-     QString getGroupNameStr (FBGroupType group);
+     QString getGroupStr (FBElemtype type);
      void afterPickScreen (QToolButton *toolbDown);
 
      // screen

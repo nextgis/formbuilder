@@ -43,6 +43,18 @@ class FBFactoryTextedit: public FBFactory
      FBElem *create () { return new FBElemTextedit(this); }
 };
 
+class FBFactoryCombobox: public FBFactory
+{
+    public:
+     FBFactoryCombobox (QWidget *appWidget = NULL): FBFactory ("combobox",
+          QObject::tr("Combobox"), FBInput, ":/img/combo.png")
+            { this->appWidget = appWidget; }
+     ~FBFactoryCombobox () { }
+     FBElem *create () { return new FBElemCombobox(this,appWidget); }
+    private:
+     QWidget *appWidget;
+};
+
 class FBFactoryDatetime: public FBFactory
 {
     public:

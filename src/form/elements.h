@@ -26,7 +26,40 @@
 #include <QLabel>
 
 #include "form_core.h"
+#include "attributes.h"
 
+
+// Element which can write values to the layer fields.
+class FBElemInput: public FBElem
+{
+    public:
+     FBElemInput (FBFactory *fctPtr);
+     virtual ~FBElemInput () { }
+
+    protected:
+     FBAttrField *attrFieldPtr;
+     QString caption;
+};
+
+
+/*
+// This compound element may contain other elements which are even also compound.
+class FBElemCompound: protected FBElem
+{
+    public:
+     void addElem (FBElem* afterElem); // afterElem can be NULL
+     void removeElem (FBElem* elem);
+     void removeAllElems ();
+
+     virtual Json::Value toJson (); // also calls toJson() of inner elems
+     virtual FBErr fromJson (); // also calls fromJson() of inner elems
+
+    protected:
+     // The elems are stored inside layout(s) and will be read for output as
+     // it is done for the whole form - via layout's iteration.
+
+};
+*/
 
 class FBElemText: public FBElem
 {
@@ -39,9 +72,10 @@ class FBElemText: public FBElem
      void updateAppearance ();
     protected:
      QLabel *labText;
+     FBAttrText *attrTextPtr;
 };
 
-class FBElemTextedit: public FBElem
+class FBElemTextedit: public FBElemInput
 {
     public:
      FBElemTextedit (FBFactory *fctPtr);
@@ -52,9 +86,24 @@ class FBElemTextedit: public FBElem
      void updateAppearance ();
     protected:
      QLabel *labText;
+     FBAttrText *attrTextPtr;
 };
 
-class FBElemDatetime: public FBElem
+class FBElemCombobox: public FBElemInput
+{
+    public:
+     FBElemCombobox (FBFactory *fctPtr, QWidget *appWidget = NULL);
+     ~FBElemCombobox () {}
+     void changeStyle (QString styleName);
+    protected slots:
+     void changeAttrValue ();
+     void updateAppearance ();
+    protected:
+     QLabel *labText;
+     FBAttrListvalues *attrListvalsPtr;
+};
+
+class FBElemDatetime: public FBElemInput
 {
     public:
      FBElemDatetime (FBFactory *fctPtr);

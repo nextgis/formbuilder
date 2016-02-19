@@ -24,6 +24,7 @@
 
 #include <QWidget>
 #include <QVBoxLayout>
+#include <QPushButton>
 
 #include <QMouseEvent>
 
@@ -36,7 +37,6 @@
 #include "json/json.h"
 
 #include "fb_common.h"
-
 
 #define FB_STYLENAME_DEFAULT "default"
 #define FB_STYLENAME_ANDROID "android"
@@ -53,9 +53,16 @@
 #define FB_JSONVALUE_ATTRVAL_NONAME "-1"
 #define FB_JSONVALUE_ATTRVAL_NOALIAS "--"
 
-enum FBGroupType
+#define FB_DEFVALUE_NOTSELECTED "-"
+
+enum FBElemtype
 {
     FBDecoration, FBInput, FBGrouping, FBLayout
+};
+
+enum FBAttrrole
+{
+    FBNoRole, FBImportant, FBOtherAttrChange, FBStructureChange,
 };
 
 
@@ -65,8 +72,9 @@ class FBFactory;
 
 
 /**
- * Attributes. Each attribute class - is an "attribute type" because different elements
- * can have the same attribute types, but with different display names and used for
+ * Attribute.
+ * Each attribute class - is an "attribute type" because different elements can
+ * have the same attribute types, but with different display names and used for
  * different purposes.
  *
  * Each attribute must be able:
@@ -82,58 +90,40 @@ class FBFactory;
  * usually edited in complex way: with the help of special dialogues, which are
  * opened by pressing button in the attrs table.
  *
+ * The getWidget() method must return a QWidget which is inited without parent. The
+ * actual parent may be table in main app's GUI which will delete this widget self.
+ *
  * For developers: add new attribute by subclassing from one of the FBAttrX classes.
  * WARNING. Each attribute must have a unique key name.
  */
 class FBAttr: public QObject
 {
     Q_OBJECT
-
     public:
-     FBAttr (FBElem *parentElem);
-     virtual ~FBAttr ();
+     FBAttr (FBElem *parentElem, QString keyName, QString displayName,
+             FBAttrrole role);
+     virtual ~FBAttr () { }
      virtual Json::Value toJson () = 0;
      virtual FBErr fromJson (Json::Value jsonVal) = 0;
-     virtual QWidget *getWidget () = 0;
-     virtual QString getKeyName () = 0;
-
+     virtual QWidget *getWidget () = 0; // its the caller responsib. to delete it
+     QString getKeyName () { return keyName; }
+     QString getDisplayName () { return displayName; }
+     FBAttrrole getRole () { return role; }
     signals:
      void changeOtherAttr (); // in order to signalize to other attrs of this element
-                              // that they can be changed
+                          // that they can be changed
      void changeAppearance (); // indicates that changing this attr changes elem's
                                // appearance
     protected:
      FBElem *elemPtr; // parent elem
+     QString keyName;
+     QString displayName;
+     FBAttrrole role;
 };
-
-/*
-class FBAttrWidget: public FBAttr
-{
-    Q_OBJECT
-    protected slots:
-     void onEditEnd ();
-};
-
-class FBAttrDialog: public FBAttr
-{
-    Q_OBJECT
-    public:
-     virtual QPushButton *getWidget () = 0;
-    protected slots:
-     void onEditStart ();
-};
-
-class FBAttrCombo: public FBAttrWidget
-
-class FBAttrField: public FBAttrCombo
-
-class
-*/
 
 
 /**
- * Elements.
- *
+ * Element.
  * Each element has:
  * 1. List of attributes (but can be void);
  * 2. Its own graphical representation which can vary among form styles;
@@ -141,10 +131,8 @@ class
  * its attributes.
  *
  * For developers: add new element by subclassing one of the FBElemX classes.
- * See FBFactory+FBRegistrar classes how to add new element.
+ * See FBFactory class how to add new element.
  */
-// Default elem - has its own graphical representation so it will be possible
-// for form to manage unknown-unsupported elements in a common way.
 class FBElem: public QWidget
 {
     friend class FBForm;
@@ -153,10 +141,11 @@ class FBElem: public QWidget
 
     public:
      FBElem (FBFactory *fctPtr);
-     virtual ~FBElem ();
+     virtual ~FBElem () { }
      virtual Json::Value toJson ();
      virtual FBErr fromJson (Json::Value jsonValue);
-     virtual QList<QList<QPair<QString,FBAttr*> > > getAttrsLists ();
+     //virtual QList<QList<QPair<QString,FBAttr*> > > getAttrsLists ();
+     QSet<FBAttr*> getAttrs () { return attrs; }
      FBFactory *getFctPtr () { return fctPtr; }
      QString getDisplayName ();
 
@@ -181,64 +170,25 @@ class FBElem: public QWidget
     
     protected: // fields
      FBFactory *fctPtr; // parent factory
-     //FBForm *formPtr; // parent form (actual QWidget-parent)
-     QMap<QString,FBAttr*> mapAttrs;
+     QSet<FBAttr*> attrs; //QMap<QString,FBAttr*> mapAttrs;
      QVBoxLayout *lvMain; // for deleting style decorations & inner elems
 };
-
-/*
-// Abstract simple element for displaying.
-class FBElemDecor: protected FBElem
-{
-    public:
-     virtual Json::Value toJson ();
-     virtual FBErr fromJson ();
-};
-
-// Element which can write values to the layer fields.
-class FBElemInput: protected FBElem
-{
-    public:
-     virtual Json::Value toJson ();
-     virtual FBErr fromJson ();
-
-    protected:
-     FBAttr *attrField;
-     QString strCaption;
-};
-
-// This compound element may contain other elements which are even also compound.
-class FBElemCompound: protected FBElem
-{
-    public:
-     void addElem (FBElem* afterElem); // afterElem can be NULL
-     void removeElem (FBElem* elem);
-     void removeAllElems ();
-
-     virtual Json::Value toJson (); // also calls toJson() of inner elems
-     virtual FBErr fromJson (); // also calls fromJson() of inner elems
-    
-    protected:
-     // The elems are stored inside layout(s) and will be read for output as
-     // it is done for the whole form - via layout's iteration.
-       
-};
-*/
 
 
 /** 
  * Insert widget.
  * Final helper class for elements movement.
+ *
+ * WARNING. FBInsertWidget class name will be used to determine widget type!
+ * Do not change it.
+ * TODO: may be use other way to determine the Insert Widget, e.g. qobject_cast<>.
  */
-// WARNING! FBInsertWidget class name will be used to determine widget type! Do not
-// change it.
-// TODO: may be use other way to determine the Insert Widget, e.g. qobject_cast<>.
 class FBInsertWidget: public QWidget 
 {
     Q_OBJECT  // required for widget type determination
     public:
      FBInsertWidget (QWidget* parent);
-     ~FBInsertWidget ();
+     ~FBInsertWidget () { }
      void paintEvent (QPaintEvent *event);
      void setShowStyle ();
      void setHideStyle ();
@@ -271,7 +221,7 @@ class FBForm: public QWidget
 
     public:
      FBForm ();
-     ~FBForm ();
+     ~FBForm () { }
 
      // manipulation
      void addElem (FBElem *newElem, FBElem *afterThisElem = NULL);
@@ -312,7 +262,6 @@ class FBForm: public QWidget
                     // form's elements structure has been changed and there is
                     // a need to save it
 
-     // for form
      QVBoxLayout *lvForm;
 
      // global variables for elems manipulating
@@ -329,14 +278,14 @@ class FBForm: public QWidget
  * The main purpose of factory is to create elems in a common way.
  *
  * For developers: create new FBElemX and its FBFactoryX implementations. After this
- * add FBFactoryX to FBRegistrar class method to register it.
+ * add FBFactoryX to static method initAll() to register it.
  * WARNING. Each element must have a unique key name.
  */
 class FBFactory
 {
     public:
 
-     static void initAll ();
+     static void initAll (QWidget *appWidget = NULL);
      static void deinitAll ();
      static FBFactory *getFctByName (QString keyName);
      static QList<FBFactory*> getAllFcts () { return fctsElem; }
@@ -344,47 +293,25 @@ class FBFactory
     public:
 
      FBFactory (QString keyName, QString displayName,
-                FBGroupType group, QString imgPath)
+                FBElemtype type, QString imgPath)
         { this->keyName = keyName; this->displayName = displayName;
-          this->group = group; this->imgPath = imgPath; }
+          this->type = type; this->imgPath = imgPath; }
      virtual ~FBFactory () {}
      virtual FBElem *create () = 0;
      QString getKeyName () { return keyName; }
      QString getDisplayName () { return displayName; }
-     FBGroupType getGroupType () { return group; }
+     FBElemtype getType () { return type; }
      QString getImgPath () { return imgPath; }
 
     protected:
 
      QString keyName;
      QString displayName;
-     FBGroupType group;
+     FBElemtype type;
      QString imgPath;
 
      static QList<FBFactory*> fctsElem;
 };
-
-
-/**
- * Registrar.
- * Static class which manages factories and stores the full list of them.
- *
- * For developers: add new elem's factory to the main initAll() method of this
- * class.
- */
-/*
-class FBRegistrar
-{
-    public:
-     static void initAll ();
-     static void deinitAll ();
-     static FBFactory *getFctByName (QString keyName);
-     static QList<FBFactory*> getAllFcts () { return fctsElem; }
-    protected:
-     static QList<FBFactory*> fctsElem;
-};
-*/
-
 
 
 #endif //FORM_H

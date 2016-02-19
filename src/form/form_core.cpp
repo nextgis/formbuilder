@@ -28,13 +28,19 @@
 /*                                                                           */
 /*****************************************************************************/
 
-FBAttr::FBAttr (FBElem *parentElem)
+FBAttr::FBAttr (FBElem *parentElem, QString keyName, QString displayName,
+                FBAttrrole role):
+    QObject ()
 {
-    elemPtr = parentElem;
-}
+    this->elemPtr = parentElem;
+    this->keyName = keyName;
+    this->displayName = displayName;
+    this->role = role;
 
-FBAttr::~FBAttr ()
-{
+    QObject::connect(this,SIGNAL(changeAppearance()),
+                     parentElem,SLOT(updateAppearance()));
+    QObject::connect(this,SIGNAL(changeOtherAttr()),
+                     parentElem,SLOT(changeAttrValue()));
 }
 
 
@@ -44,11 +50,8 @@ FBAttr::~FBAttr ()
 /*                                                                           */
 /*****************************************************************************/
 
-FBElem::~FBElem ()
-{
-}
-
-FBElem::FBElem (FBFactory *fctPtr): QWidget()
+FBElem::FBElem (FBFactory *fctPtr):
+    QWidget()
 {
     this->fctPtr = fctPtr;
 
@@ -69,20 +72,6 @@ FBErr FBElem::fromJson (Json::Value jsonValue)
 {
 
     return FBErrNone;
-}
-
-QList<QList<QPair<QString,FBAttr*> > > FBElem::getAttrsLists()
-{
-    QList<QList<QPair<QString,FBAttr*> > > retList;
-    QList<QPair<QString,FBAttr*> > list;
-    QMap<QString,FBAttr*>::const_iterator it = mapAttrs.constBegin();
-    while (it != mapAttrs.constEnd())
-    {
-        list.append(QPair<QString,FBAttr*>(it.key(),it.value()));
-        ++it;
-    }
-    retList.append(list);
-    return retList;
 }
 
 QString FBElem::getDisplayName ()
@@ -163,21 +152,19 @@ void FBElem::paintEvent (QPaintEvent *event)
     style()->drawPrimitive(QStyle::PE_Widget, &o, &p, this);
 }
 
+
 /*****************************************************************************/
 /*                                                                           */
 /*                             FBInsertWidget                                */
 /*                                                                           */
 /*****************************************************************************/
 
-FBInsertWidget::FBInsertWidget (QWidget* parent): QWidget(parent)
+FBInsertWidget::FBInsertWidget (QWidget* parent):
+    QWidget(parent)
 {
     this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
     this->setMinimumHeight(13);
     this->setHideStyle();
-}
-
-FBInsertWidget::~FBInsertWidget ()
-{
 }
 
 void FBInsertWidget::setShowStyle()
@@ -210,13 +197,8 @@ void FBInsertWidget::paintEvent(QPaintEvent *event)
 /*                                                                           */
 /*****************************************************************************/
 
-
-FBForm::~FBForm ()
-{
-}
-
-
-FBForm::FBForm (): QWidget()
+FBForm::FBForm ():
+    QWidget()
 {
     SELECTED = NULL;
     IS_SELECTED_MOVING = false;

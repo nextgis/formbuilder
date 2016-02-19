@@ -30,13 +30,17 @@ FB::~FB()
 
 FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
 {
-    //----------------------------------------------------------------------
-    //                              Main settings
-    //----------------------------------------------------------------------
-
+    isInited = false;
     project = NULL;
 
     ui->setupUi(this);
+}
+
+void FB::initGui ()
+{
+    if (isInited)
+        return;
+    isInited = true;
 
     //----------------------------------------------------------------------
     //                              Working area
@@ -46,70 +50,70 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     wScreen->updateStyle();
     wScreen->setDevice(0);
     wScreen->setState(0); // default maximized grey area
-    
+
     //----------------------------------------------------------------------
     //                              Top menu
     //----------------------------------------------------------------------
-    
+
     tabMenuTop = new QTabWidget(this);
     tabMenuTop->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
     tabMenuTop->setMaximumHeight(120);
     tabMenuTop->setMinimumHeight(100);
-    tabMenuTop->setFont(QFont("Candara",FB_GUI_FONTSIZE_NORMAL));
+    tabMenuTop->setFont(QFont(FB_GUI_FONTTYPE,FB_GUI_FONTSIZE_NORMAL));
 
     wProject = new QWidget();
     tabMenuTop->addTab(wProject, tr(" Project "));
     QHBoxLayout *layProject = new QHBoxLayout(wProject);
     layProject->setContentsMargins(0,0,0,0);
     layProject->addStretch();
-    
+
     wView = new QWidget();
     tabMenuTop->addTab(wView, tr("  View  "));
     lhView = new QHBoxLayout(wView);
     lhView->setContentsMargins(4,4,4,4);
     lhView->addStretch();
-    
+
     wTools = new QWidget();
     tabMenuTop->addTab(wTools, tr("  Tools  "));
     QHBoxLayout *layTools = new QHBoxLayout(wTools);
     layTools->addStretch();
-    
+
     wSettings = new QWidget();
     tabMenuTop->addTab(wSettings, tr(" Settings "));
     QHBoxLayout *laySettings = new QHBoxLayout(wSettings);
     laySettings->addStretch();
-    
+
     wAbout = new QWidget();
     tabMenuTop->addTab(wAbout, tr(" About "));
     QHBoxLayout *layAbout = new QHBoxLayout(wAbout);
     layAbout->addStretch();
-    
+
     // Project buttons.
-    toolbNewVoid = addTopMenuButton(wProject,":/img/new_void.png",
+    toolbNewVoid = this->addTopMenuButton(wProject,":/img/new_void.png",
                         tr("New"),tr("New void project"));
     QObject::connect(toolbNewVoid, SIGNAL(clicked()),
                      this, SLOT(onNewVoidClick()));
-    toolbNewShape = addTopMenuButton(wProject,":/img/new_shp.png",
+    toolbNewShape = this->addTopMenuButton(wProject,":/img/new_shp.png",
             tr("New from Shapefile"),tr("New project from \nShapefile"));
     QObject::connect(toolbNewShape, SIGNAL(clicked()),
                      this, SLOT(onNewShapeClick()));
-    toolbNewNgw = addTopMenuButton(wProject,":/img/new_ngw.png",
+    toolbNewNgw = this->addTopMenuButton(wProject,":/img/new_ngw.png",
       tr("New from NextGIS Web"),tr("New project from \nNextGIS Web connection"));
     QObject::connect(toolbNewNgw, SIGNAL(clicked()),
                      this, SLOT(onNewNgwClick()));
-    toolbOpen = addTopMenuButton(wProject,":/img/open.png",
+    toolbOpen = this->addTopMenuButton(wProject,":/img/open.png",
                          tr("Open"),tr("Open .ngfp file"));
     QObject::connect(toolbOpen, SIGNAL(clicked()),
                      this, SLOT(onOpenClick()));
-    toolbSave = addTopMenuButton(wProject,":/img/save.png",
+    toolbSave = this->addTopMenuButton(wProject,":/img/save.png",
                           tr("Save"),tr("Save to .ngfp file"));
     QObject::connect(toolbSave, SIGNAL(clicked()),
                      this, SLOT(onSaveClick()));
-    toolbSaveAs = addTopMenuButton(wProject,":/img/save_as.png",
+    toolbSaveAs = this->addTopMenuButton(wProject,":/img/save_as.png",
                     tr("Save as"),tr("Save to .ngfp file \nas ..."));
     QObject::connect(toolbSaveAs, SIGNAL(clicked()),
                      this, SLOT(onSaveAsClick()));
-    
+
     // All view pickers and combos.
     toolbScreenAndroid = this->addTopMenuButton(wView,
                ":/img/android.png", tr("Android"), tr("Android screen"),false);
@@ -138,16 +142,16 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     this->updateMenuView(); // just for first appearance
 
     // Tools.
-    toolbUndo = addTopMenuButton(wTools,":/img/undo.png",
+    toolbUndo = this->addTopMenuButton(wTools,":/img/undo.png",
                     tr("Undo"),tr("Cancel last form \noperation"),false);
-    toolbRedo = addTopMenuButton(wTools,":/img/redo.png",
+    toolbRedo = this->addTopMenuButton(wTools,":/img/redo.png",
                     tr("Redo"),tr("Return last canceld \nform operation"),false);
     this->addTopMenuSplitter(wTools);
-    toolbClearScreen = addTopMenuButton(wTools,":/img/clear_screen.png",
+    toolbClearScreen = this->addTopMenuButton(wTools,":/img/clear_screen.png",
                     tr("Clear screen"),tr("Clear all screen \nelements"),false);
     QObject::connect(toolbClearScreen, SIGNAL(clicked()),
                      this, SLOT(onClearScreenClick()));
-    toolbDeleteElem = addTopMenuButton(wTools,":/img/delete_elem.png",
+    toolbDeleteElem = this->addTopMenuButton(wTools,":/img/delete_elem.png",
                     tr("Delete element"),tr("Delete selected \nelement"),false);
     QObject::connect(toolbDeleteElem, SIGNAL(clicked()),
                      this, SLOT(onDeleteElemClick()));
@@ -156,15 +160,15 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     //{
     //
     //}
-    
+
     // Settings.
 
     // About.
-    
+
     //----------------------------------------------------------------------
     //                              Left menu
     //----------------------------------------------------------------------
-    
+
     wMenuLeft = new QWidget(this);
     wMenuLeft->setObjectName("wMenuLeft");
     wMenuLeft->setMaximumWidth(240);
@@ -181,7 +185,7 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
 
     treeLeftFull = new QTreeWidget(wMenuLeft);
     treeLeftFull->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
-    treeLeftFull->setFont(QFont("Candara",FB_GUI_FONTSIZE_NORMAL));
+    treeLeftFull->setFont(QFont(FB_GUI_FONTTYPE,FB_GUI_FONTSIZE_NORMAL));
     treeLeftFull->setColumnCount(1);
     treeLeftFull->setHeaderHidden(true);
     treeLeftFull->setCursor(Qt::PointingHandCursor);
@@ -216,7 +220,7 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
 
     this->updateLeftTrees(); // fill trees with elements' representations
     this->flipLeftMenu(false);
-    
+
     //----------------------------------------------------------------------
     //                              Right menu
     //----------------------------------------------------------------------
@@ -239,11 +243,13 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     labRight = new QLabel(wMenuRight);
     labRight->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Minimum);
     labRight->setAlignment(Qt::AlignCenter);
-    labRight->setFont(QFont("Candara",FB_GUI_FONTSIZE_NORMAL));
+    labRight->setFont(QFont(FB_GUI_FONTTYPE,FB_GUI_FONTSIZE_NORMAL));
 
     QHBoxLayout *lhMenuRight = new QHBoxLayout(wMenuRight);
     QVBoxLayout *lvRight1 = new QVBoxLayout();
     lvRight = new QVBoxLayout();
+    //lvRight->setContentsMargins(5,5,5,5);
+    lvRight->setSpacing(12);
     lvRight1->addWidget(butArrowRight);
     lvRight1->addStretch();
     lhMenuRight->addLayout(lvRight1);
@@ -253,15 +259,15 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
 
     this->updateRightMenu(); // initial menu settings
     this->flipRightMenu(false);
-    
+
     //----------------------------------------------------------------------
-    //                              Other gui
+    //                              Other GUI
     //----------------------------------------------------------------------
-    
+
     labBottom = new QLabel(this);
     labBottom->setText(" ...");
     labBottom->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
-    labBottom->setFont(QFont("Candara",FB_GUI_FONTSIZE_NORMAL));
+    labBottom->setFont(QFont(FB_GUI_FONTTYPE,FB_GUI_FONTSIZE_NORMAL));
     this->updateProjectString();
 
     dlgProgress = new FBDialogProgress(this);
@@ -281,11 +287,19 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     lvAll->addWidget(tabMenuTop);
     lvAll->addLayout(lhMiddle);
     lvAll->addWidget(labBottom);
-    
+
     //----------------------------------------------------------------------
-    //                   Set application general stylesheets
+    //                         Common GUI settings
     //----------------------------------------------------------------------
 
+    this->updateEnableness();
+}
+
+
+// Sets the general "white" style for all GUI. If not to call this - all fonts and
+// colors will be system-default, except several buttons and menus.
+void FB::setFbStyle ()
+{
     // From docs:
     // " ... style authors are restricted by the different platforms' guidelines
     // and (on Windows XP and OS X) by the native theme engine."
@@ -295,13 +309,12 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     // its font and color setting from its parent widget".
 
     this->setStyleSheet("QWidget { background: white;"
-                                  " color: black; }");
+                        " color: black; }"); // explicitly set dark font color!
 
     tabMenuTop->setStyleSheet("QTabWidget::pane {"
                               "border-top: 1px solid "
                               +QString(FB_COLOR_MEDIUMGREY)+";"
-                              "border-bottom: 1px solid "+FB_COLOR_MEDIUMGREY+";"
-                              "}"
+                              "border-bottom: 1px solid "+FB_COLOR_MEDIUMGREY+";}"
                               "QTabWidget::tab-bar {"
                               "left: 5px; "
                               "top: 1px; }"
@@ -398,12 +411,6 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
                              "QPushButton:checked{border:none;}");
 
     labBottom->setStyleSheet("QLabel {color: "+QString(FB_COLOR_DARKGREY)+"}");
-
-    //----------------------------------------------------------------------
-    //                      Other general gui settings
-    //----------------------------------------------------------------------
-
-    this->updateEnableness();
 }
 
 
@@ -464,7 +471,7 @@ void FB::onNewVoidClick ()
 
         // Create and show new void form replacing old one.
         wScreen->deleteForm();
-        FBForm *formNew = new FBForm();
+        FBForm *formNew = this->createForm();
         wScreen->setForm(formNew);
 
         this->pickDefaultScreen(); // will be helpful if there is void screen now
@@ -544,7 +551,7 @@ void FB::onOpenClick ()
         // Create and show new form, replacing old one. Fill it with elems from
         // project.
         wScreen->deleteForm();
-        FBForm *formNew = new FBForm();
+        FBForm *formNew = this->createForm();
         formNew->fromJson(FBProject::readForm(strFullPath));
         wScreen->setForm(formNew);
 
@@ -684,7 +691,7 @@ void FB::onRightArrowClick ()
 int FB::showBox (QString msg, QString caption)
 {
     QMessageBox msgBox(this);
-    msgBox.setStyleSheet("");
+    msgBox.setStyleSheet(""); // TODO: why does not work?
     msgBox.setText(msg);
     msgBox.setWindowTitle(caption);
     QMessageBox::Icon icon;
@@ -782,6 +789,16 @@ QString FB::getErrString (FBErr err)
 }
 
 
+// Common actions for form creation.
+FBForm *FB::createForm ()
+{
+    FBForm *form = new FBForm();
+    QObject::connect(form, SIGNAL(elemPressed()),
+                     this, SLOT(onElemSelect()));
+    return form;
+}
+
+
 // Create new button for any tab of the top menu.
 QToolButton *FB::addTopMenuButton (QWidget *parentTab, QString imgPath,
                                    QString name, QString description, bool small)
@@ -793,7 +810,7 @@ QToolButton *FB::addTopMenuButton (QWidget *parentTab, QString imgPath,
     but->setIcon(QIcon(imgPath));
     but->setText(name); // necessarily do this because it will store correspondance
                         // to screen arrays for screen menu buttons
-    but->setFont(QFont("Candara",FB_GUI_FONTSIZE_SMALL));
+    but->setFont(QFont(FB_GUI_FONTTYPE,FB_GUI_FONTSIZE_SMALL));
     if (small)
     {
         but->setIconSize(QSize(60,60));
@@ -833,7 +850,7 @@ QComboBox *FB::addTopMenuCombo (QWidget *parentTab, QString caption,
     QLabel *lab = new QLabel(parentTab);
     lab->setText(caption);
     lab->setAlignment(Qt::AlignCenter);
-    lab->setFont(QFont("Candara",FB_GUI_FONTSIZE_SMALL));
+    lab->setFont(QFont(FB_GUI_FONTTYPE,FB_GUI_FONTSIZE_SMALL));
     lab->setStyleSheet("QLabel {color: "+QString(FB_COLOR_MEDIUMGREY)+"}");
     lab->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Fixed);
 
@@ -888,44 +905,37 @@ void FB::flipRightMenu (bool isFull)
 }
 
 
-QTableWidget* FB::addRightMenuTable (int rowCount)
+QTableWidget* FB::addRightMenuTable ()
 {
     QTableWidget *table = new QTableWidget(wMenuRight);
-    table->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
+    table->setMinimumHeight(0);
+    //table->setMaximumHeight(50);
+    table->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Minimum);
     table->setFocusPolicy(Qt::NoFocus);
-    table->setFont(QFont("Candara",FB_GUI_FONTSIZE_NORMAL));
+    table->setFont(QFont(FB_GUI_FONTTYPE, FB_GUI_FONTSIZE_NORMAL));
     table->verticalHeader()->hide();
     table->horizontalHeader()->hide();
-    table->setRowCount(rowCount);
+    table->setRowCount(0);
     table->setColumnCount(2);
     table->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
     table->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-    table->horizontalHeader()->setSectionResizeMode(0,QHeaderView::Stretch);
+    table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    //table->verticalHeader()->setSectionResizeMode(QHeaderView::);
     table->setStyleSheet("QTableWidget"
-                         "{"
-                             "border: none;"
-                             "selection-background-color: "
+                         "{border: none;"
+                         "selection-background-color: "
                          +QString(FB_COLOR_LIGHTBLUE)+";"
-                             "gridline-color: white;"
-                             "color: "+FB_COLOR_LIGHTGREY+";"
-                         "}"
+                         "gridline-color: white;"
+                         "color: "+FB_COLOR_DARKGREY+";}"
                          "QTableWidget::item"
-                         "{"
-                    //"background-color:"
-                    //"qlineargradient(x1: 0, y1: 0.5, x2: 1, y2: 0.5,"
-                    //"stop: 0 rgb(240,240,240), stop: 1 rgb(255,255,255));"
-                      "border: 1px solid "+FB_COLOR_LIGHTMEDIUMGREY+";"
-                         "}"
+                         "{border: 1px solid "+FB_COLOR_LIGHTMEDIUMGREY+";}"
                          "QTableWidget::item:selected"
+                         "{border: 1px solid white;"
+                         "background-color: "+FB_COLOR_LIGHTBLUE+";}"
+                         "QTableWidget::item:focus"
                          "{"
-                             "border: 1px solid white;"
-                           "background-color: "+FB_COLOR_LIGHTBLUE+";"
-                          "}"
-                          "QTableWidget::item:focus"
-                          "{"
-                                //"border: 2px solid red;"
-                           "}");
-
+                            //"border: 2px solid red;"
+                         "}");
     lvRight->insertWidget(lvRight->count()-1,table); // before stretch item
     tablesRight.append(table);
     return table;
@@ -984,15 +994,15 @@ void FB::updateLeftTrees ()
     treeLeftShort->clear();
 
     // Create elements' representations for all trees.
-    QMap<FBGroupType,QTreeWidgetItem*> groupItems;
+    QMap<FBElemtype,QTreeWidgetItem*> groupItems;
     QList<FBFactory*> fcts = FBFactory::getAllFcts();
     for (int i=0; i<fcts.size(); i++)
     {
-        if (!groupItems.contains(fcts[i]->getGroupType()))
+        if (!groupItems.contains(fcts[i]->getType()))
         {
             QTreeWidgetItem *item = new QTreeWidgetItem();
-            item->setText(0,this->getGroupNameStr(fcts[i]->getGroupType()));
-            groupItems.insert(fcts[i]->getGroupType(),item);
+            item->setText(0,this->getGroupStr(fcts[i]->getType()));
+            groupItems.insert(fcts[i]->getType(),item);
             treeLeftFull->addTopLevelItem(item);
         }
 
@@ -1000,7 +1010,7 @@ void FB::updateLeftTrees ()
         item1->setText(0,fcts[i]->getDisplayName());
         item1->setData(0,Qt::UserRole,fcts[i]->getKeyName());
         item1->setIcon(0,QIcon(fcts[i]->getImgPath()));
-        groupItems[fcts[i]->getGroupType()]->addChild(item1);
+        groupItems[fcts[i]->getType()]->addChild(item1);
 
         QTreeWidgetItem *item2 = new QTreeWidgetItem();
         item2->setData(0,Qt::UserRole,fcts[i]->getKeyName());
@@ -1020,7 +1030,6 @@ void FB::updateRightMenu ()
     {
         // TODO: do we need to use QTableWidget::removeCellWidget(i,1) or
         // clearContents() or setRowCount(0) here to correctly delete tables?
-
         lvRight->removeWidget(tablesRight[i]);
         delete tablesRight[i];
     }
@@ -1044,23 +1053,53 @@ void FB::updateRightMenu ()
     {
         // Show attrs of selected elem in tables.
         FBElem *elem = elemsSelected.first();
-        QList<QList<QPair<QString,FBAttr*> > > listAttrs = elem->getAttrsLists();
-        for (int i=0; i<listAttrs.size(); i++)
+        QMap<FBAttrrole,QTableWidget*> tables;
+        QSet<FBAttr*> attrs = elem->getAttrs();
+        QSet<FBAttr*>::const_iterator it = attrs.constBegin();
+        while (it != attrs.constEnd())
         {
-            QTableWidget* table = this->addRightMenuTable(listAttrs[i].size());
-            for (int j=0; j<listAttrs[i].size(); j++)
+            if (!tables.contains((*it)->getRole()))
             {
-                // Add alias and edit widget for each attr in table.
-                QString alias = listAttrs[i][j].first;
-                QTableWidgetItem *itemAlias;
-                itemAlias = new QTableWidgetItem(alias);
-                //itemAlias->setFlags(Qt::ItemIsEditable);
-                itemAlias->setFlags(Qt::ItemIsEnabled);
-                itemAlias->setToolTip(alias);
-                table->setItem(j,0,itemAlias);
-                QWidget *widget = listAttrs[i][j].second->getWidget();
-                table->setCellWidget(j,1,widget);
+                QTableWidget* table = this->addRightMenuTable();
+                tables.insert((*it)->getRole(),table);
+
+                if ((*it)->getRole() == FBImportant)
+                {
+
+                }
+                else
+                {
+
+                }
+
+                // We must hide tables if the right menu is in minimized state
+                // for now.
+                if (!labRight->isVisible())
+                {
+                    table->hide();
+                }
             }
+
+            QString alias = (*it)->getDisplayName();
+            QTableWidgetItem *itemAlias = new QTableWidgetItem(alias);
+            //itemAlias->setFlags(Qt::ItemIsEditable);
+            itemAlias->setFlags(Qt::ItemIsEnabled);
+            itemAlias->setToolTip(alias);
+            QWidget *widget = (*it)->getWidget();
+
+            QTableWidget *table = tables[(*it)->getRole()];
+            table->setRowCount(table->rowCount()+1);
+            table->setItem(table->rowCount()-1,0,itemAlias);
+            table->setCellWidget(table->rowCount()-1,1,widget);
+
+            ++it;
+        }
+
+        for (int i=0; i<tablesRight.size(); i++)
+        {
+           tablesRight[i]->sortItems(0);
+           //tablesRight[i]->adjustSize();
+           //tablesRight[i]->resizeRowsToContents();
         }
 
         // Show caption of elem.
@@ -1155,10 +1194,10 @@ void FB::updateMenuView ()
 }
 
 
-QString FB::getGroupNameStr (FBGroupType group)
+QString FB::getGroupStr (FBElemtype type)
 {
     QString str = tr("Unknown");
-    switch (group)
+    switch (type)
     {
         case FBDecoration: str = tr("Decoration"); break;
         case FBInput: str = tr("Input"); break;

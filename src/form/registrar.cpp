@@ -25,12 +25,16 @@
 
 QList<FBFactory*> FBFactory::fctsElem;
 
-void FBFactory::initAll ()
+// Initialize and register the list of factories.
+// Pass the app widget to this method so some elems and their attributes can use
+// it for displaying their input/editing capabilities.
+void FBFactory::initAll (QWidget *appWidget)
 {
-    deinitAll(); // clear list
+    FBFactory::deinitAll(); // clear list
 
     fctsElem.append(new FBFactoryText());
     fctsElem.append(new FBFactoryTextedit());
+    fctsElem.append(new FBFactoryCombobox(appWidget));
     fctsElem.append(new FBFactoryDatetime());
 
     // DEVELOPERS: register new factories here.

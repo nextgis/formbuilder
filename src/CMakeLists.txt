@@ -33,6 +33,7 @@ endif(WIN32)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/form)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/project)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/screen)
 
 ###############################################################################
 ## target definitions #########################################################
@@ -42,13 +43,12 @@ set(APP_NAME fb)
 
 set(PROJECT_SOURCES
 jsoncpp.cpp
-main.cpp
-fb.cpp
-screen.cpp
 dialognewvoid.cpp
 dialogngw.cpp
 dialogfieldmanager.cpp
 appicon.rc
+fb.cpp
+main.cpp
 )
 
 qt5_wrap_ui(fb_ui fb.ui)

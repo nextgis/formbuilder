@@ -61,10 +61,11 @@ struct FBDevice
 
 
 /**
- * Screen class which contains the form and render it.
- *
- * Each concrete screen must have at least one device and according state (orientation).
+ * Screen contains the form and render it.
+ * WARNING. Each concrete screen must have at least one device and according
+ * state (orientation).
  */
+
 // Default void grey screen.
 class FBScreen: public QWidget
 {
@@ -139,7 +140,6 @@ class FBScreenWeb: public FBScreen
 class FBScreenQgis: public FBScreen
 {
 };
-
 */
 
 
