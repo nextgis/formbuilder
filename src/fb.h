@@ -144,7 +144,8 @@ class FB: public QWidget
 
     private: // methods
 
-     bool isInited;
+     // form
+     void updateElemForApp (FBElem* elem);
 
      // settings
      void updateSettings ();
@@ -179,6 +180,8 @@ class FB: public QWidget
      void updateScreen ();
 
     private: // fields
+
+     bool isInited;
 
      // Current project of the app.
      // For future here can be an array of projects - but that requires changes

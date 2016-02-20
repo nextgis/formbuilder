@@ -22,6 +22,8 @@
 #include "fb.h"
 #include "ui_fb.h"
 
+#include "elements.h"
+
 
 FB::~FB()
 {
@@ -415,9 +417,10 @@ void FB::setFbStyle ()
 
 
 /****************************************************************************/
+/*                                                                          */
 /*                         Private main FB slots                            */
+/*                                                                          */
 /****************************************************************************/
-
 
 void FB::onAddElemPress (QTreeWidgetItem* item, int column)
 {
@@ -425,16 +428,20 @@ void FB::onAddElemPress (QTreeWidgetItem* item, int column)
     if (form == NULL)
         return;
 
-    // Check if it is not a header of group in tree.
-    if (item->childCount() != 0)
+    if (item->childCount() != 0) // check if it is not a group header in tree
         return;
 
     QString keyName = item->data(0,Qt::UserRole).toString();
     FBFactory *fct = FBFactory::getFctByName(keyName);
     if (fct == NULL)
         return;
+
     FBElem *elem = fct->create();
     form->addElem(elem,NULL);
+
+    this->updateElemForApp(elem);
+
+    this->onElemSelect();
 }
 
 
@@ -554,6 +561,15 @@ void FB::onOpenClick ()
         FBForm *formNew = this->createForm();
         formNew->fromJson(FBProject::readForm(strFullPath));
         wScreen->setForm(formNew);
+
+        // Update elems for app.
+        QMap<int,FBElem*> map = formNew->getElems();
+        QMap<int,FBElem*>::const_iterator it = map.constBegin();
+        while (it != map.constEnd())
+        {
+            this->updateElemForApp(it.value());
+            ++it;
+        }
 
         this->pickDefaultScreen(); // will be helpful if there is void screen now
         this->updateRightMenu();
@@ -768,8 +784,25 @@ void FB::onProjDialogFinished (int code)
 
 
 /****************************************************************************/
+/*                                                                          */
 /*                        Private FB methods                                */
+/*                                                                          */
 /****************************************************************************/
+
+// Common actions for element types, which can be made only in main app class.
+// Update elem with the app's data, because only this class aggregates project,
+// form and screen modules.
+void FB::updateElemForApp (FBElem* elem)
+{
+    FBElemInput *e = qobject_cast<FBElemInput*>(elem);
+    if (e != NULL)
+    {
+        if (project == NULL)
+            return;
+        e->updateFields(project->getFields().keys());
+    }
+}
+
 
 void FB::updateSettings ()
 {
@@ -840,7 +873,8 @@ QComboBox *FB::addTopMenuCombo (QWidget *parentTab, QString caption,
                                 QStringList values)
 {
     QComboBox *combo = new QComboBox(parentTab);
-    combo->setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::Fixed);
+    combo->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+    combo->setMaximumWidth(125);
     combo->setFont(QFont("Segoe UI",FB_GUI_FONTSIZE_NORMAL));
     for (int i=0; i<values.size(); i++)
     {
@@ -920,7 +954,7 @@ QTableWidget* FB::addRightMenuTable ()
     table->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
     table->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    //table->verticalHeader()->setSectionResizeMode(QHeaderView::);
+    //table->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     table->setStyleSheet("QTableWidget"
                          "{border: none;"
                          "selection-background-color: "
@@ -1050,56 +1084,41 @@ void FB::updateRightMenu ()
     }
 
     else if (elemsSelected.size() == 1)
-    {
-        // Show attrs of selected elem in tables.
+    { 
+        // Create a table for one selected elem's attributes.
+        // TODO: create different tables for different attribute roles.
+        QTableWidget* table = this->addRightMenuTable();
+
+        // Get attrs of selected elem.
         FBElem *elem = elemsSelected.first();
-        QMap<FBAttrrole,QTableWidget*> tables;
         QSet<FBAttr*> attrs = elem->getAttrs();
         QSet<FBAttr*>::const_iterator it = attrs.constBegin();
         while (it != attrs.constEnd())
         {
-            if (!tables.contains((*it)->getRole()))
-            {
-                QTableWidget* table = this->addRightMenuTable();
-                tables.insert((*it)->getRole(),table);
-
-                if ((*it)->getRole() == FBImportant)
-                {
-
-                }
-                else
-                {
-
-                }
-
-                // We must hide tables if the right menu is in minimized state
-                // for now.
-                if (!labRight->isVisible())
-                {
-                    table->hide();
-                }
-            }
-
             QString alias = (*it)->getDisplayName();
             QTableWidgetItem *itemAlias = new QTableWidgetItem(alias);
-            //itemAlias->setFlags(Qt::ItemIsEditable);
             itemAlias->setFlags(Qt::ItemIsEnabled);
             itemAlias->setToolTip(alias);
+            if ((*it)->getRole() == FBImportant)
+            {
+                QFont font;
+                font.setBold(true);
+                itemAlias->setFont(font);
+            }
             QWidget *widget = (*it)->getWidget();
-
-            QTableWidget *table = tables[(*it)->getRole()];
             table->setRowCount(table->rowCount()+1);
             table->setItem(table->rowCount()-1,0,itemAlias);
             table->setCellWidget(table->rowCount()-1,1,widget);
-
             ++it;
         }
 
-        for (int i=0; i<tablesRight.size(); i++)
+        table->sortItems(0);
+
+        // We must hide table if the right menu is in minimized state
+        // for now.
+        if (!labRight->isVisible())
         {
-           tablesRight[i]->sortItems(0);
-           //tablesRight[i]->adjustSize();
-           //tablesRight[i]->resizeRowsToContents();
+            table->hide();
         }
 
         // Show caption of elem.

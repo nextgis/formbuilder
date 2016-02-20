@@ -20,10 +20,6 @@
  ****************************************************************************/
  
 #include "attributes.h"
-
-#include <QLineEdit>
-#include <QSpinBox>
-#include <QCombobox>
  
 
 /*****************************************************************************/
@@ -46,6 +42,92 @@ QPushButton *FBAttrDialog::getWidget ()
     QObject::connect(widget, SIGNAL(clicked()),
                      this, SLOT(onEditStart()));
     return widget;
+}
+
+
+/******************************************************************************/
+/*                                                                            */
+/*                               FBAttrField                                  */
+/*                                                                            */
+/******************************************************************************/
+
+FBAttrField::FBAttrField (FBElem *parentElem, QString keyName, QString displayName,
+            FBAttrrole role):
+    FBAttr (parentElem ,keyName, displayName, role)
+{
+    keyNames.append(FB_DEFVALUE_NOTSELECTED);
+    keyNameSelected = FB_DEFVALUE_NOTSELECTED;
+}
+
+Json::Value FBAttrField::toJson ()
+{
+    Json::Value jsonRet;
+    if (keyNameSelected != FB_DEFVALUE_NOTSELECTED)
+    {
+        QByteArray ba = keyNameSelected.toUtf8();
+        jsonRet = ba.data();
+    }
+    return jsonRet; // will be NULL for default
+}
+
+FBErr FBAttrField::fromJson (Json::Value jsonVal)
+{
+    if (jsonVal.isNull())
+    {
+        keyNameSelected = FB_DEFVALUE_NOTSELECTED;
+    }
+    else
+    {
+        // TODO: other checks for json correctness.
+
+        QByteArray ba = jsonVal.asString().data();
+        keyNameSelected = QString::fromUtf8(ba);
+    }
+    return FBErrNone;
+}
+
+QWidget *FBAttrField::getWidget ()
+{
+    QComboBox *widget = new QComboBox();
+    for (int i=0; i<keyNames.size(); i++)
+    {
+        widget->addItem(keyNames[i]);
+    }
+    // From docs of QComboBox: " ... Otherwise, if there is a matching text in the
+    // list, currentIndex is set to the corresponding index."
+    widget->setCurrentText(keyNameSelected);
+    QObject::connect(widget, SIGNAL(currentIndexChanged(QString)),
+                     this, SLOT(onEditEnd(QString)));
+    return widget;
+
+}
+
+void FBAttrField::updateValues (QStringList newKeyNames)
+{
+    // Get new values.
+    keyNames.clear();
+    keyNames.append(FB_DEFVALUE_NOTSELECTED);
+    bool wasOldKeyName = false;
+    for (int i=0; i<newKeyNames.size(); i++)
+    {
+        if (newKeyNames[i] == FB_DEFVALUE_NOTSELECTED) // skip reserved values if
+            continue;
+        keyNames.append(newKeyNames[i]);
+        if (newKeyNames[i] == keyNameSelected)
+        {
+            wasOldKeyName = true;
+        }
+    }
+    // Return old value if it is in the list of new values.
+    if (!wasOldKeyName)
+    {
+        keyNameSelected = FB_DEFVALUE_NOTSELECTED;
+    }
+}
+
+void FBAttrField::onEditEnd (QString keyNameSelected)
+{
+    this->keyNameSelected = keyNameSelected;
 }
 
 
@@ -95,37 +177,6 @@ void FBAttrText::onEditEnd (QString lineEditText)
 {
     value = lineEditText;
     emit changeAppearance();
-}
- 
-
-/******************************************************************************/
-/*                                                                            */
-/*                               FBAttrField                                  */
-/*                                                                            */
-/******************************************************************************/
-
-FBAttrField::FBAttrField (FBElem *parentElem, QString keyName, QString displayName,
-            FBAttrrole role):
-    FBAttr (parentElem ,keyName, displayName, role)
-{
-
-}
-
-Json::Value FBAttrField::toJson ()
-{
-    Json::Value jsonRet;
-
-    return jsonRet;
-}
-
-FBErr FBAttrField::fromJson (Json::Value jsonVal)
-{
-    return FBErrNone;
-}
-
-QWidget *FBAttrField::getWidget ()
-{
-    return NULL;
 }
 
 
@@ -191,7 +242,7 @@ FBAttrListvalues::FBAttrListvalues (FBElem *parentElem, QString keyName,
            QString displayName, FBAttrrole role, QWidget *parentForDialog):
     FBAttrDialog (parentElem, keyName, displayName, role, parentForDialog)
 {
-    defValIndex = -1; // no default item selected
+    valueDefault = -1; // no default item selected
 }
 
 Json::Value FBAttrListvalues::toJson ()
@@ -208,27 +259,29 @@ FBErr FBAttrListvalues::fromJson (Json::Value jsonVal)
 
 QString FBAttrListvalues::getDefDispValue ()
 {
-    if (defValIndex == -1)
+    if (valueDefault == -1)
         return QString(FB_DEFVALUE_NOTSELECTED);
-    return values[defValIndex].second;
+    return values[valueDefault].second;
 }
 
 void FBAttrListvalues::onEditStart ()
 {
-    /*
     FBDialogListvalues *dialog;
     if (parentForDialog == NULL)
-        dialog = new FBDialogListvalues();
-    else
-        dialog = new FBDialogListvalues(parentForDialog);
-    dialog.putValues(values,defValIndex);
-    if (dialog.exec())
     {
-        dialog.getValues(values,defValIndex);
+        dialog = new FBDialogListvalues(NULL); // will cause issues in displaying for
+    }                                          // some OSs if init without parent
+    else
+    {
+        dialog = new FBDialogListvalues(parentForDialog);
+    }
+    dialog->putValues(values,valueDefault);
+    if (dialog->exec())
+    {
+        dialog->getValues(values,valueDefault);
         emit changeAppearance();
     }
     delete dialog;
-    */
 }
  
 

@@ -24,6 +24,18 @@
 
 #include "form_core.h"
 
+#include <QDialog>
+#include <QLineEdit>
+#include <QSpinBox>
+#include <QCombobox>
+#include <QLabel>
+#include <QListWidget>
+#include <QToolButton>
+#include <QGroupBox>
+
+#define FB_ATTRLIMIT_LISTVALUES_MAXCOUNT 65535
+#define FB_ATTRLIMIT_STRDISPLAY_MAXSIZE 23
+
 
 // Abstract class for attributes with complex values which must be set via specific
 // dialogues.
@@ -41,6 +53,25 @@ class FBAttrDialog: public FBAttr
      QWidget *parentForDialog;
 };
 
+class FBAttrField: public FBAttr
+{
+    Q_OBJECT
+    public:
+     FBAttrField (FBElem *parentElem, QString keyName, QString displayName,
+                 FBAttrrole role);
+     ~FBAttrField () { }
+     Json::Value toJson ();
+     FBErr fromJson (Json::Value jsonVal);
+     QWidget *getWidget ();
+     void updateValues (QStringList newKeyNames);
+    protected slots:
+     void onEditEnd (QString keyNameSelected);
+    private:
+     QStringList keyNames;
+     QString keyNameSelected; // not an index because we store string in json. It is
+                              // safe because keyNames will be unique
+};
+
 class FBAttrText: public FBAttr
 {
     Q_OBJECT
@@ -56,18 +87,6 @@ class FBAttrText: public FBAttr
      void onEditEnd (QString lineEditText);
     private:
      QString value;
-};
-
-class FBAttrField: public FBAttr
-{
-    Q_OBJECT
-    public:
-     FBAttrField (FBElem *parentElem, QString keyName, QString displayName,
-                 FBAttrrole role);
-     ~FBAttrField () { }
-     Json::Value toJson ();
-     FBErr fromJson (Json::Value jsonVal);
-     QWidget *getWidget ();
 };
 
 class FBAttrNumber: public FBAttr
@@ -101,8 +120,35 @@ class FBAttrListvalues: public FBAttrDialog
     protected slots:
      virtual void onEditStart ();
     protected:
-     QList<QPair<QString,QString> > values; // first = key name, second = display
-     int defValIndex;
+     QList<QPair<QString,QString> > values; // first = key name, second = display name
+     int valueDefault;
+};
+class FBDialogListvalues: public QDialog
+{
+    Q_OBJECT
+    public:
+     FBDialogListvalues (QWidget *parent);//QString elemName);
+     ~FBDialogListvalues() { }
+     void putValues (QList<QPair<QString,QString> > values, int valueDefault);
+     void getValues (QList<QPair<QString,QString> > &values, int &valueDefault);
+     static QString shortenStr (QString str);
+    private slots:
+     void onOkClicked ();
+     void onCancelClicked ();
+     void onLeftClicked (QListWidgetItem *item);
+     void onLeftAddClicked ();
+     void onLeftRemoveClicked ();
+     void onLeftChangeClicked ();
+    private:
+     QString elemName;
+     QListWidget *listL;
+     QToolButton *butAddL; // +
+     QToolButton *butRemoveL; // -
+     QToolButton *butChangeL; // #
+     QLineEdit *editInnerL;
+     QLineEdit *editOuterL;
+     QComboBox *comboL;
+     QPushButton *butOk;
 };
 
 

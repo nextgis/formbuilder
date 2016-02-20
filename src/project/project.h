@@ -145,6 +145,7 @@ class FBProject
      bool wasFirstSaved ();
      bool isSaveRequired () ;
      QString getProjectfilePath () { return strNgfpPath; }
+     QMap<QString,FBFieldDescr> getFields () { return fields; }
 
     protected: // methods
 

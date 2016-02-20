@@ -24,7 +24,6 @@
 #include "attributes.h"
 
 
-
 /*****************************************************************************/
 /*                                                                           */
 /*                            FBElemInput                                    */
@@ -35,8 +34,13 @@ FBElemInput::FBElemInput (FBFactory *fctPtr):
     FBElem (fctPtr)
 {
     attrFieldPtr = new FBAttrField(this, tr("field"),
-                  tr("Target layer field"), FBImportant);
+                  tr("Layer field"), FBImportant);
     attrs.insert(attrFieldPtr);
+}
+
+void FBElemInput::updateFields (QStringList fieldsKeyNames)
+{
+    attrFieldPtr->updateValues(fieldsKeyNames);
 }
 
 
@@ -277,7 +281,7 @@ void FBElemCombobox::changeAttrValue ()
 
 void FBElemCombobox::updateAppearance ()
 {
-    //labText->setText(attrListvalsPtr->getDefDispValue());
+    labText->setText(attrListvalsPtr->getDefDispValue());
 }
 
 

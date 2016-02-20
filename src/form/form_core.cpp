@@ -254,9 +254,13 @@ void FBForm::addElem (FBElem *newElem, FBElem *afterThisElem)
     QObject::connect(newElem, SIGNAL(released()),
                      this, SLOT(onElemReleased()));
 
-    // Select element right after addition and signalize about it.
+    // Select element right after.
     this->selectElem(newElem);
-    emit elemPressed();
+
+    // Do not signaliaze about selection outside.
+    // Reason: not to call the according slots of the caller many times when elems
+    // are being read and created from a file. E.g. the FB class will create and
+    // after that delete as many tables for elem attrs, as the amount of such calls.
 }
 
 

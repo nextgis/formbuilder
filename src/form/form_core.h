@@ -131,7 +131,9 @@ class FBAttr: public QObject
  * its attributes.
  *
  * For developers: add new element by subclassing one of the FBElemX classes.
- * See FBFactory class how to add new element.
+ * See FBFactory class how to add new element. Do not forget to put Q_OBJECT macro
+ * to each FBElem class, while in FB it will be used for type casting for
+ * implementing common actions for elems.
  */
 class FBElem: public QWidget
 {

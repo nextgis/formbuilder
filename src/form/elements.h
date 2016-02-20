@@ -32,10 +32,11 @@
 // Element which can write values to the layer fields.
 class FBElemInput: public FBElem
 {
+    Q_OBJECT
     public:
      FBElemInput (FBFactory *fctPtr);
      virtual ~FBElemInput () { }
-
+     void updateFields (QStringList fieldsKeyNames);
     protected:
      FBAttrField *attrFieldPtr;
      QString caption;
@@ -63,6 +64,7 @@ class FBElemCompound: protected FBElem
 
 class FBElemText: public FBElem
 {
+    Q_OBJECT
     public:
      FBElemText (FBFactory *fctPtr);
      ~FBElemText () {}
@@ -77,6 +79,7 @@ class FBElemText: public FBElem
 
 class FBElemTextedit: public FBElemInput
 {
+    Q_OBJECT
     public:
      FBElemTextedit (FBFactory *fctPtr);
      ~FBElemTextedit () {}
@@ -91,6 +94,7 @@ class FBElemTextedit: public FBElemInput
 
 class FBElemCombobox: public FBElemInput
 {
+    Q_OBJECT
     public:
      FBElemCombobox (FBFactory *fctPtr, QWidget *appWidget = NULL);
      ~FBElemCombobox () {}
@@ -105,6 +109,7 @@ class FBElemCombobox: public FBElemInput
 
 class FBElemDatetime: public FBElemInput
 {
+    Q_OBJECT
     public:
      FBElemDatetime (FBFactory *fctPtr);
      ~FBElemDatetime () {}
