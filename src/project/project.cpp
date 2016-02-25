@@ -43,7 +43,7 @@ void FBProject::init ()
     CPLSetConfigOption("CPL_VSIL_ZIP_ALLOWED_EXTENSIONS",FB_PROJECT_EXTENSION);
     QByteArray ba = QString(QDir::currentPath() + _FB_INSTALLPATH_GDALDATA).toUtf8();
     CPLSetConfigOption("GDAL_DATA", ba.data());
-
+    // TODO: do we need to deregister/reset smth of this at the end of the program?
     GDALAllRegister();
 
     GEOM_TYPES.insert("POINT",FBPoint);
@@ -65,6 +65,16 @@ void FBProject::init ()
 QString FBProject::getProgVersionStr ()
 {
     return QString::number(_FB_VERSION,'f',1);
+}
+
+bool FBProject::isGeomTypeSupported (QString strGeomType)
+{
+    return GEOM_TYPES.contains(strGeomType);
+}
+
+bool FBProject::isDataTypeSupported (QString strDataType)
+{
+    return DATA_TYPES.contains(strDataType);
 }
 
 
@@ -101,8 +111,8 @@ FBErr FBProject::open (QString ngfpFullPath)
     if (versFile != versProg)
     {
         FBProject::CUR_ERR_INFO = QObject::tr("Project file is of version ")
-                                    + versFile + QObject::tr(", while the program is of "
-                                    "version ") + versProg;
+                               + versFile + QObject::tr(", while the program is of "
+                               "version ") + versProg;
         return FBErrWrongVersion;
     }
 
@@ -136,9 +146,10 @@ FBErr FBProject::open (QString ngfpFullPath)
     int n1 = jsonMeta[FB_JSON_META_SRS][FB_JSON_META_ID].asInt();
     srs = SRS_TYPES[n1];
     version = versProg;
-    strNgfpPath = ngfpFullPath;
-    isInited = true;
 
+    strNgfpPath = ngfpFullPath;
+
+    isInited = true;
     return FBErrNone;
 }
 
@@ -185,6 +196,7 @@ Json::Value FBProject::readMeta (QString ngfpFullPath)
     // - utf8 encoding?
     // - Key values for geometry_type and datatype.
     // - Existance and correctness: fields list, SRS, NGW connection string, geometry
+    // - must be only one fixed SRS
     // type - so they can be translated to correct data for project, i.e. using
     // Json::Value::asInt() or as array of json values, etc.
 
@@ -266,4 +278,136 @@ Json::Value FBProject::readJsonInNgfp (QString ngfpFullPath, QString fileName)
 
     return jsonRet;
 }
+
+
+
+/*****************************************************************************/
+/*                                                                           */
+/*                            FBProjectGDAL                                  */
+/*                                                                           */
+/*****************************************************************************/
+
+FBProjectGDAL::FBProjectGDAL ():
+    FBProject()
+{
+    strDatasetPath = "";
+}
+
+FBProjectGDAL::~FBProjectGDAL ()
+{
+}
+
+
+FBErr FBProjectGDAL::readGdalDataset (QString datasetPath)
+{
+    // Firstly try to open dataset and check its correctness.
+    QByteArray ba;
+    ba = datasetPath.toUtf8();
+    GDALDataset *dataset;
+    dataset = (GDALDataset*) GDALOpenEx(ba.data(), GDAL_OF_VECTOR,
+                                        NULL, NULL, NULL);
+    if (dataset == NULL)
+    {
+        FBProject::CUR_ERR_INFO = QObject::tr("Unable to open dataset via GDAL");
+        return FBErrIncorrectGdalDataset;
+    }
+
+    // Check layer's count.
+    int layerCount = dataset->GetLayerCount();
+    if (layerCount == 0 || layerCount > 1)
+    {
+        GDALClose(dataset);
+        FBProject::CUR_ERR_INFO = QObject::tr("Selected GDAL dataset must contain 1"
+              "layer, while it contains ") + QString::number(layerCount);
+        return FBErrIncorrectGdalDataset;
+    }
+
+    OGRLayer *layer = dataset->GetLayer(0);
+    if (layer == NULL)
+    {
+        GDALClose(dataset);
+        FBProject::CUR_ERR_INFO = QObject::tr("Unable to read layer in selected GDAL"
+              "dataset");
+        return FBErrIncorrectGdalDataset;
+    }
+
+    OGRFeatureDefn *layerDefn = layer->GetLayerDefn();
+    if (layerDefn->GetFieldCount() == 0)
+    {
+        GDALClose(dataset);
+        FBProject::CUR_ERR_INFO = QObject::tr("Selected GDAL dataset's layer must"
+              " contain at least one field, while it contains no fields");
+        return FBErrIncorrectGdalDataset;
+    }
+
+    OGRSpatialReference *layerSpaRef = layer->GetSpatialRef();
+    if (layerSpaRef == NULL)
+    {
+        GDALClose(dataset);
+        FBProject::CUR_ERR_INFO = QObject::tr("Selected GDAL dataset does not contain"
+              " its spatial reference system description");
+        return FBErrIncorrectGdalDataset;
+    }
+
+    // All checks were made and we can fill some (not all) metadata of the project,
+    // which can be read via GDAL.
+    for (int i=0; i<layerDefn->GetFieldCount(); i++)
+    {
+        FBFieldDescr descr;
+        OGRFieldDefn *fieldDefn = layerDefn->GetFieldDefn(i);
+        OGRFieldType fieldType = fieldDefn->GetType();
+        switch (fieldType)
+        {
+            case OFTInteger:
+                descr.datataype = FBInteger;
+            break;
+            case OFTInteger64:
+                descr.datataype = FBInteger; // WARNING: data will be truncated in FB
+            break;
+            case OFTReal:
+                descr.datataype = FBReal;
+            break;
+            case OFTDate:
+                descr.datataype = FBDate;
+            break;
+            default:
+                descr.datataype = FBString; //descr.datataype = FBUndefDatatype;
+            break;
+        }
+        descr.display_name = QString::fromUtf8(fieldDefn->GetNameRef());
+        fields.insert(QString::fromUtf8(fieldDefn->GetNameRef()), descr);
+    }
+
+    OGRwkbGeometryType geomType = layerDefn->GetGeomType();
+    switch (geomType)
+    {
+        case wkbPoint:
+            geometry_type = FBPoint;
+        break;
+        case wkbLineString:
+            geometry_type = FBLinestring;
+        break;
+        case wkbPolygon:
+            geometry_type = FBPolygon;
+        break;
+        case wkbMultiPoint:
+            geometry_type = FBMultiPoint;
+        break;
+        case wkbMultiLineString:
+            geometry_type = FBMultiLinestring;
+        break;
+        case wkbMultiPolygon:
+            geometry_type = FBMultiPolygon;
+        break;
+        default:
+            geometry_type = FBUndefGeomtype;
+        break;
+    }
+
+    GDALClose(dataset);
+
+    return FBErrNone;
+}
+
+
 

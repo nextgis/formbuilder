@@ -455,50 +455,86 @@ void FB::onNewVoidClick ()
     }
 
     FBDialogProjectNew dialog(this);
-    QObject::connect(&dialog,SIGNAL(finished(int)),      // connect with slot because
-                  this,SLOT(onProjDialogFinished(int))); // we need some GUI actions
-                                                         // after any way of dialog
-                                                         // destroying
+    QObject::connect(&dialog,SIGNAL(finished(int)),
+                  this,SLOT(onProjDialogFinished(int)));
+
     if (dialog.exec())
     {
         QString geomType = dialog.getSelectedGeom();
 
-        // Create new project, replacing old one.
-        FBProjectVoid *projNew = new FBProjectVoid(FBProject::GEOM_TYPES[geomType]);
-        FBErr err = projNew->create("");
-        if (err != FBErrNone)
-        {
-            delete projNew;
-            this->showErrorFull(tr("Unable to create new project! "), err);
-            return;
-        }
-        if (project != NULL)
-            delete project;
-        project = projNew;
-
-        // Create and show new void form replacing old one.
-        wScreen->deleteForm();
-        FBForm *formNew = this->createForm();
-        wScreen->setForm(formNew);
-
-        this->pickDefaultScreen(); // will be helpful if there is void screen now
-        this->updateRightMenu();
-        this->updateEnableness();
-        this->updateProjectString();
-        this->updateSettings();
+        FBProjectVoid *projVoid = new FBProjectVoid(FBProject::GEOM_TYPES[geomType]);
+        this->newProjectCommonActions(projVoid, ""); // just void string stub
     }
 }
 
 
 void FB::onNewShapeClick ()
 {
+    toolbNewShape->setDown(true);
+    if (this->askToLeaveUnsafeProject())
+    {
+        toolbNewShape->setDown(false);
+        return;
+    }
 
+    QFileDialog dialog(this);
+    dialog.setAcceptMode(QFileDialog::AcceptOpen);
+    dialog.setFileMode(QFileDialog::ExistingFile);
+    dialog.setViewMode(QFileDialog::List);
+    dialog.setDefaultSuffix("shp");
+    dialog.setNameFilter("*.shp");
+    dialog.setWindowTitle(tr("Creating new project. Select Shapefile ..."));
+    QString lastPath = this->getSettingLastPath();
+    if (lastPath == "")
+    {
+        dialog.setDirectory(QDir());
+    }
+    else
+    {
+        QFileInfo fileInfo(lastPath);
+        dialog.setDirectory(fileInfo.absoluteDir());
+    }
+    QObject::connect(&dialog, SIGNAL(finished(int)),
+                     this, SLOT(onProjDialogFinished(int)));
+
+    if (dialog.exec())
+    {
+        QString pathShapefile;
+        QStringList sPaths = dialog.selectedFiles();
+        pathShapefile = sPaths[0];
+
+        FBProjectShapefile *projShp = new FBProjectShapefile();
+        this->newProjectCommonActions(projShp, pathShapefile);
+    }
 }
 
 
 void FB::onNewNgwClick ()
 {
+    toolbNewNgw->setDown(true);
+    if (this->askToLeaveUnsafeProject())
+    {
+        toolbNewNgw->setDown(false);
+        return;
+    }
 
+    FBDialogProjectNgw dialog(this,"","");
+    QObject::connect(&dialog, SIGNAL(finished(int)),
+                     this, SLOT(onProjDialogFinished(int)));
+
+    if (dialog.exec())
+    {
+        QString pathNgwUrl;
+        QString strUrl, strLogin, strPass;
+        int nId;
+        Json::Value jsonLayerMeta;
+        pathNgwUrl = dialog.getSelectedNgwResource(
+                    strUrl, strLogin, strPass, nId, jsonLayerMeta);
+
+        FBProjectNgw *projNgw = new FBProjectNgw(
+                    strUrl, strLogin, strPass, nId, jsonLayerMeta);
+        this->newProjectCommonActions(projNgw, pathNgwUrl);
+    }
 }
 
 
@@ -528,8 +564,8 @@ void FB::onOpenClick ()
         QFileInfo fileInfo(lastPath);
         dialog.setDirectory(fileInfo.absoluteDir());
     }
-    QObject::connect(&dialog,SIGNAL(finished(int)),
-                     this,SLOT(onProjDialogFinished(int)));
+    QObject::connect(&dialog, SIGNAL(finished(int)),
+                     this, SLOT(onProjDialogFinished(int)));
 
     if (dialog.exec())
     {
@@ -543,27 +579,27 @@ void FB::onOpenClick ()
         }
 
         // Create project replacing old one.
-        FBProject *projNew = new FBProject();
-        FBErr err = projNew->open(strFullPath);
+        FBProject *projOpen = new FBProject();
+        FBErr err = projOpen->open(strFullPath);
         if (err != FBErrNone)
         {
-            delete projNew;
+            delete projOpen;
             this->showErrorFull(tr("Unable to open project!"), err);
             return;
         }
         if (project != NULL)
             delete project;
-        project = projNew;
+        project = projOpen;
 
         // Create and show new form, replacing old one. Fill it with elems from
         // project.
         wScreen->deleteForm();
-        FBForm *formNew = this->createForm();
-        formNew->fromJson(FBProject::readForm(strFullPath));
-        wScreen->setForm(formNew);
+        FBForm *form = this->createForm();
+        form->fromJson(FBProject::readForm(strFullPath));
+        wScreen->setForm(form);
 
         // Update elems for app.
-        QMap<int,FBElem*> map = formNew->getElems();
+        QMap<int,FBElem*> map = form->getElems();
         QMap<int,FBElem*>::const_iterator it = map.constBegin();
         while (it != map.constEnd())
         {
@@ -1151,27 +1187,28 @@ void FB::setBottomString (QString strToShorten, QString strToPrepend)
 
 void FB::updateProjectString ()
 {
-    QString str1 = "";
-    QString str2 = "";
+    QString strToShorten = "";
+    QString strToPrepend = "";
 
     if (project == NULL)
     {
-        str2 = tr("Create new or open existing project ...");
+        strToShorten = tr("Create new or open existing project ...");
     }
     else
     {
-        str2 = project->getProjectfilePath();
-        if (str2 == "")
+        strToShorten = project->getProjectfilePath();
+        if (strToShorten == "")
         {
-            str1 = tr("Need to save data to ngfp file. ");
+            strToPrepend = tr("Need to save data to ngfp file. Current dataset: ");
+            strToShorten = project->getDatasetPath();
         }
         else
         {
-            str1 = tr("Current project: ");
+            strToPrepend = tr("Current project: ");
         }
     }
 
-    this->setBottomString(str2,str1);
+    this->setBottomString(strToShorten,strToPrepend);
 }
 
 
@@ -1300,6 +1337,34 @@ void FB::updateScreen ()
         }
     }
     wScreen->setState(index);
+}
+
+
+// Just common steps for all new projects creation.
+void FB::newProjectCommonActions (FBProject *proj, QString path)
+{
+    // Replacing old project if new one was correctly created.
+    FBErr err = proj->create(path);
+    if (err != FBErrNone)
+    {
+        delete proj;
+        this->showErrorFull(tr("Unable to create new project! "), err);
+        return;
+    }
+    if (project != NULL)
+        delete project;
+    project = proj;
+
+    // Create and show new void form replacing old one.
+    wScreen->deleteForm();
+    FBForm *form = this->createForm();
+    wScreen->setForm(form);
+
+    this->pickDefaultScreen(); // will be helpful if there is void screen now
+    this->updateRightMenu();
+    this->updateEnableness();
+    this->updateProjectString();
+    this->updateSettings();
 }
 
 

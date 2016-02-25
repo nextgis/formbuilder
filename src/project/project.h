@@ -22,6 +22,8 @@
 #ifndef PROJECT_H
 #define PROJECT_H
 
+#include <QObject>
+
 #include <QList>
 #include <QMap>
 #include <QString>
@@ -34,7 +36,7 @@
 #include "fb_common.h"
 
 // TODO: think about how to set these constants via build system:
-#define _FB_VERSION 2.1
+#define _FB_VERSION 2.0
 #define _FB_GDAL_DEBUG "D:/nextgis/formbuilder/gdal-log.txt" // uncomment for debugging
 #define _FB_INSTALLPATH_GDALDATA "/gdal_data"
 
@@ -60,16 +62,15 @@
 #define FB_JSON_META_PASSWORD "password"
 #define FB_JSON_META_URL "url"
 
+enum FBGeomType
+{
+    FBUndefGeomtype, FBPoint, FBLinestring, FBPolygon,
+    FBMultiPoint, FBMultiLinestring, FBMultiPolygon
+};
 
 enum FBDataType
 {
     FBString, FBInteger, FBReal, FBDate,
-};
-
-enum FBGeomType
-{
-    FBPoint, FBLinestring, FBPolygon,
-    FBMultiPoint, FBMultiLinestring, FBMultiPolygon
 };
 
 enum FBSrsType
@@ -81,7 +82,6 @@ struct FBFieldDescr // see NextGISWeb fields description syntax
 {
     FBDataType datataype;
     QString display_name;
-
     FBFieldDescr () {}
     FBFieldDescr (FBDataType datataype,QString display_name)
         { this->datataype=datataype; this->display_name=display_name; }
@@ -94,7 +94,6 @@ struct FBNgwConnection
     QString login;
     QString password;
     QString url;
-
     FBNgwConnection () {}
     FBNgwConnection (int id, QString login, QString password, QString url)
         {this->id=id; this->login=login, this->password=password; this->url=url;}
@@ -110,9 +109,9 @@ struct FBNgwConnection
  * by the screen widget), but it is able to read/write them into project
  * file.
  *
- * Project types differ from each other only in creation and first saving
- * capabilities, because other work with project is just working with
- * .ngfp files - which is always the same.
+ * Concrete project types differ from each other only in creation and first
+ * saving capabilities, because other work with project is just working with
+ * .ngfp files - which is always the same and implemented in this class.
  */
 class FBProject
 {
@@ -124,6 +123,8 @@ class FBProject
      static QMap<QString,FBGeomType> GEOM_TYPES; // the names must be unique => key
      static QMap<int,FBSrsType> SRS_TYPES; // int because of NGW SRS syntax
      static QString CUR_ERR_INFO; // additional error text if was some
+     static bool isGeomTypeSupported (QString strGeomType);
+     static bool isDataTypeSupported (QString strDataType);
 
     public: // methods
 
@@ -145,6 +146,7 @@ class FBProject
      bool wasFirstSaved ();
      bool isSaveRequired () ;
      QString getProjectfilePath () { return strNgfpPath; }
+     virtual QString getDatasetPath () { return ""; }
      QMap<QString,FBFieldDescr> getFields () { return fields; }
 
     protected: // methods
@@ -170,41 +172,48 @@ class FBProject
      QString version;
 };
 
-class FBProjectVoid: public FBProject
-{
-    public:
-     FBProjectVoid (FBGeomType geometry_type);
-     virtual ~FBProjectVoid ();
-     virtual FBErr create (QString anyPath);
-     virtual FBErr saveFirst (QString ngfpFullPath, Json::Value jsonForm);
-};
-
-
-/*
 class FBProjectGDAL: public FBProject
 {
     public:
      FBProjectGDAL ();
      virtual ~FBProjectGDAL ();
+     QString getDatasetPath () { return strDatasetPath; }
+    protected:
+     FBErr readGdalDataset (QString datasetPath);
+    protected:
+     QString strDatasetPath;
+};
+
+class FBProjectVoid: public FBProject
+{
+    public:
+     FBProjectVoid (FBGeomType geomType);
+     virtual ~FBProjectVoid ();
+     virtual FBErr create (QString anyPath);
+     virtual FBErr saveFirst (QString ngfpFullPath, Json::Value jsonForm);
+     virtual QString getDatasetPath () { return QObject::tr("no dataset"); }
 };
 
 class FBProjectShapefile: public FBProjectGDAL
 {
     public:
      FBProjectShapefile ();
-     virtual ~FBProjectShapefile ();
-     virtual FBErr create (QString anyPath);
-     virtual FBErr saveFirst (QString ngfpFullPath, Json::Value jsonForm);
+     ~FBProjectShapefile ();
+     FBErr create (QString anyPath);
+     FBErr saveFirst (QString ngfpFullPath, Json::Value jsonForm);
 };
 
-class FBProjectNGW: public FBProjectGDAL
+class FBProjectNgw: public FBProjectGDAL
 {
     public:
-     FBProjectNGW ();
-     virtual ~FBProjectNGW ();
-     virtual FBErr create (QString anyPath);
-     virtual FBErr saveFirst (QString ngfpFullPath, Json::Value jsonForm);
+     FBProjectNgw (QString strUrl, QString strLogin,
+                   QString strPass, int nId, Json::Value jsonMeta);
+     ~FBProjectNgw ();
+     FBErr create (QString anyPath);
+     FBErr saveFirst (QString ngfpFullPath, Json::Value jsonForm);
+    protected:
+     Json::Value jsonTempMeta; // only for creation step
 };
-*/
+
 
 #endif //PROJECT_H

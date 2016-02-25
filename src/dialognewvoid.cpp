@@ -25,7 +25,8 @@ FBDialogProjectNew::~FBDialogProjectNew ()
 {
 }
 
-FBDialogProjectNew::FBDialogProjectNew (QWidget *parent): QDialog(parent)
+FBDialogProjectNew::FBDialogProjectNew (QWidget *parent):
+    QDialog(parent)
 {
     this->setWindowTitle(tr("New project parameters ..."));
 
@@ -52,6 +53,7 @@ FBDialogProjectNew::FBDialogProjectNew (QWidget *parent): QDialog(parent)
     connect(but1,SIGNAL(clicked()),this,SLOT(accept()));
 
     QVBoxLayout *vlall = new QVBoxLayout(this);
+    vlall->setSpacing(12);
     QHBoxLayout *hl1 = new QHBoxLayout();
     hl1->addWidget(label1);
     hl1->addWidget(comboGeom);

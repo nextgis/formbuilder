@@ -25,9 +25,7 @@
 #include <QWidget>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
-#include <QDialog>
-#include <QFileDialog>
-#include <QMessageBox>
+
 #include <QLabel>
 #include <QComboBox>
 #include <QPushButton>
@@ -36,6 +34,16 @@
 #include <QTableWidget>
 #include <QScrollArea>
 #include <QToolButton>
+#include <QProgressBar>
+#include <QLineEdit>
+
+#include <QDialog>
+#include <QFileDialog>
+#include <QMessageBox>
+
+#include <QUrl>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
 
 #include <QFileInfo>
 
@@ -52,6 +60,12 @@
 // Constants and limits.
 #define FB_MENURIGHT_TABLES_MAX 5
 #define FB_BOTTOMSTRING_LEN_MAX 40
+
+// NGW.
+#define FB_NGW_ITEMTYPE_UNDEFINED 0
+#define FB_NGW_ITEMTYPE_RESOURCEGROUP 1
+#define FB_NGW_ITEMTYPE_VECTORLAYER 2
+#define FB_NGW_ITEMTYPE_POSTGISLAYER 3
 
 namespace Ui
 {
@@ -71,6 +85,82 @@ class FBDialogProjectNew: public QDialog
      QString getSelectedGeom () { return comboGeom->currentText(); }
     private:
      QComboBox *comboGeom;
+};
+
+/**
+ * NextGIS Web new project's dialog.
+ * Used to select GeoJSON dataset on NGW server.
+ * See NextGIS Web syntax how to get json data from NGW server in the methods
+ * of this dialogue.
+ */
+class FBDialogProjectNgw: public QDialog
+{
+    Q_OBJECT
+
+    public:
+
+     FBDialogProjectNgw (QWidget *parent, QString lastNgwUrl, QString lastNgwLogin);
+     ~FBDialogProjectNgw ();
+
+     QString getSelectedNgwResource (QString &strUrl, QString &strLogin,
+                 QString &strPass, int &strId, Json::Value &jsonLayerMeta);
+
+    signals:
+
+     void updateNgwSettings (QString lastUrl, QString lastLogin);
+
+    private slots:
+
+     void onConnectClicked ();
+     void onSelectClicked ();
+
+     void httpOnItemExpended (QTreeWidgetItem *treeItem);
+     void httpOnItemCollapsed (QTreeWidgetItem *treeItem);
+     void httpOnItemClicked (QTreeWidgetItem *treeItem, int treeItemColumn);
+
+     void httpReadyAuthRead ();
+     void httpReadyRead ();
+     void httpReadyResourceRead ();
+     void httpReadySelectedRead ();
+
+     void httpAuthFinished ();
+     void httpFinished ();
+     void httpResourceFinished ();
+     void httpSelectedFinished ();
+
+    private:
+
+     QList<QTreeWidgetItem*> parseJsonReply (QNetworkReply *reply);
+
+    private:
+
+     // selected params
+     QString strUrl;
+     QString strLogin;
+     QString strPass;
+     QString strId;
+     Json::Value jsonLayerMeta;
+
+     // gui
+     QLineEdit *wEditUrl;
+     QLineEdit *wEditLogin;
+     QLineEdit *wEditPass;
+     QPushButton *wButConnect;
+     //QPushButton *wButCancel;
+     QPushButton *wButSelect;
+     QTreeWidget *wTree;
+     QProgressBar *wProgBar;
+     QLabel *wLabelStatus;
+
+     QNetworkAccessManager httpManager;
+     QNetworkReply *httpAuthReply;
+     QNetworkReply *httpReply;
+     QNetworkReply *httpResourceReply;
+     QNetworkReply *httpSelectedReply;
+     std::string receivedJson;
+
+     std::map<int,int> itemTypes; // <item_id, item_type>
+     QTreeWidgetItem *itemToExpand;
 };
 
 /**
@@ -178,6 +268,9 @@ class FB: public QWidget
      void pickVoidScreen ();
      void recreateScreen (FBScreen *newScreen, bool destroyForm);
      void updateScreen ();
+
+     // project
+     void newProjectCommonActions (FBProject *proj, QString path);
 
     private: // fields
 

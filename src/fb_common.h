@@ -39,7 +39,7 @@ enum FBErr
 {
     FBErrNone, FBErrUnsupported, FBErrUnableCreateProject, FBErrNotInited,
     FBErrAlreadyInited, FBErrWrongVersion, FBErrIncorrectJson,
-    FBErrIncorrectFileStructure,
+    FBErrIncorrectFileStructure, FBErrIncorrectGdalDataset
 };
 
 #endif //FB_COMMON_H

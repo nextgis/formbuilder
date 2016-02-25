@@ -28,6 +28,8 @@ project.h
 set(LIB_CSOURCES
 project.cpp
 projectvoid.cpp
+projectshp.cpp
+projectngw.cpp
 )
 
 set(FB_TARGET_OBJECTS ${FB_TARGET_OBJECTS} $<TARGET_OBJECTS:${LIB_NAME}> PARENT_SCOPE)

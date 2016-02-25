@@ -1,6 +1,6 @@
 /******************************************************************************
  * Project:  NextGIS Formbuilder
- * Purpose:  
+ * Purpose:  Shapefile project implementations
  * Author:   Mikhail Gusev, gusevmihs@gmail.com
  ******************************************************************************
 *   Copyright (C) 2014-2016 NextGIS
@@ -21,3 +21,41 @@
 
 #include "project.h"
  
+
+FBProjectShapefile::FBProjectShapefile ():
+    FBProjectGDAL ()
+{
+}
+
+FBProjectShapefile::~FBProjectShapefile ()
+{
+}
+
+FBErr FBProjectShapefile::create (QString anyPath)
+{
+    if (isInited)
+        return FBErrAlreadyInited;
+
+    FBErr err = this->readGdalDataset(anyPath);
+    if (err != FBErrNone)
+        return err;
+
+    srs = FBSrs4326; // always the only SRS. During the first save layer's data will
+                     // be transformed to it.
+    version = FBProject::getProgVersionStr();
+
+    strDatasetPath = anyPath; // store the path to dataset for the first save
+    strNgfpPath = ""; // need to be saved first time
+
+    isInited = true;
+    return FBErrNone;
+}
+
+FBErr FBProjectShapefile::saveFirst (QString ngfpFullPath, Json::Value jsonForm)
+{
+    if (!isInited)
+        return FBErrNotInited;
+
+
+    return FBErrNone;
+}

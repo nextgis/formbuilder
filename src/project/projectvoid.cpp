@@ -1,6 +1,6 @@
 /******************************************************************************
  * Project:  NextGIS Formbuilder
- * Purpose:  
+ * Purpose:  Void project implementations
  * Author:   Mikhail Gusev, gusevmihs@gmail.com
  ******************************************************************************
 *   Copyright (C) 2014-2016 NextGIS
@@ -26,9 +26,10 @@ FBProjectVoid::~FBProjectVoid ()
 {
 }
 
-FBProjectVoid::FBProjectVoid (FBGeomType geometry_type): FBProject()
+FBProjectVoid::FBProjectVoid (FBGeomType geomType):
+    FBProject()
 {
-    this->geometry_type = geometry_type;
+    geometry_type = geomType;
 }
 
 FBErr FBProjectVoid::create (QString anyPath)
@@ -42,10 +43,11 @@ FBErr FBProjectVoid::create (QString anyPath)
     fields.insert("ID",fd);
     srs = FBSrs4326;
     version = FBProject::getProgVersionStr();
+    // Geometry type is already set via constructor.
 
     strNgfpPath = ""; // need to be saved first time
-    isInited = true;
 
+    isInited = true;
     return FBErrNone;
 }
 
