@@ -1,6 +1,8 @@
 NextGIS FormBuilder
 ===========
 
+![Screenshot_1](/images/fb_kursk_all.png)
+
 Forms editor for various GIS software. Currently builds forms for NextGIS Mobile (http://nextgis.ru/en/nextgis-mobile).
 
 Official page: http://nextgis.ru/en/nextgis-formbuilder
