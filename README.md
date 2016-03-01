@@ -1,7 +1,7 @@
 NextGIS FormBuilder
 ===========
 
-![Screenshot_1](/images/fb_en_0.png)
+![Screenshot_1](/images/fb_en_0.PNG)
 
 Forms editor for various GIS software. Currently builds forms for NextGIS Mobile (http://nextgis.ru/en/nextgis-mobile).
 
