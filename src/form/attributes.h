@@ -61,7 +61,7 @@ class FBAttrField: public FBAttr
                  FBAttrrole role);
      ~FBAttrField () { }
      Json::Value toJson ();
-     FBErr fromJson (Json::Value jsonVal);
+     bool fromJson (Json::Value jsonVal);
      QWidget *getWidget ();
      void updateValues (QStringList newKeyNames);
     protected slots:
@@ -80,7 +80,7 @@ class FBAttrText: public FBAttr
                  FBAttrrole role, QString initValue);
      ~FBAttrText () { }
      Json::Value toJson ();
-     FBErr fromJson (Json::Value jsonVal);
+     bool fromJson (Json::Value jsonVal);
      QWidget *getWidget ();
      QString getValue () { return value; }
     protected slots:
@@ -97,7 +97,7 @@ class FBAttrNumber: public FBAttr
                  FBAttrrole role, int initValue, int min, int max);
      ~FBAttrNumber () { }
      Json::Value toJson ();
-     FBErr fromJson (Json::Value jsonVal);
+     bool fromJson (Json::Value jsonVal);
      QWidget *getWidget ();
     protected slots:
      void onEditEnd (int spinBoxValue);
@@ -115,7 +115,7 @@ class FBAttrListvalues: public FBAttrDialog
                 FBAttrrole role, QWidget *parentForDialog);
      virtual ~FBAttrListvalues () { }
      virtual Json::Value toJson ();
-     virtual FBErr fromJson (Json::Value jsonVal);
+     virtual bool fromJson (Json::Value jsonVal);
      QString getDefDispValue ();
     protected slots:
      virtual void onEditStart ();

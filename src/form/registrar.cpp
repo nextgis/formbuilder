@@ -27,7 +27,7 @@ QList<FBFactory*> FBFactory::fctsElem;
 
 // Initialize and register the list of factories.
 // Pass the app widget to this method so some elems and their attributes can use
-// it for displaying their input/editing capabilities.
+// it for correctly displaying their input/editing capabilities.
 void FBFactory::initAll (QWidget *appWidget)
 {
     FBFactory::deinitAll(); // clear list

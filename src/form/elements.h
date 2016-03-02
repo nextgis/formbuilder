@@ -28,6 +28,9 @@
 #include "form_core.h"
 #include "attributes.h"
 
+#define FB_ANDROIDSCREEN_FONTSIZE_NORMAL 14
+#define FB_ANDROIDSCREEN_FONTTYPE "Candara"
+
 
 // Element which can write values to the layer fields.
 class FBElemInput: public FBElem

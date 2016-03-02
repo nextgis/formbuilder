@@ -49,7 +49,7 @@ FBErr FBProjectNgw::create (QString anyPath)
     CPLSetConfigOption("GDAL_HTTP_USERPWD", baLogPas.data());
 
     // Firstly initialize with default GDAL method.
-    FBErr err = this->readGdalDataset(anyPath);
+    FBErr err = this->setFromGdalDataset(anyPath);
     if (err != FBErrNone)
         return err;
 
@@ -78,15 +78,15 @@ FBErr FBProjectNgw::create (QString anyPath)
         if (jsonKn.isNull() || !jsonKn.isString()
                 || jsonDt.isNull() || !jsonDt.isString()
                 || jsonDn.isNull() || !jsonDn.isString()
-                || !FBProject::isDataTypeSupported(
-                    QString::fromUtf8(jsonDt.asString().data())))
+                || FBProject::findDataTypeByNgw(
+                    QString::fromUtf8(jsonDt.asString().data())) == NULL)
         {
             FBProject::CUR_ERR_INFO = QObject::tr("Selected GeoJSON dataset's"
                   " array of fields has incorrect structure");
             return FBErrIncorrectGdalDataset;
         }
         FBFieldDescr fieldDescr;
-        fieldDescr.datataype = DATA_TYPES.value(
+        fieldDescr.datataype = FBProject::findDataTypeByNgw(
                     QString::fromUtf8(jsonDt.asString().data()));
         fieldDescr.display_name = QString::fromUtf8(jsonDn.asString().data());
         fields.insert(QString::fromUtf8(jsonKn.asString().data()), fieldDescr);
@@ -94,19 +94,20 @@ FBErr FBProjectNgw::create (QString anyPath)
 
     // Check and assign geometry type.
     Json::Value jsonGeom = jsonTempMeta[FB_JSON_META_GEOMETRY_TYPE];
-    if (jsonGeom.isNull() || !FBProject::isGeomTypeSupported(
-                QString::fromUtf8(jsonGeom.asString().data())))
+    if (jsonGeom.isNull() || FBProject::findGeomTypeByNgw(
+                QString::fromUtf8(jsonGeom.asString().data())) == NULL)
     {
         FBProject::CUR_ERR_INFO = QObject::tr("Selected GeoJSON dataset has"
               " unsupportd geometry type or does not have it at all");
         return FBErrIncorrectGdalDataset;
     }
-    geometry_type = GEOM_TYPES.value(QString::fromUtf8(jsonGeom.asString().data()));
+    geometry_type = FBProject::findGeomTypeByNgw(
+                QString::fromUtf8(jsonGeom.asString().data()));
 
     // Ngw settings are already set via constructor.
 
     // Other metadadta.
-    srs = FBSrs4326; // ignore SRS type which was read while we must use default one
+    // Ignore SRS type which was read while we must use default one.
     version = FBProject::getProgVersionStr();
 
     strDatasetPath = anyPath; // store the path to dataset for the first save
@@ -116,10 +117,3 @@ FBErr FBProjectNgw::create (QString anyPath)
     return FBErrNone;
 }
 
-FBErr FBProjectNgw::saveFirst (QString ngfpFullPath, Json::Value jsonForm)
-{
-    if (!isInited)
-        return FBErrNotInited;
-
-    return FBErrNone;
-}

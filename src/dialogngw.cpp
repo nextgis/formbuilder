@@ -49,7 +49,7 @@ FBDialogProjectNgw::FBDialogProjectNgw (QWidget *parent,
 
     hLayout = new QHBoxLayout();
     label = new QLabel(this);
-    label->setText(tr("URL: "));
+    label->setText(tr("URL:       "));
     hLayout->addWidget(label);
     wEditUrl = new QLineEdit(this);
     wEditUrl->setText(lastNgwUrl);
@@ -58,7 +58,7 @@ FBDialogProjectNgw::FBDialogProjectNgw (QWidget *parent,
 
     hLayout = new QHBoxLayout();
     label = new QLabel(this);
-    label->setText(tr("Login: "));
+    label->setText(tr("Login:     "));
     hLayout->addWidget(label);
     wEditLogin = new QLineEdit(this);
     wEditLogin->setText(lastNgwLogin);
@@ -128,15 +128,18 @@ void FBDialogProjectNgw::onConnectClicked ()
     wLabelStatus->setText(tr("Connecting ..."));
     wProgBar->setValue(25);
 
+    // We must clear json string, while there will be several read actions with
+    // string concatination next (as replys from server returned).
+    receivedJson = "";
+
     // These parameters are read once only when user clicks connect button.
     strUrl = wEditUrl->text();
     strLogin = wEditLogin->text();
     strPass = wEditPass->text();
 
-    // We must clear json string, while there will be several read actions with
-    // string concatination next (as replys from server returned).
-    receivedJson = "";
-
+    // Remove last '/' symbol.
+    while (strUrl.endsWith("/"))
+        strUrl.chop(1);
     // Add "http" prefix if needed.
     if (!strUrl.startsWith("http://",Qt::CaseInsensitive))
         strUrl.prepend("http://");

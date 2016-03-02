@@ -27,9 +27,7 @@
 #include <QLabel>
 #include <QScrollArea>
 
-#include "fb_common.h"
 #include "form/form_core.h"
-
 
 struct FBState
 {

@@ -311,8 +311,10 @@ void FB::setFbStyle ()
     // its font and color setting from its parent widget".
 
     this->setStyleSheet("QWidget { background: white;"
-                        " color: black; }"); // explicitly set dark font color!
-
+                        " color: black; }"); // explicitly set dark font color, otherwise
+                                             // users who have dark system background
+                                             // color and light font color will have
+                                             // troubles with displaying GUI
     tabMenuTop->setStyleSheet("QTabWidget::pane {"
                               "border-top: 1px solid "
                               +QString(FB_COLOR_MEDIUMGREY)+";"
@@ -418,10 +420,11 @@ void FB::setFbStyle ()
 
 /****************************************************************************/
 /*                                                                          */
-/*                         Private main FB slots                            */
+/*                         Main GUI private slots                           */
 /*                                                                          */
 /****************************************************************************/
 
+// ADD ELEM FROM RIGHT MENU
 void FB::onAddElemPress (QTreeWidgetItem* item, int column)
 {
     FBForm *form = wScreen->getFormPtr();
@@ -445,10 +448,18 @@ void FB::onAddElemPress (QTreeWidgetItem* item, int column)
 }
 
 
+// SELECT ELEM ON THE SCREEN
+void FB::onElemSelect ()
+{
+    this->updateRightMenu();
+}
+
+
+// NEW VOID PROJECT BUTTON CLICK
 void FB::onNewVoidClick ()
 {
     toolbNewVoid->setDown(true);
-    if (this->askToLeaveUnsafeProject())
+    if (this->onAskToLeaveUnsafeProject())
     {
         toolbNewVoid->setDown(false);
         return;
@@ -462,16 +473,20 @@ void FB::onNewVoidClick ()
     {
         QString geomType = dialog.getSelectedGeom();
 
-        FBProjectVoid *projVoid = new FBProjectVoid(FBProject::GEOM_TYPES[geomType]);
+        FBProjectVoid *projVoid = new FBProjectVoid(
+                    FBProject::findGeomTypeByNgw(geomType));
+        QObject::connect(projVoid, SIGNAL(changeProgress(int)),
+                dlgProgress, SLOT(onChangeProgress(int)));
         this->newProjectCommonActions(projVoid, ""); // just void string stub
     }
 }
 
 
+// NEW SHAPEFILE PROJECT BUTTON CLICK
 void FB::onNewShapeClick ()
 {
     toolbNewShape->setDown(true);
-    if (this->askToLeaveUnsafeProject())
+    if (this->onAskToLeaveUnsafeProject())
     {
         toolbNewShape->setDown(false);
         return;
@@ -504,15 +519,18 @@ void FB::onNewShapeClick ()
         pathShapefile = sPaths[0];
 
         FBProjectShapefile *projShp = new FBProjectShapefile();
+        QObject::connect(projShp, SIGNAL(changeProgress(int)),
+                dlgProgress, SLOT(onChangeProgress(int)));
         this->newProjectCommonActions(projShp, pathShapefile);
     }
 }
 
 
+// NEW NEXTGISWEB PROJECT BUTTON CLICK
 void FB::onNewNgwClick ()
 {
     toolbNewNgw->setDown(true);
-    if (this->askToLeaveUnsafeProject())
+    if (this->onAskToLeaveUnsafeProject())
     {
         toolbNewNgw->setDown(false);
         return;
@@ -533,15 +551,18 @@ void FB::onNewNgwClick ()
 
         FBProjectNgw *projNgw = new FBProjectNgw(
                     strUrl, strLogin, strPass, nId, jsonLayerMeta);
+        QObject::connect(projNgw, SIGNAL(changeProgress(int)),
+                dlgProgress, SLOT(onChangeProgress(int)));
         this->newProjectCommonActions(projNgw, pathNgwUrl);
     }
 }
 
 
+// OPEN PROJECT BUTTON CLICK
 void FB::onOpenClick ()
 {
     toolbOpen->setDown(true);
-    if (this->askToLeaveUnsafeProject())
+    if (this->onAskToLeaveUnsafeProject())
     {
         toolbOpen->setDown(false);
         return;
@@ -573,18 +594,20 @@ void FB::onOpenClick ()
         if (!strFullPath.endsWith("." + QString(FB_PROJECT_EXTENSION),
                                   Qt::CaseInsensitive))
         {
-            this->showError(tr("Wrong file extension. Must be .")
+            this->onShowError(tr("Wrong file extension. Must be .")
                           + QString(FB_PROJECT_EXTENSION));
             return;
         }
 
         // Create project replacing old one.
         FBProject *projOpen = new FBProject();
+        QObject::connect(projOpen, SIGNAL(changeProgress(int)),
+                dlgProgress, SLOT(onChangeProgress(int)));
         FBErr err = projOpen->open(strFullPath);
         if (err != FBErrNone)
         {
             delete projOpen;
-            this->showErrorFull(tr("Unable to open project!"), err);
+            this->onShowErrorFull(tr("Unable to open project!"), err);
             return;
         }
         if (project != NULL)
@@ -616,18 +639,55 @@ void FB::onOpenClick ()
 }
 
 
+// SAVE PROJECT BUTTON CLICK
 void FB::onSaveClick ()
 {
+    toolbSave->setDown(true);
 
+    FBForm *form = wScreen->getFormPtr();
+    if (project == NULL || form == NULL || !project->wasFirstSaved())
+    {
+        toolbSave->setDown(false);
+        return;
+    }
+
+    this->saveProjectCommonActions(project->getCurrentNgfpPath());
 }
 
 
+// SAVE AS PROJECT BUTTON CLICK
 void FB::onSaveAsClick ()
 {
+    toolbSaveAs->setDown(true);
 
+    FBForm *form = wScreen->getFormPtr();
+    if (project == NULL || form == NULL)
+    {
+        toolbSaveAs->setDown(false);
+        return;
+    }
+
+    QFileDialog dialog(this);
+    dialog.setAcceptMode(QFileDialog::AcceptSave);
+    dialog.setFileMode(QFileDialog::AnyFile);
+    dialog.setViewMode(QFileDialog::List);
+    dialog.setDefaultSuffix(FB_PROJECT_EXTENSION);
+    dialog.setNameFilter("*." + QString(FB_PROJECT_EXTENSION));
+    dialog.setWindowTitle(tr("Save project as ..."));
+
+    if (dialog.exec())
+    {
+        QString ngfpFullPath = dialog.selectedFiles().first();
+        if (!ngfpFullPath.endsWith("."+QString(FB_PROJECT_EXTENSION),
+                                  Qt::CaseInsensitive))
+            ngfpFullPath = ngfpFullPath+"."+QString(FB_PROJECT_EXTENSION);
+
+        this->saveProjectCommonActions(ngfpFullPath);
+    }
 }
 
 
+// SCREENS PICK
 void FB::onScreenAndroidPick ()
 {
     FBScreenAndroid *screen = new FBScreenAndroid(this);
@@ -652,8 +712,12 @@ void FB::onScreenQgisPick ()
     this->recreateScreen(screen,false);
     this->afterPickScreen(toolbScreenQgis);
 }
-
-
+// SCREEN DEVICE SELECT
+void FB::onScreenDeviceSelect (int index)
+{
+    this->updateScreen();
+}
+// SCREEN STATE PICK
 void FB::onScreenStatePick ()
 {
     // We must always have the default screen type - so here we set
@@ -672,36 +736,33 @@ void FB::onScreenStatePick ()
 }
 
 
-void FB::onScreenDeviceSelect (int index)
-{
-    this->updateScreen();
-}
-
-
+// UNDO TOOL CLICK
 void FB::onUndoClick ()
 {
 
 }
-
+// REDO TOOL CLICK
 void FB::onRedoClick ()
 {
 
 }
 
+
+// CLEAR SCREEN TOOL CLICK
 void FB::onClearScreenClick ()
 {
     toolbClearScreen->setDown(true);
     FBForm *form = wScreen->getFormPtr();
     if (form == NULL || form->isVoid())
         return;
-    if (this->showWarning(tr("Clear screen from all elements?"))
+    if (this->onShowWarning(tr("Clear screen from all elements?"))
             != QMessageBox::Ok)
         return;
     form->clear();
     this->updateRightMenu();
     toolbClearScreen->setDown(false);
 }
-
+// DELETE ELEM TOOL CLICK
 void FB::onDeleteElemClick ()
 {
     toolbDeleteElem->setDown(true);
@@ -713,21 +774,22 @@ void FB::onDeleteElemClick ()
     toolbDeleteElem->setDown(false);
 }
 
+
+// LANGUAGE SELECT
 void FB::onSettingLanguageSelect ()
 {
 
 }
 
+
+// ABOUT CLICK
 void FB::onAboutGraphicsClick ()
 {
 
 }
 
-void FB::onElemSelect ()
-{
-    this->updateRightMenu();
-}
 
+// ARROWS CLICK
 void FB::onLeftArrowClick ()
 {
     this->flipLeftMenu(!treeLeftFull->isVisible());
@@ -739,8 +801,28 @@ void FB::onRightArrowClick ()
 }
 
 
-// Show messages.
-int FB::showBox (QString msg, QString caption)
+/*****************************************************************************/
+/*                                                                           */
+/*                          Other private slots                              */
+/*                                                                           */
+/*****************************************************************************/
+
+void FB::onShowInfo(QString msg)
+{
+    onShowBox(msg,tr("Information"));
+}
+
+int FB::onShowWarning (QString msg)
+{
+    return onShowBox(msg,tr("Warning"));
+}
+
+void FB::onShowError (QString msg)
+{
+    onShowBox(msg,tr("Error"));
+}
+
+int FB::onShowBox (QString msg, QString caption)
 {
     QMessageBox msgBox(this);
     msgBox.setStyleSheet(""); // TODO: why does not work?
@@ -768,22 +850,7 @@ int FB::showBox (QString msg, QString caption)
     return msgBox.exec();
 }
 
-void FB::showInfo(QString msg)
-{
-    showBox(msg,tr("Information"));
-}
-
-int FB::showWarning (QString msg)
-{
-    return showBox(msg,tr("Warning"));
-}
-
-void FB::showError (QString msg)
-{
-    showBox(msg,tr("Error"));
-}
-
-int FB::showErrorFull (QString msgMain, FBErr err)
+int FB::onShowErrorFull (QString msgMain, FBErr err)
 {
     QMessageBox msgBox(this);
     msgBox.setStyleSheet("");
@@ -791,23 +858,30 @@ int FB::showErrorFull (QString msgMain, FBErr err)
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.setIcon(QMessageBox::Critical);
     msgBox.setText(msgMain);
-    msgBox.setInformativeText(this->getErrString(err));
-    msgBox.setDetailedText(FBProject::CUR_ERR_INFO);
+    QString str = this->getErrStr(err);
+    if (str != "")
+    {
+        msgBox.setInformativeText(str);
+        msgBox.setDetailedText(FBProject::CUR_ERR_INFO);
+    }
     FBProject::CUR_ERR_INFO = "";
     return msgBox.exec();
 }
 
 
-bool FB::askToLeaveUnsafeProject ()
+// Some common actions.
+// Call only in according methods.
+bool FB::onAskToLeaveUnsafeProject ()
 {
     return (project != NULL
             && project->isSaveRequired()
-            && this->showWarning(tr("Project hasn't been saved. Continue?"))
+            && this->onShowWarning(tr("Project hasn't been saved. Continue?"))
                 != QMessageBox::Ok);
 }
 
 
 // Some common GUI actions after closing project dialogs.
+// Connect only to according methods.
 void FB::onProjDialogFinished (int code)
 {
     toolbNewVoid->setDown(false);
@@ -819,15 +893,38 @@ void FB::onProjDialogFinished (int code)
 }
 
 
+// This slot is called after the long action of saving project is ended in the
+// separate thread.
+// Connect only to according methods.
+void FB::onSaveAnyEnded (FBErr err)
+{
+    // Close progress dialog and do according actions.
+    dlgProgress->accept();
+    if (err != FBErrNone)
+    {
+        this->onShowErrorFull(tr("Error saving project"),err);
+    }
+    else
+    {
+        this->onShowInfo(tr("Project saved successfully"));
+        this->updateEnableness();
+        this->updateProjectString();
+        this->updateSettings();
+    }
+    toolbSaveAs->setDown(false);
+    toolbSave->setDown(false);
+}
+
+
 /****************************************************************************/
 /*                                                                          */
-/*                        Private FB methods                                */
+/*                         Private methods                                  */
 /*                                                                          */
 /****************************************************************************/
 
 // Common actions for element types, which can be made only in main app class.
 // Update elem with the app's data, because only this class aggregates project,
-// form and screen modules.
+// form and screen modules together.
 void FB::updateElemForApp (FBElem* elem)
 {
     FBElemInput *e = qobject_cast<FBElemInput*>(elem);
@@ -852,9 +949,38 @@ QString FB::getSettingLastPath ()
 }
 
 
-QString FB::getErrString (FBErr err)
+// Convert main error code to string.
+QString FB::getErrStr (FBErr err)
 {
-    return "...";
+    QString ret;
+    switch (err)
+    {
+        case FBErrWrongVersion: ret = tr("Wrong file version"); break;
+        case FBErrIncorrectJson: ret = tr("Incorrect JSON file structure"); break;
+        case FBErrIncorrectFileStructure: ret = tr("Incorrect file structure"); break;
+        case FBErrIncorrectGdalDataset: ret = tr("Incorrect GDAL dataset"); break;
+        case FBErrWrongSavePath: ret = tr("Wrong save path"); break;
+        case FBErrTempFileFail: ret = tr("Temporary file error"); break;
+        case FBErrGDALFail: ret = tr("GDAL error"); break;
+        case FBErrCPLFail: ret = tr("GDAL CPL error"); break;
+        default: ret = ""; break; // some errors will be explicitly not processed
+    }
+    return ret;
+}
+
+
+// Convert group type of element to string.
+QString FB::getGroupStr (FBElemtype type)
+{
+    QString str = tr("Unknown");
+    switch (type)
+    {
+        case FBDecoration: str = tr("Decoration"); break;
+        case FBInput: str = tr("Input"); break;
+        case FBGrouping: str = tr("Grouping"); break;
+        case FBLayout: str = tr("Layout"); break;
+    }
+    return str;
 }
 
 
@@ -877,9 +1003,9 @@ QToolButton *FB::addTopMenuButton (QWidget *parentTab, QString imgPath,
     but->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
     but->setAutoRaise(true);
     but->setIcon(QIcon(imgPath));
-    but->setText(name); // necessarily do this because it will store correspondance
+    but->setText(name); // necessarily do this because it will store correspondence
                         // to screen arrays for screen menu buttons
-    but->setFont(QFont(FB_GUI_FONTTYPE,FB_GUI_FONTSIZE_SMALL));
+    but->setFont(QFont(FB_GUI_FONTTYPE, FB_GUI_FONTSIZE_SMALL));
     if (small)
     {
         but->setIconSize(QSize(60,60));
@@ -905,6 +1031,8 @@ QToolButton *FB::addTopMenuButton (QWidget *parentTab, QString imgPath,
     return but;
 }
 
+
+// Create new combobox with caption for any tab of the top menu.
 QComboBox *FB::addTopMenuCombo (QWidget *parentTab, QString caption,
                                 QStringList values)
 {
@@ -936,6 +1064,7 @@ QComboBox *FB::addTopMenuCombo (QWidget *parentTab, QString caption,
 }
 
 
+// Create splitter vertical line for any tab in the top menu.
 void FB::addTopMenuSplitter (QWidget *parentTab)
 {
     QWidget *wid = new QWidget(wView);
@@ -948,6 +1077,7 @@ void FB::addTopMenuSplitter (QWidget *parentTab)
 }
 
 
+// Minimize or maximize menus.
 void FB::flipLeftMenu (bool isFull)
 {
     treeLeftFull->setVisible(isFull);
@@ -960,7 +1090,6 @@ void FB::flipLeftMenu (bool isFull)
     // TODO: open and select elems in the one tree, that was selected in another,
     // i.e. synchronize trees.
 }
-
 void FB::flipRightMenu (bool isFull)
 {
     labRight->setVisible(isFull);
@@ -975,6 +1104,7 @@ void FB::flipRightMenu (bool isFull)
 }
 
 
+// Create one table in right menu.
 QTableWidget* FB::addRightMenuTable ()
 {
     QTableWidget *table = new QTableWidget(wMenuRight);
@@ -1012,6 +1142,7 @@ QTableWidget* FB::addRightMenuTable ()
 }
 
 
+// Update enable states for all GUI elements in program.
 void FB::updateEnableness ()
 {
     if (project == NULL)
@@ -1054,10 +1185,15 @@ void FB::updateEnableness ()
         {
             toolbSave->setEnabled(true);
         }
+        else
+        {
+            toolbSave->setEnabled(false);
+        }
     }
 }
 
 
+// Clear and than fill two left trees with element factories.
 void FB::updateLeftTrees ()
 {
     treeLeftFull->clear();
@@ -1093,6 +1229,7 @@ void FB::updateLeftTrees ()
 }
 
 
+// Delete old and than create new tables for right menu and update its label.
 void FB::updateRightMenu ()
 {
     // Destroy all previous tables.
@@ -1174,6 +1311,7 @@ void FB::updateRightMenu ()
 }
 
 
+// Set bottom status label.
 void FB::setBottomString (QString strToShorten, QString strToPrepend)
 {
     if (strToShorten.size() > FB_BOTTOMSTRING_LEN_MAX)
@@ -1185,6 +1323,7 @@ void FB::setBottomString (QString strToShorten, QString strToPrepend)
 }
 
 
+// Set bottom status label for project info.
 void FB::updateProjectString ()
 {
     QString strToShorten = "";
@@ -1212,6 +1351,8 @@ void FB::updateProjectString ()
 }
 
 
+// Recreate some buttons and selectors in the View tab of top menu according to the
+// selected screen.
 void FB::updateMenuView ()
 {
     // Devices combobox.
@@ -1250,21 +1391,8 @@ void FB::updateMenuView ()
 }
 
 
-QString FB::getGroupStr (FBElemtype type)
-{
-    QString str = tr("Unknown");
-    switch (type)
-    {
-        case FBDecoration: str = tr("Decoration"); break;
-        case FBInput: str = tr("Input"); break;
-        case FBGrouping: str = tr("Grouping"); break;
-        case FBLayout: str = tr("Layout"); break;
-    }
-    return str;
-}
-
-
 // Some common GUI actions: after change screen settings.
+// Call only in according methods.
 void FB::afterPickScreen (QToolButton *toolbDown)
 {
     this->updateMenuView();
@@ -1278,7 +1406,7 @@ void FB::afterPickScreen (QToolButton *toolbDown)
 }
 
 
-// Recreate screen to default.
+// Recreate screen to default one.
 void FB::pickDefaultScreen ()
 {
     // TODO: think about what other screen to set in this situation - may be
@@ -1288,8 +1416,6 @@ void FB::pickDefaultScreen ()
     this->recreateScreen(screen,false); // with form copy, if was some
     this->afterPickScreen(toolbScreenAndroid);
 }
-
-
 // Recreate screen to void. Just "reset to grey screen".
 void FB::pickVoidScreen ()
 {
@@ -1299,7 +1425,7 @@ void FB::pickVoidScreen ()
 }
 
 
-// Create new screen with copying old form or not.
+// Create new screen with copying old form (or not).
 void FB::recreateScreen (FBScreen *newScreen, bool destroyForm)
 {
     if (newScreen == NULL)
@@ -1340,7 +1466,8 @@ void FB::updateScreen ()
 }
 
 
-// Just common steps for all new projects creation.
+// Common steps for all new projects creation methods.
+// Call only in according methods.
 void FB::newProjectCommonActions (FBProject *proj, QString path)
 {
     // Replacing old project if new one was correctly created.
@@ -1348,7 +1475,7 @@ void FB::newProjectCommonActions (FBProject *proj, QString path)
     if (err != FBErrNone)
     {
         delete proj;
-        this->showErrorFull(tr("Unable to create new project! "), err);
+        this->onShowErrorFull(tr("Unable to create new project! "), err);
         return;
     }
     if (project != NULL)
@@ -1367,29 +1494,82 @@ void FB::newProjectCommonActions (FBProject *proj, QString path)
     this->updateSettings();
 }
 
-
-
-/****************************************************************************/
-/*                            Progress dialog                               */
-/****************************************************************************/
-
-FBDialogProgress::~FBDialogProgress()
+// Common steps for all saving projects methods.
+// Call only in according methods.
+void FB::saveProjectCommonActions (QString ngfpFullPath)
 {
+    // Start new thread for the long saving action.
+    // At the same time we show a modal dialog in order to block all GUI events. If
+    // do not do this - all occasional clicks and actions by user during the work of
+    // the thread can cause an "undefined behaviour" because widgets will receive
+    // mouse events right after the thread ends its work. What did not help to solve
+    // this problem:
+    // 1. From Qt docs: QProgressDialog pr(...); pr->show();
+    // pr.setWindowModality(Qt::WindowModal);
+    // 2. QApplication::processEvents(QEventLoop::ExcludeUserInputEvents) as addition
+    // to 1.
+    // 3. Blocking the window or all widgets via setEnabled(false);
 
+    dlgProgress->setWindowTitle(tr("Saving ..."));
+    FBThreadSaveAs *thread = new FBThreadSaveAs(this, ngfpFullPath, project,
+                      wScreen->getFormPtr()->toJson()); // NULL-check was made outside
+    QObject::connect(thread,SIGNAL(resultReady(FBErr)),
+                     this, SLOT(onSaveAnyEnded(FBErr)));
+    QObject::connect(thread,SIGNAL(finished()),
+                     thread, SLOT(deleteLater()));
+    thread->start();
+    dlgProgress->exec();
+
+    // The further work is made in the separate thread which ends with calling
+    // onSaveAsEnded() method.
 }
 
-FBDialogProgress::FBDialogProgress (QWidget *parent): QDialog(parent)
-{
 
+/*****************************************************************************/
+/*                                                                           */
+/*                           FBDialogProgress                                */
+/*                                                                           */
+/*****************************************************************************/
+
+FBDialogProgress::FBDialogProgress (QWidget *parent):
+    QDialog(parent)
+{
+    this->setStyleSheet("");
+    this->setStyleSheet("QWidget { color: black }");
+
+    this->setWindowFlags(Qt::Window | Qt::WindowTitleHint
+                         | Qt::CustomizeWindowHint); // hide all window buttons
+    this->setWindowTitle("...");
+    this->setModal(true);
+
+    bar = new QProgressBar(this);
+    bar->setMaximum(99);
+    bar->setValue(0);
+
+    QVBoxLayout *l = new QVBoxLayout(this);
+    l->addWidget(bar);
 }
 
 
+/*****************************************************************************/
+/*                                                                           */
+/*                           FBThreadSaveAs                                  */
+/*                                                                           */
+/*****************************************************************************/
 
+FBThreadSaveAs::FBThreadSaveAs (QObject *parent, QString strFullPath,
+                                FBProject *project, Json::Value jsonForm):
+    QThread (parent)
+{
+    this->strFullPath = strFullPath;
+    this->project = project;
+    this->jsonForm = jsonForm;
+}
 
-
-
-
-
-
+void FBThreadSaveAs::run ()
+{
+    FBErr err = project->saveAs(strFullPath,jsonForm);
+    emit resultReady(err);
+}
 
 

@@ -36,8 +36,6 @@
 
 #include "json/json.h"
 
-#include "fb_common.h"
-
 #define FB_STYLENAME_DEFAULT "default"
 #define FB_STYLENAME_ANDROID "android"
 #define FB_STYLENAME_IOS "ios"
@@ -54,6 +52,15 @@
 #define FB_JSONVALUE_ATTRVAL_NOALIAS "--"
 
 #define FB_DEFVALUE_NOTSELECTED "-"
+
+#define FB_COLOR_LIGHTGREY "rgb(238,238,238)"
+#define FB_COLOR_LIGHTMEDIUMGREY "rgb(210,210,210)"
+#define FB_COLOR_MEDIUMGREY "rgb(170,170,170)"
+#define FB_COLOR_DARKGREY "rgb(100,100,100)"
+#define FB_COLOR_VERYDARKGREY "rgb(46,46,46)"
+#define FB_COLOR_LIGHTBLUE "rgb(139,183,224)"
+#define FB_COLOR_DARKBLUE "rgb(23,111,193)"
+
 
 enum FBElemtype
 {
@@ -104,7 +111,7 @@ class FBAttr: public QObject
              FBAttrrole role);
      virtual ~FBAttr () { }
      virtual Json::Value toJson () = 0;
-     virtual FBErr fromJson (Json::Value jsonVal) = 0;
+     virtual bool fromJson (Json::Value jsonVal) = 0;
      virtual QWidget *getWidget () = 0; // its the caller responsib. to delete it
      QString getKeyName () { return keyName; }
      QString getDisplayName () { return displayName; }
@@ -145,7 +152,7 @@ class FBElem: public QWidget
      FBElem (FBFactory *fctPtr);
      virtual ~FBElem () { }
      virtual Json::Value toJson ();
-     virtual FBErr fromJson (Json::Value jsonValue);
+     virtual bool fromJson (Json::Value jsonValue);
      //virtual QList<QList<QPair<QString,FBAttr*> > > getAttrsLists ();
      QSet<FBAttr*> getAttrs () { return attrs; }
      FBFactory *getFctPtr () { return fctPtr; }
@@ -244,7 +251,7 @@ class FBForm: public QWidget
      // json
      Json::Value toJson ();
      static QList<FBElem*> parseJson (Json::Value jsonVal);
-     FBErr fromJson (Json::Value jsonVal);
+     bool fromJson (Json::Value jsonVal);
 
      // visual
      void updateStyle (QString styleName);

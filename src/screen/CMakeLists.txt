@@ -28,6 +28,8 @@ screen.h
 set(LIB_CSOURCES
 screen.cpp
 screenmobile.cpp
+screenandroid.cpp
+screenios.cpp
 )
 
 set(FB_TARGET_OBJECTS ${FB_TARGET_OBJECTS} $<TARGET_OBJECTS:${LIB_NAME}> PARENT_SCOPE)

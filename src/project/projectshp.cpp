@@ -36,12 +36,10 @@ FBErr FBProjectShapefile::create (QString anyPath)
     if (isInited)
         return FBErrAlreadyInited;
 
-    FBErr err = this->readGdalDataset(anyPath);
+    FBErr err = this->setFromGdalDataset(anyPath);
     if (err != FBErrNone)
         return err;
 
-    srs = FBSrs4326; // always the only SRS. During the first save layer's data will
-                     // be transformed to it.
     version = FBProject::getProgVersionStr();
 
     strDatasetPath = anyPath; // store the path to dataset for the first save
@@ -51,11 +49,4 @@ FBErr FBProjectShapefile::create (QString anyPath)
     return FBErrNone;
 }
 
-FBErr FBProjectShapefile::saveFirst (QString ngfpFullPath, Json::Value jsonForm)
-{
-    if (!isInited)
-        return FBErrNotInited;
 
-
-    return FBErrNone;
-}

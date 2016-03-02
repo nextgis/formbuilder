@@ -28,6 +28,7 @@ project.h
 set(LIB_CSOURCES
 project.cpp
 projectvoid.cpp
+projectgdal.cpp
 projectshp.cpp
 projectngw.cpp
 )

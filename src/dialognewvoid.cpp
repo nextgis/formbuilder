@@ -39,13 +39,9 @@ FBDialogProjectNew::FBDialogProjectNew (QWidget *parent):
     label1->setText(tr("Geometry type: "));
 
     comboGeom = new QComboBox(this);
-
-    QMap<QString,FBGeomType>::const_iterator it
-            = FBProject::GEOM_TYPES.constBegin();
-    while (it != FBProject::GEOM_TYPES.constEnd())
+    for (int i=0; i<FBProject::GEOM_TYPES.size(); i++)
     {
-        comboGeom->addItem(it.key());
-        ++it;
+        comboGeom->addItem(FBProject::GEOM_TYPES[i]->aliasNgw); // store pointer to the type
     }
 
     QPushButton *but1 = new QPushButton(this);
@@ -59,4 +55,10 @@ FBDialogProjectNew::FBDialogProjectNew (QWidget *parent):
     hl1->addWidget(comboGeom);
     vlall->addLayout(hl1);
     vlall->addWidget(but1);
+}
+
+QString FBDialogProjectNew::getSelectedGeom ()
+{
+    return comboGeom->currentText();
+    //return comboGeom->currentData(Qt::UserRole);
 }

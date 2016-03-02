@@ -47,7 +47,8 @@
 
 #include <QFileInfo>
 
-#include "fb_common.h"
+#include <QThread>
+
 #include "form/form_core.h"
 #include "project/project.h"
 #include "screen/screen.h"
@@ -82,7 +83,7 @@ class FBDialogProjectNew: public QDialog
     public:
      FBDialogProjectNew (QWidget *parent);
      ~FBDialogProjectNew ();
-     QString getSelectedGeom () { return comboGeom->currentText(); }
+     QString getSelectedGeom();
     private:
      QComboBox *comboGeom;
 };
@@ -168,9 +169,14 @@ class FBDialogProjectNgw: public QDialog
  */
 class FBDialogProgress: public QDialog
 {
+    Q_OBJECT
     public:
      FBDialogProgress (QWidget *parent);
-     ~FBDialogProgress();
+     ~FBDialogProgress() { }
+    public slots:
+     void onChangeProgress (int value) { bar->setValue(value); }
+    private:
+     QProgressBar *bar;
 };
 
 /**
@@ -179,6 +185,26 @@ class FBDialogProgress: public QDialog
 class FBDialogAbout: public QDialog
 {
 
+};
+
+/**
+ * Thread class for executing one action - "Save As".
+ */
+class FBThreadSaveAs: public QThread
+{
+    //friend class FBProject;
+    Q_OBJECT
+    public:
+     FBThreadSaveAs (QObject *parent, QString strFullPath, FBProject *project,
+                     Json::Value jsonForm);
+    signals:
+     void resultReady (FBErr err);
+    private:
+     void run ();// Q_DECL_OVERRIDE;
+    private:
+     QString strFullPath;
+     FBProject *project;
+     Json::Value jsonForm;
 };
 
 /**
@@ -197,10 +223,10 @@ class FB: public QWidget
      void initGui ();
      void setFbStyle ();
 
-    private slots:
+    private slots: // main gui slots ~ button slots
 
-     // main gui slots
      void onAddElemPress (QTreeWidgetItem* item, int column);
+     void onElemSelect ();
      void onNewVoidClick ();
      void onNewShapeClick ();
      void onNewNgwClick ();
@@ -219,18 +245,19 @@ class FB: public QWidget
      void onDeleteElemClick ();
      void onSettingLanguageSelect ();
      void onAboutGraphicsClick ();
-     void onElemSelect ();
      void onLeftArrowClick ();
      void onRightArrowClick ();
 
-     // other gui slots
-     int showBox (QString msg, QString caption);
-     void showInfo (QString msg);
-     int showWarning (QString msg);
-     void showError (QString msg);
-     int showErrorFull (QString msgMain, FBErr err);
-     bool askToLeaveUnsafeProject ();
+    private slots: // other slots
+
+     int onShowBox (QString msg, QString caption);
+     void onShowInfo (QString msg);
+     int onShowWarning (QString msg);
+     void onShowError (QString msg);
+     int onShowErrorFull (QString msgMain, FBErr err);
+     bool onAskToLeaveUnsafeProject ();
      void onProjDialogFinished (int code);
+     void onSaveAnyEnded (FBErr err);
 
     private: // methods
 
@@ -241,8 +268,9 @@ class FB: public QWidget
      void updateSettings ();
      QString getSettingLastPath ();
 
-     //errors
-     QString getErrString (FBErr err);
+     // conversions
+     QString getErrStr (FBErr err);
+     QString getGroupStr (FBElemtype type);
 
      // gui
      FBForm *createForm();
@@ -260,7 +288,6 @@ class FB: public QWidget
      void setBottomString (QString strToShorten, QString strToPrepend = "");
      void updateProjectString ();
      void updateMenuView ();
-     QString getGroupStr (FBElemtype type);
      void afterPickScreen (QToolButton *toolbDown);
 
      // screen
@@ -271,13 +298,14 @@ class FB: public QWidget
 
      // project
      void newProjectCommonActions (FBProject *proj, QString path);
+     void saveProjectCommonActions (QString ngfpFullPath);
 
     private: // fields
 
      bool isInited;
 
      // Current project of the app.
-     // For future here can be an array of projects - but that requires changes
+     // TODO: For future here can be an array of projects - but that requires changes
      // in FB behaviour and appearance.
      FBProject *project;
 

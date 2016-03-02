@@ -36,7 +36,6 @@ FBAttr::FBAttr (FBElem *parentElem, QString keyName, QString displayName,
     this->keyName = keyName;
     this->displayName = displayName;
     this->role = role;
-
     QObject::connect(this,SIGNAL(changeAppearance()),
                      parentElem,SLOT(updateAppearance()));
     QObject::connect(this,SIGNAL(changeOtherAttr()),
@@ -68,10 +67,10 @@ Json::Value FBElem::toJson ()
     return jsonFinal;
 }
 
-FBErr FBElem::fromJson (Json::Value jsonValue)
+bool FBElem::fromJson (Json::Value jsonValue)
 {
 
-    return FBErrNone;
+    return true;
 }
 
 QString FBElem::getDisplayName ()
@@ -416,11 +415,21 @@ QMap<int,FBElem*> FBForm::getElems ()
 
 
 // Convert form to JSON.
-// Strategy: each json-form is just a one dimentional array of json-elements. Each
-// form element knows how to convert itself to JSON.
+// Strategy: each json-form is just a one dimentional array of json-elements as they
+// follow each other vertically in the form. Each element knows how to convert itself
+// to JSON, but form adds the common thing: the key-name of element, so in further
+// reading it can be possible to identify and create elem by its name.
 Json::Value FBForm::toJson ()
 {
     Json::Value jsonRootArray;
+
+    // Firstly set the root value to array type, so if the form is void, the void
+    // array (not null value) is returned.
+    Json::Value jsonStub = 1;
+    jsonRootArray.append(jsonStub);
+    jsonRootArray.clear();
+
+    // Finally fill value with elements.
     QMap<int,FBElem*> mapElems = this->getElems();
     QMap<int,FBElem*>::const_iterator it = mapElems.constBegin();
     while (it != mapElems.constEnd())
@@ -476,8 +485,7 @@ QList<FBElem*> FBForm::parseJson (Json::Value jsonVal)
         FBElem *elem = fct->create();
 
         // 2. And only than the element "will know" how to convert itself from JSON.
-        FBErr err = elem->fromJson(jsonVal[i]);
-        if (err != FBErrNone)
+        if (!elem->fromJson(jsonVal[i]))
         {
             ok = false;
             break;
@@ -502,11 +510,11 @@ QList<FBElem*> FBForm::parseJson (Json::Value jsonVal)
 
 // Converts form from JSON, using FBForm::parseJson().
 // Will clear all elems in a form before adding new!
-FBErr FBForm::fromJson (Json::Value jsonVal)
+bool FBForm::fromJson (Json::Value jsonVal)
 {
     QList<FBElem*> list = this->parseJson(jsonVal);
     if (list.isEmpty())
-        return FBErrIncorrectJson;
+        return false;
 
     this->clear();
 
@@ -519,7 +527,7 @@ FBErr FBForm::fromJson (Json::Value jsonVal)
         list[i]->updateAppearance();
     }
 
-    return FBErrNone;
+    return true;
 }
 
 

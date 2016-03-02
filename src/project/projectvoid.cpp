@@ -26,7 +26,7 @@ FBProjectVoid::~FBProjectVoid ()
 {
 }
 
-FBProjectVoid::FBProjectVoid (FBGeomType geomType):
+FBProjectVoid::FBProjectVoid (FbGeomType *geomType):
     FBProject()
 {
     geometry_type = geomType;
@@ -39,11 +39,10 @@ FBErr FBProjectVoid::create (QString anyPath)
 
     // Create default field for future layer, because in project must be at least
     // one field. Also layers with no fields are incorrect for NextGIS Web.
-    FBFieldDescr fd(FBInteger,"ID");
+    FBFieldDescr fd(DATA_TYPES[FB_TYPEINDEX_DATA_INTEGER],"ID");
     fields.insert("ID",fd);
-    srs = FBSrs4326;
     version = FBProject::getProgVersionStr();
-    // Geometry type is already set via constructor.
+    // Geometry type and srs are already set via constructor.
 
     strNgfpPath = ""; // need to be saved first time
 
@@ -51,12 +50,5 @@ FBErr FBProjectVoid::create (QString anyPath)
     return FBErrNone;
 }
 
-FBErr FBProjectVoid::saveFirst (QString ngfpFullPath, Json::Value jsonForm)
-{
-    if (!isInited)
-        return FBErrNotInited;
 
-
-    return FBErrNone;
-}
 

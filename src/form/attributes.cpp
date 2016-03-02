@@ -70,7 +70,7 @@ Json::Value FBAttrField::toJson ()
     return jsonRet; // will be NULL for default
 }
 
-FBErr FBAttrField::fromJson (Json::Value jsonVal)
+bool FBAttrField::fromJson (Json::Value jsonVal)
 {
     if (jsonVal.isNull())
     {
@@ -83,7 +83,7 @@ FBErr FBAttrField::fromJson (Json::Value jsonVal)
         QByteArray ba = jsonVal.asString().data();
         keyNameSelected = QString::fromUtf8(ba);
     }
-    return FBErrNone;
+    return true;
 }
 
 QWidget *FBAttrField::getWidget ()
@@ -152,16 +152,14 @@ Json::Value FBAttrText::toJson ()
     return jsonRet;
 }
 
-FBErr FBAttrText::fromJson (Json::Value jsonVal)
+bool FBAttrText::fromJson (Json::Value jsonVal)
 {
     if (jsonVal.isNull())
-    {
-        return FBErrIncorrectJson;
-    }
+        return false;
     // TODO: how else to check for correct string conversion?
     QByteArray ba = jsonVal.asString().data();
     value = QString::fromUtf8(ba);
-    return FBErrNone;
+    return true;
 }
 
 QWidget *FBAttrText::getWidget ()
@@ -202,15 +200,13 @@ Json::Value FBAttrNumber::toJson ()
     return jsonRet;
 }
 
-FBErr FBAttrNumber::fromJson (Json::Value jsonVal)
+bool FBAttrNumber::fromJson (Json::Value jsonVal)
 {
     if (jsonVal.isNull())
-    {
-        return FBErrIncorrectJson;
-    }
+        return false;
     // TODO: how else to check for correct integer conversion?
     value = jsonVal.asInt();
-    return FBErrNone;
+    return true;
 }
 
 QWidget *FBAttrNumber::getWidget ()
@@ -252,9 +248,9 @@ Json::Value FBAttrListvalues::toJson ()
     return jsonRet;
 }
 
-FBErr FBAttrListvalues::fromJson (Json::Value jsonVal)
+bool FBAttrListvalues::fromJson (Json::Value jsonVal)
 {
-    return FBErrNone;
+    return true;
 }
 
 QString FBAttrListvalues::getDefDispValue ()

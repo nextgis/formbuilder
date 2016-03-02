@@ -10,5 +10,7 @@ int main(int argc, char *argv[])
     w.initGui();
     w.setFbStyle();
     w.show();
-    return a.exec();
+    int ret = a.exec();
+    FBProject::deinit();
+    return ret;
 }

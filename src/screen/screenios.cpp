@@ -1,6 +1,6 @@
 /******************************************************************************
  * Project:  NextGIS Formbuilder
- * Purpose:  common declarations
+ * Purpose:  mobile screens implementations
  * Author:   Mikhail Gusev, gusevmihs@gmail.com
  ******************************************************************************
 *   Copyright (C) 2014-2016 NextGIS
@@ -19,27 +19,39 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
-#ifndef FB_COMMON_H
-#define FB_COMMON_H
+#include "screen.h"
 
-// Common colors for stylesheets: app's gui, screen.
-#define FB_COLOR_LIGHTGREY "rgb(238,238,238)"
-#define FB_COLOR_LIGHTMEDIUMGREY "rgb(210,210,210)"
-#define FB_COLOR_MEDIUMGREY "rgb(170,170,170)"
-#define FB_COLOR_DARKGREY "rgb(100,100,100)"
-#define FB_COLOR_VERYDARKGREY "rgb(46,46,46)"
-#define FB_COLOR_LIGHTBLUE "rgb(139,183,224)"
-#define FB_COLOR_DARKBLUE "rgb(23,111,193)"
-
-#define FB_ANDROIDSCREEN_FONTSIZE_NORMAL 14
-#define FB_ANDROIDSCREEN_FONTTYPE "Candara"
-
-// Error codes.
-enum FBErr
+FBScreenIos::FBScreenIos (QWidget* parent):
+    FBScreenMobile(parent)
 {
-    FBErrNone, FBErrUnsupported, FBErrUnableCreateProject, FBErrNotInited,
-    FBErrAlreadyInited, FBErrWrongVersion, FBErrIncorrectJson,
-    FBErrIncorrectFileStructure, FBErrIncorrectGdalDataset
-};
+    devices.append(FBDevice(
+                   QPair<int,int>(640,960),3.5,1.0,"iPhone 4",""));
+}
 
-#endif //FB_COMMON_H
+FBScreenIos::~FBScreenIos ()
+{
+}
+
+void FBScreenIos::updateStyle ()
+{
+    // See FBScreenAndroid.
+
+    for (int i=0; i<labsScreenDecor.size(); i++)
+    {
+        lvScreen->removeWidget(labsScreenDecor[i]);
+        delete labsScreenDecor[i];
+    }
+    labsScreenDecor.clear();
+
+    wScreen->setStyleSheet("");
+
+    wScreen->setStyleSheet("QWidget {background-color: "
+                           +QString(FB_COLOR_LIGHTGREY)+";"
+                           "border-top-left-radius: 4px;"
+                           "border-top-right-radius: 4px;"
+                           "border-bottom-left-radius: 4px;"
+                           "border-bottom-right-radius: 4px;}");
+
+    if (formPtr != NULL)
+        formPtr->updateStyle(FB_STYLENAME_IOS);
+}
