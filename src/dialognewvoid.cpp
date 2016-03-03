@@ -28,11 +28,9 @@ FBDialogProjectNew::~FBDialogProjectNew ()
 FBDialogProjectNew::FBDialogProjectNew (QWidget *parent):
     QDialog(parent)
 {
+//    this->setStyleSheet("");
+//    this->setStyleSheet("QWidget { color: black }");
     this->setWindowTitle(tr("New project parameters ..."));
-
-    // TODO: set OS-specific colors and fonts (now are parent colors).
-    this->setStyleSheet("");
-    this->setStyleSheet("QWidget { color: black }");
     this->setFont(QFont(FB_GUI_FONTTYPE,FB_GUI_FONTSIZE_SMALL));
 
     QLabel *label1 = new QLabel(this);
@@ -49,7 +47,7 @@ FBDialogProjectNew::FBDialogProjectNew (QWidget *parent):
     connect(but1,SIGNAL(clicked()),this,SLOT(accept()));
 
     QVBoxLayout *vlall = new QVBoxLayout(this);
-    vlall->setSpacing(12);
+    vlall->setSpacing(10);
     QHBoxLayout *hl1 = new QHBoxLayout();
     hl1->addWidget(label1);
     hl1->addWidget(comboGeom);

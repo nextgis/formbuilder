@@ -25,9 +25,9 @@
 FBDialogListvalues::FBDialogListvalues (QWidget *parent)//QString elemName)
     : QDialog (parent)
 {
+//    this->setStyleSheet("");
+//    this->setStyleSheet("QWidget { color: black }");
     this->setWindowModality(Qt::ApplicationModal);
-    this->setStyleSheet("");
-    this->setStyleSheet("QWidget { color: black }");
     this->setWindowTitle(tr("Define list elems ..."));
 
 //    this->elemName = elemName;
@@ -58,13 +58,15 @@ FBDialogListvalues::FBDialogListvalues (QWidget *parent)//QString elemName)
     groupBoxL->setTitle(tr("Value"));
     editInnerL = new QLineEdit(groupBoxL);
     QLabel *labNameL = new QLabel(groupBoxL);
-    labNameL->setText(tr("Inner:    "));
+    labNameL->setText(tr("Inner:        "));
     editOuterL = new QLineEdit(groupBoxL);
     QLabel *labAliasL = new QLabel(groupBoxL);
-    labAliasL->setText(tr("Displayed:"));
+    labAliasL->setText(tr("Displayed: "));
     QLabel *labDefL = new QLabel(this);
-    labDefL->setText(tr("Default:"));
+    labDefL->setText(tr("Default:    "));
+    labDefL->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Fixed);
     comboL = new QComboBox(this);
+    comboL->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
 //    if (elemName != FB_JSON_RADIOGROUP)
 //    {
         comboL->addItem(FB_DEFVALUE_NOTSELECTED);

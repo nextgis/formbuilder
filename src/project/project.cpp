@@ -37,12 +37,12 @@ QString FBProject::CUR_ERR_INFO = "";
 void FBProject::init ()
 {
     // We need to register enum type for passing it as a parameter of signal/slot
-    // pair through the threads in FB class.
+    // pair through the threads (in FB class).
     qRegisterMetaType<FBErr>("FBErr");
 
     // Settings for GDAL.
     // We need GDAL in any project, even void, because we will at least use vsizip
-    // for packaging to ngfp and GeoJSON driver for data layer creation.
+    // for packaging to .ngfp and GeoJSON driver for layer creation.
     #ifdef _FB_GDAL_DEBUG
     CPLSetConfigOption("CPL_DEBUG","ON");
     CPLSetConfigOption("CPL_CURL_VERBOSE","YES");
@@ -56,7 +56,8 @@ void FBProject::init ()
 
     // Geometry types.
     // Note: no default value for this list.
-    // WARNING. All values must be unique.
+    // WARNING. All values must be unique, because they are searched and returned by
+    // their first appearance in the list.
     GEOM_TYPES.append(new FbGeomType("POINT", wkbPoint));
     GEOM_TYPES.append(new FbGeomType("LINESTRING", wkbLineString));
     GEOM_TYPES.append(new FbGeomType("POLYGON", wkbPolygon));
@@ -67,7 +68,8 @@ void FBProject::init ()
     // Data types.
     // WARNING. The 0 and 1 list value (string and integer types) have its named
     // representations (its indexes are used in program).
-    // WARNING. All values must be unique.
+    // WARNING. All values must be unique, because they are searched and returned by
+    // their first appearance in the list.
     DATA_TYPES.append(new FbDataType("STRING", OFTString));
     QList<OGRFieldType> list;
     list.append(OFTInteger64);
@@ -79,7 +81,8 @@ void FBProject::init ()
 
     // Geometry types.
     // WARNING. The 0 list value (WGS84 SRS) is default for the program.
-    // WARNING. All values must be unique.
+    // WARNING. All values must be unique, because they are searched and returned by
+    // their first appearance in the list.
     SRS_TYPES.append(new FbSrsType(4326, SRS_WKT_WGS84));
 }
 
@@ -182,8 +185,8 @@ FBErr FBProject::open (QString ngfpFullPath)
         return FBErrWrongVersion;
     }
 
-    // Set project's data.
-    // Note: All data correctness (syntax and values) has been already checked.
+    // Set project's metadata.
+    // Note: All metadata correctness (syntax and values) has been already checked.
     // Also the support for geometry/data/srs types of metadata is also already
     // checked, so we do not check for NULL values here.
     for (int k=0; k<jsonMeta[FB_JSON_META_FIELDS].size(); ++k)

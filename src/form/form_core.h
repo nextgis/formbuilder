@@ -45,11 +45,11 @@
 #define FB_JSONKEY_ELEM_TYPE "type"
 #define FB_JSONKEY_ELEM_ATTRS "attributes"
 #define FB_JSONKEY_ELEM_ELEMS "elements"
-#define FB_JSONKEY_ATTRVAL_ALIAS "alias"
-#define FB_JSONKEY_ATTRVAL_NAME "name"
+#define FB_JSONKEY_ATTRVAL_KEYNAME "name"
+#define FB_JSONKEY_ATTRVAL_DISPNAME "alias"
 #define FB_JSONKEY_ATTRVAL_DEFAULT "default"
-#define FB_JSONVALUE_ATTRVAL_NONAME "-1"
-#define FB_JSONVALUE_ATTRVAL_NOALIAS "--"
+#define FB_JSONVALUE_ATTRVAL_NOKEYNAME "-1"
+#define FB_JSONVALUE_ATTRVAL_NODISPNAME "--"
 
 #define FB_DEFVALUE_NOTSELECTED "-"
 
@@ -207,16 +207,17 @@ class FBInsertWidget: public QWidget
 /**
  * Form.
  * Final form class. Form contains elements and provides the capability to
- * manage them using app events (via mouse).
+ * manage them by user using app events (via mouse).
  *
  * Visually form is "transparent" and only its elements are rendered to the
  * screen. Technically form is a QWidget which contains elements in its layout
- * like any simple Qt-widget, so it allow to read their strict order and to
+ * like any simple Qt-widget, so it allows to read their strict order and to
  * render it to the screen.
  *
  * All elements are always followed each other in the form vertically. This
- * is because the structure of the final JSON file where form is saved. All
- * other layouts and groupings of the elems is made via specific elements.
+ * is because of the structure of the final JSON file where form is saved, and
+ * also because that's why we can get all form's elems by their Y coordinate.
+ * All other layouts and groupings of elems are made via specific elements.
  *
  * The special insert-element is placed between any pair of elements  so it can
  * be possible to move them via mouse.
@@ -283,8 +284,9 @@ class FBForm: public QWidget
 
 
 /**
- * Factory.
- * The main purpose of factory is to create elems in a common way.
+ * Factory. For each elem must be its own concrete factory.
+ * The main purpose of factory is to create elems in a common way. Factory also stores
+ * static data of the elems.
  *
  * For developers: create new FBElemX and its FBFactoryX implementations. After this
  * add FBFactoryX to static method initAll() to register it.

@@ -32,8 +32,8 @@ FBDialogProjectNgw::FBDialogProjectNgw (QWidget *parent,
                                         QString lastNgwUrl, QString lastNgwLogin):
     QDialog (parent)
 {
-    this->setStyleSheet("");
-    this->setStyleSheet("QWidget { color: black }");
+//    this->setStyleSheet("");
+//    this->setStyleSheet("QWidget { color: black }");
 
     strUrl = "";
     strLogin = "";
@@ -49,7 +49,7 @@ FBDialogProjectNgw::FBDialogProjectNgw (QWidget *parent,
 
     hLayout = new QHBoxLayout();
     label = new QLabel(this);
-    label->setText(tr("URL:       "));
+    label->setText(tr("URL:          "));
     hLayout->addWidget(label);
     wEditUrl = new QLineEdit(this);
     wEditUrl->setText(lastNgwUrl);
@@ -58,7 +58,7 @@ FBDialogProjectNgw::FBDialogProjectNgw (QWidget *parent,
 
     hLayout = new QHBoxLayout();
     label = new QLabel(this);
-    label->setText(tr("Login:     "));
+    label->setText(tr("Login:        "));
     hLayout->addWidget(label);
     wEditLogin = new QLineEdit(this);
     wEditLogin->setText(lastNgwLogin);

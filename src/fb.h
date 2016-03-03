@@ -88,6 +88,7 @@ class FBDialogProjectNew: public QDialog
      QComboBox *comboGeom;
 };
 
+
 /**
  * NextGIS Web new project's dialog.
  * Used to select GeoJSON dataset on NGW server.
@@ -164,6 +165,7 @@ class FBDialogProjectNgw: public QDialog
      QTreeWidgetItem *itemToExpand;
 };
 
+
 /**
  * Progress dialog.
  */
@@ -179,6 +181,7 @@ class FBDialogProgress: public QDialog
      QProgressBar *bar;
 };
 
+
 /**
  * About dialog.
  */
@@ -186,6 +189,7 @@ class FBDialogAbout: public QDialog
 {
 
 };
+
 
 /**
  * Thread class for executing one action - "Save As".
@@ -206,6 +210,7 @@ class FBThreadSaveAs: public QThread
      FBProject *project;
      Json::Value jsonForm;
 };
+
 
 /**
  * App's window class. Aggregates all GUI of the app, except specific dialogues.
@@ -262,7 +267,8 @@ class FB: public QWidget
     private: // methods
 
      // form
-     void updateElemForApp (FBElem* elem);
+     static void updateElemForApp (FBElem* elem, FBProject *project, FBForm *form,
+                                   FBScreen *screen);
 
      // settings
      void updateSettings ();

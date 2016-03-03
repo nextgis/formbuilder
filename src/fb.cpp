@@ -35,6 +35,8 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     isInited = false;
     project = NULL;
 
+    this->setObjectName("FB"); // at least for style sheets
+
     ui->setupUi(this);
 }
 
@@ -302,20 +304,13 @@ void FB::initGui ()
 // colors will be system-default, except several buttons and menus.
 void FB::setFbStyle ()
 {
-    // From docs:
-    // " ... style authors are restricted by the different platforms' guidelines
-    // and (on Windows XP and OS X) by the native theme engine."
-    // Note: regardless of the next statement from docs the whole app color
-    // setting works anyway:
-    // "When using Qt Style Sheets, a widget does not automatically inherit
-    // its font and color setting from its parent widget".
-
-    this->setStyleSheet("QWidget { background: white;"
+    this->setStyleSheet("QWidget#"+this->objectName()+" { background: white;"
                         " color: black; }"); // explicitly set dark font color, otherwise
                                              // users who have dark system background
                                              // color and light font color will have
                                              // troubles with displaying GUI
-    tabMenuTop->setStyleSheet("QTabWidget::pane {"
+    tabMenuTop->setStyleSheet("QTabWidget {background: white;}"
+                              "QTabWidget::pane {"
                               "border-top: 1px solid "
                               +QString(FB_COLOR_MEDIUMGREY)+";"
                               "border-bottom: 1px solid "+FB_COLOR_MEDIUMGREY+";}"
@@ -348,6 +343,7 @@ void FB::setFbStyle ()
 
     treeLeftFull->setStyleSheet("QTreeWidget"
                               "{"
+                                  "background: white;"
                                   "border: none;"
                                   "icon-size: 20px;"
                               "}"
@@ -414,7 +410,8 @@ void FB::setFbStyle ()
                              "QPushButton:flat{border:none;}"
                              "QPushButton:checked{border:none;}");
 
-    labBottom->setStyleSheet("QLabel {color: "+QString(FB_COLOR_DARKGREY)+"}");
+    labBottom->setStyleSheet("QLabel {color: "+QString(FB_COLOR_DARKGREY)+"; "
+                             "background: white;}");
 }
 
 
@@ -442,7 +439,7 @@ void FB::onAddElemPress (QTreeWidgetItem* item, int column)
     FBElem *elem = fct->create();
     form->addElem(elem,NULL);
 
-    this->updateElemForApp(elem);
+    FB::updateElemForApp(elem,project,form,wScreen);
 
     this->onElemSelect();
 }
@@ -599,7 +596,7 @@ void FB::onOpenClick ()
             return;
         }
 
-        // Create project replacing old one.
+        // Create new project, by opening it.
         FBProject *projOpen = new FBProject();
         QObject::connect(projOpen, SIGNAL(changeProgress(int)),
                 dlgProgress, SLOT(onChangeProgress(int)));
@@ -610,15 +607,22 @@ void FB::onOpenClick ()
             this->onShowErrorFull(tr("Unable to open project!"), err);
             return;
         }
-        if (project != NULL)
-            delete project;
-        project = projOpen;
 
         // Create and show new form, replacing old one. Fill it with elems from
         // project.
-        wScreen->deleteForm();
         FBForm *form = this->createForm();
-        form->fromJson(FBProject::readForm(strFullPath));
+        if (!form->fromJson(FBProject::readForm(strFullPath)))
+        {
+            delete projOpen;
+            this->onShowError(tr("Unable to read form in a project!"));
+            return;
+        }
+
+        // If all was correct: replace old project and form with new ones.
+        if (project != NULL)
+            delete project;
+        project = projOpen;
+        wScreen->deleteForm();
         wScreen->setForm(form);
 
         // Update elems for app.
@@ -626,7 +630,7 @@ void FB::onOpenClick ()
         QMap<int,FBElem*>::const_iterator it = map.constBegin();
         while (it != map.constEnd())
         {
-            this->updateElemForApp(it.value());
+            FB::updateElemForApp(it.value(),projOpen,form,wScreen);
             ++it;
         }
 
@@ -925,15 +929,20 @@ void FB::onSaveAnyEnded (FBErr err)
 // Common actions for element types, which can be made only in main app class.
 // Update elem with the app's data, because only this class aggregates project,
 // form and screen modules together.
-void FB::updateElemForApp (FBElem* elem)
+void FB::updateElemForApp (FBElem* elem, FBProject *project, FBForm *form,
+                           FBScreen *screen)
 {
+    if (elem == NULL || project == NULL || form == NULL || screen == NULL)
+        return;
+
+    // 1. Update field list if this is a sublclass of Input element.
     FBElemInput *e = qobject_cast<FBElemInput*>(elem);
     if (e != NULL)
     {
-        if (project == NULL)
-            return;
         e->updateFields(project->getFields().keys());
     }
+
+    // 2. ...
 }
 
 

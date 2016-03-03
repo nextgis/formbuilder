@@ -49,6 +49,9 @@ FBAttr::FBAttr (FBElem *parentElem, QString keyName, QString displayName,
 /*                                                                           */
 /*****************************************************************************/
 
+// Constructor.
+// IMPORTANT. As usual the concrete elem's constructor creates the set of elem's
+// attributes!
 FBElem::FBElem (FBFactory *fctPtr):
     QWidget()
 {
@@ -60,16 +63,46 @@ FBElem::FBElem (FBFactory *fctPtr):
     lvMain = new QVBoxLayout(this);
 }
 
+// Convert Elem to JSON.
+// Each element in a form must at least convert its attributes to JSON.
 Json::Value FBElem::toJson ()
 {
     Json::Value jsonFinal;
-
-    return jsonFinal;
+    QSet<FBAttr*>::const_iterator it = attrs.constBegin();
+    Json::Value jsonAttrsSet;
+    while (it != attrs.constEnd())
+    {
+        QByteArray baKn;
+        baKn = (*it)->getKeyName().toUtf8();
+        jsonAttrsSet[baKn.data()] = ((*it)->toJson());
+        ++it;
+    }
+    jsonFinal[FB_JSONKEY_ELEM_ATTRS] = jsonAttrsSet;
+    return jsonFinal; // can be null = no attributes
 }
 
+// Convert Elem from JSON.
+// Each elem must at least read its attributes from JSON.
+// For now all attrs are stored in the Elem class while they had been created
+// in its constructor.
 bool FBElem::fromJson (Json::Value jsonValue)
 {
-
+    if (jsonValue.isNull())
+        return false;
+    Json::Value jsonAttrsSet = jsonValue[FB_JSONKEY_ELEM_ATTRS];
+    if (jsonAttrsSet.isNull())
+        return false;
+    QSet<FBAttr*>::const_iterator it = attrs.constBegin();
+    while (it != attrs.constEnd())
+    {
+        QByteArray baKn;
+        baKn = (*it)->getKeyName().toUtf8();
+        if (!((*it)->fromJson(jsonAttrsSet[baKn.data()]))) // do not check jsonAttrsSet[]
+        {                                                  // for null because for some
+            return false;                                  // attrs it is correct
+        }
+        ++it;
+    }
     return true;
 }
 
@@ -106,7 +139,9 @@ void FBElem::clearContents ()
             delete child->spacerItem();
         }
         else
+        {
             delete child;
+        }
     }
 }
 
@@ -230,7 +265,7 @@ void FBForm::addElem (FBElem *newElem, FBElem *afterThisElem)
     // child widgets when it is deleted self.
     newElem->setParent(this);
 
-    // We do not use addWidget() because the last item in layout is stretch item.
+    // We do not use addWidget() because the last item in layout is a stretch item.
     if (afterThisElem == NULL)
     {
         lvForm->insertWidget(lvForm->count()-1, newElem);
@@ -253,7 +288,7 @@ void FBForm::addElem (FBElem *newElem, FBElem *afterThisElem)
     QObject::connect(newElem, SIGNAL(released()),
                      this, SLOT(onElemReleased()));
 
-    // Select element right after.
+    // Select element right after addition.
     this->selectElem(newElem);
 
     // Do not signaliaze about selection outside.
@@ -345,7 +380,9 @@ void FBForm::clear ()
             delete child->spacerItem();
         }
         else
+        {
             delete child; // TODO: do we need this here?
+        }
     }
 
     // Firstly we add one insert widget so it can be possible to add elems to the form.
@@ -405,9 +442,11 @@ QMap<int,FBElem*> FBForm::getElems ()
         FBElem *e = qobject_cast<FBElem*>(w); // select only elements from it
         if (e != NULL)
         {
+            // We need the strict elements order.
             // Y coordinate will be unique because all elems are separated with
             // insert-widgets.
-            map.insert(e->y(),e); // it will automatically sort elems by its Y
+            int y = e->y();
+            map.insert(y,e); // it will automatically sort elems by its Y
         }
     }
     return map;
@@ -415,10 +454,11 @@ QMap<int,FBElem*> FBForm::getElems ()
 
 
 // Convert form to JSON.
-// Strategy: each json-form is just a one dimentional array of json-elements as they
+// Strategy: each json-form is just a one-dimentional array of json-elements as they
 // follow each other vertically in the form. Each element knows how to convert itself
-// to JSON, but form adds the common thing: the key-name of element, so in further
-// reading it can be possible to identify and create elem by its name.
+// to JSON, but form ADDS TO THE FINAL ELEM'S JSON VALUE the common thing: the key-name
+// of element, so in further reading it can be possible to identify and create elem by
+// its name.
 Json::Value FBForm::toJson ()
 {
     Json::Value jsonRootArray;
@@ -439,8 +479,8 @@ Json::Value FBForm::toJson ()
         Json::Value jsonElem = elem->toJson();
 
         // 2. Add to this representation form's syntax.
-        // We add here keyname of the element, because it is a form's responsibility
-        // to read and create an element of specific FBElem class in a parseJSON()
+        // We add here keyname of the element, because it's also a form's responsibility
+        // to read and create an element of specific FBElem class in a parseJson()
         // method by its name.
         QByteArray ba;
         ba = elem->getFctPtr()->getKeyName().toUtf8();
@@ -459,7 +499,7 @@ Json::Value FBForm::toJson ()
 // of the elems in JSON array is incorrect.
 // WARNING. It is responsibility of the caller to delete all returned elems, but it
 // could be done by form if one add elems to it after creation.
-QList<FBElem*> FBForm::parseJson (Json::Value jsonVal)
+QList<FBElem*> FBForm::parseJson (Json::Value jsonVal) // STATIC
 {
     QList<FBElem*> list;
 
@@ -468,24 +508,29 @@ QList<FBElem*> FBForm::parseJson (Json::Value jsonVal)
 
     // Look through all json items.
     bool ok = true;
-    for (int i=0; i<jsonVal.size(); ++i)
+    for (int k=0; k<jsonVal.size(); ++k)
     {
         // Create elem by its name.
 
         // 1. Firstly we need to get elem's keyname and create FBElem concrete derived
         // class by it.
-        Json::Value jsonValItem = jsonVal[i][FB_JSONKEY_ELEM_TYPE];
-        if (!jsonValItem.isNull()) // TODO: how else to check correctness?
+        Json::Value jsonKeyName = jsonVal[k][FB_JSONKEY_ELEM_TYPE];
+        if (jsonKeyName.isNull()) // TODO: how else to check correctness?
         {
             ok = false;
             break;
         }
-        QString keyElemName = QString::fromUtf8(jsonValItem.asString().data());
+        QString keyElemName = QString::fromUtf8(jsonKeyName.asString().data());
         FBFactory *fct = FBFactory::getFctByName(keyElemName);
+        if (fct == NULL) // some unknow elem's name
+        {
+            ok = false;
+            break;
+        }
         FBElem *elem = fct->create();
 
         // 2. And only than the element "will know" how to convert itself from JSON.
-        if (!elem->fromJson(jsonVal[i]))
+        if (!elem->fromJson(jsonVal[k]))
         {
             ok = false;
             break;

@@ -78,8 +78,8 @@ bool FBAttrField::fromJson (Json::Value jsonVal)
     }
     else
     {
-        // TODO: other checks for json correctness.
-
+        if (!jsonVal.isString())
+            return false; // TODO: other checks for json correctness?
         QByteArray ba = jsonVal.asString().data();
         keyNameSelected = QString::fromUtf8(ba);
     }
@@ -93,6 +93,7 @@ QWidget *FBAttrField::getWidget ()
     {
         widget->addItem(keyNames[i]);
     }
+    // Set default value:
     // From docs of QComboBox: " ... Otherwise, if there is a matching text in the
     // list, currentIndex is set to the corresponding index."
     widget->setCurrentText(keyNameSelected);
@@ -111,7 +112,7 @@ void FBAttrField::updateValues (QStringList newKeyNames)
     for (int i=0; i<newKeyNames.size(); i++)
     {
         if (newKeyNames[i] == FB_DEFVALUE_NOTSELECTED) // skip reserved values if
-            continue;
+            continue;                                  // was some
         keyNames.append(newKeyNames[i]);
         if (newKeyNames[i] == keyNameSelected)
         {
@@ -154,9 +155,8 @@ Json::Value FBAttrText::toJson ()
 
 bool FBAttrText::fromJson (Json::Value jsonVal)
 {
-    if (jsonVal.isNull())
-        return false;
-    // TODO: how else to check for correct string conversion?
+    if (jsonVal.isNull() || !jsonVal.isString())
+        return false; // TODO: how else to check for correct string conversion?
     QByteArray ba = jsonVal.asString().data();
     value = QString::fromUtf8(ba);
     return true;
@@ -202,9 +202,8 @@ Json::Value FBAttrNumber::toJson ()
 
 bool FBAttrNumber::fromJson (Json::Value jsonVal)
 {
-    if (jsonVal.isNull())
-        return false;
-    // TODO: how else to check for correct integer conversion?
+    if (jsonVal.isNull() || !(jsonVal.isInt()))// || jsonVal.isInt64()))
+        return false; // TODO: how else to check for correct integer conversion?
     value = jsonVal.asInt();
     return true;
 }
@@ -233,7 +232,6 @@ void FBAttrNumber::onEditEnd (int spinBoxValue)
 /*                                                                            */
 /******************************************************************************/
 
-
 FBAttrListvalues::FBAttrListvalues (FBElem *parentElem, QString keyName,
            QString displayName, FBAttrrole role, QWidget *parentForDialog):
     FBAttrDialog (parentElem, keyName, displayName, role, parentForDialog)
@@ -244,12 +242,56 @@ FBAttrListvalues::FBAttrListvalues (FBElem *parentElem, QString keyName,
 Json::Value FBAttrListvalues::toJson ()
 {
     Json::Value jsonRet;
-
+    QByteArray ba;
+    for (int i=0; i<values.size(); i++)
+    {
+        Json::Value jsonOneVal;
+        ba = values[i].first.toUtf8();
+        jsonOneVal[FB_JSONKEY_ATTRVAL_KEYNAME] = ba.data();
+        ba = values[i].second.toUtf8();
+        jsonOneVal[FB_JSONKEY_ATTRVAL_DISPNAME] = ba.data();
+        if (i == valueDefault)
+        {
+            jsonOneVal[FB_JSONKEY_ATTRVAL_DEFAULT] = true;
+        }
+        jsonRet.append(jsonOneVal);
+    }
     return jsonRet;
 }
 
 bool FBAttrListvalues::fromJson (Json::Value jsonVal)
 {
+    QList<QPair<QString,QString> > newValues;
+    int newValueDefault = -1;
+
+    for (int k=0; k<jsonVal.size(); ++k)
+    {
+        Json::Value jsonKn = jsonVal[k][FB_JSONKEY_ATTRVAL_KEYNAME];
+        Json::Value jsonDn = jsonVal[k][FB_JSONKEY_ATTRVAL_DISPNAME];
+        if (jsonKn.isNull() || !jsonKn.isString()
+                || jsonDn.isNull() || !jsonDn.isString())
+        {
+            return false;
+        }
+        QPair<QString,QString> pair(
+           QString::fromUtf8(jsonKn.asString().data()),
+           QString::fromUtf8(jsonDn.asString().data()));
+        newValues.append(pair);
+        Json::Value jsonDf;
+        jsonDf = jsonVal[k][FB_JSONKEY_ATTRVAL_DEFAULT];
+        if (!jsonDf.isNull())// && jsonDf.asBool() == true)
+        {
+            newValueDefault = k;
+        }
+    }
+
+    values.clear();
+    for (int i=0; i<newValues.size(); i++)
+    {
+        values.append(newValues[i]);
+    }
+    valueDefault = newValueDefault;
+
     return true;
 }
 
@@ -263,14 +305,9 @@ QString FBAttrListvalues::getDefDispValue ()
 void FBAttrListvalues::onEditStart ()
 {
     FBDialogListvalues *dialog;
-    if (parentForDialog == NULL)
-    {
-        dialog = new FBDialogListvalues(NULL); // will cause issues in displaying for
-    }                                          // some OSs if init without parent
-    else
-    {
-        dialog = new FBDialogListvalues(parentForDialog);
-    }
+    dialog = new FBDialogListvalues(parentForDialog); // if the parent is NULL it will
+                                                // cause issues in dialog displaying for
+                                                // some OSs
     dialog->putValues(values,valueDefault);
     if (dialog->exec())
     {
@@ -280,8 +317,5 @@ void FBAttrListvalues::onEditStart ()
     delete dialog;
 }
  
-
-
-
 
 
