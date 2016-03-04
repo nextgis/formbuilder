@@ -39,7 +39,9 @@ class FBElemInput: public FBElem
     public:
      FBElemInput (FBFactory *fctPtr);
      virtual ~FBElemInput () { }
-     void updateFields (QStringList fieldsKeyNames);
+     virtual void updateFields (QStringList fieldsKeyNames);
+     virtual void resetSelectedFields ();
+     virtual QStringList getSelectedFields ();
     protected:
      FBAttrField *attrFieldPtr;
      QString caption;

@@ -246,7 +246,8 @@ class FBForm: public QWidget
 
      // info
      bool isVoid ();
-     QMap<int,FBElem*> getElems ();
+     QMap<int,FBElem*> getTopElems ();
+     QList<FBElem*> getAllElems ();
      QList<FBElem*> getSelectedElems ();
 
      // json

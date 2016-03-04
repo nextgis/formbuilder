@@ -39,7 +39,7 @@ FBDialogProjectNew::FBDialogProjectNew (QWidget *parent):
     comboGeom = new QComboBox(this);
     for (int i=0; i<FBProject::GEOM_TYPES.size(); i++)
     {
-        comboGeom->addItem(FBProject::GEOM_TYPES[i]->aliasNgw); // store pointer to the type
+        comboGeom->addItem(FBProject::GEOM_TYPES[i]->aliasNgw);
     }
 
     QPushButton *but1 = new QPushButton(this);

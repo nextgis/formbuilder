@@ -196,12 +196,12 @@ FBErr FBProject::open (QString ngfpFullPath)
         FbDataType *dt1 = FBProject::findDataTypeByNgw(s1);
         QString s2 = QString::fromUtf8(v[FB_JSON_META_DISPLAY_NAME].asString().data());
         QString s3 = QString::fromUtf8(v[FB_JSON_META_KEYNAME].asString().data());
-        fields.insert(s3,FBFieldDescr(dt1,s2));
+        fields.insert(s3,FBField(dt1,s2));
     }
     QString sgt = QString::fromUtf8(jsonMeta[FB_JSON_META_GEOMETRY_TYPE]
                                       .asString().data());
     geometry_type = FBProject::findGeomTypeByNgw(sgt);
-    Json::Value v = jsonMeta[FB_JSON_META_SRS][FB_JSON_META_NGW_CONNECTION];
+    Json::Value v = jsonMeta[FB_JSON_META_NGW_CONNECTION];
     if (v.isNull())
     {
         ngw_connection.id = -1;
@@ -215,7 +215,8 @@ FBErr FBProject::open (QString ngfpFullPath)
         ngw_connection = FBNgwConnection(k1,s1,s2,s3);
     }
     // Note: there is no need to read SRS id, while we always use the default one.
-    //int n1 = jsonMeta[FB_JSON_META_SRS][FB_JSON_META_ID].asInt();
+    // = QString::fromUtf8(jsonMeta[FB_JSON_META_SRS][FB_JSON_META_ID]
+                                //.asString().data()).toInt();
     version = versProg;
 
     strNgfpPath = ngfpFullPath;
@@ -426,6 +427,12 @@ bool FBProject::checkData (QString ngfpFullPath)
 }
 
 
+void FBProject::updateFieldsDeleted (QSet<QString> fieldsDeleted)
+{
+    this->fieldsDeleted.unite(fieldsDeleted);
+}
+
+
 Json::Value FBProject::getJsonMetadata ()
 {
     Json::Value jsonRet;
@@ -436,7 +443,7 @@ Json::Value FBProject::getJsonMetadata ()
     Json::Value jsonSrs;
     Json::Value jsonVers;
 
-    QMap<QString,FBFieldDescr>::const_iterator it = fields.constBegin();
+    QMap<QString,FBField>::const_iterator it = fields.constBegin();
     while (it != fields.constEnd())
     {
         Json::Value jsonElem;
@@ -474,7 +481,9 @@ Json::Value FBProject::getJsonMetadata ()
     }
     // else jsonNgw will be null
 
-    jsonSrs[FB_JSON_META_ID] = srs->numberNgw;
+    QByteArray baSrs;
+    baSrs = QString::number(srs->numberNgw).toUtf8();
+    jsonSrs[FB_JSON_META_ID] = baSrs.data();
 
     QByteArray baVers;
     baVers = FBProject::getProgVersionStr().toUtf8();
@@ -682,8 +691,9 @@ FBErr FBProject::modifyFieldsOfLayer (OGRLayer *layer)
         return FBErrNullVal;
     }
 
-    // IMPORTANT TODO: check if layer is able to delete fields!
-    // Currently only Memory layer is passed to this method.
+    // TODO: check if layer is able to delete fields!
+    // Currently only Memory layer is passed to this method, so there is no actual
+    // need to do this.
 
     // Delete fields with their data which were marked as deleted.
     if (fieldsDeleted.size() > 0)
@@ -692,8 +702,10 @@ FBErr FBProject::modifyFieldsOfLayer (OGRLayer *layer)
         while (it != fieldsDeleted.constEnd())
         {
             QByteArray ba = (*it).toUtf8();
-            if (layer->DeleteField(layer->FindFieldIndex(ba.data(),TRUE))
-                    != OGRERR_NONE)
+            int index = layer->FindFieldIndex(ba.data(),TRUE);
+            if (index == -1)
+                continue; // means that the deleted field was created in program
+            if (layer->DeleteField(index) != OGRERR_NONE)
             {
                 FBProject::CUR_ERR_INFO = QObject::tr("Unable to delete field in"
                                                       " a layer via GDAL");
@@ -707,7 +719,7 @@ FBErr FBProject::modifyFieldsOfLayer (OGRLayer *layer)
     // Create new void fields, if the layer with this name in the general list of
     // fields is not in the layer already. We can do it because the names of fields
     // are unique.
-    QMap<QString,FBFieldDescr>::const_iterator it = fields.constBegin();
+    QMap<QString,FBField>::const_iterator it = fields.constBegin();
     while (it != fields.constEnd())
     {
         QByteArray baKn;

@@ -103,6 +103,9 @@ QWidget *FBAttrField::getWidget ()
 
 }
 
+// Update fields list.
+// IMPORTANT: this method also updates the selected field value - it resets it
+// to undefined if it was not find in the updated list.
 void FBAttrField::updateValues (QStringList newKeyNames)
 {
     // Get new values.
@@ -124,6 +127,11 @@ void FBAttrField::updateValues (QStringList newKeyNames)
     {
         keyNameSelected = FB_DEFVALUE_NOTSELECTED;
     }
+}
+
+void FBAttrField::resetValue ()
+{
+    keyNameSelected = FB_DEFVALUE_NOTSELECTED;
 }
 
 void FBAttrField::onEditEnd (QString keyNameSelected)

@@ -429,11 +429,11 @@ QList<FBElem*> FBForm::getSelectedElems()
 }
 
 
-// Returns all form elements in a map, which is sorted by Y coordinate.
+// Returns all TOP LEVEL form elements in a map, which is sorted by Y coordinate.
 // The map will contain all FBElem elements of top level, where containers
 // will hold their inner elements inside.
 // The map will be void if there is no elems in a form.
-QMap<int,FBElem*> FBForm::getElems ()
+QMap<int,FBElem*> FBForm::getTopElems ()
 {
     QMap<int,FBElem*> map;
     for (int i = 0; i < lvForm->count(); ++i) // iterate all items in layout
@@ -450,6 +450,28 @@ QMap<int,FBElem*> FBForm::getElems ()
         }
     }
     return map;
+}
+
+
+// Returns ALL ELEMENTS of the form. The returned list contains not only container
+// elements, but also elements which are the child elements for these containers.
+QList<FBElem*> FBForm::getAllElems ()
+{
+    QList<FBElem*> elemsAll;
+
+    // Get top-level elems.
+    QMap<int,FBElem*> mapTopElems = this->getTopElems();
+    QMap<int,FBElem*>::const_iterator it = mapTopElems.constBegin();
+    while (it != mapTopElems.constEnd())
+    {
+        elemsAll.append(it.value());
+        ++it;
+    }
+
+    // Get children for top-level elems.
+    //...
+
+    return elemsAll;
 }
 
 
@@ -470,9 +492,10 @@ Json::Value FBForm::toJson ()
     jsonRootArray.clear();
 
     // Finally fill value with elements.
-    QMap<int,FBElem*> mapElems = this->getElems();
-    QMap<int,FBElem*>::const_iterator it = mapElems.constBegin();
-    while (it != mapElems.constEnd())
+    QMap<int,FBElem*> mapTopElems = this->getTopElems(); // container elems will write
+                                                         // their child elements
+    QMap<int,FBElem*>::const_iterator it = mapTopElems.constBegin();
+    while (it != mapTopElems.constEnd())
     {
         // 1. Get JSON representation of an element.
         FBElem* elem = it.value();
@@ -580,7 +603,8 @@ void FBForm::updateStyle (QString styleName)
 {
     // Form itself has no style.
     // Update style for all form elements.
-    QMap<int,FBElem*> elems = this->getElems();
+    QMap<int,FBElem*> elems = this->getTopElems(); // container elems will update their
+                                                  // child elems
     QMap<int,FBElem*>::const_iterator it = elems.constBegin();
     while (it != elems.constEnd())
     {

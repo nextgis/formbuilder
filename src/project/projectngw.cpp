@@ -85,7 +85,7 @@ FBErr FBProjectNgw::create (QString anyPath)
                   " array of fields has incorrect structure");
             return FBErrIncorrectGdalDataset;
         }
-        FBFieldDescr fieldDescr;
+        FBField fieldDescr;
         fieldDescr.datataype = FBProject::findDataTypeByNgw(
                     QString::fromUtf8(jsonDt.asString().data()));
         fieldDescr.display_name = QString::fromUtf8(jsonDn.asString().data());

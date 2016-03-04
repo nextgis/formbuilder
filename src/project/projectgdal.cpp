@@ -106,7 +106,7 @@ FBErr FBProjectGDAL::setFromGdalDataset (QString datasetPath)
 
     for (int i=0; i<layerDefn->GetFieldCount(); i++)
     {
-        FBFieldDescr descr;
+        FBField descr;
         OGRFieldDefn *fieldDefn = layerDefn->GetFieldDefn(i);
         OGRFieldType fieldType = fieldDefn->GetType();
         FbDataType *dt = FBProject::findDataTypeByGdal(fieldType);

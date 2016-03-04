@@ -43,6 +43,18 @@ void FBElemInput::updateFields (QStringList fieldsKeyNames)
     attrFieldPtr->updateValues(fieldsKeyNames);
 }
 
+void FBElemInput::resetSelectedFields ()
+{
+    attrFieldPtr->resetValue();
+}
+
+QStringList FBElemInput::getSelectedFields ()
+{
+    QStringList list;
+    list.append(attrFieldPtr->getValue());
+    return list;
+}
+
 
 /******************************************************************************/
 /*                                                                            */

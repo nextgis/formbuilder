@@ -167,6 +167,38 @@ class FBDialogProjectNgw: public QDialog
 
 
 /**
+ * Fields manager dialog.
+ */
+class FBDialogFieldsManager: public QDialog
+{
+    Q_OBJECT
+    public:
+     FBDialogFieldsManager (QWidget *parent);
+     ~FBDialogFieldsManager ();
+     void loadFields (QMap<QString,FBField> fields);
+     QMap<QString,FBField> getFields ();
+     QSet<QString> getDeletedFields () { return fieldsDeleted; }
+    private slots:
+     void onAddClick ();
+     void onRemoveClick ();
+     void onItemClick (QTreeWidgetItem *item, int itemCol);
+     int onShowAlertBox (QString msg, QMessageBox::Icon icon);
+     void onShowMsgBox (QString msg, QMessageBox::Icon icon);
+    private:
+     QTreeWidget *tree;
+     QLineEdit *editName;
+     QComboBox *comboType;
+     QToolButton *butAdd;
+     QToolButton *butRemove;
+     QPushButton *butOk;
+     QPushButton *butCancel;
+    private:
+     FBProject *project;
+     QSet<QString> fieldsDeleted; // keynames of fields are stored
+};
+
+
+/**
  * Progress dialog.
  */
 class FBDialogProgress: public QDialog
@@ -248,6 +280,9 @@ class FB: public QWidget
      void onRedoClick ();
      void onClearScreenClick ();
      void onDeleteElemClick ();
+     void onFieldsManagerClick ();
+     void onImportControlsClick ();
+     void onUpdateDataClick ();
      void onSettingLanguageSelect ();
      void onAboutGraphicsClick ();
      void onLeftArrowClick ();

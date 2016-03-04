@@ -118,12 +118,12 @@ struct FbSrsType
 };
 
 
-struct FBFieldDescr // see NextGISWeb fields description syntax
+struct FBField // see NextGISWeb fields description syntax
 {
     FbDataType *datataype;
     QString display_name;
-    FBFieldDescr () { datataype = NULL; }
-    FBFieldDescr (FbDataType *dt, QString dn)
+    FBField () { datataype = NULL; }
+    FBField (FbDataType *dt, QString dn)
         { datataype = dt; display_name = dn; }
     //~FBFieldDescr();
 };
@@ -200,8 +200,9 @@ class FBProject: public QObject
      static Json::Value readForm (QString ngfpFullPath);
      static Json::Value readMeta (QString ngfpFullPath);
      static bool checkData (QString ngfpFullPath);
-     void setFieldsDeleted (QSet<QString> fieldsDeleted)
-                             { this->fieldsDeleted = fieldsDeleted; }
+     void resetFields (QMap<QString,FBField> fields) { this->fields = fields; }
+     void updateFieldsDeleted (QSet<QString> fieldsDeleted);
+
      // info
      Json::Value getJsonMetadata ();
      bool wasFirstSaved ();
@@ -209,7 +210,7 @@ class FBProject: public QObject
      bool isSaveRequired ();
      QString getProjectfilePath () { return strNgfpPath; }
      virtual QString getDatasetPath () { return ""; }
-     QMap<QString,FBFieldDescr> getFields () { return fields; }
+     QMap<QString,FBField> getFields () { return fields; }
 
     signals:
 
@@ -234,13 +235,13 @@ class FBProject: public QObject
 //     QList<QImage> images;
 
      // project's metadata
-     QMap<QString,FBFieldDescr> fields; // keyname is a unique key in the map
+     QMap<QString,FBField> fields; // keyname is a unique key in the map
      FbGeomType *geometry_type;
      FBNgwConnection ngw_connection; // it is here because of ngfp file syntax
      FbSrsType *srs;
      QString version;
 
-     QSet<QString> fieldsDeleted;
+     QSet<QString> fieldsDeleted; // keynames of fields are stored
 
     private: // methods with common actions
 

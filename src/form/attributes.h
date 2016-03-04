@@ -64,6 +64,8 @@ class FBAttrField: public FBAttr
      bool fromJson (Json::Value jsonVal);
      QWidget *getWidget ();
      void updateValues (QStringList newKeyNames);
+     QString getValue () { return keyNameSelected; }
+     void resetValue ();
     protected slots:
      void onEditEnd (QString keyNameSelected);
     private:

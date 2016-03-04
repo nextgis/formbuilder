@@ -147,23 +147,31 @@ void FB::initGui ()
 
     // Tools.
     toolbUndo = this->addTopMenuButton(wTools,":/img/undo.png",
-                    tr("Undo"),tr("Cancel last form \noperation"),false);
+                    tr("Undo"),tr("Cancel last form \noperation"));
     toolbRedo = this->addTopMenuButton(wTools,":/img/redo.png",
-                    tr("Redo"),tr("Return last canceld \nform operation"),false);
+                    tr("Redo"),tr("Return last canceld\nform operation"));
     this->addTopMenuSplitter(wTools);
     toolbClearScreen = this->addTopMenuButton(wTools,":/img/clear_screen.png",
-                    tr("Clear screen"),tr("Clear all screen \nelements"),false);
+                    tr("Clear screen"),tr("Clear all screen\nelements"));
     QObject::connect(toolbClearScreen, SIGNAL(clicked()),
                      this, SLOT(onClearScreenClick()));
     toolbDeleteElem = this->addTopMenuButton(wTools,":/img/delete_elem.png",
-                    tr("Delete element"),tr("Delete selected \nelement"),false);
+                    tr("Delete element"),tr("Delete selected\nelement"));
     QObject::connect(toolbDeleteElem, SIGNAL(clicked()),
                      this, SLOT(onDeleteElemClick()));
     this->addTopMenuSplitter(wTools);
-    //for ()
-    //{
-    //
-    //}
+    toolbFieldManager = this->addTopMenuButton(wTools,":/img/fields.png",
+      tr("Fields manager"),tr("Modify fields\nof the project"));
+    QObject::connect(toolbFieldManager, SIGNAL(clicked()),
+                     this, SLOT(onFieldsManagerClick()));
+    toolbImportControls = this->addTopMenuButton(wTools,":/img/import_controls.png",
+      tr("Import elements"),tr("Import elements\nfrom another project"));
+    QObject::connect(toolbImportControls, SIGNAL(clicked()),
+                     this, SLOT(onImportControlsClick()));
+    toolbUpdateData = this->addTopMenuButton(wTools,":/img/update_data.png",
+      tr("Update data"),tr("Update layer with data\nfrom another Shapefile"));
+    QObject::connect(toolbUpdateData, SIGNAL(clicked()),
+                     this, SLOT(onUpdateDataClick()));
 
     // Settings.
 
@@ -626,12 +634,10 @@ void FB::onOpenClick ()
         wScreen->setForm(form);
 
         // Update elems for app.
-        QMap<int,FBElem*> map = form->getElems();
-        QMap<int,FBElem*>::const_iterator it = map.constBegin();
-        while (it != map.constEnd())
+        QList<FBElem*> elems = form->getAllElems();
+        for (int i=0; i<elems.size(); i++)
         {
-            FB::updateElemForApp(it.value(),projOpen,form,wScreen);
-            ++it;
+            FB::updateElemForApp(elems[i],projOpen,form,wScreen);
         }
 
         this->pickDefaultScreen(); // will be helpful if there is void screen now
@@ -779,6 +785,84 @@ void FB::onDeleteElemClick ()
 }
 
 
+// FIELDS MANAGER
+void FB::onFieldsManagerClick ()
+{
+    if (project == NULL)
+        return;
+
+    toolbFieldManager->setDown(true);
+
+    FBDialogFieldsManager dialog(this);
+    dialog.loadFields(project->getFields());
+    if (dialog.exec())
+    {
+        QMap<QString,FBField> newFields = dialog.getFields();
+        QSet<QString> deletedFields = dialog.getDeletedFields();
+
+        // Reset project fields with newly created list.
+        project->resetFields(newFields);
+
+        // Update the list of deleted fields after each session of the dialog.
+        // We need this because we must remember which existing fields (of the
+        // underlying layer) to delete during savig project time in case when the
+        // new fields with such names have been created after deletion of these
+        // fields. We can do this because the keynames of fields are unique.
+        project->updateFieldsDeleted(deletedFields);
+
+        // For all elems in the form with "Field attributes":
+        // 1) Update lists of fields;
+        // 2) Set to undefined selected fields to thouse field attributes, which
+        // fields have been just deleted.
+        FBForm* form = wScreen->getFormPtr();
+        if (form != NULL)
+        {
+            QList<FBElem*> elems = form->getAllElems();
+            for (int i=0; i<elems.size(); i++)
+            {
+                FBElemInput *e = qobject_cast<FBElemInput*>(elems[i]);
+                if (e != NULL)
+                {
+                    // Update list of fields for this elem. This will also reset
+                    // the selected field for the accoeding attr, but if the fields
+                    // with such names were created after deletion, it will not
+                    // reset selected field. That's why we need to do it separately.
+                    e->updateFields(project->getFields().keys());
+                    QStringList selectedFields = e->getSelectedFields(); // for some
+                    for (int k=0; k<selectedFields.size(); k++)        // elems we have
+                    {                                                  // several fields
+                        if (deletedFields.contains(selectedFields[k]))
+                        {
+                            e->resetSelectedFields();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    toolbFieldManager->setDown(false);
+}
+
+
+// IMPORT CONTROLS
+void FB::onImportControlsClick()
+{
+    toolbImportControls->setDown(true);
+
+    toolbImportControls->setDown(false);
+}
+
+
+// UPDATE DATA
+void FB::onUpdateDataClick ()
+{
+    toolbUpdateData->setDown(true);
+
+    toolbUpdateData->setDown(false);
+}
+
+
 // LANGUAGE SELECT
 void FB::onSettingLanguageSelect ()
 {
@@ -798,7 +882,6 @@ void FB::onLeftArrowClick ()
 {
     this->flipLeftMenu(!treeLeftFull->isVisible());
 }
-
 void FB::onRightArrowClick ()
 {
     this->flipRightMenu(!labRight->isVisible());
@@ -927,7 +1010,7 @@ void FB::onSaveAnyEnded (FBErr err)
 /****************************************************************************/
 
 // Common actions for element types, which can be made only in main app class.
-// Update elem with the app's data, because only this class aggregates project,
+// Update elem with the app's information, because only app aggregates project,
 // form and screen modules together.
 void FB::updateElemForApp (FBElem* elem, FBProject *project, FBForm *form,
                            FBScreen *screen)
@@ -935,7 +1018,7 @@ void FB::updateElemForApp (FBElem* elem, FBProject *project, FBForm *form,
     if (elem == NULL || project == NULL || form == NULL || screen == NULL)
         return;
 
-    // 1. Update field list if this is a sublclass of Input element.
+    // 1. Update "Field" attribute(s) if this is a sublclass of Input element.
     FBElemInput *e = qobject_cast<FBElemInput*>(elem);
     if (e != NULL)
     {
@@ -1173,11 +1256,22 @@ void FB::updateEnableness ()
         toolbRedo->setEnabled(false);
         toolbClearScreen->setEnabled(false);
         toolbDeleteElem->setEnabled(false);
+        toolbImportControls->setEnabled(false);
+        toolbUpdateData->setEnabled(false);
+        toolbFieldManager->setEnabled(false);
     }
     else
     {
         wMenuLeft->setEnabled(true);
         wMenuRight->setEnabled(true);
+        if (project->wasFirstSaved())
+        {
+            toolbSave->setEnabled(true);
+        }
+        else
+        {
+            toolbSave->setEnabled(false);
+        }
         toolbSaveAs->setEnabled(true);
         toolbClearScreen->setEnabled(true);
         toolbDeleteElem->setEnabled(true);
@@ -1190,15 +1284,16 @@ void FB::updateEnableness ()
         {
             toolbsScreenState[i]->setEnabled(true);
         }
-        if (project->wasFirstSaved())
-        {
-            toolbSave->setEnabled(true);
-        }
-        else
-        {
-            toolbSave->setEnabled(false);
-        }
+        toolbImportControls->setEnabled(true);
+        toolbUpdateData->setEnabled(true);
+        toolbFieldManager->setEnabled(true);
     }
+
+    // TEMPORARY BLOCKINGS:
+    toolbScreenWeb->setEnabled(false);
+    toolbScreenQgis->setEnabled(false);
+    toolbUndo->setEnabled(false);
+    toolbRedo->setEnabled(false);
 }
 
 
@@ -1235,6 +1330,7 @@ void FB::updateLeftTrees ()
     }
 
     treeLeftFull->sortItems(0,Qt::AscendingOrder);
+    //treeLeftFull->expandAll();
 }
 
 
