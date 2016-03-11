@@ -60,18 +60,19 @@ class FBAttrField: public FBAttr
      FBAttrField (FBElem *parentElem, QString keyName, QString displayName,
                  FBAttrrole role);
      ~FBAttrField () { }
+     static void updateValues (QStringList newKeyNames);
      Json::Value toJson ();
      bool fromJson (Json::Value jsonVal);
      QWidget *getWidget ();
-     void updateValues (QStringList newKeyNames);
      QString getValue () { return keyNameSelected; }
      void resetValue ();
+    protected:
+     static QStringList keyNames; // fields are common for all Field attributes
     protected slots:
      void onEditEnd (QString keyNameSelected);
     private:
-     QStringList keyNames;
      QString keyNameSelected; // not an index because we store string in json. It is
-                              // safe because keyNames will be unique
+                              // safe because keynames are unique
 };
 
 class FBAttrText: public FBAttr

@@ -68,7 +68,8 @@ void FB::initGui ()
     wProject = new QWidget();
     tabMenuTop->addTab(wProject, tr(" Project "));
     QHBoxLayout *layProject = new QHBoxLayout(wProject);
-    layProject->setContentsMargins(0,0,0,0);
+    layProject->setContentsMargins(0,4,0,4);
+    layProject->setSpacing(2);
     layProject->addStretch();
 
     wView = new QWidget();
@@ -80,16 +81,20 @@ void FB::initGui ()
     wTools = new QWidget();
     tabMenuTop->addTab(wTools, tr("  Tools  "));
     QHBoxLayout *layTools = new QHBoxLayout(wTools);
+    layTools->setContentsMargins(4,4,4,4);
+    layTools->setSpacing(2);
     layTools->addStretch();
 
     wSettings = new QWidget();
     tabMenuTop->addTab(wSettings, tr(" Settings "));
     QHBoxLayout *laySettings = new QHBoxLayout(wSettings);
+    laySettings->setContentsMargins(4,4,4,4);
     laySettings->addStretch();
 
     wAbout = new QWidget();
     tabMenuTop->addTab(wAbout, tr(" About "));
     QHBoxLayout *layAbout = new QHBoxLayout(wAbout);
+    layAbout->setContentsMargins(4,4,4,4);
     layAbout->addStretch();
 
     // Project buttons.
@@ -147,29 +152,29 @@ void FB::initGui ()
 
     // Tools.
     toolbUndo = this->addTopMenuButton(wTools,":/img/undo.png",
-                    tr("Undo"),tr("Cancel last form \noperation"));
+                tr("Undo"),tr("Cancel last form \noperation"),false,true);
     toolbRedo = this->addTopMenuButton(wTools,":/img/redo.png",
-                    tr("Redo"),tr("Return last canceld\nform operation"));
+                tr("Redo"),tr("Return last canceld\nform operation"),false,true);
     this->addTopMenuSplitter(wTools);
     toolbClearScreen = this->addTopMenuButton(wTools,":/img/clear_screen.png",
-                    tr("Clear screen"),tr("Clear all screen\nelements"));
+                tr("Clear"),tr("Clear all screen\nelements"),false,true);
     QObject::connect(toolbClearScreen, SIGNAL(clicked()),
                      this, SLOT(onClearScreenClick()));
     toolbDeleteElem = this->addTopMenuButton(wTools,":/img/delete_elem.png",
-                    tr("Delete element"),tr("Delete selected\nelement"));
+                 tr("Delete"),tr("Delete selected\nelement"),false,true);
     QObject::connect(toolbDeleteElem, SIGNAL(clicked()),
                      this, SLOT(onDeleteElemClick()));
     this->addTopMenuSplitter(wTools);
     toolbFieldManager = this->addTopMenuButton(wTools,":/img/fields.png",
-      tr("Fields manager"),tr("Modify fields\nof the project"));
+      tr("Fields"),tr("Modify fields\nof the project"),false,true);
     QObject::connect(toolbFieldManager, SIGNAL(clicked()),
                      this, SLOT(onFieldsManagerClick()));
     toolbImportControls = this->addTopMenuButton(wTools,":/img/import_controls.png",
-      tr("Import elements"),tr("Import elements\nfrom another project"));
+      tr("Import"),tr("Import elements\nfrom another project"),false,true);
     QObject::connect(toolbImportControls, SIGNAL(clicked()),
                      this, SLOT(onImportControlsClick()));
     toolbUpdateData = this->addTopMenuButton(wTools,":/img/update_data.png",
-      tr("Update data"),tr("Update layer with data\nfrom another Shapefile"));
+      tr("Update"),tr("Update layer with data\nfrom other Shapefile"),false,true);
     QObject::connect(toolbUpdateData, SIGNAL(clicked()),
                      this, SLOT(onUpdateDataClick()));
 
@@ -447,8 +452,6 @@ void FB::onAddElemPress (QTreeWidgetItem* item, int column)
     FBElem *elem = fct->create();
     form->addElem(elem,NULL);
 
-    FB::updateElemForApp(elem,project,form,wScreen);
-
     this->onElemSelect();
 }
 
@@ -504,12 +507,9 @@ void FB::onNewShapeClick ()
     dialog.setDefaultSuffix("shp");
     dialog.setNameFilter("*.shp");
     dialog.setWindowTitle(tr("Creating new project. Select Shapefile ..."));
-    QString lastPath = this->getSettingLastPath();
-    if (lastPath == "")
-    {
-        dialog.setDirectory(QDir());
-    }
-    else
+    dialog.setDirectory(QDir()); // current directory
+    QString lastPath = this->getLastPathShapefile();
+    if (lastPath != "")
     {
         QFileInfo fileInfo(lastPath);
         dialog.setDirectory(fileInfo.absoluteDir());
@@ -541,7 +541,10 @@ void FB::onNewNgwClick ()
         return;
     }
 
-    FBDialogProjectNgw dialog(this,"","");
+    QString lastUrl;
+    QString lastLogin;
+    this->getLastPathNgw(lastUrl,lastLogin);
+    FBDialogProjectNgw dialog(this,lastUrl,lastLogin);
     QObject::connect(&dialog, SIGNAL(finished(int)),
                      this, SLOT(onProjDialogFinished(int)));
 
@@ -579,13 +582,10 @@ void FB::onOpenClick ()
     dialog.setViewMode(QFileDialog::List);
     dialog.setDefaultSuffix(FB_PROJECT_EXTENSION);
     dialog.setNameFilter("*."+QString(FB_PROJECT_EXTENSION));
-    dialog.setWindowTitle(tr("Open project ..."));
-    QString lastPath = this->getSettingLastPath();
-    if (lastPath == "")
-    {
-        dialog.setDirectory(QDir());
-    }
-    else
+    dialog.setWindowTitle(tr("Open project. Select project file ..."));
+    dialog.setDirectory(QDir()); // current directory
+    QString lastPath = this->getLastPathProjectfile();
+    if (lastPath != "")
     {
         QFileInfo fileInfo(lastPath);
         dialog.setDirectory(fileInfo.absoluteDir());
@@ -595,6 +595,7 @@ void FB::onOpenClick ()
 
     if (dialog.exec())
     {
+        // Check file extension anyway because user can type it manually.
         QString strFullPath = dialog.selectedFiles().first();
         if (!strFullPath.endsWith("." + QString(FB_PROJECT_EXTENSION),
                                   Qt::CaseInsensitive))
@@ -622,7 +623,8 @@ void FB::onOpenClick ()
         if (!form->fromJson(FBProject::readForm(strFullPath)))
         {
             delete projOpen;
-            this->onShowError(tr("Unable to read form in a project!"));
+            this->onShowErrorFull(tr("Unable to read form in a project!"),
+                                  FBErrReadNgfpFail);
             return;
         }
 
@@ -633,12 +635,8 @@ void FB::onOpenClick ()
         wScreen->deleteForm();
         wScreen->setForm(form);
 
-        // Update elems for app.
-        QList<FBElem*> elems = form->getAllElems();
-        for (int i=0; i<elems.size(); i++)
-        {
-            FB::updateElemForApp(elems[i],projOpen,form,wScreen);
-        }
+        // Update list of fields for all Input elements.
+        FBElemInput::updateFields(project->getFields().keys());
 
         this->pickDefaultScreen(); // will be helpful if there is void screen now
         this->updateRightMenu();
@@ -684,6 +682,15 @@ void FB::onSaveAsClick ()
     dialog.setDefaultSuffix(FB_PROJECT_EXTENSION);
     dialog.setNameFilter("*." + QString(FB_PROJECT_EXTENSION));
     dialog.setWindowTitle(tr("Save project as ..."));
+    dialog.setDirectory(QDir()); // current directory
+    QString lastPath = this->getLastPathProjectfile();
+    if (lastPath != "")
+    {
+        QFileInfo fileInfo(lastPath);
+        dialog.setDirectory(fileInfo.absoluteDir());
+    }
+    QObject::connect(&dialog,SIGNAL(finished(int)),
+                  this,SLOT(onProjDialogFinished(int)));
 
     if (dialog.exec())
     {
@@ -761,13 +768,16 @@ void FB::onRedoClick ()
 // CLEAR SCREEN TOOL CLICK
 void FB::onClearScreenClick ()
 {
-    toolbClearScreen->setDown(true);
     FBForm *form = wScreen->getFormPtr();
     if (form == NULL || form->isVoid())
         return;
+    toolbClearScreen->setDown(true);
     if (this->onShowWarning(tr("Clear screen from all elements?"))
             != QMessageBox::Ok)
+    {
+        toolbClearScreen->setDown(false);
         return;
+    }
     form->clear();
     this->updateRightMenu();
     toolbClearScreen->setDown(false);
@@ -775,10 +785,10 @@ void FB::onClearScreenClick ()
 // DELETE ELEM TOOL CLICK
 void FB::onDeleteElemClick ()
 {
-    toolbDeleteElem->setDown(true);
     FBForm *form = wScreen->getFormPtr();
     if (form == NULL || form->isVoid())
         return;
+    toolbDeleteElem->setDown(true);
     form->deleteSelected();
     this->updateRightMenu();
     toolbDeleteElem->setDown(false);
@@ -795,6 +805,9 @@ void FB::onFieldsManagerClick ()
 
     FBDialogFieldsManager dialog(this);
     dialog.loadFields(project->getFields());
+    QObject::connect(&dialog,SIGNAL(finished(int)),
+                  this,SLOT(onProjDialogFinished(int)));
+
     if (dialog.exec())
     {
         QMap<QString,FBField> newFields = dialog.getFields();
@@ -808,58 +821,159 @@ void FB::onFieldsManagerClick ()
         // underlying layer) to delete during savig project time in case when the
         // new fields with such names have been created after deletion of these
         // fields. We can do this because the keynames of fields are unique.
-        project->updateFieldsDeleted(deletedFields);
+        project->expandFieldsDeleted(deletedFields);
 
-        // For all elems in the form with "Field attributes":
-        // 1) Update lists of fields;
-        // 2) Set to undefined selected fields to thouse field attributes, which
-        // fields have been just deleted.
+        // Update list of fields for all Input elements.
+        FBElemInput::updateFields(project->getFields().keys());
+
+        // We must reset the fields, which were added to the project after the
+        // deletion of fields with the same keynames as deleted ones.
         FBForm* form = wScreen->getFormPtr();
         if (form != NULL)
         {
             QList<FBElem*> elems = form->getAllElems();
             for (int i=0; i<elems.size(); i++)
             {
-                FBElemInput *e = qobject_cast<FBElemInput*>(elems[i]);
-                if (e != NULL)
-                {
-                    // Update list of fields for this elem. This will also reset
-                    // the selected field for the accoeding attr, but if the fields
-                    // with such names were created after deletion, it will not
-                    // reset selected field. That's why we need to do it separately.
-                    e->updateFields(project->getFields().keys());
-                    QStringList selectedFields = e->getSelectedFields(); // for some
-                    for (int k=0; k<selectedFields.size(); k++)        // elems we have
-                    {                                                  // several fields
-                        if (deletedFields.contains(selectedFields[k]))
-                        {
-                            e->resetSelectedFields();
-                        }
-                    }
-                }
+                this->resetSelectedFieldsForElem(elems[i],deletedFields);
             }
         }
-    }
 
-    toolbFieldManager->setDown(false);
+        // Update right menu so the comboboxes with lists of fields of currently
+        // selected elem will be updated.
+        this->updateRightMenu();
+    }
 }
 
 
 // IMPORT CONTROLS
 void FB::onImportControlsClick()
 {
+    FBForm* form = wScreen->getFormPtr();
+    if (project == NULL || form == NULL)
+        return;
+
     toolbImportControls->setDown(true);
 
-    toolbImportControls->setDown(false);
+    if (!form->isVoid() && this->onShowWarning(tr("If you import elements from"
+        " another project all current elements will be removed. Continue?"))
+            != QMessageBox::Ok)
+    {
+        toolbImportControls->setDown(false);
+        return;
+    }
+
+    QFileDialog dialog(this);
+    dialog.setAcceptMode(QFileDialog::AcceptOpen);
+    dialog.setFileMode(QFileDialog::ExistingFile);
+    dialog.setViewMode(QFileDialog::List);
+    dialog.setDefaultSuffix(FB_PROJECT_EXTENSION);
+    dialog.setNameFilter("*."+QString(FB_PROJECT_EXTENSION));
+    dialog.setWindowTitle(tr("Import form elements. Select project file ..."));
+    dialog.setDirectory(QDir()); // current directory
+    QString lastPath = this->getLastPathProjectfile();
+    if (lastPath != "")
+    {
+        QFileInfo fileInfo(lastPath);
+        dialog.setDirectory(fileInfo.absoluteDir());
+    }
+    QObject::connect(&dialog,SIGNAL(finished(int)),
+                  this,SLOT(onProjDialogFinished(int)));
+
+    if (dialog.exec())
+    {
+        // Check file extension anyway because user can type it manually.
+        QString strFullPath = dialog.selectedFiles().first();
+        if (!strFullPath.endsWith("." + QString(FB_PROJECT_EXTENSION),
+                                  Qt::CaseInsensitive))
+        {
+            this->onShowError(tr("Wrong file extension. Must be .")
+                          + QString(FB_PROJECT_EXTENSION));
+            return;
+        }
+
+        // Process selected project.
+        FBProject *projOther = new FBProject();
+        FBErr err = projOther->open(strFullPath);
+        if (err != FBErrNone)
+        {
+            this->onShowErrorFull(tr("Unable to process selected project!"),err);
+            return;
+        }
+
+        // Load and show its form elements, clearing old ones.
+        if (!form->fromJson(FBProject::readForm(strFullPath)))
+        {
+            delete projOther;
+            this->onShowErrorFull(tr("Unable to read form in a project!"),
+                                  FBErrReadNgfpFail);
+            return;
+        }
+
+        // We need to set to undefined selected fields to those elements, which
+        // have the fields selected not from current project.
+        // For that we firstly create a set of fields which does not occur both
+        // in selected and current projects and than call the common method to
+        // reset fields. So those fields which exist in both projects will not be
+        // reseted.
+        QMap<QString,FBField> fieldsOther = projOther->getFields();
+        delete projOther;
+        QMap<QString,FBField> fieldsThis = project->getFields();
+        QSet<QString> notSameFields;
+        QMap<QString,FBField>::const_iterator it = fieldsThis.constBegin();
+        while (it != fieldsThis.constEnd())
+        {
+            // We check full fields equality.
+            QString keyname = it.key();
+            FBField fieldThis = it.value();
+            FBField fieldOther = fieldsOther.value(keyname);
+            if (!fieldThis.isEqual(fieldOther)) // will be compared with default-
+            {                                   // constructed field if there is no
+                notSameFields.insert(keyname);   // such field in other dataset
+            }
+            ++it;
+        }
+        QList<FBElem*> elems = form->getAllElems();
+        for (int i=0; i<elems.size(); i++)
+        {
+            this->resetSelectedFieldsForElem(elems[i],notSameFields);
+        }
+
+        // Update right menu so the comboboxes with lists of fields of currently
+        // selected elem will be updated.
+        this->updateRightMenu();
+    }
 }
 
 
 // UPDATE DATA
 void FB::onUpdateDataClick ()
 {
+    if (project == NULL)
+        return;
+
     toolbUpdateData->setDown(true);
 
-    toolbUpdateData->setDown(false);
+    QFileDialog dialog(this);
+    dialog.setAcceptMode(QFileDialog::AcceptOpen);
+    dialog.setFileMode(QFileDialog::ExistingFile);
+    dialog.setViewMode(QFileDialog::List);
+    dialog.setDefaultSuffix("shp");
+    dialog.setNameFilter("*.shp");
+    dialog.setWindowTitle(tr("Update data in project. Select a Shapefile ..."));
+    dialog.setDirectory(QDir()); // current directory
+    QString lastPath = this->getLastPathShapefile();
+    if (lastPath != "")
+    {
+        QFileInfo fileInfo(lastPath);
+        dialog.setDirectory(fileInfo.absoluteDir());
+    }
+    QObject::connect(&dialog,SIGNAL(finished(int)),
+                  this,SLOT(onProjDialogFinished(int)));
+
+    if (dialog.exec())
+    {
+
+    }
 }
 
 
@@ -968,7 +1082,7 @@ bool FB::onAskToLeaveUnsafeProject ()
 
 
 // Some common GUI actions after closing project dialogs.
-// Connect only to according methods.
+// Connect only to finished() signal of according dialogues.
 void FB::onProjDialogFinished (int code)
 {
     toolbNewVoid->setDown(false);
@@ -977,6 +1091,9 @@ void FB::onProjDialogFinished (int code)
     toolbOpen->setDown(false);
     toolbSave->setDown(false);
     toolbSaveAs->setDown(false);
+    toolbFieldManager->setDown(false);
+    toolbImportControls->setDown(false);
+    toolbUpdateData->setDown(false);
 }
 
 
@@ -1009,23 +1126,26 @@ void FB::onSaveAnyEnded (FBErr err)
 /*                                                                          */
 /****************************************************************************/
 
-// Common actions for element types, which can be made only in main app class.
-// Update elem with the app's information, because only app aggregates project,
-// form and screen modules together.
-void FB::updateElemForApp (FBElem* elem, FBProject *project, FBForm *form,
-                           FBScreen *screen)
+// For elem in the form with "Field attributes" set to undefined required fields,
+// if are any.
+void FB::resetSelectedFieldsForElem (FBElem *elem, QSet<QString> allFieldsToReset)
 {
-    if (elem == NULL || project == NULL || form == NULL || screen == NULL)
-        return;
-
-    // 1. Update "Field" attribute(s) if this is a sublclass of Input element.
+    // Select only "Input elements", because only them contain "Field
+    // attributes".
     FBElemInput *e = qobject_cast<FBElemInput*>(elem);
     if (e != NULL)
     {
-        e->updateFields(project->getFields().keys());
+        // Some elements may have several Field attributes, so we try to reset
+        // them all, if needed.
+        QStringList selectedFields = e->getSelectedFields();
+        for (int k=0; k<selectedFields.size(); k++)
+        {
+            if (allFieldsToReset.contains(selectedFields[k]))
+            {
+                e->resetSelectedField(selectedFields[k]);
+            }
+        }
     }
-
-    // 2. ...
 }
 
 
@@ -1033,11 +1153,17 @@ void FB::updateSettings ()
 {
 
 }
-
-
-QString FB::getSettingLastPath ()
+QString FB::getLastPathProjectfile ()
 {
     return "";
+}
+QString FB::getLastPathShapefile ()
+{
+    return "";
+}
+void FB::getLastPathNgw (QString &url, QString &login)
+{
+
 }
 
 
@@ -1055,6 +1181,7 @@ QString FB::getErrStr (FBErr err)
         case FBErrTempFileFail: ret = tr("Temporary file error"); break;
         case FBErrGDALFail: ret = tr("GDAL error"); break;
         case FBErrCPLFail: ret = tr("GDAL CPL error"); break;
+        case FBErrReadNgfpFail: ret = tr("Reading project file error"); break;
         default: ret = ""; break; // some errors will be explicitly not processed
     }
     return ret;
@@ -1087,8 +1214,8 @@ FBForm *FB::createForm ()
 
 
 // Create new button for any tab of the top menu.
-QToolButton *FB::addTopMenuButton (QWidget *parentTab, QString imgPath,
-                                   QString name, QString description, bool small)
+QToolButton *FB::addTopMenuButton (QWidget *parentTab, QString imgPath, QString name,
+         QString description, bool isSmall, bool withCaption)
 {
     QToolButton *but = new QToolButton(parentTab);
     QHBoxLayout *hlParent = (QHBoxLayout*)parentTab->layout();
@@ -1098,28 +1225,50 @@ QToolButton *FB::addTopMenuButton (QWidget *parentTab, QString imgPath,
     but->setText(name); // necessarily do this because it will store correspondence
                         // to screen arrays for screen menu buttons
     but->setFont(QFont(FB_GUI_FONTTYPE, FB_GUI_FONTSIZE_SMALL));
-    if (small)
+    but->setToolTip(description);
+    but->setCursor(Qt::PointingHandCursor);
+    // TODO: Make real semitransparent style (~20%).
+    but->setStyleSheet("QToolButton"
+      "{border: none; color: "+QString(FB_COLOR_DARKGREY)+";}"
+      "QToolButton:hover"
+      "{background-color: "+FB_COLOR_DARKBLUE+"; color: white;}"
+      "QToolButton:pressed{"
+      "background-color: "+FB_COLOR_LIGHTBLUE+"; color: white;}"
+      "QToolButton:disabled{}");
+    if (isSmall)
     {
         but->setIconSize(QSize(60,60));
-        but->setMaximumWidth(45);
+        //but->setMaximumWidth(45);
+        but->setFixedSize(35,35);
     }
     else
     {
         but->setIconSize(QSize(60,60));
-        but->setMaximumWidth(90);
+        //but->setMaximumWidth(90);
+        but->setFixedSize(65,65);
     }
-    //but->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    but->setCursor(Qt::PointingHandCursor);
-    hlParent->insertWidget(hlParent->count()-1,but); // last is stretch item.
-    // TODO: Make real semitransparent style (~20%).
-    but->setStyleSheet("QToolButton"
-                       "{border: none;}"
-                       "QToolButton:hover"
-                       "{background-color: "+QString(FB_COLOR_DARKBLUE)+";}"
-                       "QToolButton:pressed{"
-                           "background-color: "+FB_COLOR_LIGHTBLUE+";}"
-                       "QToolButton:disabled{}");
-    but->setToolTip(description);
+
+    QVBoxLayout *lay = new QVBoxLayout();
+    lay->addWidget(but);
+
+    if (withCaption)
+    {
+        /*
+        QLabel *lab = new QLabel(parentTab);
+        lab->setText(name);
+        lab->setAlignment(Qt::AlignCenter);
+        lab->setFont(QFont(FB_GUI_FONTTYPE,FB_GUI_FONTSIZE_SMALL));
+        lab->setStyleSheet("QLabel {color: "+QString(FB_COLOR_MEDIUMGREY)+"}");
+        lab->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Fixed);
+        lay->addWidget(lab);
+        */
+        but->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+        but->setFont(QFont(FB_GUI_FONTTYPE,FB_GUI_FONTSIZE_SMALL));
+        but->setIconSize(QSize(43,43));
+    }
+
+    hlParent->insertLayout(hlParent->count()-1,lay); // last is stretch item.
+
     return but;
 }
 
@@ -1141,7 +1290,7 @@ QComboBox *FB::addTopMenuCombo (QWidget *parentTab, QString caption,
     lab->setText(caption);
     lab->setAlignment(Qt::AlignCenter);
     lab->setFont(QFont(FB_GUI_FONTTYPE,FB_GUI_FONTSIZE_SMALL));
-    lab->setStyleSheet("QLabel {color: "+QString(FB_COLOR_MEDIUMGREY)+"}");
+    lab->setStyleSheet("QLabel {color: "+QString(FB_COLOR_DARKGREY)+"}");
     lab->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Fixed);
 
     QHBoxLayout *hlParent = (QHBoxLayout*)parentTab->layout();
@@ -1204,7 +1353,7 @@ QTableWidget* FB::addRightMenuTable ()
     //table->setMaximumHeight(50);
     table->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Minimum);
     table->setFocusPolicy(Qt::NoFocus);
-    table->setFont(QFont(FB_GUI_FONTTYPE, FB_GUI_FONTSIZE_NORMAL));
+    table->setFont(QFont(FB_GUI_FONTTYPE,FB_GUI_FONTSIZE_NORMAL));
     table->verticalHeader()->hide();
     table->horizontalHeader()->hide();
     table->setRowCount(0);
@@ -1273,6 +1422,8 @@ void FB::updateEnableness ()
             toolbSave->setEnabled(false);
         }
         toolbSaveAs->setEnabled(true);
+        toolbUndo->setEnabled(true);
+        toolbRedo->setEnabled(true);
         toolbClearScreen->setEnabled(true);
         toolbDeleteElem->setEnabled(true);
         toolbScreenAndroid->setEnabled(true);
@@ -1289,11 +1440,13 @@ void FB::updateEnableness ()
         toolbFieldManager->setEnabled(true);
     }
 
+    /*
     // TEMPORARY BLOCKINGS:
     toolbScreenWeb->setEnabled(false);
     toolbScreenQgis->setEnabled(false);
     toolbUndo->setEnabled(false);
     toolbRedo->setEnabled(false);
+    */
 }
 
 
@@ -1422,7 +1575,7 @@ void FB::setBottomString (QString strToShorten, QString strToPrepend)
     if (strToShorten.size() > FB_BOTTOMSTRING_LEN_MAX)
     {
         strToShorten.remove(0, strToShorten.size() - FB_BOTTOMSTRING_LEN_MAX);
-        strToShorten.prepend(" ...");
+        strToShorten.prepend(" ... ");
     }
     labBottom->setText(" " + strToPrepend + strToShorten);
 }
@@ -1591,6 +1744,9 @@ void FB::newProjectCommonActions (FBProject *proj, QString path)
     wScreen->deleteForm();
     FBForm *form = this->createForm();
     wScreen->setForm(form);
+
+    // Reset list of fields for all future Input elements.
+    FBElemInput::updateFields(project->getFields().keys());
 
     this->pickDefaultScreen(); // will be helpful if there is void screen now
     this->updateRightMenu();

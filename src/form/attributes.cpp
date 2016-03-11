@@ -51,12 +51,26 @@ QPushButton *FBAttrDialog::getWidget ()
 /*                                                                            */
 /******************************************************************************/
 
+QStringList FBAttrField::keyNames;
+
 FBAttrField::FBAttrField (FBElem *parentElem, QString keyName, QString displayName,
             FBAttrrole role):
     FBAttr (parentElem ,keyName, displayName, role)
 {
-    keyNames.append(FB_DEFVALUE_NOTSELECTED);
     keyNameSelected = FB_DEFVALUE_NOTSELECTED;
+}
+
+// Update fields list.
+void FBAttrField::updateValues (QStringList newKeyNames) // STATIC
+{
+    keyNames.clear();
+    keyNames.append(FB_DEFVALUE_NOTSELECTED);
+    for (int i=0; i<newKeyNames.size(); i++)
+    {
+        if (newKeyNames[i] == FB_DEFVALUE_NOTSELECTED) // skip reserved values if
+            continue;                                  // was some
+        keyNames.append(newKeyNames[i]);
+    }
 }
 
 Json::Value FBAttrField::toJson ()
@@ -89,9 +103,9 @@ bool FBAttrField::fromJson (Json::Value jsonVal)
 QWidget *FBAttrField::getWidget ()
 {
     QComboBox *widget = new QComboBox();
-    for (int i=0; i<keyNames.size(); i++)
+    for (int i=0; i<FBAttrField::keyNames.size(); i++)
     {
-        widget->addItem(keyNames[i]);
+        widget->addItem(FBAttrField::keyNames[i]);
     }
     // Set default value:
     // From docs of QComboBox: " ... Otherwise, if there is a matching text in the
@@ -101,32 +115,6 @@ QWidget *FBAttrField::getWidget ()
                      this, SLOT(onEditEnd(QString)));
     return widget;
 
-}
-
-// Update fields list.
-// IMPORTANT: this method also updates the selected field value - it resets it
-// to undefined if it was not find in the updated list.
-void FBAttrField::updateValues (QStringList newKeyNames)
-{
-    // Get new values.
-    keyNames.clear();
-    keyNames.append(FB_DEFVALUE_NOTSELECTED);
-    bool wasOldKeyName = false;
-    for (int i=0; i<newKeyNames.size(); i++)
-    {
-        if (newKeyNames[i] == FB_DEFVALUE_NOTSELECTED) // skip reserved values if
-            continue;                                  // was some
-        keyNames.append(newKeyNames[i]);
-        if (newKeyNames[i] == keyNameSelected)
-        {
-            wasOldKeyName = true;
-        }
-    }
-    // Return old value if it is in the list of new values.
-    if (!wasOldKeyName)
-    {
-        keyNameSelected = FB_DEFVALUE_NOTSELECTED;
-    }
 }
 
 void FBAttrField::resetValue ()

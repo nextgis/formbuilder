@@ -150,13 +150,13 @@ void FBElem::setSelectStyle ()
 {
     // We must set select and deselect style only for top elem widget (i.e. this
     // widget), but not for its decoration inner widgets.
-    this->setStyleSheet("QWidget"//#" + this->objectName() +
+    this->setStyleSheet("QWidget"
                         "{background-color: rgba(0,0,0,0); "
                         "border: 2px dashed red;}");
 }
 void FBElem::setDeselectStyle ()
 {
-    this->setStyleSheet("QWidget"//#" + this->objectName() +
+    this->setStyleSheet("QWidget"
                         "{background-color: rgba(0,0,0,0); "
                         "border: 2px dashed rgba(0,0,0,0);}");
 }
@@ -433,6 +433,9 @@ QList<FBElem*> FBForm::getSelectedElems()
 // The map will contain all FBElem elements of top level, where containers
 // will hold their inner elements inside.
 // The map will be void if there is no elems in a form.
+// WARNING. If elements still have their x,y = 0,0 (at the moment when they just have
+// been added to the form) the returned map will contain only last elem in the form,
+// so use this method only after the elements acquire their coordinates.
 QMap<int,FBElem*> FBForm::getTopElems ()
 {
     QMap<int,FBElem*> map;
@@ -454,7 +457,8 @@ QMap<int,FBElem*> FBForm::getTopElems ()
 
 
 // Returns ALL ELEMENTS of the form. The returned list contains not only container
-// elements, but also elements which are the child elements for these containers.
+// elements, but also elements which are the child elements for these containers and
+// so on.
 QList<FBElem*> FBForm::getAllElems ()
 {
     QList<FBElem*> elemsAll;

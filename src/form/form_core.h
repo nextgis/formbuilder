@@ -180,7 +180,7 @@ class FBElem: public QWidget
     protected: // fields
      FBFactory *fctPtr; // parent factory
      QSet<FBAttr*> attrs; //QMap<QString,FBAttr*> mapAttrs;
-     QVBoxLayout *lvMain; // for deleting style decorations & inner elems
+     QVBoxLayout *lvMain; // store it for deleting style decorations & inner elems
 };
 
 

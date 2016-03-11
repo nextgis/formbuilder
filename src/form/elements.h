@@ -32,15 +32,15 @@
 #define FB_ANDROIDSCREEN_FONTTYPE "Candara"
 
 
-// Element which can write values to the layer fields.
+// Abstract element which can write values to the layer fields.
 class FBElemInput: public FBElem
 {
     Q_OBJECT
     public:
      FBElemInput (FBFactory *fctPtr);
      virtual ~FBElemInput () { }
-     virtual void updateFields (QStringList fieldsKeyNames);
-     virtual void resetSelectedFields ();
+     static void updateFields (QStringList fieldsKeyNames);
+     virtual void resetSelectedField (QString keyname);
      virtual QStringList getSelectedFields ();
     protected:
      FBAttrField *attrFieldPtr;

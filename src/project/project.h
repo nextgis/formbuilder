@@ -77,9 +77,11 @@ enum FBErr
 {
     FBErrNone,
 
+    // FOR DEVELOPERS: add string representations of new error codes to the
+    // FB class.
     FBErrWrongVersion, FBErrIncorrectJson, FBErrIncorrectFileStructure,
     FBErrIncorrectGdalDataset, FBErrWrongSavePath, FBErrTempFileFail,
-    FBErrGDALFail, FBErrCPLFail,
+    FBErrGDALFail, FBErrCPLFail, FBErrReadNgfpFail,
 
     // For the following codes it is not necessary to show detailed error info.
     // WARNING. It is always necessary to check for this type when displaying error
@@ -117,15 +119,18 @@ struct FbSrsType
     ~FbSrsType () { }
 };
 
-
-struct FBField // see NextGISWeb fields description syntax
-{
-    FbDataType *datataype;
-    QString display_name;
-    FBField () { datataype = NULL; }
-    FBField (FbDataType *dt, QString dn)
+// Main metadata structures.
+struct FBField
+{ // see NextGISWeb fields description syntax
+     FbDataType *datataype;
+     QString display_name;
+     FBField () { datataype = NULL; }
+     FBField (FbDataType *dt, QString dn)
         { datataype = dt; display_name = dn; }
-    //~FBFieldDescr();
+     //~FBFieldDescr();
+     bool isEqual (FBField other) // the same as operator ==
+        { return other.datataype == datataype
+                && other.display_name == display_name; }
 };
 struct FBNgwConnection
 {
@@ -160,12 +165,8 @@ class FBProject: public QObject
 
     public: // static global members
 
-     //static QMap<QString,FBDataType> DATA_TYPES; // see NextGISWeb types syntax
-     //static QMap<QString,FBGeomType> GEOM_TYPES; // the names must be unique => key
-     //static QMap<int,FBSrsType> SRS_TYPES; // int because of NGW SRS syntax
-
-     // General lists of types correspondance. Filled in init() method.
-     // WARNING. Only for reading.
+     // General lists of types correspondance.
+     // WARNING. Only for reading. Define new types in init() method.
      static QList<FbGeomType*> GEOM_TYPES;
      static QList<FbDataType*> DATA_TYPES;
      static QList<FbSrsType*> SRS_TYPES;
@@ -177,8 +178,6 @@ class FBProject: public QObject
 
      static QString getProgVersionStr ();
 
-     //static bool isGeomTypeSupported (QString strGeomType);
-     //static bool isDataTypeSupported (QString strDataType);
      static FbGeomType *findGeomTypeByNgw (QString aliasNgw);
      static FbGeomType *findGeomTypeByGdal (OGRwkbGeometryType aliasGdal);
      static FbDataType *findDataTypeByNgw (QString aliasNgw);
@@ -201,10 +200,11 @@ class FBProject: public QObject
      static Json::Value readMeta (QString ngfpFullPath);
      static bool checkData (QString ngfpFullPath);
      void resetFields (QMap<QString,FBField> fields) { this->fields = fields; }
-     void updateFieldsDeleted (QSet<QString> fieldsDeleted);
+     void expandFieldsDeleted (QSet<QString> fieldsDeleted);
 
      // info
      Json::Value getJsonMetadata ();
+     bool wasInited () { return isInited; }
      bool wasFirstSaved ();
      QString getCurrentNgfpPath () { return strNgfpPath; }
      bool isSaveRequired ();
@@ -225,7 +225,6 @@ class FBProject: public QObject
 
     protected: // fields available for all project types
      
-
      bool isInited; // whether the project had been already created or opened. If the
                     // project is inited - it MUST HAVE ALL ITS METADATA SET
      // Current state and link to the disk representation - i.e. ngfp file.
@@ -241,7 +240,7 @@ class FBProject: public QObject
      FbSrsType *srs;
      QString version;
 
-     QSet<QString> fieldsDeleted; // keynames of fields are stored
+     QSet<QString> fieldsDeleted; // keynames of fields
 
     private: // methods with common actions
 
@@ -288,7 +287,7 @@ class FBProjectNgw: public FBProjectGDAL
                    QString strPass, int nId, Json::Value jsonMeta);
      ~FBProjectNgw ();
      FBErr create (QString anyPath);
-    protected:
+    private:
      Json::Value jsonTempMeta; // only for creation step
 };
 

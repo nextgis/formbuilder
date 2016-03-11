@@ -34,6 +34,7 @@ QList<FbSrsType*> FBProject::SRS_TYPES;
 
 QString FBProject::CUR_ERR_INFO = "";
 
+
 void FBProject::init ()
 {
     // We need to register enum type for passing it as a parameter of signal/slot
@@ -427,7 +428,7 @@ bool FBProject::checkData (QString ngfpFullPath)
 }
 
 
-void FBProject::updateFieldsDeleted (QSet<QString> fieldsDeleted)
+void FBProject::expandFieldsDeleted (QSet<QString> fieldsDeleted)
 {
     this->fieldsDeleted.unite(fieldsDeleted);
 }
@@ -704,7 +705,10 @@ FBErr FBProject::modifyFieldsOfLayer (OGRLayer *layer)
             QByteArray ba = (*it).toUtf8();
             int index = layer->FindFieldIndex(ba.data(),TRUE);
             if (index == -1)
+            {
+                ++it;
                 continue; // means that the deleted field was created in program
+            }
             if (layer->DeleteField(index) != OGRERR_NONE)
             {
                 FBProject::CUR_ERR_INFO = QObject::tr("Unable to delete field in"

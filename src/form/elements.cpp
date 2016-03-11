@@ -38,12 +38,12 @@ FBElemInput::FBElemInput (FBFactory *fctPtr):
     attrs.insert(attrFieldPtr);
 }
 
-void FBElemInput::updateFields (QStringList fieldsKeyNames)
+void FBElemInput::updateFields (QStringList fieldsKeyNames) // STATIC
 {
-    attrFieldPtr->updateValues(fieldsKeyNames);
+    FBAttrField::updateValues(fieldsKeyNames);
 }
 
-void FBElemInput::resetSelectedFields ()
+void FBElemInput::resetSelectedField (QString keyname) // keyname unused here
 {
     attrFieldPtr->resetValue();
 }

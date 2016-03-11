@@ -302,12 +302,13 @@ class FB: public QWidget
     private: // methods
 
      // form
-     static void updateElemForApp (FBElem* elem, FBProject *project, FBForm *form,
-                                   FBScreen *screen);
+     void resetSelectedFieldsForElem (FBElem* elem, QSet<QString> allFieldsToReset);
 
      // settings
      void updateSettings ();
-     QString getSettingLastPath ();
+     QString getLastPathProjectfile ();
+     QString getLastPathShapefile ();
+     void getLastPathNgw (QString &url, QString &login);
 
      // conversions
      QString getErrStr (FBErr err);
@@ -315,8 +316,8 @@ class FB: public QWidget
 
      // gui
      FBForm *createForm();
-     QToolButton *addTopMenuButton (QWidget *parentTab, QString imgPath,
-                           QString name, QString description, bool small=false);
+     QToolButton *addTopMenuButton (QWidget *parentTab, QString imgPath, QString name,
+           QString description, bool isSmall=false, bool withCaption=false);
      void addTopMenuSplitter (QWidget *parentTab);
      QComboBox *addTopMenuCombo(QWidget *parentTab, QString caption,
                      QStringList values);
