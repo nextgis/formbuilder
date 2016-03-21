@@ -12,6 +12,10 @@ Questions?
 * GIS-Lab Forum (with discussion, Ru): http://gis-lab.info/forum/viewtopic.php?f=14&t=19303
 * OSM Forum (with discussion, Ru): http://forum.openstreetmap.org/viewtopic.php?id=52131
 
+License
+-------------
+This program is licensed under GNU GPL v2 or any later version
+
 Commercial support
 ----------
 Need to fix a bug or add a feature to NextGIS FormBuilder? We provide custom development and support for this software. [Contact us](http://nextgis.ru/en/contact/) to discuss options!
