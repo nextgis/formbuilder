@@ -37,7 +37,7 @@ void FBFactory::initAll (QWidget *appWidget)
     fctsElem.append(new FBFactoryCombobox(appWidget));
     fctsElem.append(new FBFactoryDatetime());
 
-    // DEVELOPERS: register new factories here.
+    // FOR DEVELOPERS. Register new factories here.
     //...
 }
 

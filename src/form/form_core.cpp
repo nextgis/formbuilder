@@ -259,6 +259,7 @@ void FBForm::addElem (FBElem *newElem, FBElem *afterThisElem)
 {
     if (newElem == NULL)
         return;
+
     // TODO: do the check if the passed newElem is already the form's one.
 
     // Set the form as the parent widget, because the form must delete its
@@ -435,9 +436,14 @@ QList<FBElem*> FBForm::getSelectedElems()
 // The map will be void if there is no elems in a form.
 // WARNING. If elements still have their x,y = 0,0 (at the moment when they just have
 // been added to the form) the returned map will contain only last elem in the form,
-// so use this method only after the elements acquire their coordinates.
+// so use this method carefully - only after the elements acquire their proper coordinates.
 QMap<int,FBElem*> FBForm::getTopElems ()
 {
+    //this->updateGeometry();
+    //lvForm->update();
+    //this->update();
+    //this->repaint();
+
     QMap<int,FBElem*> map;
     for (int i = 0; i < lvForm->count(); ++i) // iterate all items in layout
     {
@@ -463,17 +469,29 @@ QList<FBElem*> FBForm::getAllElems ()
 {
     QList<FBElem*> elemsAll;
 
-    // Get top-level elems.
-    QMap<int,FBElem*> mapTopElems = this->getTopElems();
-    QMap<int,FBElem*>::const_iterator it = mapTopElems.constBegin();
-    while (it != mapTopElems.constEnd())
-    {
-        elemsAll.append(it.value());
-        ++it;
-    }
+    // Firstly get top-level elems.
 
-    // Get children for top-level elems.
-    //...
+//    QMap<int,FBElem*> mapTopElems = this->getTopElems();
+//    QMap<int,FBElem*>::const_iterator it = mapTopElems.constBegin();
+//    while (it != mapTopElems.constEnd())
+//    {
+//        elemsAll.append(it.value());
+//        ++it;
+//    }
+
+    for (int i = 0; i < lvForm->count(); ++i) // do not use getTopElems()
+    {
+        QWidget *w = lvForm->itemAt(i)->widget();
+        FBElem *e = qobject_cast<FBElem*>(w);
+        if (e != NULL)
+        {
+            elemsAll.append(e);
+
+            // Get children for top-level elems recursively.
+            //FBElemCompound *ec = qobject_cast<FBElemCompound*>(e);
+            //...
+        }
+    }
 
     return elemsAll;
 }
@@ -584,21 +602,17 @@ QList<FBElem*> FBForm::parseJson (Json::Value jsonVal) // STATIC
 // Will clear all elems in a form before adding new!
 bool FBForm::fromJson (Json::Value jsonVal)
 {
-    QList<FBElem*> list = this->parseJson(jsonVal);
+    QList<FBElem*> list = FBForm::parseJson(jsonVal);
     if (list.isEmpty())
         return false;
-
     this->clear();
-
     for (int i=0; i<list.size(); i++)
     {
         // Add each elem to the end of form.
         this->addElem(list[i]);
-
         // Change the appearance of elem, while its attrs have been changed.
         list[i]->updateAppearance();
     }
-
     return true;
 }
 
@@ -608,7 +622,7 @@ void FBForm::updateStyle (QString styleName)
     // Form itself has no style.
     // Update style for all form elements.
     QMap<int,FBElem*> elems = this->getTopElems(); // container elems will update their
-                                                  // child elems
+                                                   // child elems
     QMap<int,FBElem*>::const_iterator it = elems.constBegin();
     while (it != elems.constEnd())
     {

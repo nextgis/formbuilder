@@ -1,7 +1,7 @@
 #include "fb.h"
 #include <QApplication>
 
-int main(int argc, char *argv[])
+int main (int argc, char *argv[])
 {
     QApplication a(argc, argv);
     FB w;
@@ -11,6 +11,7 @@ int main(int argc, char *argv[])
     w.setFbStyle();
     w.show();
     int ret = a.exec();
+    FBFactory::deinitAll();
     FBProject::deinit();
     return ret;
 }

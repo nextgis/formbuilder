@@ -301,9 +301,6 @@ class FB: public QWidget
 
     private: // methods
 
-     // form
-     void resetSelectedFieldsForElem (FBElem* elem, QSet<QString> allFieldsToReset);
-
      // settings
      void updateSettings ();
      QString getLastPathProjectfile ();

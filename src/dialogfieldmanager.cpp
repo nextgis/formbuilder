@@ -159,13 +159,15 @@ void FBDialogFieldsManager::onAddClick ()
         return;
     }
 
+    //
+
     // Change unsupported symbols. The list is from here:
     // https://github.com/nextgis/android_maplib/blob/master/src/main/java/com/
     // nextgis/maplib/util/LayerUtil.java#L25
     QStringList forbiddenChars;
     forbiddenChars<<"@"<<"#"<<"%"<<"^"<<"&"<<"*"<<"!"<<"$"<<"("<<")";
-    // TODO: Also added/removed own unsupported symbols. Change this if unneeded.
-    //forbiddenChars<<":";
+    // Also added/removed own unsupported symbols.
+    // TODO: Change this if unneeded.
     forbiddenChars<<" ";
     bool wasRepl = false;
     for(int i=0; i<forbiddenChars.size(); i++)
@@ -175,8 +177,10 @@ void FBDialogFieldsManager::onAddClick ()
         newName.replace(forbiddenChars[i],"_");
     }
 
+    //
+
     // IMPORTANT TODO: we need to support only these symbols in fields names:
-    //"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890_"
+    //"abcdefghijklmnopqrstuvwxyz1234567890_"
 
 /*
     QRegExp expr("[A-Z][a-z][0-9]\_]");
@@ -196,7 +200,12 @@ void FBDialogFieldsManager::onAddClick ()
     // See if we already have such keyname.
     for (int i=0; i<tree->topLevelItemCount(); i++)
     {
-        if (tree->topLevelItem(i)->text(0) == newName)
+        // For NextGIS Mobile all letters in the field names will be converted
+        // to low-case. We check names case-insensitively here so there will be
+        // no several equal keynames (e.g. "ID" and "Id" will be converted to "id"
+        // both).
+        if (QString::compare(tree->topLevelItem(i)->text(0), newName,
+                             Qt::CaseInsensitive) == 0)
         {
             this->onShowMsgBox(tr("There is already a field with this keyname. Select"
                                   " another keyname!"), QMessageBox::Critical);

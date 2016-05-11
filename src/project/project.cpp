@@ -38,7 +38,7 @@ QString FBProject::CUR_ERR_INFO = "";
 void FBProject::init ()
 {
     // We need to register enum type for passing it as a parameter of signal/slot
-    // pair through the threads (in FB class).
+    // pair through the threads (e.g. in FB class).
     qRegisterMetaType<FBErr>("FBErr");
 
     // Settings for GDAL.
@@ -96,6 +96,7 @@ void FBProject::deinit ()
         delete DATA_TYPES[i];
     for (int i=0; i<SRS_TYPES.size(); i++)
         delete SRS_TYPES[i];
+
     // TODO: do we need to deregister/reset smth for GDAL at the end of the program?
 }
 
@@ -275,6 +276,9 @@ FBErr FBProject::saveAs (QString ngfpFullPath, Json::Value jsonForm)
 
     // 2. Create and fill form file.
     // The form is usually obtained from the screen of the main app gui.
+
+    // TODO: check the form correctness before writing! Use the common method for it/
+
     QString strFormPath = strTempPath + FB_PROJECT_FILENAME_FORM;
     QFile fileForm(strFormPath);
     err = FBProject::fillJsonFile(fileForm,jsonForm);
@@ -513,7 +517,7 @@ bool FBProject::isSaveRequired ()
 }
 
 
-// Puts into the passed parameters the component of the full path to the prpject
+// Puts into the passed parameters the component of the full path to the project
 // file. If the full path does not end with project file extension function
 // will put nothing.
 void FBProject::getPathComponents (QString strFullPath, QString &strPath,
@@ -790,7 +794,7 @@ FBErr FBProject::reprojectLayer (OGRLayer *layer)
                 {
                     OGRFeature::DestroyFeature(feat);
                     FBProject::CUR_ERR_INFO = QObject::tr("Unable to reproject"
-                               " geoometry of some feature in the new layer, while "
+                               " geometry of some feature in the new layer, while "
                                " trying to reproject new layer's data");
                     OCTDestroyCoordinateTransformation(
                                 (OGRCoordinateTransformationH)transform);

@@ -23,6 +23,7 @@
 #define PROJECT_H
 
 // GLOBAL NOTE:
+// TODO: add this to the CMake!
 // 1) Do not use GDAL < 2.1.0 in program at all because of vsizip bug, see
 // https://trac.osgeo.org/gdal/ticket/6005
 // 2) Do not use Qt < 5, at least because the QTemporaryDir class is used in
@@ -41,7 +42,7 @@
 #include "ogrsf_frmts.h"
 #include "json/json.h"
 
-// TODO: set these constants via build system:
+// TODO: add these constants to CMake:
 #define _FB_VERSION 2.0
 #define _FB_GDAL_DEBUG "D:/nextgis/formbuilder/gdal-log.txt" // uncomment for debugging
 #define _FB_INSTALLPATH_GDALDATA "/gdal_data"
@@ -68,6 +69,7 @@
 #define FB_JSON_META_PASSWORD "password"
 #define FB_JSON_META_URL "url"
 
+// Indexes for named items in the main array of types.
 #define FB_TYPEINDEX_DATA_STRING 0
 #define FB_TYPEINDEX_DATA_INTEGER 1
 #define FB_TYPEINDEX_SRS_WGS84 0
@@ -128,9 +130,12 @@ struct FBField
      FBField (FbDataType *dt, QString dn)
         { datataype = dt; display_name = dn; }
      //~FBFieldDescr();
-     bool isEqual (FBField other) // the same as operator ==
-        { return other.datataype == datataype
-                && other.display_name == display_name; }
+     bool isEqual (FBField other) // serve as operator ==
+     {
+         return (other.datataype == datataype
+           && QString::compare(other.display_name, display_name,
+                               Qt::CaseInsensitive) == 0);
+     }
 };
 struct FBNgwConnection
 {
@@ -153,20 +158,19 @@ struct FBNgwConnection
  * by the screen widget), but it is able to read/write them into project
  * file.
  *
- * Concrete project types differ from each other only in creation and first
- * saving capabilities, because other work with project is just working with
- * .ngfp files - which is always the same and implemented in base class.
+ * FOR DEVELOPERS: Concrete project types differ from each other only in
+ * creation and first-time saving capabilities, because other work with project
+ * is just working with .ngfp files - which is always the same and implemented
+ * in base class.
  */
 class FBProject: public QObject
 {
     Q_OBJECT // only for showing progress for long operations
 
-    //Q_ENUMS(FBErr)
-
     public: // static global members
 
      // General lists of types correspondance.
-     // WARNING. Only for reading. Define new types in init() method.
+     // WARNING. Only for reading outside. Define new types in init() method.
      static QList<FbGeomType*> GEOM_TYPES;
      static QList<FbDataType*> DATA_TYPES;
      static QList<FbSrsType*> SRS_TYPES;
@@ -240,7 +244,7 @@ class FBProject: public QObject
      FbSrsType *srs;
      QString version;
 
-     QSet<QString> fieldsDeleted; // keynames of fields
+     QSet<QString> fieldsDeleted; // keynames of fields stored
 
     private: // methods with common actions
 

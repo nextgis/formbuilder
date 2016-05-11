@@ -1,6 +1,6 @@
 /******************************************************************************
  * Project:  NextGIS Formbuilder
- * Purpose:  form definitions
+ * Purpose:  all core form definitions
  * Author:   Mikhail Gusev, gusevmihs@gmail.com
  ******************************************************************************
 *   Copyright (C) 2014-2016 NextGIS
@@ -19,8 +19,8 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
-#ifndef FORM_H
-#define FORM_H
+#ifndef FORM_CORE_H
+#define FORM_CORE_H
 
 #include <QWidget>
 #include <QVBoxLayout>
@@ -84,23 +84,24 @@ class FBFactory;
  * have the same attribute types, but with different display names and used for
  * different purposes.
  *
- * Each attribute must be able:
+ * Each attribute must be able to:
  * 1. Store its value;
  * 2. Return the QWidget so it can be possible for user to work with value (firstly
  * read and display, secondly write);
  * 3. Save/load self to/from JSON;
- * 4. (Optional) return its value (may be complex) so element, which is the owner
+ * 4. (Optionally) return its value (may be complex) so element, which is the owner
  * of this attr, can change its appearance.
  *
  * One attribute equals to one value in the project (in form.json of ngfp file).
  * That's why complex attribute (e.g. lists of values for Double-list elem) is
  * usually edited in complex way: with the help of special dialogues, which are
- * opened by pressing button in the attrs table.
+ * opened by pressing BUTTON in the attrs table.
  *
  * The getWidget() method must return a QWidget which is inited without parent. The
  * actual parent may be table in main app's GUI which will delete this widget self.
  *
- * For developers: add new attribute by subclassing from one of the FBAttrX classes.
+ * FOR DEVELOPERS: add new attribute by subclassing from one of the FBAttrX classes
+ * or FBAttr class.
  * WARNING. Each attribute must have a unique key name.
  */
 class FBAttr: public QObject
@@ -137,7 +138,7 @@ class FBAttr: public QObject
  * 3. Common way to convert itself to/from JSON: basically it is just a listing of
  * its attributes.
  *
- * For developers: add new element by subclassing one of the FBElemX classes.
+ * FOR DEVELOPERS: add new element by subclassing one of the FBElemX classes.
  * See FBFactory class how to add new element. Do not forget to put Q_OBJECT macro
  * to each FBElem class, while in FB it will be used for type casting for
  * implementing common actions for elems.
@@ -153,7 +154,6 @@ class FBElem: public QWidget
      virtual ~FBElem () { }
      virtual Json::Value toJson ();
      virtual bool fromJson (Json::Value jsonValue);
-     //virtual QList<QList<QPair<QString,FBAttr*> > > getAttrsLists ();
      QSet<FBAttr*> getAttrs () { return attrs; }
      FBFactory *getFctPtr () { return fctPtr; }
      QString getDisplayName ();
@@ -179,7 +179,7 @@ class FBElem: public QWidget
     
     protected: // fields
      FBFactory *fctPtr; // parent factory
-     QSet<FBAttr*> attrs; //QMap<QString,FBAttr*> mapAttrs;
+     QSet<FBAttr*> attrs;
      QVBoxLayout *lvMain; // store it for deleting style decorations & inner elems
 };
 
@@ -188,8 +188,8 @@ class FBElem: public QWidget
  * Insert widget.
  * Final helper class for elements movement.
  *
- * WARNING. FBInsertWidget class name will be used to determine widget type!
- * Do not change it.
+ * WARNING. FBInsertWidget class name will be used to determine widget type! Do
+ * not change it.
  * TODO: may be use other way to determine the Insert Widget, e.g. qobject_cast<>.
  */
 class FBInsertWidget: public QWidget 
@@ -207,7 +207,7 @@ class FBInsertWidget: public QWidget
 /**
  * Form.
  * Final form class. Form contains elements and provides the capability to
- * manage them by user using app events (via mouse).
+ * manage them by user, using app events (via mouse).
  *
  * Visually form is "transparent" and only its elements are rendered to the
  * screen. Technically form is a QWidget which contains elements in its layout
@@ -273,7 +273,7 @@ class FBForm: public QWidget
                     // form's elements structure has been changed and there is
                     // a need to save it
 
-     QVBoxLayout *lvForm;
+     QVBoxLayout *lvForm; // the layout of the form, i.e. the layout of this widget
 
      // global variables for elems manipulating
      FBElem *SELECTED; //QList<FBElem*> SELECTED;
@@ -289,7 +289,7 @@ class FBForm: public QWidget
  * The main purpose of factory is to create elems in a common way. Factory also stores
  * static data of the elems.
  *
- * For developers: create new FBElemX and its FBFactoryX implementations. After this
+ * FOR DEVELOPERS: create new FBElemX and its FBFactoryX implementations. After this
  * add FBFactoryX to static method initAll() to register it.
  * WARNING. Each element must have a unique key name.
  */
@@ -326,4 +326,4 @@ class FBFactory
 };
 
 
-#endif //FORM_H
+#endif //FORM_CORE_H

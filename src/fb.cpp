@@ -834,7 +834,22 @@ void FB::onFieldsManagerClick ()
             QList<FBElem*> elems = form->getAllElems();
             for (int i=0; i<elems.size(); i++)
             {
-                this->resetSelectedFieldsForElem(elems[i],deletedFields);
+                // This is only for Input elems.
+                FBElemInput *e = qobject_cast<FBElemInput*>(elems[i]);
+                if (e != NULL)
+                {
+                    // Get selected (for the other project) field of elem.
+                    // Some elements may have several Field attributes, so we try to
+                    // reset them all, if needed.
+                    QStringList selectedFields = e->getSelectedFields();
+                    for (int k=0; k<selectedFields.size(); k++)
+                    {
+                        if (deletedFields.contains(selectedFields[k]))
+                        {
+                            e->resetSelectedField(selectedFields[k]);
+                        }
+                    }
+                }
             }
         }
 
@@ -896,6 +911,7 @@ void FB::onImportControlsClick()
         FBErr err = projOther->open(strFullPath);
         if (err != FBErrNone)
         {
+            delete projOther;
             this->onShowErrorFull(tr("Unable to process selected project!"),err);
             return;
         }
@@ -909,33 +925,74 @@ void FB::onImportControlsClick()
             return;
         }
 
-        // We need to set to undefined selected fields to those elements, which
-        // have the fields selected not from current project.
-        // For that we firstly create a set of fields which does not occur both
-        // in selected and current projects and than call the common method to
-        // reset fields. So those fields which exist in both projects will not be
-        // reseted.
+        // Loaded Input elements now have other field bindings so we must reset
+        // them but excluding those fields which are valid for the current project.
+        // Firstly we form a list with the FULLY EQUAL fields from both prjects.
         QMap<QString,FBField> fieldsOther = projOther->getFields();
         delete projOther;
         QMap<QString,FBField> fieldsThis = project->getFields();
-        QSet<QString> notSameFields;
+        QSet<QString> fieldsSame;
         QMap<QString,FBField>::const_iterator it = fieldsThis.constBegin();
-        while (it != fieldsThis.constEnd())
-        {
-            // We check full fields equality.
-            QString keyname = it.key();
+        while (it != fieldsThis.constEnd()) // we are not interested in the fields
+        {                                    // of other project, so look through the
+            QString keyname = it.key();      // current project's fields
             FBField fieldThis = it.value();
             FBField fieldOther = fieldsOther.value(keyname);
-            if (!fieldThis.isEqual(fieldOther)) // will be compared with default-
+            if (fieldThis.isEqual(fieldOther)) // will be compared with default-
             {                                   // constructed field if there is no
-                notSameFields.insert(keyname);   // such field in other dataset
+                fieldsSame.insert(keyname);     // such field in other project
             }
             ++it;
+            // NOTE: with such approach for example if fieldsThis has the field with
+            // "Id" keyname and at the same time fieldsOther has the field with "ID"
+            // keyname - these fields will be regarded unequal because QMap::value() of
+            // fieldsOther will not find "Id" key.
+            // Currently we allow such behaviour, but this is a not critical error: all
+            // fields' keynames must be compared case-insensitively, so "ID" and
+            // "Id" must be regarded as equal. See Field's dialog class why we do so.
+            // TODO: to solve this problem: remove the QMap::value() search and
+            // add manul looking for same keynames in a loop with case-insensitive
+            // check.
         }
+
+        // Finally reset all field bindings except the equal fields.
+        QSet<QString> fieldsReseted;
         QList<FBElem*> elems = form->getAllElems();
         for (int i=0; i<elems.size(); i++)
         {
-            this->resetSelectedFieldsForElem(elems[i],notSameFields);
+            // This is only for Input elems.
+            FBElemInput *e = qobject_cast<FBElemInput*>(elems[i]);
+            if (e != NULL)
+            {
+                // Get selected (for the other project) field of elem.
+                // Some elements may have several Field attributes, so we try to
+                // reset them all, if needed.
+                QStringList selectedFields = e->getSelectedFields();
+                for (int k=0; k<selectedFields.size(); k++)
+                {
+                    if (!fieldsSame.contains(selectedFields[k]))
+                    {
+                        e->resetSelectedField(selectedFields[k]);
+                        fieldsReseted.insert(selectedFields[k]);
+                    }
+                }
+            }
+        }
+
+        // Report to user which fields have been reseted.
+        if (!fieldsReseted.isEmpty())
+        {
+            QString strFields = "";
+            QSet<QString>::const_iterator it = fieldsReseted.constBegin();
+            while (it != fieldsReseted.constEnd())
+            {
+                strFields = strFields + "[" + *it + "], ";
+                ++it;
+            }
+            strFields.chop(2); // remove last ", " ending
+            this->onShowInfo(tr("The following selected fields of the imported"
+                                " elements have been reset, while they do not"
+                                " exist in the current project: ") + strFields);
         }
 
         // Update right menu so the comboboxes with lists of fields of currently
@@ -972,7 +1029,32 @@ void FB::onUpdateDataClick ()
 
     if (dialog.exec())
     {
+        QString pathShapefile;
+        QStringList sPaths = dialog.selectedFiles();
+        pathShapefile = sPaths[0];
 
+        // Initialize project from selected Shapefile, check all data/metadata
+        // correctness.
+        FBProjectShapefile *projOther = new FBProjectShapefile();
+        FBErr err = projOther->create(pathShapefile);
+        if (err != FBErrNone)
+        {
+            delete projOther;
+            this->onShowErrorFull(tr("Unable to init project from selected"
+                                     " Shapefile! "), err);
+            return;
+        }
+
+        // Compare field lists of two projects and if they deffer - return error.
+        QMap<QString,FBField> fieldsOther = projOther->getFields();
+        QMap<QString,FBField> fieldsThis = project->getFields();
+
+
+
+
+
+
+        delete projOther;
     }
 }
 
@@ -1026,7 +1108,6 @@ void FB::onShowError (QString msg)
 int FB::onShowBox (QString msg, QString caption)
 {
     QMessageBox msgBox(this);
-    msgBox.setStyleSheet(""); // TODO: why does not work?
     msgBox.setText(msg);
     msgBox.setWindowTitle(caption);
     QMessageBox::Icon icon;
@@ -1126,29 +1207,6 @@ void FB::onSaveAnyEnded (FBErr err)
 /*                                                                          */
 /****************************************************************************/
 
-// For elem in the form with "Field attributes" set to undefined required fields,
-// if are any.
-void FB::resetSelectedFieldsForElem (FBElem *elem, QSet<QString> allFieldsToReset)
-{
-    // Select only "Input elements", because only them contain "Field
-    // attributes".
-    FBElemInput *e = qobject_cast<FBElemInput*>(elem);
-    if (e != NULL)
-    {
-        // Some elements may have several Field attributes, so we try to reset
-        // them all, if needed.
-        QStringList selectedFields = e->getSelectedFields();
-        for (int k=0; k<selectedFields.size(); k++)
-        {
-            if (allFieldsToReset.contains(selectedFields[k]))
-            {
-                e->resetSelectedField(selectedFields[k]);
-            }
-        }
-    }
-}
-
-
 void FB::updateSettings ()
 {
 
@@ -1227,7 +1285,7 @@ QToolButton *FB::addTopMenuButton (QWidget *parentTab, QString imgPath, QString 
     but->setFont(QFont(FB_GUI_FONTTYPE, FB_GUI_FONTSIZE_SMALL));
     but->setToolTip(description);
     but->setCursor(Qt::PointingHandCursor);
-    // TODO: Make real semitransparent style (~20%).
+    // TODO: Make real semitransparent style.
     but->setStyleSheet("QToolButton"
       "{border: none; color: "+QString(FB_COLOR_DARKGREY)+";}"
       "QToolButton:hover"
@@ -1238,13 +1296,11 @@ QToolButton *FB::addTopMenuButton (QWidget *parentTab, QString imgPath, QString 
     if (isSmall)
     {
         but->setIconSize(QSize(60,60));
-        //but->setMaximumWidth(45);
         but->setFixedSize(35,35);
     }
     else
     {
         but->setIconSize(QSize(60,60));
-        //but->setMaximumWidth(90);
         but->setFixedSize(65,65);
     }
 
@@ -1253,15 +1309,6 @@ QToolButton *FB::addTopMenuButton (QWidget *parentTab, QString imgPath, QString 
 
     if (withCaption)
     {
-        /*
-        QLabel *lab = new QLabel(parentTab);
-        lab->setText(name);
-        lab->setAlignment(Qt::AlignCenter);
-        lab->setFont(QFont(FB_GUI_FONTTYPE,FB_GUI_FONTSIZE_SMALL));
-        lab->setStyleSheet("QLabel {color: "+QString(FB_COLOR_MEDIUMGREY)+"}");
-        lab->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Fixed);
-        lay->addWidget(lab);
-        */
         but->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
         but->setFont(QFont(FB_GUI_FONTTYPE,FB_GUI_FONTSIZE_SMALL));
         but->setIconSize(QSize(43,43));
@@ -1537,6 +1584,7 @@ void FB::updateRightMenu ()
                 itemAlias->setFont(font);
             }
             QWidget *widget = (*it)->getWidget();
+            widget->setStyleSheet("QWidget{background: white;}");
             table->setRowCount(table->rowCount()+1);
             table->setItem(table->rowCount()-1,0,itemAlias);
             table->setCellWidget(table->rowCount()-1,1,widget);
@@ -1560,7 +1608,7 @@ void FB::updateRightMenu ()
 
     else // size > 1
     {
-        // Show string that many elems selected.
+        // Show string that many elems are selected.
         labRight->setStyleSheet("QLabel{border: none;color: "
                                 +QString(FB_COLOR_LIGHTBLUE)+";}");
         labRight->setText(tr("Elements selected: ")
@@ -1768,8 +1816,8 @@ void FB::saveProjectCommonActions (QString ngfpFullPath)
     // 1. From Qt docs: QProgressDialog pr(...); pr->show();
     // pr.setWindowModality(Qt::WindowModal);
     // 2. QApplication::processEvents(QEventLoop::ExcludeUserInputEvents) as addition
-    // to 1.
-    // 3. Blocking the window or all widgets via setEnabled(false);
+    // to 1;
+    // 3. Blocking the window or all widgets via setEnabled(false).
 
     dlgProgress->setWindowTitle(tr("Saving ..."));
     FBThreadSaveAs *thread = new FBThreadSaveAs(this, ngfpFullPath, project,
