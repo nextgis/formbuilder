@@ -36,6 +36,7 @@
 #include <QToolButton>
 #include <QProgressBar>
 #include <QLineEdit>
+#include <QTextEdit>
 
 #include <QDialog>
 #include <QFileDialog>
@@ -219,7 +220,10 @@ class FBDialogProgress: public QDialog
  */
 class FBDialogAbout: public QDialog
 {
-
+    Q_OBJECT
+    public:
+     FBDialogAbout(QWidget *parent);
+     ~FBDialogAbout();
 };
 
 
@@ -283,10 +287,10 @@ class FB: public QWidget
      void onFieldsManagerClick ();
      void onImportControlsClick ();
      void onUpdateDataClick ();
-     void onSettingLanguageSelect ();
-     void onAboutGraphicsClick ();
      void onLeftArrowClick ();
      void onRightArrowClick ();
+     void onLanguageSelect (int index);
+     void onAboutGraphicsClick ();
 
     private slots: // other slots
 
@@ -311,13 +315,18 @@ class FB: public QWidget
      QString getErrStr (FBErr err);
      QString getGroupStr (FBElemtype type);
 
+     // gui top menu
+     QToolButton *addTopMenuButton (QWidget *parentTab, QString imgPath, QString name,
+                                    QString description, bool isSmall=false,
+                                    bool withCaption=false, bool atTheEnd=false);
+     void addTopMenuSplitter (QWidget *parentTab);
+     void addTopMenuSpacer (QWidget *parentTab);
+     QComboBox *addTopMenuCombo (QWidget *parentTab, QString caption,
+                     QStringList values);
+     QLabel *addTopMenuLabel (QWidget *parentTab, QString text, QString caption);
+
      // gui
      FBForm *createForm();
-     QToolButton *addTopMenuButton (QWidget *parentTab, QString imgPath, QString name,
-           QString description, bool isSmall=false, bool withCaption=false);
-     void addTopMenuSplitter (QWidget *parentTab);
-     QComboBox *addTopMenuCombo(QWidget *parentTab, QString caption,
-                     QStringList values);
      void flipLeftMenu (bool isFull);
      void flipRightMenu (bool isFull);
      QTableWidget* addRightMenuTable ();
@@ -342,6 +351,18 @@ class FB: public QWidget
     private: // fields
 
      bool isInited;
+
+     // Supported languages in program.
+     struct FBLangInfo
+     {
+         QString name;
+         QString code;
+         QString imgFlagPath;
+         QString imgNextgisPath;
+         QString offLink;
+     };
+     QList<FBLangInfo> strsLanguages; // the order is important
+     int indexLang; // index in this list, default is 0 = English
 
      // Current project of the app.
      // TODO: For future here can be an array of projects - but that requires changes
@@ -381,6 +402,8 @@ class FB: public QWidget
      QToolButton *toolbImportControls;
      QToolButton *toolbUpdateData;
      QToolButton *toolbFieldManager;
+     QComboBox *comboLang;
+     QToolButton *toolbAboutGraphics;
      
      // left menu
      QWidget *wMenuLeft;

@@ -38,7 +38,7 @@ QString FBProject::CUR_ERR_INFO = "";
 // General method to "set environment".
 // Call at the begining of the program to register all general types, initialize
 // GDAL, etc.
-void FBProject::initEnv ()
+void FBProject::initEnv () // STATIC
 {
     // We need to register enum type for passing it as a parameter of signal/slot
     // pair through the threads (e.g. in FB class).
@@ -91,7 +91,7 @@ void FBProject::initEnv ()
 }
 
 
-void FBProject::deinitEnv ()
+void FBProject::deinitEnv () // STATIC
 {
     for (int i=0; i<GEOM_TYPES.size(); i++)
         delete GEOM_TYPES[i];
@@ -104,34 +104,34 @@ void FBProject::deinitEnv ()
 }
 
 
-QString FBProject::getProgVersionStr ()
+QString FBProject::getProgVersionStr () // STATIC
 {
     return QString::number(_FB_VERSION,'f',1);
 }
 
 
-FbGeomType *FBProject::findGeomTypeByNgw (QString aliasNgw)
+FbGeomType *FBProject::findGeomTypeByNgw (QString aliasNgw) // STATIC
 {
     for (int i=0; i<GEOM_TYPES.size(); i++)
         if (GEOM_TYPES[i]->aliasNgw == aliasNgw)
             return GEOM_TYPES[i];
     return NULL;
 }
-FbGeomType *FBProject::findGeomTypeByGdal (OGRwkbGeometryType aliasGdal)
+FbGeomType *FBProject::findGeomTypeByGdal (OGRwkbGeometryType aliasGdal) // STATIC
 {
     for (int i=0; i<GEOM_TYPES.size(); i++)
         if (GEOM_TYPES[i]->aliasGdal == aliasGdal)
             return GEOM_TYPES[i];
     return NULL;
 }
-FbDataType *FBProject::findDataTypeByNgw (QString aliasNgw)
+FbDataType *FBProject::findDataTypeByNgw (QString aliasNgw) // STATIC
 {
     for (int i=0; i<DATA_TYPES.size(); i++)
         if (DATA_TYPES[i]->aliasNgw == aliasNgw)
             return DATA_TYPES[i];
     return NULL;
 }
-FbDataType *FBProject::findDataTypeByGdal (OGRFieldType aliasGdal)
+FbDataType *FBProject::findDataTypeByGdal (OGRFieldType aliasGdal) // STATIC
 {
     for (int i=0; i<DATA_TYPES.size(); i++)
         if (DATA_TYPES[i]->aliasMainGdal == aliasGdal
@@ -139,7 +139,7 @@ FbDataType *FBProject::findDataTypeByGdal (OGRFieldType aliasGdal)
             return DATA_TYPES[i];
     return NULL;
 }
-FbSrsType *FBProject::findSrsTypeByNgw (int numberNgw)
+FbSrsType *FBProject::findSrsTypeByNgw (int numberNgw) // STATIC
 {
     for (int i=0; i<SRS_TYPES.size(); i++)
         if (SRS_TYPES[i]->numberNgw == numberNgw)
@@ -147,6 +147,12 @@ FbSrsType *FBProject::findSrsTypeByNgw (int numberNgw)
     return NULL;
 }
 
+
+/****************************************************************************/
+/*                                                                          */
+/*                             FBProject                                    */
+/*                                                                          */
+/****************************************************************************/
 
 FBProject::~FBProject ()
 {

@@ -33,6 +33,22 @@ FB::~FB()
 FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
 {
     isInited = false;
+
+    FBLangInfo lang;
+    lang.name = "English";
+    lang.code = "en_GB";
+    lang.imgFlagPath = "";
+    lang.imgNextgisPath = ":/img/nextgis_en.png";
+    lang.offLink = "http://nextgis.ru/en/nextgis-formbuilder";
+    strsLanguages.append(lang);
+    lang.name = tr("Russian");
+    lang.code = "ru_RU";
+    lang.imgFlagPath = "";
+    lang.imgNextgisPath = ":/img/nextgis_ru.png";
+    lang.offLink = "http://nextgis.ru/nextgis-formbuilder";
+    strsLanguages.append(lang);
+    indexLang = 0;
+
     project = NULL;
 
     this->setObjectName("FB"); // at least for style sheets
@@ -92,7 +108,7 @@ void FB::initGui ()
     laySettings->addStretch();
 
     wAbout = new QWidget();
-    tabMenuTop->addTab(wAbout, tr(" About "));
+    tabMenuTop->addTab(wAbout, tr("  About  "));
     QHBoxLayout *layAbout = new QHBoxLayout(wAbout);
     layAbout->setContentsMargins(4,4,4,4);
     layAbout->addStretch();
@@ -179,8 +195,43 @@ void FB::initGui ()
                      this, SLOT(onUpdateDataClick()));
 
     // Settings.
+    this->addTopMenuSpacer(wSettings);
+    QStringList strsLangs;
+    for (int i=0; i<strsLanguages.size(); i++)
+    {
+        strsLangs.append(strsLanguages[i].name);
+    }
+    comboLang = addTopMenuCombo(wSettings, tr("Language"), strsLangs);
+    QObject::connect(comboLang, SIGNAL(activated(int)),
+                     this, SLOT(onLanguageSelect(int)));
 
     // About.
+    this->addTopMenuSpacer(wAbout);
+    this->addTopMenuLabel(wAbout, FBProject::getProgVersionStr(),
+                          tr("Version of\nprogram"));
+    QLabel *labAboutImg = new QLabel(wAbout);
+    QPixmap pixAbout = QPixmap(strsLanguages[indexLang].imgNextgisPath);
+    labAboutImg->setPixmap(pixAbout);
+    labAboutImg->setAlignment(Qt::AlignCenter);
+    this->addTopMenuSpacer(wAbout);
+    QLabel *labAboutUrl = new QLabel(wAbout);
+    labAboutUrl->setAlignment(Qt::AlignCenter);
+    labAboutUrl->setText(QString("<a href=\"") + strsLanguages[indexLang].offLink
+                   + QString("\">") + tr("Official page") + "</a>");
+    labAboutUrl->setTextFormat(Qt::RichText);
+    labAboutUrl->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    labAboutUrl->setOpenExternalLinks(true);
+    labAboutUrl->setFont(QFont(FB_GUI_FONTTYPE,FB_GUI_FONTSIZE_SMALL));
+    QVBoxLayout *lvAbout2 = new QVBoxLayout();
+    lvAbout2->setContentsMargins(0,0,0,0);
+    lvAbout2->setSpacing(5);
+    lvAbout2->addWidget(labAboutImg);
+    lvAbout2->addWidget(labAboutUrl);
+    layAbout->insertLayout(layAbout->count()-1,lvAbout2);
+    toolbAboutGraphics = this->addTopMenuButton(wAbout,":img/cc.png",
+              tr("Graphics"),tr("Authors of images\nin program"), false, true, true);
+    QObject::connect(toolbAboutGraphics, SIGNAL(clicked()),
+                     this, SLOT(onAboutGraphicsClick()));
 
     //----------------------------------------------------------------------
     //                              Left menu
@@ -1071,20 +1122,6 @@ void FB::onUpdateDataClick ()
 }
 
 
-// LANGUAGE SELECT
-void FB::onSettingLanguageSelect ()
-{
-
-}
-
-
-// ABOUT CLICK
-void FB::onAboutGraphicsClick ()
-{
-
-}
-
-
 // ARROWS CLICK
 void FB::onLeftArrowClick ()
 {
@@ -1093,6 +1130,25 @@ void FB::onLeftArrowClick ()
 void FB::onRightArrowClick ()
 {
     this->flipRightMenu(!labRight->isVisible());
+}
+
+
+// LANGUAGE SELECT
+void FB::onLanguageSelect (int index)
+{
+    if (index == indexLang)
+        return;
+    indexLang = index;
+    // TODO: propose user to exit the application?
+    this->onShowInfo(tr("To change language please restart the application"));
+}
+
+
+// ABOUT CLICK
+void FB::onAboutGraphicsClick ()
+{
+    FBDialogAbout dialog(this);
+    dialog.exec();
 }
 
 
@@ -1215,7 +1271,7 @@ void FB::onSaveAnyEnded (FBErr err)
 
 /****************************************************************************/
 /*                                                                          */
-/*                         Private methods                                  */
+/*                            Settings                                      */
 /*                                                                          */
 /****************************************************************************/
 
@@ -1236,6 +1292,12 @@ void FB::getLastPathNgw (QString &url, QString &login)
 
 }
 
+
+/****************************************************************************/
+/*                                                                          */
+/*                            Convertions                                   */
+/*                                                                          */
+/****************************************************************************/
 
 // Convert main error code to string.
 QString FB::getErrStr (FBErr err)
@@ -1274,22 +1336,18 @@ QString FB::getGroupStr (FBElemtype type)
 }
 
 
-// Common actions for form creation.
-FBForm *FB::createForm ()
-{
-    FBForm *form = new FBForm();
-    QObject::connect(form, SIGNAL(elemPressed()),
-                     this, SLOT(onElemSelect()));
-    return form;
-}
+/****************************************************************************/
+/*                                                                          */
+/*                            Top menu                                      */
+/*                                                                          */
+/****************************************************************************/
 
-
-// Create new button for any tab of the top menu.
+// Create and add a new button for any tab of the top menu.
 QToolButton *FB::addTopMenuButton (QWidget *parentTab, QString imgPath, QString name,
-         QString description, bool isSmall, bool withCaption)
+         QString description, bool isSmall, bool withCaption, bool atTheEnd)
 {
     QToolButton *but = new QToolButton(parentTab);
-    QHBoxLayout *hlParent = (QHBoxLayout*)parentTab->layout();
+    QHBoxLayout *lhParent = (QHBoxLayout*)parentTab->layout();
     but->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
     but->setAutoRaise(true);
     but->setIcon(QIcon(imgPath));
@@ -1327,13 +1385,20 @@ QToolButton *FB::addTopMenuButton (QWidget *parentTab, QString imgPath, QString 
         but->setIconSize(QSize(43,43));
     }
 
-    hlParent->insertLayout(hlParent->count()-1,lay); // last is stretch item.
+    if (atTheEnd)
+    {
+        lhParent->addLayout(lay);
+    }
+    else
+    {
+        lhParent->insertLayout(lhParent->count()-1,lay); // last is stretch item.
+    }
 
     return but;
 }
 
 
-// Create new combobox with caption for any tab of the top menu.
+// Create and add a new combobox with caption for any tab of the top menu.
 QComboBox *FB::addTopMenuCombo (QWidget *parentTab, QString caption,
                                 QStringList values)
 {
@@ -1353,19 +1418,19 @@ QComboBox *FB::addTopMenuCombo (QWidget *parentTab, QString caption,
     lab->setStyleSheet("QLabel {color: "+QString(FB_COLOR_DARKGREY)+"}");
     lab->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Fixed);
 
-    QHBoxLayout *hlParent = (QHBoxLayout*)parentTab->layout();
+    QHBoxLayout *lhParent = (QHBoxLayout*)parentTab->layout();
     QVBoxLayout *vl = new QVBoxLayout();
     vl->setContentsMargins(0,0,0,0);
     vl->setSpacing(10);
     vl->addWidget(combo);
     vl->addWidget(lab);
-    hlParent->insertLayout(hlParent->count()-1,vl);
+    lhParent->insertLayout(lhParent->count()-1,vl);
 
     return combo;
 }
 
 
-// Create splitter vertical line for any tab in the top menu.
+// Create and add a splitter vertical line for any tab in the top menu.
 void FB::addTopMenuSplitter (QWidget *parentTab)
 {
     QWidget *wid = new QWidget(wView);
@@ -1373,8 +1438,56 @@ void FB::addTopMenuSplitter (QWidget *parentTab)
     wid->setFixedWidth(1);
     wid->setStyleSheet("QWidget {background-color: "
                              +QString(FB_COLOR_LIGHTMEDIUMGREY)+"}");
-    QHBoxLayout *hlParent = (QHBoxLayout*)parentTab->layout();
-    hlParent->insertWidget(hlParent->count()-1,wid); // last is stretch item.
+    QHBoxLayout *lhParent = (QHBoxLayout*)parentTab->layout();
+    lhParent->insertWidget(lhParent->count()-1,wid); // last is stretch item.
+}
+
+
+// Create and add a void area for any tab in the top menu.
+void FB::addTopMenuSpacer (QWidget *parentTab)
+{
+    QHBoxLayout *lhParent = (QHBoxLayout*)parentTab->layout();
+    lhParent->insertSpacing(lhParent->count()-1,10); // last is stretch item.
+}
+
+
+// Create and add a label for any tab in the top menu.
+QLabel *FB::addTopMenuLabel(QWidget *parentTab, QString text, QString caption)
+{
+    QLabel *lab1 = new QLabel(parentTab);
+    lab1->setText(caption);
+    lab1->setAlignment(Qt::AlignCenter);
+    lab1->setFont(QFont(FB_GUI_FONTTYPE,FB_GUI_FONTSIZE_SMALL));
+    lab1->setStyleSheet("QLabel {color: " + QString(FB_COLOR_DARKGREY) + "}");
+    QLabel *lab2 = new QLabel(parentTab);
+    lab2->setText(text);
+    lab2->setAlignment(Qt::AlignCenter);
+    lab2->setFont(QFont(FB_GUI_FONTTYPE, 18));
+    lab2->setStyleSheet("QLabel {color: " + QString(FB_COLOR_VERYDARKGREY) + "}");
+    QVBoxLayout *lv = new QVBoxLayout();
+    lv->setContentsMargins(0,0,0,0);
+    lv->setSpacing(5);
+    lv->addWidget(lab2);
+    lv->addWidget(lab1);
+    QHBoxLayout *lhParent = (QHBoxLayout*)parentTab->layout();
+    lhParent->insertLayout(lhParent->count()-1,lv); // last is stretch item.
+    return lab1;
+}
+
+
+/****************************************************************************/
+/*                                                                          */
+/*                               GUI                                        */
+/*                                                                          */
+/****************************************************************************/
+
+// Common actions for form creation.
+FBForm *FB::createForm ()
+{
+    FBForm *form = new FBForm();
+    QObject::connect(form, SIGNAL(elemPressed()),
+                     this, SLOT(onElemSelect()));
+    return form;
 }
 
 
@@ -1710,6 +1823,12 @@ void FB::updateMenuView ()
 }
 
 
+/****************************************************************************/
+/*                                                                          */
+/*                             Screen                                       */
+/*                                                                          */
+/****************************************************************************/
+
 // Some common GUI actions: after change screen settings.
 // Call only in according methods.
 void FB::afterPickScreen (QToolButton *toolbDown)
@@ -1784,6 +1903,12 @@ void FB::updateScreen ()
     wScreen->setState(index);
 }
 
+
+/****************************************************************************/
+/*                                                                          */
+/*                        Project common actions                            */
+/*                                                                          */
+/****************************************************************************/
 
 // Common steps for all new projects creation methods.
 // Call only in according methods.

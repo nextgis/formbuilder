@@ -43,6 +43,7 @@ set(APP_NAME fb)
 
 set(PROJECT_SOURCES
 jsoncpp.cpp
+dialogabout.cpp
 dialognewvoid.cpp
 dialogngw.cpp
 dialogfieldmanager.cpp
