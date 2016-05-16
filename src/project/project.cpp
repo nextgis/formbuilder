@@ -35,7 +35,10 @@ QList<FbSrsType*> FBProject::SRS_TYPES;
 QString FBProject::CUR_ERR_INFO = "";
 
 
-void FBProject::init ()
+// General method to "set environment".
+// Call at the begining of the program to register all general types, initialize
+// GDAL, etc.
+void FBProject::initEnv ()
 {
     // We need to register enum type for passing it as a parameter of signal/slot
     // pair through the threads (e.g. in FB class).
@@ -88,7 +91,7 @@ void FBProject::init ()
 }
 
 
-void FBProject::deinit ()
+void FBProject::deinitEnv ()
 {
     for (int i=0; i<GEOM_TYPES.size(); i++)
         delete GEOM_TYPES[i];
@@ -158,16 +161,29 @@ FBProject::FBProject ()
                                              // first save layer's data will be
                                              // transformed to it
     geometry_type = NULL;
+
+    fieldsModified = false;
 }
 
-FBErr FBProject::open (QString ngfpFullPath)
+
+/****************************************************************************/
+/*                                                                          */
+/*                             Main I/O methods                             */
+/*                                                                          */
+/****************************************************************************/
+
+// READ
+FBErr FBProject::read (QString ngfpFullPath)
 {
     if (isInited)
         return FBErrAlreadyInited;
 
+    // Read 3 main components of project file.
     Json::Value jsonMeta = this->readMeta(ngfpFullPath);
     Json::Value jsonForm = this->readForm(ngfpFullPath);
-    bool hasData = this->checkData(ngfpFullPath);
+    bool hasData = this->readData(ngfpFullPath);
+    // TODO: read additional components: images.
+    //...
 
     // The main checks if JSON files exist and are correct.
     if (jsonMeta.isNull() || jsonForm.isNull() || !hasData)
@@ -176,8 +192,8 @@ FBErr FBProject::open (QString ngfpFullPath)
     }
 
     // Compare version of this program and .ngfp file version.
-    QString versFile = QString::fromUtf8(jsonMeta[FB_JSON_META_VERSION].asString()
-                                         .data());
+    QString versFile = QString::fromUtf8(jsonMeta[FB_JSON_META_VERSION]
+                                         .asString().data());
     QString versProg = FBProject::getProgVersionStr();
     if (versFile != versProg)
     {
@@ -228,6 +244,52 @@ FBErr FBProject::open (QString ngfpFullPath)
 }
 
 
+// READ META
+Json::Value FBProject::readMeta (QString ngfpFullPath) // STATIC
+{
+    Json::Value jsonRet;
+    jsonRet = FBProject::readJsonInNgfp(ngfpFullPath,FB_PROJECT_FILENAME_META);
+    if (jsonRet.isNull())
+        return jsonRet;
+
+    // TODO: check metadata for syntax errors and structure:
+    // - utf8 encoding?
+    // - Key values for geometry_type and datatype - their existance via findDataType()
+    // - Existance and correctness: fields list, SRS, NGW connection string, geometry
+    // - must be only one fixed SRS
+    // type - so they can be translated to correct data for project, i.e. using
+    // Json::Value::asInt() or as array of json values, etc.
+
+    return jsonRet;
+}
+
+
+// READ FORM
+Json::Value FBProject::readForm (QString ngfpFullPath) // STATIC
+{
+    Json::Value jsonRet;
+    jsonRet = FBProject::readJsonInNgfp(ngfpFullPath,FB_PROJECT_FILENAME_FORM);
+    if (jsonRet.isNull())
+        return jsonRet;
+
+    // TODO: check form for syntax errors: correct array structure, ...
+
+    return jsonRet;
+}
+
+
+// READ DATA
+// Method does not retur any data, just checks its correctness.
+bool FBProject::readData (QString ngfpFullPath) // STATIC
+{
+    // TODO: check data file, firstly its existance.
+    // ...
+
+    return true;
+}
+
+
+// WRITE
 // Main saving method of the project.
 // Method resaves each time the whole project file from the beginning because it
 // is not possible to write only one file to the ZIP archive at a time - the whole
@@ -236,20 +298,20 @@ FBErr FBProject::open (QString ngfpFullPath)
 // layer (features data) and form. Additionally it can contain images for form.
 // All writing work is made inside temporary directory, and at the end the new
 // project file is created replacing an old one if was some.
-FBErr FBProject::saveAs (QString ngfpFullPath, Json::Value jsonForm)
+FBErr FBProject::write (QString ngfpFullPath, Json::Value jsonForm)
 {
     // First checks.
     if (!isInited)
         return FBErrNotInited;
     if (jsonForm.isNull())
         return FBErrNullVal;
+
     FBErr err;
     emit changeProgress(0);
 
     // Get path components and create temporary dir for work.
     // This directory with all its content will be automatically deleted when this
     // method will end its work.
-    QList<QPair<QString,QString> > strsTempFiles; // first = path, second = name in zip
     QString strNameBase;
     QString strPath;
     this->getPathComponents(ngfpFullPath,strPath,strNameBase);
@@ -258,42 +320,38 @@ FBErr FBProject::saveAs (QString ngfpFullPath, Json::Value jsonForm)
     {
         FBProject::CUR_ERR_INFO = QObject::tr("Unable to create temporary dir at ")
                 + strPath + QObject::tr("\nTry to select another saving directory");
-        return FBErrWrongSavePath;
+        return FBErrBadSavePath;
     }
     QString strTempPath;
     strTempPath = dir.path() + "/";
-    emit changeProgress(5);
 
-    // 1. Create and fill metadata file.
+    // Form paths for obligatory project files in a temporary directory.
+    QList<QPair<QString,QString> > strsTempFiles
+            = this->getInnerFilePaths(strTempPath);
+
+    // 1. Create metadata file.
     // Metadata is obtained from this project.
-    QString strMetaPath = strTempPath + FB_PROJECT_FILENAME_META;
-    QFile fileMeta(strMetaPath);
-    err = FBProject::fillJsonFile(fileMeta,this->getJsonMetadata());
+    QFile fileMeta(strsTempFiles[0].first);
+    err = FBProject::writeJsonFile(fileMeta,this->getJsonMetadata());
     if (err != FBErrNone)
         return err;
-    strsTempFiles.append(QPair<QString,QString>(strMetaPath,FB_PROJECT_FILENAME_META));
     emit changeProgress(10);
 
-    // 2. Create and fill form file.
+    // 2. Create form file.
     // The form is usually obtained from the screen of the main app gui.
-
-    // TODO: check the form correctness before writing! Use the common method for it/
-
-    QString strFormPath = strTempPath + FB_PROJECT_FILENAME_FORM;
-    QFile fileForm(strFormPath);
-    err = FBProject::fillJsonFile(fileForm,jsonForm);
+    // TODO: check the passed json correctness before writing! Use the common method
+    // for it.
+    QFile fileForm(strsTempFiles[1].first);
+    err = FBProject::writeJsonFile(fileForm,jsonForm);
     if (err != FBErrNone)
         return err;
-    strsTempFiles.append(QPair<QString,QString>(strFormPath,FB_PROJECT_FILENAME_FORM));
     emit changeProgress(30);
 
-    // 3. Create and fill layer's data file.
+    // 3. Create layer's data file.
     // Layer's data is obtained from the old project file, but if there is no
     // old file the concrete project class must know how to get data first time.
-    QString strDataPath = strTempPath + FB_PROJECT_FILENAME_DATA;
-    if (strNgfpPath != "")
+    if (strNgfpPath != "") // open old GeoJSON dataset in ngfp file
     {
-        // Open old GeoJSON dataset via GDAL.
         QString strZipPath = strNgfpPath;
         strZipPath.prepend("/vsizip/");
         strZipPath.append("/");
@@ -311,61 +369,29 @@ FBErr FBProject::saveAs (QString ngfpFullPath, Json::Value jsonForm)
                          " in old project using GDAL /vsizip/");
             return FBErrGDALFail;
         }
-        // Create new GeoJSON file and copy data.
-        err = this->copyDataFile(datasetOld,strDataPath);
+        err = this->writeDataFile(datasetOld,strsTempFiles[2].first);
         GDALClose(datasetOld);
         if (err != FBErrNone)
             return err;
     }
-    else
+    else // concrete class knows how to get data
     {
-        err = this->createDataFileFirst(strDataPath);
+        err = this->writeDataFileFirst(strsTempFiles[2].first);
         if (err != FBErrNone)
             return err;
     }
-    strsTempFiles.append(QPair<QString,QString>(strDataPath,FB_PROJECT_FILENAME_DATA));
     emit changeProgress(75);
 
-    // 4. (Additional) Create images.
+    // 4. (Additional) Get images. Add them to the files list.
     // ...
     emit changeProgress(85);
 
     // Create ZIP archive in the same temp directory.
     // Write created files to it.
     QString ngfpTempPath = strTempPath + strNameBase + "." + FB_PROJECT_EXTENSION;
-    QByteArray baTempPath;
-    baTempPath = ngfpTempPath.toUtf8();
-    void *hZip = CPLCreateZip(baTempPath.data(),NULL);
-    if (!hZip)
-    {
-        FBProject::CUR_ERR_INFO = QObject::tr("Unable to create final ZIP archive"
-                                              " in a temp directory");
-        return FBErrCPLFail;
-    }
-    size_t nBufferSize = 1024 * 1024;
-    GByte *pabyBuffer = (GByte*)CPLMalloc(nBufferSize);
-    QByteArray baTemp1;
-    QByteArray baTemp2;
-    bool ok = true;
-    for (int i=0; i<strsTempFiles.size(); i++)
-    {
-        baTemp1 = strsTempFiles[i].first.toUtf8();
-        baTemp2 = strsTempFiles[i].second.toUtf8();
-        ok = this->addFileToZip(baTemp1.data(), baTemp2.data(), hZip,
-                                &pabyBuffer, nBufferSize);
-        if (!ok)
-        {
-            break;
-        }
-    }
-    CPLCloseZip(hZip);
-    CPLFree(pabyBuffer);
-    if (!ok)
-    {
-        FBProject::CUR_ERR_INFO = QObject::tr("Unable to write temporary file into"
-                                              " final ZIP-arcive");
-        return FBErrCPLFail;
-    }
+    err = this->makeZip(ngfpTempPath,strsTempFiles);
+    if (err != FBErrNone)
+        return err;
     emit changeProgress(95);
 
     // Create final project file copying it from the temporary directory. If there was
@@ -391,53 +417,178 @@ FBErr FBProject::saveAs (QString ngfpFullPath, Json::Value jsonForm)
 }
 
 
-Json::Value FBProject::readForm (QString ngfpFullPath)
+// WRITE
+FBErr FBProject::write (Json::Value jsonForm)
 {
-    Json::Value jsonRet;
-    jsonRet = FBProject::readJsonInNgfp(ngfpFullPath,FB_PROJECT_FILENAME_FORM);
-    if (jsonRet.isNull())
-        return jsonRet;
-
-    // TODO: check form for syntax errors: correct array structure, ...
-
-    return jsonRet;
+    if (strNgfpPath == "")
+        return FBErrNoNgfp;
+    return this->write(strNgfpPath,jsonForm);
 }
 
 
-Json::Value FBProject::readMeta (QString ngfpFullPath)
+// WRITE DATA
+// This method is needed separately of write() method, because we should not
+// initiate the resaving of the whole file when we just need to change its data
+// (i.e. we do not need here operations like saving form or fields structure changes).
+FBErr FBProject::writeData (QString shapefilePath)
 {
-    Json::Value jsonRet;
-    jsonRet = FBProject::readJsonInNgfp(ngfpFullPath,FB_PROJECT_FILENAME_META);
-    if (jsonRet.isNull())
-        return jsonRet;
+    if (!isInited)
+        return FBErrNotInited;
+    if (strNgfpPath == "") // otherwise no form and meta files created yet
+        return FBErrNoNgfp;
 
-    // TODO: check metadata for syntax errors and structure:
-    // - utf8 encoding?
-    // - Key values for geometry_type and datatype - their existance via findDataType()
-    // - Existance and correctness: fields list, SRS, NGW connection string, geometry
-    // - must be only one fixed SRS
-    // type - so they can be translated to correct data for project, i.e. using
-    // Json::Value::asInt() or as array of json values, etc.
+    FBErr err;
+    emit changeProgress(0);
 
-    return jsonRet;
-}
+    // Try to initialize side project from passed Shapefile, checking all
+    // data/metadata correctness.
+    FBProjectShapefile *projOther = new FBProjectShapefile();
+    err = projOther->readFirst(shapefilePath);
+    if (err != FBErrNone)
+    {
+        delete projOther;
+        FBProject::CUR_ERR_INFO = QObject::tr("Unable to initialize project from"
+                                 " selected Shapefile");
+        return err;
+    }
+    emit changeProgress(10);
 
+    // TEMPORARY: Compare field lists of two projects and if they differ - return
+    // error.
+    // FOR FUTURE: Form the listy of the fields of this project, which were abdated.
+    QMap<QString,FBField> fieldsOther = projOther->getFields();
+    if (fields != fieldsOther)
+    {
+        delete projOther;
+        FBProject::CUR_ERR_INFO = QObject::tr("Selected Shapefile has the fields"
+             " structure which differs from the current project's one");
+        return FBErrStructureDiffers;
+    }
 
-bool FBProject::checkData (QString ngfpFullPath)
-{
-    // TODO: check data file, firstly its existance.
+    // We do not need project any more, only Shapefile dataset itself.
+    delete projOther;
+    emit changeProgress(15);
+
+    // Get path components and create temporary dir for work.
+    // This directory with all its content will be automatically deleted when this
+    // method will end its work.
+    QString strNameBase;
+    QString strPath;
+    this->getPathComponents(strNgfpPath,strPath,strNameBase);
+    QTemporaryDir dir(strPath + "formXXXXXX"); // only for Qt >= 5
+    if (!dir.isValid())
+    {
+        FBProject::CUR_ERR_INFO = QObject::tr("Unable to create temporary dir at ")
+                + strPath + QObject::tr("\nTry to select another saving directory");
+        return FBErrBadSavePath;
+    }
+    QString strTempPath;
+    strTempPath = dir.path() + "/";
+
+    // Form paths for obligatory project files in a temporary directory.
+    QList<QPair<QString,QString> > strsTempFiles
+            = this->getInnerFilePaths(strTempPath);
+
+    // 1 and 2. Copy meta and form from current project.
+    Json::Value jsonMeta = FBProject::readMeta(strNgfpPath);
+    QFile fileMeta(strsTempFiles[0].first);
+    err = FBProject::writeJsonFile(fileMeta,jsonMeta);
+    if (err != FBErrNone)
+        return err;
+    Json::Value jsonForm = FBProject::readForm(strNgfpPath);
+    QFile fileForm(strsTempFiles[1].first);
+    err = FBProject::writeJsonFile(fileForm,jsonForm);
+    if (err != FBErrNone)
+        return err;
+    emit changeProgress(45);
+
+    // 3. Get data from the side project and write it to the temp directory.
+    // The data will be also translated to the inner SRS if needed.
+    // No fields modyfications will be done - only data copying.
+    QByteArray baShapePath;
+    baShapePath = shapefilePath.toUtf8();
+    char **allowedDrivers = NULL;
+    allowedDrivers = CSLAddString(allowedDrivers,"ESRI Shapefile");
+    GDALDataset *datasetShape = (GDALDataset*) GDALOpenEx(baShapePath.data(),
+            GDAL_OF_VECTOR | GDAL_OF_READONLY, allowedDrivers, NULL, NULL);
+    CSLDestroy(allowedDrivers);
+    if (datasetShape == NULL)
+    {
+        FBProject::CUR_ERR_INFO = QObject::tr("Unable to open selected Shapefile"
+                     " using GDAL");
+        return FBErrGDALFail;
+    }
+    err = this->writeDataFile(datasetShape,strsTempFiles[2].first,true); // ignore field modif-s
+    GDALClose(datasetShape);
+    if (err != FBErrNone)
+        return err;
+    emit changeProgress(65);
+
+    // 4. (Additional) Copy Image files. Add them to the files list.
     // ...
+    emit changeProgress(80);
 
-    return true;
+    // Form new ngfp file in the temp directory.
+    QString ngfpTempPath = strTempPath + strNameBase + "." + FB_PROJECT_EXTENSION;
+    err = this->makeZip(ngfpTempPath,strsTempFiles);
+    if (err != FBErrNone)
+        return err;
+    emit changeProgress(90);
+
+    // Replace the curent ngfp file with new one.
+    if (QFile::exists(strNgfpPath) && !QFile::remove(strNgfpPath))
+    {
+        FBProject::CUR_ERR_INFO = QObject::tr("Unable to remove old project file"
+                                              " with the same name as the saved one");
+        return FBErrTempFileFail;
+    }
+    if (!QFile::copy(ngfpTempPath, strNgfpPath))
+    {
+        FBProject::CUR_ERR_INFO = QObject::tr("Unable to copy final project file from"
+                                 " the temporary directory to the selected one");
+        return FBErrTempFileFail;
+    }
+    emit changeProgress(99);
+
+    // NOTE: after all we have the same ngfp file as it was before this operation,
+    // but with another data.geojson file. If there is any changes in the project
+    // hanging - e.g. among fields structure or form controls - they must be saved
+    // in a common way.
+    return FBErrNone;
 }
 
 
-void FBProject::expandFieldsDeleted (QSet<QString> fieldsDeleted)
+/****************************************************************************/
+/*                                                                          */
+/*                             Modify methods                               */
+/*                                                                          */
+/****************************************************************************/
+
+// Modify fields in metadata.
+// IMPORTANT: Real data fields will be GUARANTEED created and/or deleted during the
+// work of write() method.
+// 1) Fully reset list of fields for metadata;
+// 2) Update list of fields, which must be physically deleted during the next saveAs()
+// method;
+// WARNING: in this method we do not check correspondance of two passed lists, use this
+// carefully.
+// This method is used in specific situation: for working with field's manager dialog.
+void FBProject::modifyFields (QMap<QString,FBField> newSetOfFields,
+                              QSet<QString> fieldsWereDeleted)
 {
-    this->fieldsDeleted.unite(fieldsDeleted);
+    this->fields = newSetOfFields;
+    this->fieldsDeleted.unite(fieldsWereDeleted);
+    fieldsModified = true;
 }
 
 
+/****************************************************************************/
+/*                                                                          */
+/*                             Info methods                                 */
+/*                                                                          */
+/****************************************************************************/
+
+// Convert metadata of the project to the JSON format.
 Json::Value FBProject::getJsonMetadata ()
 {
     Json::Value jsonRet;
@@ -505,18 +656,15 @@ Json::Value FBProject::getJsonMetadata ()
 }
 
 
-bool FBProject::wasFirstSaved ()
-{
-    return strNgfpPath != "";
-}
-
-
 bool FBProject::isSaveRequired ()
 {
+    // ...
+
     return true;
 }
 
 
+// Get path components.
 // Puts into the passed parameters the component of the full path to the project
 // file. If the full path does not end with project file extension function
 // will put nothing.
@@ -537,10 +685,17 @@ void FBProject::getPathComponents (QString strFullPath, QString &strPath,
 }
 
 
+/****************************************************************************/
+/*                                                                          */
+/*                           Inner I/O methods                              */
+/*                                                                          */
+/****************************************************************************/
+
+// Copy data file (layer) first time.
 // Default implementation with no initial dataset.
-FBErr FBProject::createDataFileFirst (QString strPath)
+FBErr FBProject::writeDataFileFirst (QString strPath)
 {
-    // FOR NOW USE OLD CODE!
+    // FOR NOW USE OLD CODE HERE.
     // TODO: Change this to the real creation of new GeoJSON dataset without stub
     // dataset!
 
@@ -574,7 +729,7 @@ FBErr FBProject::createDataFileFirst (QString strPath)
         return FBErrGDALFail;
     }
     // Copy layer from stub dataset to the new one with SRS setting and fields creation.
-    FBErr err = this->copyDataFile(datasetStub, strPath);
+    FBErr err = this->writeDataFile(datasetStub, strPath);
     GDALClose(datasetStub);
     if (err != FBErrNone)
         return err;
@@ -583,8 +738,10 @@ FBErr FBProject::createDataFileFirst (QString strPath)
 }
 
 
-// Create GeoJSON file (layer) from the passed dataset.
-FBErr FBProject::copyDataFile (GDALDataset *datasetSrcPtr, QString strPath)
+// Copy one layer from passed GDAL dataset (any) to the newly created GeoJSON
+// file (layer) in the passed directory (any).
+FBErr FBProject::writeDataFile (GDALDataset *datasetSrcPtr, QString strPath,
+                                bool ignoreFieldsModifs)
 {
     if (!isInited)
         return FBErrNotInited;
@@ -602,7 +759,7 @@ FBErr FBProject::copyDataFile (GDALDataset *datasetSrcPtr, QString strPath)
     }
 
     // Create new (target) dataset. This will finally create the GeoJSON file in
-    // the passed directiry.
+    // the passed directory.
     GDALDriver *driverNew = GetGDALDriverManager()->GetDriverByName("GeoJSON");
     if (driverNew == NULL)
     {
@@ -621,8 +778,8 @@ FBErr FBProject::copyDataFile (GDALDataset *datasetSrcPtr, QString strPath)
     }
 
     // Create temp Memory dataset which will be used for further layer modifyings
-    // because: a) the source layer must not be modified; b) the target layer GeoJSON
-    // format does not support some layer operations (e.g. fields deletion).
+    // because: a) the source layer must not be modified! b) GeoJSON GDAL driver
+    // does not support some layer operations, e.g. field's deletion.
     GDALDriver *driverTemp = GetGDALDriverManager()->GetDriverByName("Memory");
     if (driverTemp == NULL)
     {
@@ -649,16 +806,19 @@ FBErr FBProject::copyDataFile (GDALDataset *datasetSrcPtr, QString strPath)
         return FBErrGDALFail;
     }
 
-    // Start layer modifying.
+    // Start layer modification.
 
     // 1. Change the structure of fields.
     // All checks will be done inside the method.
-    err = this->modifyFieldsOfLayer(layerTemp);
-    if (err != FBErrNone)
+    if (!ignoreFieldsModifs)
     {
-        GDALClose(datasetTemp);
-        GDALClose(datasetNew);
-        return err;
+        err = this->modifyFieldsOfLayer(layerTemp);
+        if (err != FBErrNone)
+        {
+            GDALClose(datasetTemp);
+            GDALClose(datasetNew);
+            return err;
+        }
     }
 
     // 2. Transform layer geometries to the single SRS of the project.
@@ -689,6 +849,171 @@ FBErr FBProject::copyDataFile (GDALDataset *datasetSrcPtr, QString strPath)
 }
 
 
+Json::Value FBProject::readJsonInNgfp (QString ngfpFullPath, QString fileName) // STATIC
+{
+    Json::Value jsonNull;
+    Json::Value jsonRet;
+    QByteArray ba;
+    VSILFILE *fp;
+    Json::Reader jsonReader;
+
+    ngfpFullPath.prepend("/vsizip/");
+    ngfpFullPath.append("/");
+    ngfpFullPath.append(fileName);
+    ba = ngfpFullPath.toUtf8();
+    fp = VSIFOpenL(ba.data(), "rb");
+    if (fp == NULL)
+    {
+        FBProject::CUR_ERR_INFO = QObject::tr("Unable to open ") + fileName
+                                   + QObject::tr(" in ZIP-archive via GDAL vsizip");
+        return jsonNull;
+    }
+
+    std::string jsonConStr = "";
+    do
+    {
+        const char *str = CPLReadLineL(fp);
+        if (str == NULL)
+            break;
+        jsonConStr += str;
+    }
+    while (true);
+    VSIFCloseL(fp);
+    if (!jsonReader.parse(jsonConStr, jsonRet, false)
+            || jsonRet.isNull())
+    {
+        FBProject::CUR_ERR_INFO = QObject::tr("Unable to read or parse ") + fileName;
+        return jsonNull;
+    }
+
+    return jsonRet;
+}
+
+
+FBErr FBProject::writeJsonFile (QFile &file, Json::Value json)
+{
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        FBProject::CUR_ERR_INFO = QObject::tr("Unable to create file in"
+                                     " a temporary directory");
+        return FBErrTempFileFail;
+    }
+    Json::StyledWriter writer;
+    std::string finalStdString = writer.write(json);
+    QString finalString= QString::fromUtf8(finalStdString.data());
+    QTextStream out(&file);
+    out.setCodec("UTF-8");
+    out<<finalString;
+    return FBErrNone;
+}
+
+
+/****************************************************************************/
+/*                                                                          */
+/*                         Some common actions                              */
+/*                                                                          */
+/****************************************************************************/
+
+// Return obligatory project file paths in a strict order.
+// All, that will be written to ngfp file must starts from these files - i.e.
+// 1st, 2nd and 3d files are: meta, form and data.
+// Returned list: first = path to temp file in a temp dir, second = future name
+// in zip (ngfp).
+QList<QPair<QString,QString> > FBProject::getInnerFilePaths (QString tempPath)
+{
+    QList<QPair<QString,QString> > strsTempFiles;
+    QString strMetaPath = tempPath + FB_PROJECT_FILENAME_META;
+    QString strFormPath = tempPath + FB_PROJECT_FILENAME_FORM;
+    QString strDataPath = tempPath + FB_PROJECT_FILENAME_DATA;
+    strsTempFiles.append(QPair<QString,QString>(strMetaPath,FB_PROJECT_FILENAME_META));
+    strsTempFiles.append(QPair<QString,QString>(strFormPath,FB_PROJECT_FILENAME_FORM));
+    strsTempFiles.append(QPair<QString,QString>(strDataPath,FB_PROJECT_FILENAME_DATA));
+    return strsTempFiles;
+}
+
+
+// Make final ngfp file (assumed in a temp directory).
+// Assemble ZIP archive from passed list of files, first 3 of which are obligatory
+// (see according method).
+FBErr FBProject::makeZip (QString ngfpTempPath,
+                          QList<QPair<QString,QString> > strsTempFiles)
+{
+    QByteArray baTempPath;
+    baTempPath = ngfpTempPath.toUtf8();
+    void *hZip = CPLCreateZip(baTempPath.data(),NULL);
+    if (!hZip)
+    {
+        FBProject::CUR_ERR_INFO = QObject::tr("Unable to create final ZIP archive"
+                                              " in a temp directory");
+        return FBErrCPLFail;
+    }
+    size_t nBufferSize = 1024 * 1024;
+    GByte *pabyBuffer = (GByte*)CPLMalloc(nBufferSize);
+    QByteArray baTemp1;
+    QByteArray baTemp2;
+    bool ok = true;
+    for (int i=0; i<strsTempFiles.size(); i++)
+    {
+        baTemp1 = strsTempFiles[i].first.toUtf8();
+        baTemp2 = strsTempFiles[i].second.toUtf8();
+        ok = this->addFileToZip(baTemp1.data(), baTemp2.data(), hZip,
+                                &pabyBuffer, nBufferSize);
+        if (!ok)
+        {
+            break;
+        }
+    }
+    CPLCloseZip(hZip);
+    CPLFree(pabyBuffer);
+    if (!ok)
+    {
+        FBProject::CUR_ERR_INFO = QObject::tr("Unable to write temporary file into"
+                                              " final ZIP-arcive");
+        return FBErrCPLFail;
+    }
+    return FBErrNone;
+}
+
+
+bool FBProject::addFileToZip (const CPLString &szFilePathName,
+    const CPLString &szFileName, void* hZIP, GByte **pabyBuffer, size_t nBufferSize)
+{
+    int nRet = 0;
+    size_t nBytesRead;
+    VSILFILE *fp;
+
+    fp = VSIFOpenL(szFilePathName, "rb");
+    if (fp == NULL)
+    {
+        return false;
+    }
+
+    // Write to ZIP metadata when the file starts and how it is called.
+    if (CPLCreateFileInZip(hZIP, szFileName, NULL) != CE_None)
+    {
+        VSIFCloseL(fp);
+        return false;
+    }
+
+    // Write data by blocks. Data is compressed in IO time.
+    do
+    {
+        nBytesRead = VSIFReadL(*pabyBuffer, 1, nBufferSize, fp);
+        if (long(nBytesRead) < 0)
+            nRet = -1;
+        if (nRet == 0 && CPLWriteFileInZip(hZIP, *pabyBuffer, nBytesRead) != CE_None)
+            nRet = -1;
+    }
+    while (nRet == 0 && nBytesRead == nBufferSize);
+
+    CPLCloseFileInZip(hZIP);
+    VSIFCloseL(fp);
+
+    return true;
+}
+
+
+// Guaranteed modify real structure of GDAL-layer's fields.
 FBErr FBProject::modifyFieldsOfLayer (OGRLayer *layer)
 {
     if (layer == NULL)
@@ -696,7 +1021,7 @@ FBErr FBProject::modifyFieldsOfLayer (OGRLayer *layer)
         return FBErrNullVal;
     }
 
-    // TODO: check if layer is able to delete fields!
+    // TODO: check if OGRLayer is able to delete fields.
     // Currently only Memory layer is passed to this method, so there is no actual
     // need to do this.
 
@@ -743,6 +1068,8 @@ FBErr FBProject::modifyFieldsOfLayer (OGRLayer *layer)
         }
         ++it;
     }
+
+    fieldsModified = false; // guaranteed no fields modifyings for now
 
     return FBErrNone;
 }
@@ -814,103 +1141,6 @@ FBErr FBProject::reprojectLayer (OGRLayer *layer)
     // TODO: if there are another geometry columns in a dataset - delete them.
 
     return FBErrNone;
-}
-
-
-Json::Value FBProject::readJsonInNgfp (QString ngfpFullPath, QString fileName)
-{
-    Json::Value jsonNull;
-    Json::Value jsonRet;
-    QByteArray ba;
-    VSILFILE *fp;
-    Json::Reader jsonReader;
-
-    ngfpFullPath.prepend("/vsizip/");
-    ngfpFullPath.append("/");
-    ngfpFullPath.append(fileName);
-    ba = ngfpFullPath.toUtf8();
-    fp = VSIFOpenL(ba.data(), "rb");
-    if (fp == NULL)
-    {
-        FBProject::CUR_ERR_INFO = QObject::tr("Unable to open ") + fileName
-                                   + QObject::tr(" in ZIP-archive via GDAL vsizip");
-        return jsonNull;
-    }
-
-    std::string jsonConStr = "";
-    do
-    {
-        const char *str = CPLReadLineL(fp);
-        if (str == NULL)
-            break;
-        jsonConStr += str;
-    }
-    while (true);
-    VSIFCloseL(fp);
-    if (!jsonReader.parse(jsonConStr, jsonRet, false)
-            || jsonRet.isNull())
-    {
-        FBProject::CUR_ERR_INFO = QObject::tr("Unable to read or parse ") + fileName;
-        return jsonNull;
-    }
-
-    return jsonRet;
-}
-
-
-FBErr FBProject::fillJsonFile (QFile &file, Json::Value json)
-{
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-    {
-        FBProject::CUR_ERR_INFO = QObject::tr("Unable to create file in"
-                                     " a temporary directory");
-        return FBErrTempFileFail;
-    }
-    Json::StyledWriter writer;
-    std::string finalStdString = writer.write(json);
-    QString finalString= QString::fromUtf8(finalStdString.data());
-    QTextStream out(&file);
-    out.setCodec("UTF-8");
-    out<<finalString;
-    return FBErrNone;
-}
-
-
-bool FBProject::addFileToZip (const CPLString &szFilePathName,
-    const CPLString &szFileName, void* hZIP, GByte **pabyBuffer, size_t nBufferSize)
-{
-    int nRet = 0;
-    size_t nBytesRead;
-    VSILFILE *fp;
-
-    fp = VSIFOpenL(szFilePathName, "rb");
-    if (fp == NULL)
-    {
-        return false;
-    }
-
-    // Write to ZIP metadata when the file starts and how it is called.
-    if (CPLCreateFileInZip(hZIP, szFileName, NULL) != CE_None)
-    {
-        VSIFCloseL(fp);
-        return false;
-    }
-
-    // Write data by blocks. Data is compressed in IO time.
-    do
-    {
-        nBytesRead = VSIFReadL(*pabyBuffer, 1, nBufferSize, fp);
-        if (long(nBytesRead) < 0)
-            nRet = -1;
-        if (nRet == 0 && CPLWriteFileInZip(hZIP, *pabyBuffer, nBytesRead) != CE_None)
-            nRet = -1;
-    }
-    while (nRet == 0 && nBytesRead == nBufferSize);
-
-    CPLCloseFileInZip(hZIP);
-    VSIFCloseL(fp);
-
-    return true;
 }
 
 

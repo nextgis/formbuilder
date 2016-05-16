@@ -5,13 +5,13 @@ int main (int argc, char *argv[])
 {
     QApplication a(argc, argv);
     FB w;
-    FBProject::init();
+    FBProject::initEnv();
     FBFactory::initAll(&w);
     w.initGui();
     w.setFbStyle();
     w.show();
     int ret = a.exec();
     FBFactory::deinitAll();
-    FBProject::deinit();
+    FBProject::deinitEnv();
     return ret;
 }

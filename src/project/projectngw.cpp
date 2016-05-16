@@ -25,7 +25,7 @@
 
 FBProjectNgw::FBProjectNgw (QString strUrl, QString strLogin,
                             QString strPass, int nId, Json::Value jsonMeta):
-    FBProjectGDAL ()
+    FBProjectGdal()
 {
     ngw_connection.url = strUrl;
     ngw_connection.login = strLogin;
@@ -38,7 +38,7 @@ FBProjectNgw::~FBProjectNgw ()
 {
 }
 
-FBErr FBProjectNgw::create (QString anyPath)
+FBErr FBProjectNgw::readFirst (QString anyPath)
 {
     if (isInited)
         return FBErrAlreadyInited;
@@ -49,7 +49,7 @@ FBErr FBProjectNgw::create (QString anyPath)
     CPLSetConfigOption("GDAL_HTTP_USERPWD", baLogPas.data());
 
     // Firstly initialize with default GDAL method.
-    FBErr err = this->setFromGdalDataset(anyPath);
+    FBErr err = this->readFromDataset(anyPath);
     if (err != FBErrNone)
         return err;
 

@@ -82,13 +82,13 @@ enum FBErr
     // FOR DEVELOPERS: add string representations of new error codes to the
     // FB class.
     FBErrWrongVersion, FBErrIncorrectJson, FBErrIncorrectFileStructure,
-    FBErrIncorrectGdalDataset, FBErrWrongSavePath, FBErrTempFileFail,
-    FBErrGDALFail, FBErrCPLFail, FBErrReadNgfpFail,
+    FBErrIncorrectGdalDataset, FBErrBadSavePath, FBErrTempFileFail,
+    FBErrGDALFail, FBErrCPLFail, FBErrReadNgfpFail, FBErrStructureDiffers,
 
     // For the following codes it is not necessary to show detailed error info.
     // WARNING. It is always necessary to check for this type when displaying error
     // in GUI because the old info can still hang in the global error variable.
-    FBErrNullVal, FBErrNotInited, FBErrAlreadyInited, FBErrUnsupported,
+    FBErrNullVal, FBErrNotInited, FBErrNoNgfp, FBErrAlreadyInited, FBErrUnsupported,
 };
 
 // Types correspondance.
@@ -121,7 +121,8 @@ struct FbSrsType
     ~FbSrsType () { }
 };
 
-// Main metadata structures.
+// Main metadata structures:
+
 struct FBField
 { // see NextGISWeb fields description syntax
      FbDataType *datataype;
@@ -130,13 +131,25 @@ struct FBField
      FBField (FbDataType *dt, QString dn)
         { datataype = dt; display_name = dn; }
      //~FBFieldDescr();
-     bool isEqual (FBField other) // serve as operator ==
+/*     bool isEqual (FBField other) // serve as operator ==
      {
          return (other.datataype == datataype
            && QString::compare(other.display_name, display_name,
                                Qt::CaseInsensitive) == 0);
+     }*/
+     bool operator==(const FBField &other) const
+     {
+         return ((other.datataype == datataype)
+           && (QString::compare(other.display_name, display_name,
+                               Qt::CaseInsensitive) == 0));
+     }
+     bool operator!=(const FBField &other) const
+     {
+         return !(*this == other);
      }
 };
+
+
 struct FBNgwConnection
 {
     int id; // = -1 if no NGW connection
@@ -177,10 +190,8 @@ class FBProject: public QObject
 
      static QString CUR_ERR_INFO; // additional error text if was some
 
-     static void init ();
-     static void deinit ();
-
-     static QString getProgVersionStr ();
+     static void initEnv ();
+     static void deinitEnv ();
 
      static FbGeomType *findGeomTypeByNgw (QString aliasNgw);
      static FbGeomType *findGeomTypeByGdal (OGRwkbGeometryType aliasGdal);
@@ -188,52 +199,59 @@ class FBProject: public QObject
      static FbDataType *findDataTypeByGdal (OGRFieldType aliasGdal);
      static FbSrsType *findSrsTypeByNgw (int numberNgw);
 
-     static void getPathComponents (QString strFullPath, QString &strPath,
-                             QString &strNameBase);
-
-    public: // methods
-
-     FBProject ();
-     virtual ~FBProject ();
-
-     // main methods
-     virtual FBErr create (QString anyPath) { return FBErrUnsupported; }
-     FBErr saveAs (QString ngfpFullPath, Json::Value jsonForm);
-     FBErr open (QString ngfpFullPath);
-     static Json::Value readForm (QString ngfpFullPath);
-     static Json::Value readMeta (QString ngfpFullPath);
-     static bool checkData (QString ngfpFullPath);
-     void resetFields (QMap<QString,FBField> fields) { this->fields = fields; }
-     void expandFieldsDeleted (QSet<QString> fieldsDeleted);
-
-     // info
-     Json::Value getJsonMetadata ();
-     bool wasInited () { return isInited; }
-     bool wasFirstSaved ();
-     QString getCurrentNgfpPath () { return strNgfpPath; }
-     bool isSaveRequired ();
-     QString getProjectfilePath () { return strNgfpPath; }
-     virtual QString getDatasetPath () { return ""; }
-     QMap<QString,FBField> getFields () { return fields; }
-
     signals:
 
      void changeProgress (int percentage); // amount of work completed for long actions
 
-    protected: // methods
+    public:
 
-     virtual FBErr createDataFileFirst (QString strPath);
-     FBErr copyDataFile (GDALDataset *datasetSrcPtr, QString strPath);
-     FBErr modifyFieldsOfLayer (OGRLayer *layer);
-     FBErr reprojectLayer (OGRLayer *layer);
+     FBProject ();
+     virtual ~FBProject ();
 
-    protected: // fields available for all project types
+     // main I/O
+     virtual FBErr readFirst (QString anyPath) { return FBErrUnsupported; }
+     FBErr read (QString ngfpFullPath);
+     static Json::Value readMeta (QString ngfpFullPath);
+     static Json::Value readForm (QString ngfpFullPath);
+     static bool readData (QString ngfpFullPath);
+     FBErr write (QString ngfpFullPath, Json::Value jsonForm);
+     FBErr write (Json::Value jsonForm);
+     FBErr writeData (QString shapefilePath);
+
+     // modify
+     void modifyFields (QMap<QString,FBField> newSetOfFields,
+                                QSet<QString> fieldsWereDeleted);
+     // info
+     static QString getProgVersionStr ();
+     static void getPathComponents (QString strFullPath, QString &strPath,
+                             QString &strNameBase);
+     Json::Value getJsonMetadata ();
+     bool wasInited () { return isInited; }
+     bool wasFirstSaved () { return strNgfpPath != ""; }
+     bool isSaveRequired ();
+     bool needToSaveFieldsModifics () { return fieldsModified; }
+     QString getCurrentFilePath () { return strNgfpPath; }
+     virtual QString getDatasetPath () { return ""; }
+     QMap<QString,FBField> getFields () { return fields; }
+
+    protected:
+
+     // inner I/O methods
+     virtual FBErr writeDataFileFirst (QString strPath);
+     FBErr writeDataFile (GDALDataset *datasetSrcPtr, QString strPath,
+                          bool ignoreFieldsModifs = false);
+     static Json::Value readJsonInNgfp (QString ngfpFullPath, QString fileName);
+     //static QList<QImage> readImagesInNgfp (QString ngfpFullPath);
+     static FBErr writeJsonFile (QFile &file, Json::Value json);
+
+    protected:
      
-     bool isInited; // whether the project had been already created or opened. If the
+     bool isInited; // whether the project had been already initialized (read). If the
                     // project is inited - it MUST HAVE ALL ITS METADATA SET
-     // Current state and link to the disk representation - i.e. ngfp file.
-     QString strNgfpPath; // if path is void - project needs to be saved first time
 
+     // Current link to the project's representation on disk - i.e. ngfp file.
+     QString strNgfpPath; // if path is void (no ngfp file yet) - project needs to
+                          // be saved first time
      // project's images
 //     QList<QImage> images;
 
@@ -244,27 +262,19 @@ class FBProject: public QObject
      FbSrsType *srs;
      QString version;
 
-     QSet<QString> fieldsDeleted; // keynames of fields stored
+     // temporary. Reseted after thhe call of according method
+     bool fieldsModified;
+     QSet<QString> fieldsDeleted; // stored keynames of fields
 
-    private: // methods with common actions
+    private: // some common actions
 
-     static Json::Value readJsonInNgfp (QString ngfpFullPath, QString fileName);
-     static FBErr fillJsonFile (QFile &file, Json::Value json);
+     QList<QPair<QString,QString> > getInnerFilePaths (QString tempPath);
+     FBErr makeZip (QString ngfpTempPath,
+                      QList<QPair<QString,QString> > strsTempFiles);
      static bool addFileToZip (const CPLString &szFilePathName, const CPLString
                    &szFileName, void* hZIP, GByte **pabyBuffer, size_t nBufferSize);
-};
-
-class FBProjectGDAL: public FBProject
-{
-    public:
-     FBProjectGDAL ();
-     virtual ~FBProjectGDAL ();
-     QString getDatasetPath () { return strDatasetPath; }
-    protected:
-     FBErr setFromGdalDataset (QString datasetPath);
-     FBErr createDataFileFirst (QString strPath);
-    protected:
-     QString strDatasetPath;
+     FBErr modifyFieldsOfLayer (OGRLayer *layer);
+     FBErr reprojectLayer (OGRLayer *layer);
 };
 
 class FBProjectVoid: public FBProject
@@ -272,27 +282,40 @@ class FBProjectVoid: public FBProject
     public:
      FBProjectVoid (FbGeomType *geomType);
      virtual ~FBProjectVoid ();
-     virtual FBErr create (QString anyPath);
+     virtual FBErr readFirst (QString anyPath);
      virtual QString getDatasetPath () { return QObject::tr("no dataset"); }
 };
 
-class FBProjectShapefile: public FBProjectGDAL
+class FBProjectGdal: public FBProject
+{
+    public:
+     FBProjectGdal ();
+     virtual ~FBProjectGdal ();
+     QString getDatasetPath () { return strDatasetPath; }
+    protected:
+     FBErr readFromDataset (QString datasetPath);
+     FBErr writeDataFileFirst (QString strPath);
+    protected:
+     QString strDatasetPath;
+};
+
+class FBProjectShapefile: public FBProjectGdal
 {
     public:
      FBProjectShapefile ();
      ~FBProjectShapefile ();
-     FBErr create (QString anyPath);
+     FBErr readFirst (QString anyPath);
 };
 
-class FBProjectNgw: public FBProjectGDAL
+class FBProjectNgw: public FBProjectGdal
 {
     public:
      FBProjectNgw (QString strUrl, QString strLogin,
                    QString strPass, int nId, Json::Value jsonMeta);
-     ~FBProjectNgw ();
-     FBErr create (QString anyPath);
-    private:
-     Json::Value jsonTempMeta; // only for creation step
+     virtual ~FBProjectNgw ();
+     virtual FBErr readFirst (QString anyPath);
+    protected:
+     Json::Value jsonTempMeta; // only for initialize step
 };
 
 

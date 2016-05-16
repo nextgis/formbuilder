@@ -22,18 +22,18 @@
 #include "project.h"
  
 
-FBProjectGDAL::FBProjectGDAL ():
+FBProjectGdal::FBProjectGdal ():
     FBProject()
 {
     strDatasetPath = "";
 }
 
-FBProjectGDAL::~FBProjectGDAL ()
+FBProjectGdal::~FBProjectGdal ()
 {
 }
 
 
-FBErr FBProjectGDAL::setFromGdalDataset (QString datasetPath)
+FBErr FBProjectGdal::readFromDataset (QString datasetPath)
 {
     // Firstly try to open dataset and check its correctness.
     QByteArray ba;
@@ -91,7 +91,7 @@ FBErr FBProjectGDAL::setFromGdalDataset (QString datasetPath)
     FbGeomType *gt = FBProject::findGeomTypeByGdal(geomType);
     if (gt == NULL)
     {
-        // No default value for geometry type. Mobile application will not be able
+        // No default value for geometry type. NextGIS Mobile will not be able
         // to read "undefined" geometry. So rise error here.
 
         // TODO: do not rise error for GDAL types which can be translated, such as
@@ -130,7 +130,7 @@ FBErr FBProjectGDAL::setFromGdalDataset (QString datasetPath)
 }
 
 
-FBErr FBProjectGDAL::createDataFileFirst (QString strPath)
+FBErr FBProjectGdal::writeDataFileFirst (QString strPath)
 {
     // Open existing GDAL dataset.
     // NOTE: we do not need do set specific GDAL opening settings, while it was
@@ -148,7 +148,7 @@ FBErr FBProjectGDAL::createDataFileFirst (QString strPath)
 
     // Copy layer from the source dataset to the GeoJSON new dataset of the .ngfp
     // file. All fields and geometry changes will be also done inside this method.
-    FBErr err = this->copyDataFile(datasetSrc, strPath);
+    FBErr err = this->writeDataFile(datasetSrc, strPath);
     GDALClose(datasetSrc);
     if (err != FBErrNone)
         return err;

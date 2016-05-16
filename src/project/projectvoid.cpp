@@ -32,7 +32,7 @@ FBProjectVoid::FBProjectVoid (FbGeomType *geomType):
     geometry_type = geomType;
 }
 
-FBErr FBProjectVoid::create (QString anyPath)
+FBErr FBProjectVoid::readFirst (QString anyPath)
 {
     if (isInited)
         return FBErrAlreadyInited;

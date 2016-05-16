@@ -23,7 +23,7 @@
  
 
 FBProjectShapefile::FBProjectShapefile ():
-    FBProjectGDAL ()
+    FBProjectGdal ()
 {
 }
 
@@ -31,12 +31,12 @@ FBProjectShapefile::~FBProjectShapefile ()
 {
 }
 
-FBErr FBProjectShapefile::create (QString anyPath)
+FBErr FBProjectShapefile::readFirst (QString anyPath)
 {
     if (isInited)
         return FBErrAlreadyInited;
 
-    FBErr err = this->setFromGdalDataset(anyPath);
+    FBErr err = this->readFromDataset(anyPath);
     if (err != FBErrNone)
         return err;
 

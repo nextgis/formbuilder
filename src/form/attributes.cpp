@@ -53,13 +53,6 @@ QPushButton *FBAttrDialog::getWidget ()
 
 QStringList FBAttrField::keyNames;
 
-FBAttrField::FBAttrField (FBElem *parentElem, QString keyName, QString displayName,
-            FBAttrrole role):
-    FBAttr (parentElem ,keyName, displayName, role)
-{
-    keyNameSelected = FB_DEFVALUE_NOTSELECTED;
-}
-
 // Update fields list.
 void FBAttrField::updateValues (QStringList newKeyNames) // STATIC
 {
@@ -71,6 +64,13 @@ void FBAttrField::updateValues (QStringList newKeyNames) // STATIC
             continue;                                  // was some
         keyNames.append(newKeyNames[i]);
     }
+}
+
+FBAttrField::FBAttrField (FBElem *parentElem, QString keyName, QString displayName,
+            FBAttrrole role):
+    FBAttr (parentElem ,keyName, displayName, role)
+{
+    keyNameSelected = FB_DEFVALUE_NOTSELECTED;
 }
 
 Json::Value FBAttrField::toJson ()

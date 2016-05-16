@@ -30,17 +30,17 @@
 /*                                                                           */
 /*****************************************************************************/
 
+void FBElemInput::updateFields (QStringList fieldsKeyNames) // STATIC
+{
+    FBAttrField::updateValues(fieldsKeyNames);
+}
+
 FBElemInput::FBElemInput (FBFactory *fctPtr):
     FBElem (fctPtr)
 {
     attrFieldPtr = new FBAttrField(this, tr("field"),
                   tr("Layer field"), FBImportant);
     attrs.insert(attrFieldPtr);
-}
-
-void FBElemInput::updateFields (QStringList fieldsKeyNames) // STATIC
-{
-    FBAttrField::updateValues(fieldsKeyNames);
 }
 
 void FBElemInput::resetSelectedField (QString keyname) // keyname unused here
@@ -51,7 +51,11 @@ void FBElemInput::resetSelectedField (QString keyname) // keyname unused here
 QStringList FBElemInput::getSelectedFields ()
 {
     QStringList list;
-    list.append(attrFieldPtr->getValue());
+    QString selectedField = attrFieldPtr->getValue();
+    if (selectedField != FB_DEFVALUE_NOTSELECTED)
+    {
+        list.append(selectedField); // otherwise void list will be returned
+    }
     return list;
 }
 

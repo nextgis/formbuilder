@@ -609,7 +609,7 @@ void FB::onOpenClick ()
         FBProject *projOpen = new FBProject();
         QObject::connect(projOpen, SIGNAL(changeProgress(int)),
                 dlgProgress, SLOT(onChangeProgress(int)));
-        FBErr err = projOpen->open(strFullPath);
+        FBErr err = projOpen->read(strFullPath);
         if (err != FBErrNone)
         {
             delete projOpen;
@@ -659,7 +659,7 @@ void FB::onSaveClick ()
         return;
     }
 
-    this->saveProjectCommonActions(project->getCurrentNgfpPath());
+    this->saveProjectCommonActions(project->getCurrentFilePath());
 }
 
 
@@ -814,20 +814,19 @@ void FB::onFieldsManagerClick ()
         QSet<QString> deletedFields = dialog.getDeletedFields();
 
         // Reset project fields with newly created list.
-        project->resetFields(newFields);
-
-        // Update the list of deleted fields after each session of the dialog.
-        // We need this because we must remember which existing fields (of the
+        // Also we must update the list of deleted fields after each session of
+        // the dialog, because we must remember which existing fields (of the
         // underlying layer) to delete during savig project time in case when the
-        // new fields with such names have been created after deletion of these
-        // fields. We can do this because the keynames of fields are unique.
-        project->expandFieldsDeleted(deletedFields);
+        // new fields with such names have been created after the deletion of these
+        // fields.
+        // Note: we can do all this because the keynames of fields are unique.
+        project->modifyFields(newFields,deletedFields);
 
         // Update list of fields for all Input elements.
+        // After updating we must reset the fields for Input elements, which were
+        // added via dialog after the deletion of fields with the same keynames as
+        // deleted ones, because for now they are still being selected in the elems.
         FBElemInput::updateFields(project->getFields().keys());
-
-        // We must reset the fields, which were added to the project after the
-        // deletion of fields with the same keynames as deleted ones.
         FBForm* form = wScreen->getFormPtr();
         if (form != NULL)
         {
@@ -906,9 +905,11 @@ void FB::onImportControlsClick()
             return;
         }
 
+        // TODO: check, if the selected file is the current project file.
+
         // Process selected project.
         FBProject *projOther = new FBProject();
-        FBErr err = projOther->open(strFullPath);
+        FBErr err = projOther->read(strFullPath);
         if (err != FBErrNone)
         {
             delete projOther;
@@ -916,7 +917,7 @@ void FB::onImportControlsClick()
             return;
         }
 
-        // Load and show its form elements, clearing old ones.
+        // Load and show its form elements, clearing the current ones.
         if (!form->fromJson(FBProject::readForm(strFullPath)))
         {
             delete projOther;
@@ -926,7 +927,7 @@ void FB::onImportControlsClick()
         }
 
         // Loaded Input elements now have other field bindings so we must reset
-        // them but excluding those fields which are valid for the current project.
+        // them but excluding thouse fields which are valid for the current project.
         // Firstly we form a list with the FULLY EQUAL fields from both prjects.
         QMap<QString,FBField> fieldsOther = projOther->getFields();
         delete projOther;
@@ -938,12 +939,12 @@ void FB::onImportControlsClick()
             QString keyname = it.key();      // current project's fields
             FBField fieldThis = it.value();
             FBField fieldOther = fieldsOther.value(keyname);
-            if (fieldThis.isEqual(fieldOther)) // will be compared with default-
+            if (fieldThis == fieldOther) // will be compared with default-
             {                                   // constructed field if there is no
                 fieldsSame.insert(keyname);     // such field in other project
             }
             ++it;
-            // NOTE: with such approach for example if fieldsThis has the field with
+            // NOTE: with this approach for example if fieldsThis has the field with
             // "Id" keyname and at the same time fieldsOther has the field with "ID"
             // keyname - these fields will be regarded unequal because QMap::value() of
             // fieldsOther will not find "Id" key.
@@ -951,7 +952,7 @@ void FB::onImportControlsClick()
             // fields' keynames must be compared case-insensitively, so "ID" and
             // "Id" must be regarded as equal. See Field's dialog class why we do so.
             // TODO: to solve this problem: remove the QMap::value() search and
-            // add manul looking for same keynames in a loop with case-insensitive
+            // add manual looking for equal keynames in a loop with case-insensitive
             // check.
         }
 
@@ -990,8 +991,8 @@ void FB::onImportControlsClick()
                 ++it;
             }
             strFields.chop(2); // remove last ", " ending
-            this->onShowInfo(tr("The following selected fields of the imported"
-                                " elements have been reset, while they do not"
+            this->onShowInfo(tr("The bindings to the following fields of the imported"
+                                " elements have been reset, because such fields do not"
                                 " exist in the current project: ") + strFields);
         }
 
@@ -1009,6 +1010,29 @@ void FB::onUpdateDataClick ()
         return;
 
     toolbUpdateData->setDown(true);
+
+    // We do not allow to update data until the project is saved first time,
+    // because we do not have the ngfp file in which we will replace data yet
+    // (though this is checked in writeData() method).
+    if (!project->wasFirstSaved())
+    {
+        toolbUpdateData->setDown(false);
+        this->onShowError(tr("Project is not saved yet. Please save project"
+                             " before updating it's data"));
+        return;
+    }
+
+    // Also do not allow to update data if there are some field modifications
+    // currently hanging unsaved, so to strictly devide the changing of data
+    // structure and data itself (though field modifications are ignored in
+    // writeData() method).
+    if (project->needToSaveFieldsModifics())
+    {
+        toolbUpdateData->setDown(false);
+        this->onShowError(tr("Project has unsaved fields' modifications. Please"
+                             " save them before updating data"));
+        return;
+    }
 
     QFileDialog dialog(this);
     dialog.setAcceptMode(QFileDialog::AcceptOpen);
@@ -1033,28 +1057,16 @@ void FB::onUpdateDataClick ()
         QStringList sPaths = dialog.selectedFiles();
         pathShapefile = sPaths[0];
 
-        // Initialize project from selected Shapefile, check all data/metadata
-        // correctness.
-        FBProjectShapefile *projOther = new FBProjectShapefile();
-        FBErr err = projOther->create(pathShapefile);
+        // TODO: do it in separate thread like in Save As method.
+        FBErr err = project->writeData(pathShapefile);
         if (err != FBErrNone)
         {
-            delete projOther;
-            this->onShowErrorFull(tr("Unable to init project from selected"
-                                     " Shapefile! "), err);
+            this->onShowErrorFull(tr("Unable to update layer's data!"), err);
             return;
         }
 
-        // Compare field lists of two projects and if they deffer - return error.
-        QMap<QString,FBField> fieldsOther = projOther->getFields();
-        QMap<QString,FBField> fieldsThis = project->getFields();
-
-
-
-
-
-
-        delete projOther;
+        // FOR FUTURE: show the list of updated fields here.
+        this->onShowInfo(tr("Layer's data updated successfully"));
     }
 }
 
@@ -1235,11 +1247,12 @@ QString FB::getErrStr (FBErr err)
         case FBErrIncorrectJson: ret = tr("Incorrect JSON file structure"); break;
         case FBErrIncorrectFileStructure: ret = tr("Incorrect file structure"); break;
         case FBErrIncorrectGdalDataset: ret = tr("Incorrect GDAL dataset"); break;
-        case FBErrWrongSavePath: ret = tr("Wrong save path"); break;
+        case FBErrBadSavePath: ret = tr("Bad save path"); break;
         case FBErrTempFileFail: ret = tr("Temporary file error"); break;
         case FBErrGDALFail: ret = tr("GDAL error"); break;
         case FBErrCPLFail: ret = tr("GDAL CPL error"); break;
         case FBErrReadNgfpFail: ret = tr("Reading project file error"); break;
+        case FBErrStructureDiffers: ret = tr("Different file structures"); break;
         default: ret = ""; break; // some errors will be explicitly not processed
     }
     return ret;
@@ -1641,7 +1654,7 @@ void FB::updateProjectString ()
     }
     else
     {
-        strToShorten = project->getProjectfilePath();
+        strToShorten = project->getCurrentFilePath();
         if (strToShorten == "")
         {
             strToPrepend = tr("Need to save data to ngfp file. Current dataset: ");
@@ -1777,7 +1790,7 @@ void FB::updateScreen ()
 void FB::newProjectCommonActions (FBProject *proj, QString path)
 {
     // Replacing old project if new one was correctly created.
-    FBErr err = proj->create(path);
+    FBErr err = proj->readFirst(path);
     if (err != FBErrNone)
     {
         delete proj;
@@ -1803,7 +1816,7 @@ void FB::newProjectCommonActions (FBProject *proj, QString path)
     this->updateSettings();
 }
 
-// Common steps for all saving projects methods.
+// Common steps for all saving methods.
 // Call only in according methods.
 void FB::saveProjectCommonActions (QString ngfpFullPath)
 {
@@ -1877,7 +1890,7 @@ FBThreadSaveAs::FBThreadSaveAs (QObject *parent, QString strFullPath,
 
 void FBThreadSaveAs::run ()
 {
-    FBErr err = project->saveAs(strFullPath,jsonForm);
+    FBErr err = project->write(strFullPath,jsonForm);
     emit resultReady(err);
 }
 
