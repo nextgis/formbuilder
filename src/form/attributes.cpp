@@ -30,8 +30,10 @@
 
 FBAttrDialog::FBAttrDialog (FBElem *parentElem, QString keyName, QString displayName,
        FBAttrrole role, QWidget *parentForDialog):
-    FBAttr (parentElem ,keyName, displayName, role)
+    FBAttr(parentElem ,keyName, displayName, role)
 {
+    // IMPORTANT: If parentForDialog is NULL it will cause issues in dialog displaying
+    // for  some OSs.
     this->parentForDialog = parentForDialog;
 }
 
@@ -182,7 +184,7 @@ void FBAttrText::onEditEnd (QString lineEditText)
 
 FBAttrNumber::FBAttrNumber (FBElem *parentElem, QString keyName, QString displayName,
             FBAttrrole role, int initValue, int min, int max):
-    FBAttr (parentElem ,keyName, displayName, role)
+    FBAttr(parentElem ,keyName, displayName, role)
 {
     this->value = initValue;
     this->min = min;
@@ -219,6 +221,53 @@ void FBAttrNumber::onEditEnd (int spinBoxValue)
 {
     value = spinBoxValue;
     //emit changeAppearance();
+}
+
+
+/******************************************************************************/
+/*                                                                            */
+/*                              FBAttrBoolean                                 */
+/*                                                                            */
+/******************************************************************************/
+
+FBAttrBoolean::FBAttrBoolean (FBElem *parentElem, QString keyName, QString displayName,
+            FBAttrrole role, bool initValue):
+    FBAttr(parentElem ,keyName, displayName, role)
+{
+    value = initValue;
+}
+
+Json::Value FBAttrBoolean::toJson ()
+{
+    Json::Value jsonRet;
+    jsonRet = value;
+    return jsonRet;
+}
+
+bool FBAttrBoolean::fromJson (Json::Value jsonVal)
+{
+    if (jsonVal.isNull() || !(jsonVal.isBool()))
+        return false;
+    value = jsonVal.asBool();
+    return true;
+}
+
+QWidget *FBAttrBoolean::getWidget ()
+{
+    QCheckBox *widget = new QCheckBox();
+    widget->setChecked(value);
+    QObject::connect(widget, SIGNAL(stateChanged(int)),
+                     this, SLOT(onEditEnd(int)));
+    return widget;
+}
+
+void FBAttrBoolean::onEditEnd (int checkBoxValue)
+{
+    if (checkBoxValue == Qt::Unchecked)
+        value = false;
+    else
+        value = true;
+    emit changeAppearance();
 }
 
 
@@ -298,12 +347,20 @@ QString FBAttrListvalues::getDefDispValue ()
     return values[valueDefault].second;
 }
 
+QStringList FBAttrListvalues::getDispValues ()
+{
+    QStringList ret;
+    for (int i=0; i<values.size(); i++)
+    {
+        ret.append(values[i].second);
+    }
+    return ret;
+}
+
 void FBAttrListvalues::onEditStart ()
 {
     FBDialogListvalues *dialog;
-    dialog = new FBDialogListvalues(parentForDialog); // if the parent is NULL it will
-                                                // cause issues in dialog displaying for
-                                                // some OSs
+    dialog = new FBDialogListvalues(parentForDialog);
     dialog->putValues(values,valueDefault);
     if (dialog->exec())
     {
@@ -313,5 +370,34 @@ void FBAttrListvalues::onEditStart ()
     delete dialog;
 }
  
+
+/******************************************************************************/
+/*                                                                            */
+/*                          FBAttrListvaluesStrict                            */
+/*                                                                            */
+/******************************************************************************/
+
+FBAttrListvaluesStrict::FBAttrListvaluesStrict (FBElem *parentElem, QString keyName,
+           QString displayName, FBAttrrole role, QWidget *parentForDialog):
+    FBAttrListvalues (parentElem, keyName, displayName, role, parentForDialog)
+{
+    // Default index can not be undefined. Define initial values.
+    values.append(QPair<QString,QString>("1",tr("One")));
+    values.append(QPair<QString,QString>("2",tr("Two")));
+    valueDefault = 0;
+}
+
+void FBAttrListvaluesStrict::onEditStart ()
+{
+    FBDialogListvalues *dialog;
+    dialog = new FBDialogListvalues(parentForDialog,false);
+    dialog->putValues(values,valueDefault);
+    if (dialog->exec())
+    {
+        dialog->getValues(values,valueDefault);
+        emit changeAppearance();
+    }
+    delete dialog;
+}
 
 

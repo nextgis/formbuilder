@@ -42,6 +42,7 @@
 #define FB_STYLENAME_WEB "web"
 #define FB_STYLENAME_QGIS "qgis"
 
+// Reserved string constants for project's form file.
 #define FB_JSONKEY_ELEM_TYPE "type"
 #define FB_JSONKEY_ELEM_ATTRS "attributes"
 #define FB_JSONKEY_ELEM_ELEMS "elements"
@@ -62,6 +63,47 @@
 #define FB_COLOR_DARKBLUE "rgb(23,111,193)"
 
 
+// Element & attribute names.
+// IMPORTANT. Change or add these names carefully, because this is critical for
+// NextGIS Mobile.
+#define FB_ELEMNAME_TEXT_LABEL "text_label"
+#define FB_ELEMNAME_IMAGE "image"
+#define FB_ELEMNAME_TEXT_EDIT "text_edit"
+#define FB_ELEMNAME_BUTTON "button"
+#define FB_ELEMNAME_COMBOBOX "combobox"
+#define FB_ELEMNAME_CHECKBOX "checkbox"
+#define FB_ELEMNAME_RADIOGROUP "radio_group"
+#define FB_ELEMNAME_COMPASS "compass"
+#define FB_ELEMNAME_DATE_TIME "date_time"
+#define FB_ELEMNAME_DOUBLE_COMBOBOX "double_combobox"
+#define FB_ELEMNAME_PHOTO "photo"
+#define FB_ELEMNAME_SIGNATURE "signature"
+#define FB_ELEMNAME_SPACE "space"
+//#define FB_ELEMNAME_TABS "tabs"
+//#define FB_ELEMNAME_GROUP "group"
+//#define FB_ELEMNAME_VERTICAL_LAYOUT "ver_layout"
+//#define FB_ELEMNAME_HORIZONTAL_LAYOUT "hor_layout"
+#define FB_ATTRNAME_FIELD "field"
+#define FB_ATTRNAME_FIELD_dcmb_1 "field_level1"
+#define FB_ATTRNAME_FIELD_dcmb_2 "field_level2"
+#define FB_ATTRNAME_VALUE "value"
+#define FB_ATTRNAME_VALUE_mult "values"
+#define FB_ATTRNAME_TEXT "text"
+#define FB_ATTRNAME_INITVALUE "init_value"
+#define FB_ATTRNAME_INITVALUE_datetime "datetime"
+#define FB_ATTRNAME_STORELAST "last"
+#define FB_ATTRNAME_REQUIRED "required"
+#define FB_ATTRNAME_OTHERINPUT_dialog "is_dialog"
+#define FB_ATTRNAME_OTHERINPUT_dcmb_1 "big_list_level1"
+#define FB_ATTRNAME_OTHERINPUT_dcmb_2 "big_list_level2"
+#define FB_ATTRNAME_ONLYNUMBERS "only_figures"
+#define FB_ATTRNAME_MAXSTRINGCOUNT "max_string_count"
+#define FB_ATTRNAME_DATETYPE "date_type"
+#define FB_ATTRNAME_INPUTSEARCH "input_search"
+#define FB_ATTRNAME_ALLOWADDING "allow_adding_values"
+#define FB_ATTRNAME_GALLERYSIZE "gallery_size"
+
+
 enum FBElemtype
 {
     FBDecoration, FBInput, FBGrouping, FBLayout
@@ -80,9 +122,9 @@ class FBFactory;
 
 /**
  * Attribute.
- * Each attribute class - is an "attribute type" because different elements can
- * have the same attribute types, but with different display names and used for
- * different purposes.
+ * Each FBAttrX class - is an "attribute type" (not "attribute instance") because
+ * different elements can have the same attribute types, but with different display
+ * names and used for different purposes.
  *
  * Each attribute must be able to:
  * 1. Store its value;

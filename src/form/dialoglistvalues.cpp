@@ -22,15 +22,15 @@
 #include "attributes.h"
 
 
-FBDialogListvalues::FBDialogListvalues (QWidget *parent)//QString elemName)
-    : QDialog (parent)
+FBDialogListvalues::FBDialogListvalues (QWidget *parent, bool addUndefinedValue)
+    : QDialog(parent)
 {
+    hasUndefinedValue = addUndefinedValue;
+
 //    this->setStyleSheet("");
 //    this->setStyleSheet("QWidget { color: black }");
     this->setWindowModality(Qt::ApplicationModal);
     this->setWindowTitle(tr("Define list elems ..."));
-
-//    this->elemName = elemName;
 
     QLabel *labelL = new QLabel(this);
     labelL->setText(tr("List elems:"));
@@ -67,10 +67,10 @@ FBDialogListvalues::FBDialogListvalues (QWidget *parent)//QString elemName)
     labDefL->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Fixed);
     comboL = new QComboBox(this);
     comboL->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
-//    if (elemName != FB_JSON_RADIOGROUP)
-//    {
+    if (addUndefinedValue)
+    {
         comboL->addItem(FB_DEFVALUE_NOTSELECTED);
-//    }
+    }
 
     QVBoxLayout *vl1 = new QVBoxLayout();
     vl1->addWidget(butAddL);
@@ -111,10 +111,10 @@ FBDialogListvalues::FBDialogListvalues (QWidget *parent)//QString elemName)
 }
 
 
+// Load values to the dialog.
 void FBDialogListvalues::putValues (QList<QPair<QString,QString> > values,
                                     int valueDefault)
 {
-    // Загружаем в диалог уже имеющийся список значений.
     for (int i=0; i<values.size(); i++)
     {
         QListWidgetItem *item = new QListWidgetItem(values[i].second);
@@ -122,17 +122,16 @@ void FBDialogListvalues::putValues (QList<QPair<QString,QString> > values,
         listL->addItem(item);
         comboL->addItem(shortenStr(values[i].second));
     }
-    int dialogDefIndex;
-//    if (elem->getJsonName() == FB_JSON_RADIOGROUP)
-//        dialogDefIndex = defIndex;
-//    else
-
-    // Need to shift indexes, because there is a stub item in combobox.
-        dialogDefIndex = valueDefault + 1;
-    comboL->setCurrentIndex(dialogDefIndex);
+    int realIndex = valueDefault;
+    if (hasUndefinedValue)
+    {
+        realIndex++; //need to shift indexes, because there is a stub item in the combobox
+    }
+    comboL->setCurrentIndex(realIndex);
 }
 
 
+// Obtain values from the dialog.
 void FBDialogListvalues::getValues (QList<QPair<QString,QString> > &values,
                                     int &valueDefault)
 {
@@ -143,13 +142,11 @@ void FBDialogListvalues::getValues (QList<QPair<QString,QString> > &values,
                                     listL->item(i)->text());
         values.append(pair);
     }
-    int realIndex;
-//    if (elem->getJsonName() == FB_JSON_RADIOGROUP)
-//        realIndex = dialog.comboL->currentIndex();
-//    else
-
-    // Need to shift indexes, because there is a stub item in combobox.
-        realIndex = comboL->currentIndex() - 1;
+    int realIndex = comboL->currentIndex();
+    if (hasUndefinedValue)
+    {
+        realIndex--; //need to shift indexes, because there is a stub item in combobox
+    }
     valueDefault = realIndex;
 }
 
@@ -188,15 +185,11 @@ void FBDialogListvalues::onLeftClicked (QListWidgetItem* item)
 void FBDialogListvalues::onLeftAddClicked()
 {
     int limit;
-//    if (elemName == FB_JSON_RADIOGROUP)
-//        limit = FB_LIMIT_RADIOGROUP_ELEMS;
-//    else
-        limit = FB_ATTRLIMIT_LISTVALUES_MAXCOUNT;
-
+    // TODO: set different limits.
+    limit = FB_ATTRLIMIT_LISTVALUES_MAXCOUNT;
     if (listL->count() == limit || editInnerL->text() == ""
             || editOuterL->text() == "")
         return;
-
     QListWidgetItem *item = new QListWidgetItem(editOuterL->text());
     item->setData(Qt::UserRole,editInnerL->text());
     listL->addItem(item);
@@ -209,28 +202,24 @@ void FBDialogListvalues::onLeftAddClicked()
 
 void FBDialogListvalues::onLeftRemoveClicked ()
 {
-    // For radiogroup must be at least 2 items.
-//    if (elemName == FB_JSON_RADIOGROUP && listL->count() <= 2)
-//        return;
-
+    // For some attributes restrict to have less than 2 items in a list.
+    if (!hasUndefinedValue && listL->count() <= 2)
+        return;
     int curListRow = listL->currentRow();
     QListWidgetItem *item = listL->takeItem(curListRow);
-
     if (item == NULL)
         return;
-
     editInnerL->setText("");
     editOuterL->setText("");
     listL->setCurrentRow(-1);
     butRemoveL->setEnabled(false);
     butChangeL->setEnabled(false);
-    int row;
-//    if (elemName == FB_JSON_RADIOGROUP)
-//        row = curListRow;
-//    else
-        row = curListRow + 1;
-    comboL->removeItem(row);
-
+    int rowCombo = curListRow;
+    if (hasUndefinedValue)
+    {
+        rowCombo++; //need to shift indexes, because there is a stub item in combobox
+    }
+    comboL->removeItem(rowCombo);
     delete item;
 }
 
@@ -238,19 +227,16 @@ void FBDialogListvalues::onLeftRemoveClicked ()
 void FBDialogListvalues::onLeftChangeClicked ()
 {
     QListWidgetItem *item = listL->currentItem();
-
     if (item == NULL || editOuterL->text() == "" || editInnerL->text() == "")
         return;
-
     item->setText(editOuterL->text());
     item->setData(Qt::UserRole,editInnerL->text());
-    int row;
-//    if (elemName == FB_JSON_RADIOGROUP)
-//        row = listL->currentRow();
-//    else
-        row = listL->currentRow()+1;
-    comboL->setItemText(row, editOuterL->text());
+    int rowCombo = listL->currentRow();
+    if (hasUndefinedValue)
+    {
+        rowCombo++; //need to shift indexes, because there is a stub item in combobox
+    }
+    comboL->setItemText(rowCombo,editOuterL->text());
 }
-
 
 

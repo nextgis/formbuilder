@@ -30,12 +30,14 @@
 
 FBAttr::FBAttr (FBElem *parentElem, QString keyName, QString displayName,
                 FBAttrrole role):
-    QObject ()
+    QObject()
 {
     this->elemPtr = parentElem;
     this->keyName = keyName;
     this->displayName = displayName;
     this->role = role;
+
+    // Connect two main signals to any Elem which owns this Attr.
     QObject::connect(this,SIGNAL(changeAppearance()),
                      parentElem,SLOT(updateAppearance()));
     QObject::connect(this,SIGNAL(changeOtherAttr()),
@@ -90,31 +92,45 @@ bool FBElem::fromJson (Json::Value jsonValue)
     if (jsonValue.isNull())
         return false;
     Json::Value jsonAttrsSet = jsonValue[FB_JSONKEY_ELEM_ATTRS];
-    if (jsonAttrsSet.isNull())
-        return false;
+    // Note: here we do not check jsonAttrsSet and jsonAttrsSet[...] for nulls
+    // because fore some elems it is ok to have no attrs at all and for some
+    // attrs - no values. The correctness of this was checked during the reading
+    // of the form (where all syntax checks are made).
     QSet<FBAttr*>::const_iterator it = attrs.constBegin();
     while (it != attrs.constEnd())
     {
         QByteArray baKn;
         baKn = (*it)->getKeyName().toUtf8();
-        if (!((*it)->fromJson(jsonAttrsSet[baKn.data()]))) // do not check jsonAttrsSet[]
-        {                                                  // for null because for some
-            return false;                                  // attrs it is correct
+        if (!((*it)->fromJson(jsonAttrsSet[baKn.data()])))
+        {
+            return false;
         }
         ++it;
     }
     return true;
 }
 
+
+// Get Elem's display name.
 QString FBElem::getDisplayName ()
 {
     return fctPtr->getDisplayName();
 }
 
+
+// Change elem's look (style).
+// Usually it is done by creating some inner decorational widgets-children which represet
+// the "visual part" of the elem.
+// WARNING. FOR DEVELOPERS: Do not forget in the override changeStyle() methods to set the
+// parent of ALL decorational widgets as the Elem itself, because clearContents() method
+// will delete all child widgets and layouts of the Elem each time if there was a command
+// to change its style.
 void FBElem::changeStyle (QString styleName)
 {
-
+    // TODO: do we need the most common default style for all elems? Smth like "stub elem",
+    // which will be shown if no style was defined in the derived elem class.
 }
+
 
 // Will delete all widgets in the element: decorational and other elements.
 // This is equivalent to element re-creation - it will be fully clear at the end.

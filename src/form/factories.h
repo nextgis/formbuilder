@@ -28,16 +28,25 @@
 class FBFactoryText: public FBFactory
 {
     public:
-     FBFactoryText (): FBFactory ("text",
+     FBFactoryText (): FBFactory (FB_ELEMNAME_TEXT_LABEL,
           QObject::tr("Text label"), FBDecoration, ":/img/text.png") { }
      ~FBFactoryText () { }
      FBElem *create () { return new FBElemText(this); }
 };
 
+class FBFactorySpace: public FBFactory
+{
+    public:
+     FBFactorySpace (): FBFactory (FB_ELEMNAME_SPACE,
+          QObject::tr("Space"), FBDecoration, ":/img/space.png") { }
+     ~FBFactorySpace () { }
+     FBElem *create () { return new FBElemSpace(this); }
+};
+
 class FBFactoryTextedit: public FBFactory
 {
     public:
-     FBFactoryTextedit (): FBFactory ("text_edit",
+     FBFactoryTextedit (): FBFactory (FB_ELEMNAME_TEXT_EDIT,
           QObject::tr("Text edit"), FBInput, ":/img/textedit.png") { }
      ~FBFactoryTextedit () { }
      FBElem *create () { return new FBElemTextedit(this); }
@@ -46,7 +55,7 @@ class FBFactoryTextedit: public FBFactory
 class FBFactoryCombobox: public FBFactory
 {
     public:
-     FBFactoryCombobox (QWidget *appWidget = NULL): FBFactory ("combobox",
+     FBFactoryCombobox (QWidget *appWidget = NULL): FBFactory (FB_ELEMNAME_COMBOBOX,
           QObject::tr("Combobox"), FBInput, ":/img/combo.png")
             { this->appWidget = appWidget; }
      ~FBFactoryCombobox () { }
@@ -55,10 +64,28 @@ class FBFactoryCombobox: public FBFactory
      QWidget *appWidget;
 };
 
+class FBFactoryCheckbox: public FBFactory
+{
+    public:
+     FBFactoryCheckbox (): FBFactory (FB_ELEMNAME_CHECKBOX,
+          QObject::tr("Checkbox"), FBInput, ":/img/check.png") { }
+     ~FBFactoryCheckbox () { }
+     FBElem *create () { return new FBElemCheckbox(this); }
+};
+
+class FBFactoryRadiogroup: public FBFactory
+{
+    public:
+     FBFactoryRadiogroup (): FBFactory (FB_ELEMNAME_RADIOGROUP,
+          QObject::tr("Radiogroup"), FBInput, ":/img/radio.png") { }
+     ~FBFactoryRadiogroup () { }
+     FBElem *create () { return new FBElemRadiogroup(this); }
+};
+
 class FBFactoryDatetime: public FBFactory
 {
     public:
-     FBFactoryDatetime (): FBFactory ("date_time",
+     FBFactoryDatetime (): FBFactory (FB_ELEMNAME_DATE_TIME,
           QObject::tr("Date & time"), FBInput, ":/img/date.png") { }
      ~FBFactoryDatetime () { }
      FBElem *create () { return new FBElemDatetime(this); }

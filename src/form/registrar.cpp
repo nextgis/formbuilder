@@ -33,8 +33,11 @@ void FBFactory::initAll (QWidget *appWidget)
     FBFactory::deinitAll(); // clear list
 
     fctsElem.append(new FBFactoryText());
+    fctsElem.append(new FBFactorySpace());
     fctsElem.append(new FBFactoryTextedit());
     fctsElem.append(new FBFactoryCombobox(appWidget));
+    fctsElem.append(new FBFactoryCheckbox());
+    fctsElem.append(new FBFactoryRadiogroup());
     fctsElem.append(new FBFactoryDatetime());
 
     // FOR DEVELOPERS. Register new factories here.

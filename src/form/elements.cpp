@@ -38,7 +38,8 @@ void FBElemInput::updateFields (QStringList fieldsKeyNames) // STATIC
 FBElemInput::FBElemInput (FBFactory *fctPtr):
     FBElem (fctPtr)
 {
-    attrFieldPtr = new FBAttrField(this, tr("field"),
+    // ATTRIBUTE
+    attrFieldPtr = new FBAttrField(this, FB_ATTRNAME_FIELD,
                   tr("Layer field"), FBImportant);
     attrs.insert(attrFieldPtr);
 }
@@ -67,23 +68,26 @@ QStringList FBElemInput::getSelectedFields ()
 /******************************************************************************/
 
 FBElemText::FBElemText (FBFactory *fctPtr):
-    FBElem (fctPtr)
+    FBElem(fctPtr)
 {
-    attrTextPtr = new FBAttrText(this, tr("text"),
-                  tr("Initial text"), FBNoRole, tr("Text"));
+    // ATTRIBUTE
+    attrTextPtr = new FBAttrText(this, FB_ATTRNAME_TEXT,
+                  tr("Initial text"), FBNoRole, tr("Caption"));
     attrs.insert(attrTextPtr);
 }
 
 void FBElemText::changeStyle (QString styleName)
 {
+    // CLEAR STYLE
     this->clearContents();
 
-    // For all styles:
+    // ALL STYLES
     this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
     this->setMaximumHeight(30);
     lvMain->setContentsMargins(2,2,2,2);
     lvMain->setSpacing(0);
 
+    // ANDROID STYLE
     if (styleName == FB_STYLENAME_ANDROID)
     {
         labText = new QLabel(this);
@@ -99,8 +103,10 @@ void FBElemText::changeStyle (QString styleName)
         lvMain->addWidget(labText);
     }
 
+    // DEVELOPERS: add style here.
     // ...
 
+    // DEFAULT STYLE
     else
     {
         labText = new QLabel(this);
@@ -112,6 +118,7 @@ void FBElemText::changeStyle (QString styleName)
                                "border-bottom: none;}");
     }
 
+    // UPDATE STYLE
     this->updateAppearance();
 }
 
@@ -128,32 +135,66 @@ void FBElemText::updateAppearance ()
 
 /******************************************************************************/
 /*                                                                            */
+/*                              FBElemSpace                                   */
+/*                                                                            */
+/******************************************************************************/
+
+FBElemSpace::FBElemSpace (FBFactory *fctPtr):
+    FBElem(fctPtr)
+{
+    // No attributes.
+}
+
+void FBElemSpace::changeStyle (QString styleName)
+{
+    // ALL STYLES
+    this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+    this->setMaximumHeight(30);
+    this->setMinimumHeight(30);
+}
+
+/******************************************************************************/
+/*                                                                            */
 /*                              FBElemTextedit                                */
 /*                                                                            */
 /******************************************************************************/
 
 FBElemTextedit::FBElemTextedit (FBFactory *fctPtr):
-    FBElemInput (fctPtr)
+    FBElemInput(fctPtr)
 {
-    attrTextPtr = new FBAttrText(this, tr("text"),
+    // ATTRIBUTE
+    attrTextPtr = new FBAttrText(this, FB_ATTRNAME_TEXT,
                   tr("Initial text"), FBNoRole, tr("Text"));
     attrs.insert(attrTextPtr);
 
-    FBAttrNumber *attrNumberPtr = new FBAttrNumber(this, tr("max_string_count"),
+    // ATTRIBUTE
+    FBAttrNumber *attrMaxCountPtr = new FBAttrNumber(this, FB_ATTRNAME_MAXSTRINGCOUNT,
                   tr("Max. string count"), FBNoRole, 1, 1, 65535);
-    attrs.insert(attrNumberPtr);
+    attrs.insert(attrMaxCountPtr);
+
+    // ATTRIBUTE
+    FBAttrBoolean *attrOnlyNumbers = new FBAttrBoolean(this, FB_ATTRNAME_ONLYNUMBERS,
+                  tr("Only numbers"), FBNoRole, false);
+    attrs.insert(attrOnlyNumbers);
+
+    // ATTRIBUTE
+    FBAttrBoolean *attrRememberLastPtr = new FBAttrBoolean(this, FB_ATTRNAME_STORELAST,
+                  tr("Store last value"), FBNoRole, false);
+    attrs.insert(attrRememberLastPtr);
 }
 
 void FBElemTextedit::changeStyle (QString styleName)
 {
+    // CLEAR STYLE
     this->clearContents();
 
-    // For all styles:
+    // ALL STYLES
     this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
     this->setMaximumHeight(30);
     lvMain->setContentsMargins(2,2,2,2);
     lvMain->setSpacing(0);
 
+    // ANDROID STYLE
     if (styleName == FB_STYLENAME_ANDROID)
     {
         labText = new QLabel(this);
@@ -178,9 +219,11 @@ void FBElemTextedit::changeStyle (QString styleName)
         lvMain->addWidget(widDecor);
     }
 
-    // ...
+    // DEVELOPERS: add style here.
+    //...
 
-    else // default
+    // DEFAULT STYLE
+    else
     {
         labText = new QLabel(this);
         lvMain->addWidget(labText);
@@ -191,6 +234,7 @@ void FBElemTextedit::changeStyle (QString styleName)
                                "border-bottom: 1px solid black;}");
     }
 
+    // UPDATE STYLE
     this->updateAppearance();
 }
 
@@ -212,23 +256,26 @@ void FBElemTextedit::updateAppearance ()
 /******************************************************************************/
 
 FBElemCombobox::FBElemCombobox (FBFactory *fctPtr, QWidget *appWidget):
-    FBElemInput (fctPtr)
+    FBElemInput(fctPtr)
 {
-    attrListvalsPtr = new FBAttrListvalues(this, tr("values"),
+    // ATTRIBUTE
+    attrListvalsPtr = new FBAttrListvalues(this, FB_ATTRNAME_VALUE_mult,
                   tr("Values"), FBNoRole, appWidget);
     attrs.insert(attrListvalsPtr);
 }
 
 void FBElemCombobox::changeStyle (QString styleName)
 {
+    // CLEAR STYLE
     this->clearContents();
 
-    // For all styles:
+    // ALL STYLES
     this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
     this->setMaximumHeight(30);
     lvMain->setContentsMargins(0,0,0,0);
     lvMain->setSpacing(0);
 
+    // ANDROID STYLE
     if (styleName == FB_STYLENAME_ANDROID)
     {
         //this->setStyleSheet("QWidget"
@@ -273,9 +320,11 @@ void FBElemCombobox::changeStyle (QString styleName)
         lvMain->addLayout(hlayAll);
     }
 
-    // ...
+    // DEVELOPERS: add style here.
+    //...
 
-    else // default
+    // DEFAULT STYLE
+    else
     {
         //this->setStyleSheet("");
         labText = new QLabel(this);
@@ -287,6 +336,7 @@ void FBElemCombobox::changeStyle (QString styleName)
                                "border-bottom: 1px solid black;}");
     }
 
+    // UPDATE STYLE
     this->updateAppearance();
 }
 
@@ -297,7 +347,230 @@ void FBElemCombobox::changeAttrValue ()
 
 void FBElemCombobox::updateAppearance ()
 {
-    labText->setText(attrListvalsPtr->getDefDispValue());
+    QString text = attrListvalsPtr->getDefDispValue();
+    if (text == FB_DEFVALUE_NOTSELECTED)
+        text = "";
+    labText->setText(text);
+}
+
+
+/******************************************************************************/
+/*                                                                            */
+/*                              FBElemCheckbox                                */
+/*                                                                            */
+/******************************************************************************/
+
+FBElemCheckbox::FBElemCheckbox (FBFactory *fctPtr):
+    FBElemInput(fctPtr)
+{
+    pixOnAndroid = QPixmap(":/img/for_check_on.png");
+    pixOffAndroid = QPixmap(":/img/for_check_off.png");
+
+    // ATTRIBUTE
+    attrTextPtr = new FBAttrText(this, FB_ATTRNAME_TEXT,
+                  tr("Initial text"), FBNoRole, tr("Check"));
+    attrs.insert(attrTextPtr);
+
+    // ATTRIBUTE
+    attrCheckPtr = new FBAttrBoolean(this, FB_ATTRNAME_INITVALUE,
+                  tr("Initial value"), FBNoRole, false);
+    attrs.insert(attrCheckPtr);
+}
+
+void FBElemCheckbox::changeStyle (QString styleName)
+{
+    // CLEAR STYLE
+    this->clearContents();
+
+    // ALL STYLES
+    this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+    this->setMaximumHeight(30);
+    lvMain->setContentsMargins(0,0,0,0);
+    lvMain->setSpacing(0);
+
+    // ANDROID STYLE
+    if (styleName == FB_STYLENAME_ANDROID)
+    {
+        QHBoxLayout *hlayAll = new QHBoxLayout();
+        hlayAll->setContentsMargins(2,2,2,2);
+        hlayAll->setSpacing(0);
+        labImg = new QLabel(this);
+        labImg->setStyleSheet("QLabel{border: none;}");
+        labImg->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Expanding);
+        labImg->setFixedWidth(pixOffAndroid.width()); // sizes of pixmaps are equal
+        labImg->setAlignment(Qt::AlignCenter);
+        labImg->setPixmap(pixOffAndroid);
+        labImg->setContentsMargins(0,0,0,0);
+        labText = new QLabel(this);
+        labText->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+        labText->setFont(QFont(FB_ANDROIDSCREEN_FONTTYPE,
+                               FB_ANDROIDSCREEN_FONTSIZE_NORMAL));
+        labText->setStyleSheet("QLabel{color: "+QString(FB_COLOR_VERYDARKGREY)+";"
+                                   "border-top: none;"
+                                   "border-left: none;"
+                                   "border-right: none;"
+                                   "border-bottom: none;}");
+        hlayAll->addWidget(labImg);
+        hlayAll->addWidget(labText);
+        lvMain->addLayout(hlayAll);
+    }
+
+    // DEVELOPERS: add style here.
+    //...
+
+    // DEFAULT STYLE
+    else
+    {
+        QHBoxLayout *hlayAll = new QHBoxLayout();
+        hlayAll->setContentsMargins(0,0,0,0);
+        hlayAll->setSpacing(0);
+        labImg = new QLabel(this);
+        labImg->setStyleSheet("QLabel{"
+                               "border-top: 1px solid black;"
+                               "border-left: 1px solid black;"
+                               "border-right: 1px solid black;"
+                               "border-bottom: 1px solid black;}");
+        labImg->setText(" ");
+        labImg->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
+        labText = new QLabel(this);
+        labText->setStyleSheet("QLabel{"
+                               "border-top: none;"
+                               "border-left: none;"
+                               "border-right: none;"
+                               "border-bottom: none;}");
+        hlayAll->addWidget(labImg);
+        hlayAll->addWidget(labText);
+        lvMain->addLayout(hlayAll);
+    }
+
+    // UPDATE STYLE
+    this->updateAppearance();
+}
+
+void FBElemCheckbox::changeAttrValue ()
+{
+
+}
+
+void FBElemCheckbox::updateAppearance ()
+{
+    labText->setText(" " + attrTextPtr->getValue());
+    if (attrCheckPtr->getValue() == true)
+        labImg->setPixmap(pixOnAndroid);
+    else
+        labImg->setPixmap(pixOffAndroid);
+}
+
+
+/******************************************************************************/
+/*                                                                            */
+/*                             FBElemRadiogroup                               */
+/*                                                                            */
+/******************************************************************************/
+
+FBElemRadiogroup::FBElemRadiogroup (FBFactory *fctPtr, QWidget *appWidget):
+    FBElemInput(fctPtr)
+{
+    pixOnAndroid = QPixmap(":/img/for_radio_on.png");
+    pixOffAndroid = QPixmap(":/img/for_radio_off.png");
+
+    // Size policy fixed for all styles: radio-group must be extended for
+    // its content: items.
+    this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+
+    // ATTRIBUTE
+    attrListvalsStrictPtr = new FBAttrListvaluesStrict(this, FB_ATTRNAME_VALUE_mult,
+                  tr("Values"), FBNoRole, appWidget);
+    attrs.insert(attrListvalsStrictPtr);
+
+}
+
+void FBElemRadiogroup::changeStyle (QString styleName)
+{
+    curStyleName = styleName;
+
+    // NOTE: style settings moved to updateAppearance().
+    // Unlike in many other Elems, we change style there, because
+    // the whole look of the Radio-group depends on its attribute values.
+
+    // UPDATE STYLE
+    this->updateAppearance();
+}
+
+void FBElemRadiogroup::changeAttrValue ()
+{
+
+}
+
+void FBElemRadiogroup::updateAppearance ()
+{
+    QStringList list = attrListvalsStrictPtr->getDispValues();
+    int selectedIndex = attrListvalsStrictPtr->getDefIndex();
+
+    // CLEAR STYLE
+    this->clearContents();
+
+    // ALL STYLES
+    lvMain->setContentsMargins(2,2,2,2);
+    lvMain->setSpacing(6);
+    // Note: no maximum height - can be any.
+
+    // ANDROID STYLE
+    if (curStyleName == FB_STYLENAME_ANDROID)
+    {
+        for (int i=0; i<list.size(); i++)
+        {
+            QLabel *labText = new QLabel(this);
+            labText->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+            labText->setFont(QFont(FB_ANDROIDSCREEN_FONTTYPE,
+                                   FB_ANDROIDSCREEN_FONTSIZE_NORMAL));
+            labText->setStyleSheet("QLabel{color: "+QString(FB_COLOR_VERYDARKGREY)+";"
+                                       "border-top: none;"
+                                       "border-left: none;"
+                                       "border-right: none;"
+                                       "border-bottom: none;}");
+            labText->setText(list[i]);
+            QLabel *labImg = new QLabel(this);
+            labImg->setStyleSheet("QLabel{border: none;}");
+            labImg->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Expanding);
+            labImg->setFixedWidth(pixOffAndroid.width()); // sizes are equal
+            labImg->setAlignment(Qt::AlignCenter);
+            labImg->setContentsMargins(0,0,0,0);
+            if (i == selectedIndex) // will be found anyway, because radio-group must
+            {                       // have selected value
+                labImg->setPixmap(pixOnAndroid);
+            }
+            else
+            {
+                labImg->setPixmap(pixOffAndroid);
+            }
+            QHBoxLayout *hlay = new QHBoxLayout();
+            hlay->addWidget(labImg);
+            hlay->addWidget(labText);
+            lvMain->addLayout(hlay);
+        }
+    }
+
+    // DEVELOPERS: add style here.
+    //...
+
+    // DEFAULT STYLE
+    else
+    {
+        for (int i=0; i<list.size(); i++)
+        {
+            QLabel *labText = new QLabel(this);
+            labText->setText(list[i]);
+            labText->setStyleSheet("QLabel{"
+                                   "border-top: none;"
+                                   "border-left: none;"
+                                   "border-right: none;"
+                                   "border-bottom: none;}");
+            QHBoxLayout *hlay = new QHBoxLayout();
+            hlay->addWidget(labText);
+            lvMain->addLayout(hlay);
+        }
+    }
 }
 
 
@@ -308,21 +581,23 @@ void FBElemCombobox::updateAppearance ()
 /******************************************************************************/
 
 FBElemDatetime::FBElemDatetime (FBFactory *fctPtr):
-    FBElemInput (fctPtr)
+    FBElemInput(fctPtr)
 {
 
 }
 
 void FBElemDatetime::changeStyle (QString styleName)
 {
+    // CLEAR STYLE
     this->clearContents();
 
-    // For all styles:
+    // ALL STYLES
     this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
     this->setMaximumHeight(30);
     lvMain->setContentsMargins(2,2,2,2);
     lvMain->setSpacing(0);
 
+    // ANDROID STYLE
     if (styleName == FB_STYLENAME_ANDROID)
     {
         labText = new QLabel(this);
@@ -362,9 +637,11 @@ void FBElemDatetime::changeStyle (QString styleName)
         lvMain->addWidget(widDecor);
     }
 
+    // DEVELOPERS: add style here.
     //...
 
-    else // default
+    // DEFAULT STYLE
+    else
     {
         labText = new QLabel(this);
         lvMain->addWidget(labText);
@@ -375,6 +652,7 @@ void FBElemDatetime::changeStyle (QString styleName)
                                "border-bottom: none;}");
     }
 
+    // UPDATE STYLE
     this->updateAppearance();
 }
 

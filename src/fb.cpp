@@ -82,7 +82,7 @@ void FB::initGui ()
     tabMenuTop->setFont(QFont(FB_GUI_FONTTYPE,FB_GUI_FONTSIZE_NORMAL));
 
     wProject = new QWidget();
-    tabMenuTop->addTab(wProject, tr(" Project "));
+    tabMenuTop->addTab(wProject, tr("  Project  "));
     QHBoxLayout *layProject = new QHBoxLayout(wProject);
     layProject->setContentsMargins(0,4,0,4);
     layProject->setSpacing(2);
@@ -102,7 +102,7 @@ void FB::initGui ()
     layTools->addStretch();
 
     wSettings = new QWidget();
-    tabMenuTop->addTab(wSettings, tr(" Settings "));
+    tabMenuTop->addTab(wSettings, tr("  Settings  "));
     QHBoxLayout *laySettings = new QHBoxLayout(wSettings);
     laySettings->setContentsMargins(4,4,4,4);
     laySettings->addStretch();

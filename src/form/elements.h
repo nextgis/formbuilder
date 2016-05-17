@@ -82,6 +82,18 @@ class FBElemText: public FBElem
      FBAttrText *attrTextPtr;
 };
 
+class FBElemSpace: public FBElem
+{
+    Q_OBJECT
+    public:
+     FBElemSpace (FBFactory *fctPtr);
+     ~FBElemSpace () {}
+     void changeStyle (QString styleName);
+    protected slots:
+     void changeAttrValue () { return; }
+     void updateAppearance () { return; }
+};
+
 class FBElemTextedit: public FBElemInput
 {
     Q_OBJECT
@@ -110,6 +122,42 @@ class FBElemCombobox: public FBElemInput
     protected:
      QLabel *labText;
      FBAttrListvalues *attrListvalsPtr;
+};
+
+class FBElemCheckbox: public FBElemInput
+{
+    Q_OBJECT
+    public:
+     FBElemCheckbox (FBFactory *fctPtr);
+     ~FBElemCheckbox () {}
+     void changeStyle (QString styleName);
+    protected slots:
+     void changeAttrValue ();
+     void updateAppearance ();
+    protected:
+     QLabel *labText;
+     QLabel *labImg;
+     QPixmap pixOnAndroid;
+     QPixmap pixOffAndroid;
+     FBAttrText *attrTextPtr;
+     FBAttrBoolean *attrCheckPtr;
+};
+
+class FBElemRadiogroup: public FBElemInput
+{
+    Q_OBJECT
+    public:
+     FBElemRadiogroup (FBFactory *fctPtr, QWidget *appWidget = NULL);
+     ~FBElemRadiogroup () {}
+     void changeStyle (QString styleName);
+    protected slots:
+     void changeAttrValue ();
+     void updateAppearance ();
+    protected:
+     QPixmap pixOnAndroid;
+     QPixmap pixOffAndroid;
+     FBAttrListvaluesStrict *attrListvalsStrictPtr;
+     QString curStyleName; // TODO: maybe correctly to store this for all elems.
 };
 
 class FBElemDatetime: public FBElemInput

@@ -25,6 +25,7 @@
 #include "form_core.h"
 
 #include <QDialog>
+
 #include <QLineEdit>
 #include <QSpinBox>
 #include <QCombobox>
@@ -32,6 +33,7 @@
 #include <QListWidget>
 #include <QToolButton>
 #include <QGroupBox>
+#include <QCheckBox>
 
 #define FB_ATTRLIMIT_LISTVALUES_MAXCOUNT 65535
 #define FB_ATTRLIMIT_STRDISPLAY_MAXSIZE 23
@@ -110,6 +112,23 @@ class FBAttrNumber: public FBAttr
      int max;
 };
 
+class FBAttrBoolean: public FBAttr
+{
+    Q_OBJECT
+    public:
+     FBAttrBoolean (FBElem *parentElem, QString keyName, QString displayName,
+                 FBAttrrole role, bool initValue);
+     ~FBAttrBoolean () { }
+     Json::Value toJson ();
+     bool fromJson (Json::Value jsonVal);
+     QWidget *getWidget ();
+     bool getValue () { return value; }
+    protected slots:
+     void onEditEnd (int checkBoxValue);
+    private:
+     bool value;
+};
+
 class FBAttrListvalues: public FBAttrDialog
 {
     Q_OBJECT
@@ -120,17 +139,29 @@ class FBAttrListvalues: public FBAttrDialog
      virtual Json::Value toJson ();
      virtual bool fromJson (Json::Value jsonVal);
      QString getDefDispValue ();
+     QStringList getDispValues ();
+     int getDefIndex () { return valueDefault; }
     protected slots:
      virtual void onEditStart ();
     protected:
      QList<QPair<QString,QString> > values; // first = key name, second = display name
      int valueDefault;
 };
+class FBAttrListvaluesStrict: public FBAttrListvalues
+{
+    Q_OBJECT
+    public:
+     FBAttrListvaluesStrict (FBElem *parentElem, QString keyName, QString displayName,
+               FBAttrrole role, QWidget *parentForDialog);
+     virtual ~FBAttrListvaluesStrict () { }
+    protected slots:
+     virtual void onEditStart ();
+};
 class FBDialogListvalues: public QDialog
 {
     Q_OBJECT
     public:
-     FBDialogListvalues (QWidget *parent);//QString elemName);
+     FBDialogListvalues (QWidget *parent, bool addUndefinedValue=true);
      ~FBDialogListvalues() { }
      void putValues (QList<QPair<QString,QString> > values, int valueDefault);
      void getValues (QList<QPair<QString,QString> > &values, int &valueDefault);
@@ -143,6 +174,7 @@ class FBDialogListvalues: public QDialog
      void onLeftRemoveClicked ();
      void onLeftChangeClicked ();
     private:
+     bool hasUndefinedValue;
      QString elemName;
      QListWidget *listL;
      QToolButton *butAddL; // +
