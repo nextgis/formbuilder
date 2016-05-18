@@ -27,10 +27,9 @@ FBDialogListvalues::FBDialogListvalues (QWidget *parent, bool addUndefinedValue)
 {
     hasUndefinedValue = addUndefinedValue;
 
-//    this->setStyleSheet("");
 //    this->setStyleSheet("QWidget { color: black }");
     this->setWindowModality(Qt::ApplicationModal);
-    this->setWindowTitle(tr("Define list elems ..."));
+    this->setWindowTitle(tr("Define items for the list ..."));
 
     QLabel *labelL = new QLabel(this);
     labelL->setText(tr("List elems:"));

@@ -44,7 +44,19 @@ class FBElemInput: public FBElem
      virtual QStringList getSelectedFields ();
     protected:
      FBAttrField *attrFieldPtr;
-     QString caption;
+     //FBAttrText *attrCaption;
+};
+
+// Abstract element which can write values to the layer fields and these values
+// can vary in different sessions of working with form on the device.
+class FBElemInputVariate: public FBElemInput
+{
+    Q_OBJECT
+    public:
+     FBElemInputVariate (FBFactory *fctPtr);
+     virtual ~FBElemInputVariate () { }
+    protected:
+     FBAttrBoolean *attrKeepLastPtr;
 };
 
 
@@ -94,7 +106,7 @@ class FBElemSpace: public FBElem
      void updateAppearance () { return; }
 };
 
-class FBElemTextedit: public FBElemInput
+class FBElemTextedit: public FBElemInputVariate
 {
     Q_OBJECT
     public:
@@ -109,7 +121,7 @@ class FBElemTextedit: public FBElemInput
      FBAttrText *attrTextPtr;
 };
 
-class FBElemCombobox: public FBElemInput
+class FBElemCombobox: public FBElemInputVariate
 {
     Q_OBJECT
     public:
@@ -124,7 +136,23 @@ class FBElemCombobox: public FBElemInput
      FBAttrListvalues *attrListvalsPtr;
 };
 
-class FBElemCheckbox: public FBElemInput
+class FBElemDoublecombobox: public FBElemInputVariate
+{
+    Q_OBJECT
+    public:
+     FBElemDoublecombobox (FBFactory *fctPtr, QWidget *appWidget = NULL);
+     ~FBElemDoublecombobox () {}
+     void changeStyle (QString styleName);
+    protected slots:
+     void changeAttrValue ();
+     void updateAppearance ();
+    protected:
+     QLabel *labText1;
+     QLabel *labText2;
+     FBAttrListvaluesDouble *attrListvalsDoublePtr;
+};
+
+class FBElemCheckbox: public FBElemInputVariate
 {
     Q_OBJECT
     public:
@@ -141,9 +169,10 @@ class FBElemCheckbox: public FBElemInput
      QPixmap pixOffAndroid;
      FBAttrText *attrTextPtr;
      FBAttrBoolean *attrCheckPtr;
+     QString curStyleName;
 };
 
-class FBElemRadiogroup: public FBElemInput
+class FBElemRadiogroup: public FBElemInputVariate
 {
     Q_OBJECT
     public:
@@ -157,10 +186,10 @@ class FBElemRadiogroup: public FBElemInput
      QPixmap pixOnAndroid;
      QPixmap pixOffAndroid;
      FBAttrListvaluesStrict *attrListvalsStrictPtr;
-     QString curStyleName; // TODO: maybe correctly to store this for all elems.
+     QString curStyleName;
 };
 
-class FBElemDatetime: public FBElemInput
+class FBElemDatetime: public FBElemInputVariate
 {
     Q_OBJECT
     public:
@@ -172,6 +201,50 @@ class FBElemDatetime: public FBElemInput
      void updateAppearance ();
     protected:
      QLabel *labText;
+};
+
+class FBElemButton: public FBElemInput
+{
+    Q_OBJECT
+    public:
+     FBElemButton (FBFactory *fctPtr);
+     ~FBElemButton () {}
+     void changeStyle (QString styleName);
+    protected slots:
+     void changeAttrValue ();
+     void updateAppearance ();
+    protected:
+     QLabel *labText;
+     FBAttrText *attrTextPtr;
+};
+
+class FBElemPhoto: public FBElem
+{
+    Q_OBJECT
+    public:
+     FBElemPhoto (FBFactory *fctPtr);
+     ~FBElemPhoto () {}
+     void changeStyle (QString styleName);
+    protected slots:
+     void changeAttrValue ();
+     void updateAppearance ();
+    protected:
+     QHBoxLayout *lhItems;
+     QList<QLabel*> labsImg; // store these labels to delete them separetely
+     FBAttrNumber *attrMaxCountPtr;
+     QString curStyleName;
+};
+
+class FBElemSignature: public FBElem
+{
+    Q_OBJECT
+    public:
+     FBElemSignature (FBFactory *fctPtr);
+     ~FBElemSignature () {}
+     void changeStyle (QString styleName);
+    protected slots:
+     void changeAttrValue () { return; }
+     void updateAppearance () { return; }
 };
 
 

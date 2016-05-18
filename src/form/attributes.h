@@ -34,6 +34,7 @@
 #include <QToolButton>
 #include <QGroupBox>
 #include <QCheckBox>
+#include <QTableWidget>
 
 #define FB_ATTRLIMIT_LISTVALUES_MAXCOUNT 65535
 #define FB_ATTRLIMIT_STRDISPLAY_MAXSIZE 23
@@ -104,6 +105,7 @@ class FBAttrNumber: public FBAttr
      Json::Value toJson ();
      bool fromJson (Json::Value jsonVal);
      QWidget *getWidget ();
+     int getValue () { return value; }
     protected slots:
      void onEditEnd (int spinBoxValue);
     private:
@@ -147,16 +149,6 @@ class FBAttrListvalues: public FBAttrDialog
      QList<QPair<QString,QString> > values; // first = key name, second = display name
      int valueDefault;
 };
-class FBAttrListvaluesStrict: public FBAttrListvalues
-{
-    Q_OBJECT
-    public:
-     FBAttrListvaluesStrict (FBElem *parentElem, QString keyName, QString displayName,
-               FBAttrrole role, QWidget *parentForDialog);
-     virtual ~FBAttrListvaluesStrict () { }
-    protected slots:
-     virtual void onEditStart ();
-};
 class FBDialogListvalues: public QDialog
 {
     Q_OBJECT
@@ -165,7 +157,6 @@ class FBDialogListvalues: public QDialog
      ~FBDialogListvalues() { }
      void putValues (QList<QPair<QString,QString> > values, int valueDefault);
      void getValues (QList<QPair<QString,QString> > &values, int &valueDefault);
-     static QString shortenStr (QString str);
     private slots:
      void onOkClicked ();
      void onCancelClicked ();
@@ -173,6 +164,8 @@ class FBDialogListvalues: public QDialog
      void onLeftAddClicked ();
      void onLeftRemoveClicked ();
      void onLeftChangeClicked ();
+    private:
+     static QString shortenStr (QString str);
     private:
      bool hasUndefinedValue;
      QString elemName;
@@ -184,6 +177,73 @@ class FBDialogListvalues: public QDialog
      QLineEdit *editOuterL;
      QComboBox *comboL;
      QPushButton *butOk;
+};
+
+class FBAttrListvaluesStrict: public FBAttrListvalues
+{
+    Q_OBJECT
+    public:
+     FBAttrListvaluesStrict (FBElem *parentElem, QString keyName, QString displayName,
+               FBAttrrole role, QWidget *parentForDialog);
+     virtual ~FBAttrListvaluesStrict () { }
+    protected slots:
+     virtual void onEditStart ();
+};
+
+class FBAttrListvaluesDouble: public FBAttrListvalues
+{
+    Q_OBJECT
+    public:
+     FBAttrListvaluesDouble (FBElem *parentElem, QString keyName, QString displayName,
+                FBAttrrole role, QWidget *parentForDialog);
+     virtual ~FBAttrListvaluesDouble () { }
+     virtual Json::Value toJson ();
+     virtual bool fromJson (Json::Value jsonVal);
+     void getDefDispValues (QString &str1, QString &str2);
+    protected slots:
+     virtual void onEditStart ();
+    protected:
+     QList<QList<QPair<QString,QString> > > values2;
+     QList<int> valuesDefault2;
+};
+class FBDialogDlistvalues: public QDialog
+{
+    Q_OBJECT
+    public:
+     FBDialogDlistvalues (QWidget *parent);
+     ~FBDialogDlistvalues () { }
+    public:
+     void putValues (QList<QPair<QString,QString> > vs, int vDef,
+                     QList<QList<QPair<QString,QString> > > vs2,
+                     QList<int> vsDef2);
+     void getValues (QList<QPair<QString,QString> > &vs, int &vDef,
+                     QList<QList<QPair<QString,QString> > > &vs2,
+                     QList<int> &vsDef2);
+    private slots:
+     void onOkClicked ();
+     void onTable1SelectionChanged ();
+     void onTable2SelectionChanged ();
+     void onCell1Changed (int row, int col);
+     void onCell2Changed (int row, int col);
+    private:
+     void addTable2();
+     void removeTable2 (int row);
+     void showTable2 (int row);
+     void showMsgBox (QString msg);
+     QString getTable2String (QString srcStr);
+     static QString shortenStringForOutput (QString inStr);
+    private:
+     QVBoxLayout *vlTable2;
+     QHBoxLayout *hlCombo2;
+     QTableWidget *table1;
+     QComboBox *combo1;
+     QLabel *label2;
+     QList<QTableWidget*> tables2;
+     QList<QComboBox*> combos2;
+     QPushButton *butOk;
+     // Additional pointers:
+     QTableWidget *curTable2Ptr;
+     QComboBox *curCombo2Ptr;
 };
 
 

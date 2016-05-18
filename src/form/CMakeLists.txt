@@ -31,6 +31,7 @@ factories.h
 set(LIB_CSOURCES
 form_core.cpp
 dialoglistvalues.cpp
+dialogdlistvalues.cpp
 attributes.cpp
 elements.cpp
 registrar.cpp

@@ -220,7 +220,7 @@ QWidget *FBAttrNumber::getWidget ()
 void FBAttrNumber::onEditEnd (int spinBoxValue)
 {
     value = spinBoxValue;
-    //emit changeAppearance();
+    emit changeAppearance();
 }
 
 
@@ -290,25 +290,28 @@ Json::Value FBAttrListvalues::toJson ()
     QByteArray ba;
     for (int i=0; i<values.size(); i++)
     {
-        Json::Value jsonOneVal;
+        Json::Value jsonItem;
         ba = values[i].first.toUtf8();
-        jsonOneVal[FB_JSONKEY_ATTRVAL_KEYNAME] = ba.data();
+        jsonItem[FB_JSONKEY_ATTRVAL_KEYNAME] = ba.data();
         ba = values[i].second.toUtf8();
-        jsonOneVal[FB_JSONKEY_ATTRVAL_DISPNAME] = ba.data();
+        jsonItem[FB_JSONKEY_ATTRVAL_DISPNAME] = ba.data();
         if (i == valueDefault)
         {
-            jsonOneVal[FB_JSONKEY_ATTRVAL_DEFAULT] = true;
+            jsonItem[FB_JSONKEY_ATTRVAL_DEFAULT] = true;
         }
-        jsonRet.append(jsonOneVal);
+        jsonRet.append(jsonItem);
     }
     return jsonRet;
 }
 
 bool FBAttrListvalues::fromJson (Json::Value jsonVal)
 {
+    // Note: jsonVal can be null and the list of values can be void.
+    // TODO: check jsonVal for null anyway (so to skip this method)?
+    // TODO: check that jsonVal is array?
+    // TODO: check if the each item of the array may be null?
     QList<QPair<QString,QString> > newValues;
     int newValueDefault = -1;
-
     for (int k=0; k<jsonVal.size(); ++k)
     {
         Json::Value jsonKn = jsonVal[k][FB_JSONKEY_ATTRVAL_KEYNAME];
@@ -329,14 +332,13 @@ bool FBAttrListvalues::fromJson (Json::Value jsonVal)
             newValueDefault = k;
         }
     }
-
+    // Only if all was correct we assign new values.
     values.clear();
     for (int i=0; i<newValues.size(); i++)
     {
         values.append(newValues[i]);
     }
     valueDefault = newValueDefault;
-
     return true;
 }
 
@@ -398,6 +400,158 @@ void FBAttrListvaluesStrict::onEditStart ()
         emit changeAppearance();
     }
     delete dialog;
+}
+
+
+/******************************************************************************/
+/*                                                                            */
+/*                         FBAttrDoublelistvalues                             */
+/*                                                                            */
+/******************************************************************************/
+
+FBAttrListvaluesDouble::FBAttrListvaluesDouble (FBElem *parentElem, QString keyName,
+           QString displayName, FBAttrrole role, QWidget *parentForDialog):
+    FBAttrListvalues(parentElem, keyName, displayName, role, parentForDialog)
+{
+}
+
+Json::Value FBAttrListvaluesDouble::toJson ()
+{
+    Json::Value jsonRet;
+    // Get root json for main list.
+    jsonRet = this->FBAttrListvalues::toJson();
+    // Modify it for dependant lists.
+    for (int i=0; i<values.size(); i++)
+    {
+        Json::Value jsonRet2;
+        QByteArray ba2;
+        int j=0;
+        for (j=0; j<values2[i].size(); j++)
+        {
+            Json::Value jsonItem2;
+            ba2 = values2[i][j].first.toUtf8();
+            jsonItem2[FB_JSONKEY_ATTRVAL_KEYNAME] = ba2.data();
+            ba2 = values2[i][j].second.toUtf8();
+            jsonItem2[FB_JSONKEY_ATTRVAL_DISPNAME] = ba2.data();
+            if (j == valuesDefault2[i])
+            {
+                jsonItem2[FB_JSONKEY_ATTRVAL_DEFAULT] = true;
+            }
+            jsonRet2.append(jsonItem2);
+        }
+        // WARNING. Here we do a restriction (specially for NextGIS Mobile): the
+        // dependant list can not be void - we add a fictional item.
+        // IMPORTANT TODO: think about the situation when user enters such values
+        // manually. We need to check this in the dialog.
+        if (j == 0)
+        {
+            Json::Value jsonItem2;
+            jsonItem2[FB_JSONKEY_ATTRVAL_KEYNAME] = FB_JSONVALUE_ATTRVAL_NOKEYNAME;
+            jsonItem2[FB_JSONKEY_ATTRVAL_DISPNAME] = FB_JSONVALUE_ATTRVAL_NODISPNAME;
+            jsonRet2.append(jsonItem2);
+        }
+        jsonRet[i][FB_JSONKEY_ATTRVAL_VALUES] = jsonRet2; // modify root json
+    }
+    return jsonRet;
+}
+
+bool FBAttrListvaluesDouble::fromJson (Json::Value jsonVal)
+{
+    // Assign values for main list.
+    // Note: all checks for jsonVal will be made inside. values array will fully
+    // correspond to jsonVal after it.
+    if (!this->FBAttrListvalues::fromJson(jsonVal))
+        return false;
+    // Assign values for dependant lists.
+    QList<QList<QPair<QString,QString> > > newValues2;
+    QList<int> newValuesDefault2;
+    for (int i=0; i<values.size(); i++)
+    {
+        Json::Value jsonVal2 = jsonVal[i][FB_JSONKEY_ATTRVAL_VALUES];
+        if (jsonVal2.isNull() || !jsonVal2.isArray() || jsonVal2.size()<1)
+        {
+            return false; // there MUST be at least one (can be fictional) value for
+                          // the dependant array of values, otherwise the passed json
+        }                 // is incorrect. See FBAttrListvaluesDouble::toJson()
+        QList<QPair<QString,QString> > tempList;
+        newValuesDefault2.append(-1); // will stay -1 if there will be no default found
+        // TODO: check if the each item of the array may be null?
+        for (int j=0; j<jsonVal2.size(); ++j)
+        {
+            Json::Value jsonKn = jsonVal2[j][FB_JSONKEY_ATTRVAL_KEYNAME];
+            Json::Value jsonDn = jsonVal2[j][FB_JSONKEY_ATTRVAL_DISPNAME];
+            if (jsonKn.isNull() || !jsonKn.isString()
+                    || jsonDn.isNull() || !jsonDn.isString())
+            {
+                return false;
+            }
+            QPair<QString,QString> pair(
+                        QString::fromUtf8(jsonKn.asString().data()),
+                        QString::fromUtf8(jsonDn.asString().data()));
+            // Note: if the passed json contains more than 1 items and one of them is
+            // fictional (e.g. user enters these values self) - the false will be also
+            // returned.
+            // IMPORTANT TODO: see FBAttrListvaluesDouble::toJson() about fictional
+            // item in the array.
+            if (pair.first == FB_JSONVALUE_ATTRVAL_NOKEYNAME
+                    && pair.second == FB_JSONVALUE_ATTRVAL_NODISPNAME)
+            {
+                break; // void tempList will be added to the values2
+            }
+            tempList.append(pair);
+            Json::Value jsonDf2;
+            jsonDf2 = jsonVal2[j][FB_JSONKEY_ATTRVAL_DEFAULT];
+            if (!jsonDf2.isNull()) // && jsonDf2.asBool() == true)
+            {
+                newValuesDefault2[i] = j;
+            }
+        }
+        newValues2.append(tempList);
+    }
+    // Only if all was correct we assign new values.
+    values2.clear();
+    valuesDefault2.clear();
+    for (int i=0; i<newValues2.size(); i++)
+    {
+        QList<QPair<QString,QString> > tempList;
+        for (int j=0; j<newValues2[i].size(); j++)
+        {
+            tempList.append(newValues2[i][j]);
+        }
+        values2.append(tempList);
+        valuesDefault2.append(newValuesDefault2[i]);
+    }
+    return true;
+}
+
+void FBAttrListvaluesDouble::onEditStart ()
+{
+    FBDialogDlistvalues *dialog;
+    dialog = new FBDialogDlistvalues(parentForDialog);
+    dialog->putValues(values,valueDefault,values2,valuesDefault2);
+    if (dialog->exec())
+    {
+        dialog->getValues(values,valueDefault,values2,valuesDefault2);
+        emit changeAppearance();
+    }
+    delete dialog;
+}
+
+void FBAttrListvaluesDouble::getDefDispValues (QString &str1, QString &str2)
+{
+    if (valueDefault == -1)
+    {
+        str1 = QString(FB_DEFVALUE_NOTSELECTED);
+        str2 = QString(FB_DEFVALUE_NOTSELECTED);
+        return;
+    }
+    str1 = values[valueDefault].second;
+    if (valuesDefault2[valueDefault] == -1)
+    {
+        str2 = QString(FB_DEFVALUE_NOTSELECTED);
+        return;
+    }
+    str2 = values2[valueDefault][valuesDefault2[valueDefault]].second;
 }
 
 

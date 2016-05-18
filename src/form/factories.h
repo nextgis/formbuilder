@@ -64,6 +64,19 @@ class FBFactoryCombobox: public FBFactory
      QWidget *appWidget;
 };
 
+class FBFactoryDoublecombobox: public FBFactory
+{
+    public:
+     FBFactoryDoublecombobox (QWidget *appWidget = NULL):
+                    FBFactory (FB_ELEMNAME_DOUBLE_COMBOBOX,
+          QObject::tr("Doubled combobox"), FBInput, ":/img/double_combo.png")
+            { this->appWidget = appWidget; }
+     ~FBFactoryDoublecombobox () { }
+     FBElem *create () { return new FBElemDoublecombobox(this,appWidget); }
+    private:
+     QWidget *appWidget;
+};
+
 class FBFactoryCheckbox: public FBFactory
 {
     public:
@@ -76,10 +89,13 @@ class FBFactoryCheckbox: public FBFactory
 class FBFactoryRadiogroup: public FBFactory
 {
     public:
-     FBFactoryRadiogroup (): FBFactory (FB_ELEMNAME_RADIOGROUP,
-          QObject::tr("Radiogroup"), FBInput, ":/img/radio.png") { }
+     FBFactoryRadiogroup (QWidget *appWidget = NULL): FBFactory (FB_ELEMNAME_RADIOGROUP,
+          QObject::tr("Radiogroup"), FBInput, ":/img/radio.png")
+            { this->appWidget = appWidget; }
      ~FBFactoryRadiogroup () { }
-     FBElem *create () { return new FBElemRadiogroup(this); }
+     FBElem *create () { return new FBElemRadiogroup(this,appWidget); }
+    private:
+     QWidget *appWidget;
 };
 
 class FBFactoryDatetime: public FBFactory
@@ -89,6 +105,33 @@ class FBFactoryDatetime: public FBFactory
           QObject::tr("Date & time"), FBInput, ":/img/date.png") { }
      ~FBFactoryDatetime () { }
      FBElem *create () { return new FBElemDatetime(this); }
+};
+
+class FBFactoryButton: public FBFactory
+{
+    public:
+     FBFactoryButton (): FBFactory (FB_ELEMNAME_BUTTON,
+          QObject::tr("Button"), FBInput, ":/img/button.png") { }
+     ~FBFactoryButton () { }
+     FBElem *create () { return new FBElemButton(this); }
+};
+
+class FBFactoryPhoto: public FBFactory
+{
+    public:
+     FBFactoryPhoto (): FBFactory (FB_ELEMNAME_PHOTO,
+          QObject::tr("Photo"), FBInput, ":/img/photo.png") { }
+     ~FBFactoryPhoto () { }
+     FBElem *create () { return new FBElemPhoto(this); }
+};
+
+class FBFactorySignature: public FBFactory
+{
+    public:
+     FBFactorySignature (): FBFactory (FB_ELEMNAME_SIGNATURE,
+          QObject::tr("Signature"), FBInput, ":/img/signature.png") { }
+     ~FBFactorySignature () { }
+     FBElem *create () { return new FBElemSignature(this); }
 };
 
 #endif // FACTORIES_H
