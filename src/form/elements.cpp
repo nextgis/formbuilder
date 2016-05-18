@@ -274,6 +274,16 @@ FBElemCombobox::FBElemCombobox (FBFactory *fctPtr, QWidget *appWidget):
     attrListvalsPtr = new FBAttrListvalues(this, FB_ATTRNAME_VALUE_mult,
                   tr("Values"), FBNoRole, appWidget);
     attrs.insert(attrListvalsPtr);
+
+    // ATTRIBUTE
+    FBAttrBoolean *attrInputSearch = new FBAttrBoolean(this, FB_ATTRNAME_INPUTSEARCH,
+                  tr("Input with search"), FBNoRole, false);
+    attrs.insert(attrInputSearch);
+
+    // ATTRIBUTE
+    FBAttrBoolean *attrAllowVals = new FBAttrBoolean(this, FB_ATTRNAME_ALLOWADDING,
+                  tr("Allow own values"), FBNoRole, false);
+    attrs.insert(attrAllowVals);
 }
 
 void FBElemCombobox::changeStyle (QString styleName)
@@ -377,6 +387,20 @@ void FBElemCombobox::updateAppearance ()
 FBElemDoublecombobox::FBElemDoublecombobox (FBFactory *fctPtr, QWidget *appWidget):
     FBElemInputVariate(fctPtr)
 {
+    // REMOVE ATTRIBUTE
+    attrs.remove(attrFieldPtr);
+    delete attrFieldPtr;
+
+    // ATTRIBUTE
+    FBAttrField *attrField1Ptr = new FBAttrField(this, FB_ATTRNAME_FIELD_dcmb_1,
+                  tr("Layer field for 1"), FBImportant);
+    attrs.insert(attrField1Ptr);
+
+    // ATTRIBUTE
+    FBAttrField *attrField2Ptr = new FBAttrField(this, FB_ATTRNAME_FIELD_dcmb_2,
+                  tr("Layer field for 2"), FBImportant);
+    attrs.insert(attrField2Ptr);
+
     // ATTRIBUTE
     attrListvalsDoublePtr = new FBAttrListvaluesDouble(this, FB_ATTRNAME_VALUE_mult,
                   tr("Values"), FBNoRole, appWidget);
