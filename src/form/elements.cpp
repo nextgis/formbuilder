@@ -89,6 +89,8 @@ FBElemText::FBElemText (FBFactory *fctPtr):
     // ATTRIBUTE
     attrTextPtr = new FBAttrText(this, FB_ATTRNAME_TEXT,
                   tr("Text"), FBNoRole, tr("Caption"));
+    QObject::connect(attrTextPtr, SIGNAL(changeAppearance()),
+                     this, SLOT(updateAppearance()));
     attrs.insert(attrTextPtr);
 }
 
@@ -275,6 +277,8 @@ FBElemCombobox::FBElemCombobox (FBFactory *fctPtr, QWidget *appWidget):
     // ATTRIBUTE
     attrListvalsPtr = new FBAttrListvalues(this, FB_ATTRNAME_VALUE_mult,
                   tr("Values"), FBNoRole, appWidget);
+    QObject::connect(attrListvalsPtr, SIGNAL(changeAppearance()),
+                     this, SLOT(updateAppearance()));
     attrs.insert(attrListvalsPtr);
 
     // ATTRIBUTE
@@ -376,7 +380,7 @@ void FBElemCombobox::updateAppearance ()
     QString text = attrListvalsPtr->getDefDispValue();
     if (text == FB_DEFVALUE_NOTSELECTED)
         text = "";
-    labText->setText(text);
+    labText->setText(" " + text);
 }
 
 
@@ -406,6 +410,8 @@ FBElemDoublecombobox::FBElemDoublecombobox (FBFactory *fctPtr, QWidget *appWidge
     // ATTRIBUTE
     attrListvalsDoublePtr = new FBAttrListvaluesDouble(this, FB_ATTRNAME_VALUE_mult,
                   tr("Values"), FBNoRole, appWidget);
+    QObject::connect(attrListvalsDoublePtr, SIGNAL(changeAppearance()),
+                     this, SLOT(updateAppearance()));
     attrs.insert(attrListvalsDoublePtr);
 }
 
@@ -564,11 +570,15 @@ FBElemCheckbox::FBElemCheckbox (FBFactory *fctPtr):
     // ATTRIBUTE
     attrTextPtr = new FBAttrText(this, FB_ATTRNAME_TEXT,
                   tr("Text"), FBNoRole, tr("Check"));
+    QObject::connect(attrTextPtr, SIGNAL(changeAppearance()),
+                     this, SLOT(updateAppearance()));
     attrs.insert(attrTextPtr);
 
     // ATTRIBUTE
     attrCheckPtr = new FBAttrBoolean(this, FB_ATTRNAME_INITVALUE,
                   tr("Initial value"), FBNoRole, false);
+    QObject::connect(attrCheckPtr, SIGNAL(changeAppearance()),
+                     this, SLOT(updateAppearance()));
     attrs.insert(attrCheckPtr);
 }
 
@@ -675,6 +685,8 @@ FBElemRadiogroup::FBElemRadiogroup (FBFactory *fctPtr, QWidget *appWidget):
     // ATTRIBUTE
     attrListvalsStrictPtr = new FBAttrListvaluesStrict(this, FB_ATTRNAME_VALUE_mult,
                   tr("Values"), FBNoRole, appWidget);
+    QObject::connect(attrListvalsStrictPtr, SIGNAL(changeAppearance()),
+                     this, SLOT(updateAppearance()));
     attrs.insert(attrListvalsStrictPtr);
 
 }
@@ -910,6 +922,8 @@ FBElemButton::FBElemButton (FBFactory *fctPtr):
     // ATTRIBUTE
     attrTextPtr = new FBAttrText(this, FB_ATTRNAME_TEXT,
                   tr("Text"), FBNoRole, tr("Press"));
+    QObject::connect(attrTextPtr, SIGNAL(changeAppearance()),
+                     this, SLOT(updateAppearance()));
     attrs.insert(attrTextPtr);
 
     // ATTRIBUTE
@@ -997,6 +1011,8 @@ FBElemPhoto::FBElemPhoto (FBFactory *fctPtr):
     // ATTRIBUTE
     attrMaxCountPtr = new FBAttrNumber(this, FB_ATTRNAME_GALLERYSIZE,
                   tr("Max. photo count"), FBNoRole, 1, 1, 5);
+    QObject::connect(attrMaxCountPtr, SIGNAL(changeAppearance()),
+                     this, SLOT(updateAppearance()));
     attrs.insert(attrMaxCountPtr);
 }
 

@@ -39,7 +39,7 @@ void FBFactory::initAll (QWidget *appWidget)
     fctsElem.append(new FBFactoryDoublecombobox(appWidget));
     fctsElem.append(new FBFactoryCheckbox());
     fctsElem.append(new FBFactoryRadiogroup(appWidget));
-    fctsElem.append(new FBFactoryDatetime());
+    fctsElem.append(new FBFactoryDatetime(appWidget));
     fctsElem.append(new FBFactoryButton());
     fctsElem.append(new FBFactoryPhoto());
     fctsElem.append(new FBFactorySignature());
