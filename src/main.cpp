@@ -5,6 +5,7 @@ int main (int argc, char *argv[])
 {
     QApplication a(argc, argv);
     FB w;
+    FBForm::initEnv();
     FBProject::initEnv();
     FBFactory::initAll(&w);
     w.initGui();
@@ -13,5 +14,6 @@ int main (int argc, char *argv[])
     int ret = a.exec();
     FBFactory::deinitAll();
     FBProject::deinitEnv();
+    FBForm::deinitEnv();
     return ret;
 }

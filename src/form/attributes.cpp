@@ -555,3 +555,145 @@ void FBAttrListvaluesDouble::getDefDispValues (QString &str1, QString &str2)
 }
 
 
+/******************************************************************************/
+/*                                                                            */
+/*                              FBAttrSelect                                  */
+/*                                                                            */
+/******************************************************************************/
+
+FBAttrSelect::FBAttrSelect (FBElem *parentElem, QString keyName, QString displayName,
+                            FBAttrrole role, QStringList valuesRange, int initValue):
+    FBAttr(parentElem ,keyName, displayName, role)
+{
+    for (int i=0; i<valuesRange.size(); i++)
+    {
+        this->valuesRange.append(valuesRange[i]);
+    }
+    value = initValue;
+}
+
+Json::Value FBAttrSelect::toJson ()
+{
+    Json::Value jsonRet;
+    jsonRet = value;
+    return jsonRet;
+}
+
+bool FBAttrSelect::fromJson (Json::Value jsonVal)
+{
+    if (jsonVal.isNull() || !jsonVal.isInt()) // TODO: .asInt64()?
+        return false;
+    value = jsonVal.asInt();
+    emit changeOtherAttr();
+    return true;
+}
+
+QWidget *FBAttrSelect::getWidget ()
+{
+    QComboBox *widget = new QComboBox();
+    for (int i=0; i<valuesRange.size(); i++)
+    {
+        widget->addItem(valuesRange[i]);
+    }
+    widget->setCurrentIndex(value);
+    QObject::connect(widget, SIGNAL(currentIndexChanged(int)),
+                     this, SLOT(onEditEnd(int)));
+    return widget;
+}
+
+void FBAttrSelect::onEditEnd (int indexSelected)
+{
+    value = indexSelected;
+    emit changeOtherAttr();
+    emit changeAppearance();
+}
+
+
+/******************************************************************************/
+/*                                                                            */
+/*                             FBAttrDatetime                                 */
+/*                                                                            */
+/******************************************************************************/
+
+FBAttrDatetime::FBAttrDatetime (FBElem *parentElem, QString keyName,
+           QString displayName, FBAttrrole role, QWidget *parentForDialog):
+    FBAttrDialog (parentElem, keyName, displayName, role, parentForDialog)
+{
+    value.setDate(QDate(2016,1,1));
+    value.setTime(QTime(0,0,0));
+    format = FBForm::DATETIME_FORMATS[0];
+    ignoreValue = false;
+}
+
+Json::Value FBAttrDatetime::toJson ()
+{
+    Json::Value jsonRet;
+    if (ignoreValue)
+    {
+        return jsonRet; // null will be returned
+    }
+    QByteArray ba = value.toString(format->strNgfp).toUtf8();
+    jsonRet = ba.data();
+    return jsonRet;
+}
+
+bool FBAttrDatetime::fromJson (Json::Value jsonVal)
+{
+    if (!jsonVal.isNull() && !jsonVal.isString())
+        return false;
+    if (jsonVal.isNull())
+    {
+        ignoreValue = true; // value will stay default (set in constructor)
+        return true;
+    }
+    QByteArray ba = jsonVal.asString().data();
+    QString str = QString::fromUtf8(ba);
+    // Try to read value guessing date/time format. We do not know actual format in
+    // this attribute and we will not write it even when we guess it. See TODO and
+    // according issue in "Date&Time" element.
+    // Note: the actual format will be read from the other attribute and set here via
+    // the according attribute-connector signal/slot pair.
+    for (int i=0; i<FBForm::DATETIME_FORMATS.size(); i++)
+    {
+        QDateTime d = QDateTime::fromString(str,FBForm::DATETIME_FORMATS[i]->strNgfp);
+        if (d.isValid())
+        {
+            // Note: if here will be read "only date" or "only time" format - the
+            // defaults for not set parts will be used - see Qt docs for QDateTime
+            // class (1900-1-1 0:0:0).
+            value.setDate(d.date());
+            value.setTime(d.time());
+            return true;
+        }
+    }
+    return false;
+}
+
+QString FBAttrDatetime::getValueString ()
+{
+    if (ignoreValue)
+        return "...";
+    return value.toString(format->strDisplayEn);
+}
+
+void FBAttrDatetime::changeFormat (FBDatetimeFormat *newFormat)
+{
+    format = newFormat;
+}
+
+void FBAttrDatetime::onEditStart ()
+{
+    FBDialogDatetime *dialog;
+    dialog = new FBDialogDatetime(parentForDialog);
+    dialog->putValues(value,ignoreValue,format);
+    if (dialog->exec())
+    {
+        dialog->getValues(value,ignoreValue);
+        emit changeAppearance();
+    }
+    delete dialog;
+}
+
+
+
+

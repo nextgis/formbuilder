@@ -93,10 +93,10 @@
 #define FB_ATTRNAME_INITVALUE "init_value"
 #define FB_ATTRNAME_INITVALUE_datetime "datetime"
 #define FB_ATTRNAME_STORELAST "last"
-#define FB_ATTRNAME_REQUIRED "required"
-#define FB_ATTRNAME_OTHERINPUT_dialog "is_dialog"
-#define FB_ATTRNAME_OTHERINPUT_dcmb_1 "big_list_level1"
-#define FB_ATTRNAME_OTHERINPUT_dcmb_2 "big_list_level2"
+//#define FB_ATTRNAME_REQUIRED "required"
+//#define FB_ATTRNAME_OTHERINPUT_dialog "is_dialog"
+//#define FB_ATTRNAME_OTHERINPUT_dcmb_1 "big_list_level1"
+//#define FB_ATTRNAME_OTHERINPUT_dcmb_2 "big_list_level2"
 #define FB_ATTRNAME_ONLYNUMBERS "only_figures"
 #define FB_ATTRNAME_MAXSTRINGCOUNT "max_string_count"
 #define FB_ATTRNAME_DATETYPE "date_type"
@@ -113,6 +113,24 @@ enum FBElemtype
 enum FBAttrrole
 {
     FBNoRole, FBImportant, FBOtherAttrChange, FBStructureChange,
+};
+
+struct FBDatetimeFormat
+{
+    QString name;
+    QString strDisplayEn;
+    QString strDisplayRu;
+    int codeNgfp;
+    QString strNgfp;
+    FBDatetimeFormat (QString n, QString sde, QString sdr, int c, QString sn)
+    {
+        name = n;
+        strDisplayEn = sde;
+        strDisplayRu = sdr;
+        codeNgfp = c;
+        strNgfp = sn;
+    }
+    ~FBDatetimeFormat () { }
 };
 
 
@@ -271,6 +289,11 @@ class FBInsertWidget: public QWidget
 class FBForm: public QWidget
 { 
     Q_OBJECT
+
+    public:
+     static QList<FBDatetimeFormat*> DATETIME_FORMATS;
+     static void initEnv ();
+     static void deinitEnv ();
 
     public:
      FBForm ();

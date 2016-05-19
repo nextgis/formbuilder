@@ -36,6 +36,8 @@
 #include <QCheckBox>
 #include <QTableWidget>
 
+#include <QDateTime>
+
 #define FB_ATTRLIMIT_LISTVALUES_MAXCOUNT 65535
 #define FB_ATTRLIMIT_STRDISPLAY_MAXSIZE 23
 
@@ -226,7 +228,7 @@ class FBDialogDlistvalues: public QDialog
      void onCell1Changed (int row, int col);
      void onCell2Changed (int row, int col);
     private:
-     void addTable2();
+     void addTable2 ();
      void removeTable2 (int row);
      void showTable2 (int row);
      void showMsgBox (QString msg);
@@ -244,6 +246,57 @@ class FBDialogDlistvalues: public QDialog
      // Additional pointers:
      QTableWidget *curTable2Ptr;
      QComboBox *curCombo2Ptr;
+};
+
+class FBAttrSelect: public FBAttr
+{
+    Q_OBJECT
+    public:
+     FBAttrSelect (FBElem *parentElem, QString keyName, QString displayName,
+                 FBAttrrole role, QStringList valuesRange, int initValue);
+     ~FBAttrSelect () { }
+     Json::Value toJson ();
+     bool fromJson (Json::Value jsonVal);
+     QWidget *getWidget ();
+     int getValue () { return value; }
+    protected slots:
+     void onEditEnd (int indexSelected);
+    private:
+     QStringList valuesRange;
+     int value;
+};
+
+class FBAttrDatetime: public FBAttrDialog
+{
+    Q_OBJECT
+    public:
+     FBAttrDatetime (FBElem *parentElem, QString keyName, QString displayName,
+                FBAttrrole role, QWidget *parentForDialog);
+     virtual ~FBAttrDatetime () { }
+     virtual Json::Value toJson ();
+     virtual bool fromJson (Json::Value jsonVal);
+     QString getValueString ();
+     void changeFormat (FBDatetimeFormat *newFormat);
+    protected slots:
+     virtual void onEditStart ();
+    protected:
+     QDateTime value;
+     bool ignoreValue; // can be used to indicate a "current date/time" value
+     FBDatetimeFormat *format; // for now not obligatory here. See "Date&Time" elem
+};
+class FBDialogDatetime: public QDialog
+{
+    Q_OBJECT
+    public:
+     FBDialogDatetime (QWidget *parent);
+     ~FBDialogDatetime () {}
+     void putValues (QDateTime value, bool ignoreValue, FBDatetimeFormat *format);
+     void getValues (QDateTime &value, bool &ignoreValue);
+    private slots:
+     void onCheckboxClicked (bool isChecked);
+    private:
+     QDateTimeEdit *wDateTime;
+     QCheckBox *chbCurrent;
 };
 
 

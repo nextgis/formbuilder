@@ -32,6 +32,7 @@ set(LIB_CSOURCES
 form_core.cpp
 dialoglistvalues.cpp
 dialogdlistvalues.cpp
+dialogdatetime.cpp
 attributes.cpp
 elements.cpp
 registrar.cpp

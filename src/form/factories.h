@@ -101,10 +101,13 @@ class FBFactoryRadiogroup: public FBFactory
 class FBFactoryDatetime: public FBFactory
 {
     public:
-     FBFactoryDatetime (): FBFactory (FB_ELEMNAME_DATE_TIME,
-          QObject::tr("Date & time"), FBInput, ":/img/date.png") { }
+     FBFactoryDatetime (QWidget *appWidget = NULL): FBFactory (FB_ELEMNAME_DATE_TIME,
+          QObject::tr("Date & time"), FBInput, ":/img/date.png")
+            { this->appWidget = appWidget; }
      ~FBFactoryDatetime () { }
-     FBElem *create () { return new FBElemDatetime(this); }
+     FBElem *create () { return new FBElemDatetime(this,appWidget); }
+    private:
+     QWidget *appWidget;
 };
 
 class FBFactoryButton: public FBFactory

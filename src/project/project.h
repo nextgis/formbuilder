@@ -98,26 +98,41 @@ struct FbGeomType
     OGRwkbGeometryType aliasGdal;
 // QList<OGRwkbGeometryType> aliasesOtherGdal; // Polygon = Polygon25, Polygon3D, ...
     FbGeomType (QString an, OGRwkbGeometryType ad)
-        { aliasNgw = an; aliasGdal = ad; }
+    {
+        aliasNgw = an;
+        aliasGdal = ad;
+    }
     ~FbGeomType () { }
 };
+
 struct FbDataType
 {
     QString aliasNgw;
     OGRFieldType aliasMainGdal;
     QList<OGRFieldType> aliasesOtherGdal;
     FbDataType (QString an, OGRFieldType amg)
-        { aliasNgw = an; aliasMainGdal = amg; }
+    {
+        aliasNgw = an;
+        aliasMainGdal = amg;
+    }
     FbDataType (QString an, OGRFieldType amg, QList<OGRFieldType> aog)
-        { aliasNgw = an; aliasMainGdal = amg; aliasesOtherGdal = aog; }
+    {
+        aliasNgw = an;
+        aliasMainGdal = amg;
+        aliasesOtherGdal = aog;
+    }
     ~FbDataType () { }
 };
+
 struct FbSrsType
 {
     int numberNgw;
     QString strFullGdal;
     FbSrsType (int nn, QString sfg)
-        { numberNgw = nn; strFullGdal = sfg; }
+    {
+        numberNgw = nn;
+        strFullGdal = sfg;
+    }
     ~FbSrsType () { }
 };
 
@@ -127,16 +142,16 @@ struct FBField
 { // see NextGISWeb fields description syntax
      FbDataType *datataype;
      QString display_name;
-     FBField () { datataype = NULL; }
-     FBField (FbDataType *dt, QString dn)
-        { datataype = dt; display_name = dn; }
-     //~FBFieldDescr();
-/*     bool isEqual (FBField other) // serve as operator ==
+     FBField ()
      {
-         return (other.datataype == datataype
-           && QString::compare(other.display_name, display_name,
-                               Qt::CaseInsensitive) == 0);
-     }*/
+         datataype = NULL;
+     }
+     FBField (FbDataType *dt, QString dn)
+     {
+         datataype = dt;
+         display_name = dn;
+     }
+     //~FBField();
      bool operator==(const FBField &other) const
      {
          return ((other.datataype == datataype)
@@ -157,8 +172,12 @@ struct FBNgwConnection
     QString password;
     QString url;
     FBNgwConnection () {}
-    FBNgwConnection (int id, QString lg, QString ps, QString ul)
-        { this->id = id; login = lg, password = ps; url = ul; }
+    FBNgwConnection (int i, QString lg, QString ps, QString ul)
+    {
+        id = i;
+        login = lg;
+        password = ps;
+        url = ul; }
     //~FBNgwConnection();
 };
 

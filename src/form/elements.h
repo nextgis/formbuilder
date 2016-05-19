@@ -189,11 +189,13 @@ class FBElemRadiogroup: public FBElemInputVariate
      QString curStyleName;
 };
 
+// TODO: unite two attributes into one: the value of the date and its type (format),
+// because for now some strange dependacies between these two attributes are used.
 class FBElemDatetime: public FBElemInputVariate
 {
     Q_OBJECT
     public:
-     FBElemDatetime (FBFactory *fctPtr);
+     FBElemDatetime (FBFactory *fctPtr, QWidget *appWidget = NULL);
      ~FBElemDatetime () {}
      void changeStyle (QString styleName);
     protected slots:
@@ -201,6 +203,8 @@ class FBElemDatetime: public FBElemInputVariate
      void updateAppearance ();
     protected:
      QLabel *labText;
+     FBAttrSelect *attrTypePtr;
+     FBAttrDatetime *attrDatetimePtr;
 };
 
 class FBElemButton: public FBElemInput

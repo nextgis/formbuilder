@@ -38,10 +38,10 @@ FBAttr::FBAttr (FBElem *parentElem, QString keyName, QString displayName,
     this->role = role;
 
     // Connect two main signals to any Elem which owns this Attr.
-    QObject::connect(this,SIGNAL(changeAppearance()),
-                     parentElem,SLOT(updateAppearance()));
-    QObject::connect(this,SIGNAL(changeOtherAttr()),
-                     parentElem,SLOT(changeAttrValue()));
+//    QObject::connect(this,SIGNAL(changeAppearance()),
+//                     parentElem,SLOT(updateAppearance()));
+//    QObject::connect(this,SIGNAL(changeOtherAttr()),
+//                     parentElem,SLOT(changeAttrValue()));
 }
 
 
@@ -246,6 +246,27 @@ void FBInsertWidget::paintEvent(QPaintEvent *event)
 /*                                  FBForm                                   */
 /*                                                                           */
 /*****************************************************************************/
+
+QList<FBDatetimeFormat*> FBForm::DATETIME_FORMATS;
+void FBForm::initEnv ()
+{
+    FBForm::deinitEnv();
+    DATETIME_FORMATS.append(
+      new FBDatetimeFormat("Date","yyyy.MM.dd","",0,"yyyy-MM-dd"));
+    DATETIME_FORMATS.append(
+      new FBDatetimeFormat("Time","HH:mm:ss","",1,"HH:mm:ss"));
+    DATETIME_FORMATS.append(
+      new FBDatetimeFormat("Date and time","yyyy.MM.dd  HH:mm:ss","",
+                           2,"yyyy-MM-dd HH:mm:ss"));
+}
+void FBForm::deinitEnv ()
+{
+    for (int i=0; i<DATETIME_FORMATS.size(); i++)
+    {
+        delete DATETIME_FORMATS[i];
+    }
+    DATETIME_FORMATS.clear();
+}
 
 FBForm::FBForm ():
     QWidget()

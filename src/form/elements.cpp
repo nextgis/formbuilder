@@ -179,6 +179,8 @@ FBElemTextedit::FBElemTextedit (FBFactory *fctPtr):
     // ATTRIBUTE
     attrTextPtr = new FBAttrText(this, FB_ATTRNAME_TEXT,
                   tr("Initial text"), FBNoRole, tr("Text"));
+    QObject::connect(attrTextPtr, SIGNAL(changeAppearance()),
+                     this, SLOT(updateAppearance()));
     attrs.insert(attrTextPtr);
 
     // ATTRIBUTE
@@ -782,10 +784,29 @@ void FBElemRadiogroup::updateAppearance ()
 /*                                                                            */
 /******************************************************************************/
 
-FBElemDatetime::FBElemDatetime (FBFactory *fctPtr):
+FBElemDatetime::FBElemDatetime (FBFactory *fctPtr, QWidget *appWidget):
     FBElemInputVariate(fctPtr)
 {
+    // ATTRIBUTE
+    QStringList strs;
+    for (int i=0; i<FBForm::DATETIME_FORMATS.size(); i++)
+    {
+        strs.append(FBForm::DATETIME_FORMATS[i]->name);
+    }
+    attrTypePtr = new FBAttrSelect(this, FB_ATTRNAME_DATETYPE,
+                  tr("Type"), FBNoRole, strs, 0);
+    QObject::connect(attrTypePtr, SIGNAL(changeOtherAttr()),
+                     this, SLOT(changeAttrValue()));          // will have influence
+    QObject::connect(attrTypePtr, SIGNAL(changeAppearance()), // on the attrDatetimePtr
+                     this, SLOT(updateAppearance()));
+    attrs.insert(attrTypePtr);
 
+    // ATTRIBUTE
+    attrDatetimePtr = new FBAttrDatetime(this, FB_ATTRNAME_INITVALUE_datetime,
+                  tr("Initial value"), FBNoRole, appWidget);
+    QObject::connect(attrDatetimePtr, SIGNAL(changeAppearance()),
+                     this, SLOT(updateAppearance()));
+    attrs.insert(attrDatetimePtr);
 }
 
 void FBElemDatetime::changeStyle (QString styleName)
@@ -867,12 +888,13 @@ void FBElemDatetime::changeStyle (QString styleName)
 
 void FBElemDatetime::changeAttrValue ()
 {
-
+    attrDatetimePtr->changeFormat(
+                FBForm::DATETIME_FORMATS[attrTypePtr->getValue()]);
 }
 
 void FBElemDatetime::updateAppearance ()
 {
-
+    labText->setText(" " + attrDatetimePtr->getValueString());
 }
 
 

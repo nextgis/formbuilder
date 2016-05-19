@@ -99,6 +99,9 @@ void FBProject::deinitEnv () // STATIC
         delete DATA_TYPES[i];
     for (int i=0; i<SRS_TYPES.size(); i++)
         delete SRS_TYPES[i];
+    GEOM_TYPES.clear();
+    DATA_TYPES.clear();
+    SRS_TYPES.clear();
 
     // TODO: do we need to deregister/reset smth for GDAL at the end of the program?
 }
