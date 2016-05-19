@@ -27,6 +27,7 @@
 
 FB::~FB()
 {
+    this->writeSettings();
     delete ui;
 }
 
@@ -34,19 +35,30 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
 {
     isInited = false;
 
+    settLastShapeFullPath.key = "last_shp";
+    settLastNgfpFullPath.key = "last_ngfp";
+    settLastLanguageSelected.key = "language";
+     settLastLanguageSelected.defaultValue = "en_GB";
+    settLastNgwUrl.key = "last_ngw_url";
+    settLastNgwLogin.key = "last_ngw_login";
+    this->readSettings();
+
     FBLangInfo lang;
+
     lang.name = "English";
     lang.code = "en_GB";
     lang.imgFlagPath = "";
     lang.imgNextgisPath = ":/img/nextgis_en.png";
     lang.offLink = "http://nextgis.ru/en/nextgis-formbuilder";
     strsLanguages.append(lang);
+
     lang.name = tr("Russian");
     lang.code = "ru_RU";
     lang.imgFlagPath = "";
     lang.imgNextgisPath = ":/img/nextgis_ru.png";
     lang.offLink = "http://nextgis.ru/nextgis-formbuilder";
     strsLanguages.append(lang);
+
     indexLang = 0;
 
     project = NULL;
@@ -500,6 +512,8 @@ void FB::onAddElemPress (QTreeWidgetItem* item, int column)
     if (fct == NULL)
         return;
 
+    wScreen->requestScrollToBottom();
+
     FBElem *elem = fct->create();
     form->addElem(elem,NULL);
 
@@ -559,7 +573,7 @@ void FB::onNewShapeClick ()
     dialog.setNameFilter("*.shp");
     dialog.setWindowTitle(tr("Creating new project. Select Shapefile ..."));
     dialog.setDirectory(QDir()); // current directory
-    QString lastPath = this->getLastPathShapefile();
+    QString lastPath = settLastShapeFullPath.value;
     if (lastPath != "")
     {
         QFileInfo fileInfo(lastPath);
@@ -577,7 +591,8 @@ void FB::onNewShapeClick ()
         FBProjectShapefile *projShp = new FBProjectShapefile();
         QObject::connect(projShp, SIGNAL(changeProgress(int)),
                 dlgProgress, SLOT(onChangeProgress(int)));
-        this->newProjectCommonActions(projShp, pathShapefile);
+        bool ok = this->newProjectCommonActions(projShp, pathShapefile);
+        if (ok) settLastShapeFullPath.value = pathShapefile;
     }
 }
 
@@ -592,9 +607,8 @@ void FB::onNewNgwClick ()
         return;
     }
 
-    QString lastUrl;
-    QString lastLogin;
-    this->getLastPathNgw(lastUrl,lastLogin);
+    QString lastUrl = settLastNgwUrl.value;
+    QString lastLogin = settLastNgwLogin.value;
     FBDialogProjectNgw dialog(this,lastUrl,lastLogin);
     QObject::connect(&dialog, SIGNAL(finished(int)),
                      this, SLOT(onProjDialogFinished(int)));
@@ -613,6 +627,8 @@ void FB::onNewNgwClick ()
         QObject::connect(projNgw, SIGNAL(changeProgress(int)),
                 dlgProgress, SLOT(onChangeProgress(int)));
         this->newProjectCommonActions(projNgw, pathNgwUrl);
+        settLastNgwUrl.value = strUrl; // anyway save last parameters
+        settLastNgwLogin.value = strLogin;
     }
 }
 
@@ -635,7 +651,7 @@ void FB::onOpenClick ()
     dialog.setNameFilter("*."+QString(FB_PROJECT_EXTENSION));
     dialog.setWindowTitle(tr("Open project. Select project file ..."));
     dialog.setDirectory(QDir()); // current directory
-    QString lastPath = this->getLastPathProjectfile();
+    QString lastPath = settLastNgfpFullPath.value;
     if (lastPath != "")
     {
         QFileInfo fileInfo(lastPath);
@@ -693,7 +709,8 @@ void FB::onOpenClick ()
         this->updateRightMenu();
         this->updateEnableness();
         this->updateProjectString();
-        this->updateSettings();
+
+        settLastNgfpFullPath.value = strFullPath;
     }
 }
 
@@ -734,7 +751,7 @@ void FB::onSaveAsClick ()
     dialog.setNameFilter("*." + QString(FB_PROJECT_EXTENSION));
     dialog.setWindowTitle(tr("Save project as ..."));
     dialog.setDirectory(QDir()); // current directory
-    QString lastPath = this->getLastPathProjectfile();
+    QString lastPath = settLastNgfpFullPath.value;
     if (lastPath != "")
     {
         QFileInfo fileInfo(lastPath);
@@ -935,7 +952,7 @@ void FB::onImportControlsClick()
     dialog.setNameFilter("*."+QString(FB_PROJECT_EXTENSION));
     dialog.setWindowTitle(tr("Import form elements. Select project file ..."));
     dialog.setDirectory(QDir()); // current directory
-    QString lastPath = this->getLastPathProjectfile();
+    QString lastPath = settLastNgfpFullPath.value;
     if (lastPath != "")
     {
         QFileInfo fileInfo(lastPath);
@@ -1093,7 +1110,7 @@ void FB::onUpdateDataClick ()
     dialog.setNameFilter("*.shp");
     dialog.setWindowTitle(tr("Update data in project. Select a Shapefile ..."));
     dialog.setDirectory(QDir()); // current directory
-    QString lastPath = this->getLastPathShapefile();
+    QString lastPath = settLastShapeFullPath.value;
     if (lastPath != "")
     {
         QFileInfo fileInfo(lastPath);
@@ -1149,6 +1166,25 @@ void FB::onAboutGraphicsClick ()
 {
     FBDialogAbout dialog(this);
     dialog.exec();
+}
+
+
+// KEY PRESS
+void FB::keyPressEvent (QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_Delete)
+    {
+        FBForm *form = wScreen->getFormPtr();
+        if (form != NULL)
+        {
+            form->deleteSelected();
+            this->updateRightMenu();
+        }
+        return;
+    }
+    // Form docs: if you reimplement this handler, it is very important that you
+    // call the base class implementation if you do not act upon the key.
+    QWidget::keyPressEvent(event);
 }
 
 
@@ -1262,7 +1298,7 @@ void FB::onSaveAnyEnded (FBErr err)
         this->onShowInfo(tr("Project saved successfully"));
         this->updateEnableness();
         this->updateProjectString();
-        this->updateSettings();
+        settLastNgfpFullPath.value = project->getCurrentFilePath();
     }
     toolbSaveAs->setDown(false);
     toolbSave->setDown(false);
@@ -1275,21 +1311,31 @@ void FB::onSaveAnyEnded (FBErr err)
 /*                                                                          */
 /****************************************************************************/
 
-void FB::updateSettings ()
+// Note: example path on Windows: C:\Users\Mikhail\AppData\Roaming\NextGIS
+void FB::writeSettings ()
 {
-
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope,
+                       "NextGIS", "FormBuilder");
+    settings.setValue(settLastShapeFullPath.key,settLastShapeFullPath.value);
+    settings.setValue(settLastNgfpFullPath.key,settLastNgfpFullPath.value);
+    settings.setValue(settLastLanguageSelected.key,settLastLanguageSelected.value);
+    settings.setValue(settLastNgwUrl.key,settLastNgwUrl.value);
+    settings.setValue(settLastNgwLogin.key,settLastNgwLogin.value);
 }
-QString FB::getLastPathProjectfile ()
+void FB::readSettings ()
 {
-    return "";
-}
-QString FB::getLastPathShapefile ()
-{
-    return "";
-}
-void FB::getLastPathNgw (QString &url, QString &login)
-{
-
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope,
+                        "NextGIS", "FormBuilder");
+    settLastShapeFullPath.value = settings.value(settLastShapeFullPath.key,
+                                   settLastShapeFullPath.defaultValue).toString();
+    settLastNgfpFullPath.value = settings.value(settLastNgfpFullPath.key,
+                                   settLastNgfpFullPath.defaultValue).toString();
+    settLastLanguageSelected.value = settings.value(settLastLanguageSelected.key,
+                                   settLastLanguageSelected.defaultValue).toString();
+    settLastNgwUrl.value = settings.value(settLastNgwUrl.key,
+                                   settLastNgwUrl.defaultValue).toString();
+    settLastNgwLogin.value = settings.value(settLastNgwLogin.key,
+                                   settLastNgwLogin.defaultValue).toString();
 }
 
 
@@ -1912,7 +1958,7 @@ void FB::updateScreen ()
 
 // Common steps for all new projects creation methods.
 // Call only in according methods.
-void FB::newProjectCommonActions (FBProject *proj, QString path)
+bool FB::newProjectCommonActions (FBProject *proj, QString path)
 {
     // Replacing old project if new one was correctly created.
     FBErr err = proj->readFirst(path);
@@ -1920,7 +1966,7 @@ void FB::newProjectCommonActions (FBProject *proj, QString path)
     {
         delete proj;
         this->onShowErrorFull(tr("Unable to create new project! "), err);
-        return;
+        return false;
     }
     if (project != NULL)
         delete project;
@@ -1938,7 +1984,7 @@ void FB::newProjectCommonActions (FBProject *proj, QString path)
     this->updateRightMenu();
     this->updateEnableness();
     this->updateProjectString();
-    this->updateSettings();
+    return true;
 }
 
 // Common steps for all saving methods.

@@ -24,6 +24,8 @@
 FBScreen::FBScreen (QWidget *parent):
     QWidget(parent)
 {
+    canScrollToBottom = false;
+
     lgWorkingArea = new QGridLayout(this);
     lgWorkingArea->setContentsMargins(0,0,0,0);
     lgWorkingArea->setSpacing(0);
@@ -56,6 +58,8 @@ FBScreen::FBScreen (QWidget *parent):
                                 QSizePolicy::Expanding);
     scrollScreen->setStyleSheet("QScrollArea{border: 0px;}");
     scrollScreen->setWidgetResizable(true);
+    QObject::connect(scrollScreen->verticalScrollBar(), SIGNAL(rangeChanged(int,int)),
+            this, SLOT(scrollToBottom(int, int)));
     lvScreen->addWidget(scrollScreen);
 
     formPtr = NULL;
@@ -131,6 +135,19 @@ void FBScreen::updateStyle ()
 void FBScreen::setDevice (int index)
 {
     curDevice = index;
+}
+
+// Scroll scrollArea to the end.
+// Can not do it with setValue() method.
+// http://www.qtcentre.org/threads/32852-How-can-I-always-keep-the-scroll-bar-at-
+// the-bottom-of-a-QScrollArea
+void FBScreen::scrollToBottom (int min, int max)
+{
+    if (canScrollToBottom)
+    {
+        scrollScreen->verticalScrollBar()->setValue(max);
+        canScrollToBottom = false;
+    }
 }
 
 void FBScreen::setState (int index)

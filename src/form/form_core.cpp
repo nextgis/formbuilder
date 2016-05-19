@@ -574,19 +574,24 @@ Json::Value FBForm::toJson ()
 }
 
 
-// Returns the list of elements by their order reading them from given JSON.
+// Returns the list of elements (in the passed parameter) by their order reading
+// them from given JSON. Returning void list is correct - the form has no elements
+// in that case.
 // See FBForm::toJson() how the form was converted to JSON.
 // Elements are created by their names.
-// If errors occur the list will be returned void. Error is returned if at least one
+// If errors occur FALSE will be returned. Error is returned even if at least one
 // of the elems in JSON array is incorrect.
-// WARNING. It is responsibility of the caller to delete all returned elems, but it
-// could be done by form if one add elems to it after creation.
-QList<FBElem*> FBForm::parseJson (Json::Value jsonVal) // STATIC
+// WARNING. Passed retList will be cleared even if the error occurs during the work
+// of the method. It is resposibility of the caller to avoid any memory leaks if to
+// pass not a void list to this method. It is also resposibility of the caller to
+// delete all created elems, but usually it is done by the form which is intended to
+// be the parent for them.
+bool FBForm::parseJson (Json::Value jsonVal, QList<FBElem*> &retList) // STATIC
 {
-    QList<FBElem*> list;
+    retList.clear();
 
     if (jsonVal.isNull() || !jsonVal.isArray())
-        return list; // void
+        return false; // void
 
     // Look through all json items.
     bool ok = true;
@@ -618,20 +623,20 @@ QList<FBElem*> FBForm::parseJson (Json::Value jsonVal) // STATIC
             break;
         }
 
-        list.append(elem);
+        retList.append(elem);
     }
 
     // Delete all already created elems if error occured.
     if (!ok)
     {
-        for (int i=0; i<list.size(); i++)
+        for (int i=0; i<retList.size(); i++)
         {
-            delete list[i];
+            delete retList[i];
         }
-        list.clear();
+        retList.clear();
     }
 
-    return list;
+    return true;
 }
 
 
@@ -639,9 +644,12 @@ QList<FBElem*> FBForm::parseJson (Json::Value jsonVal) // STATIC
 // Will clear all elems in a form before adding new!
 bool FBForm::fromJson (Json::Value jsonVal)
 {
-    QList<FBElem*> list = FBForm::parseJson(jsonVal);
-    if (list.isEmpty())
+    QList<FBElem*> list;
+    bool ok = FBForm::parseJson(jsonVal,list);
+    if (!ok)
+    {
         return false;
+    }
     this->clear();
     for (int i=0; i<list.size(); i++)
     {

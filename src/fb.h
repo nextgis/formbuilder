@@ -50,6 +50,8 @@
 
 #include <QThread>
 
+#include <QSettings>
+
 #include "form/form_core.h"
 #include "project/project.h"
 #include "screen/screen.h"
@@ -292,6 +294,8 @@ class FB: public QWidget
      void onLanguageSelect (int index);
      void onAboutGraphicsClick ();
 
+     void keyPressEvent (QKeyEvent *);
+
     private slots: // other slots
 
      int onShowBox (QString msg, QString caption);
@@ -306,10 +310,12 @@ class FB: public QWidget
     private: // methods
 
      // settings
-     void updateSettings ();
-     QString getLastPathProjectfile ();
-     QString getLastPathShapefile ();
-     void getLastPathNgw (QString &url, QString &login);
+     void writeSettings ();
+     void readSettings ();
+//     void updateSettings ();
+//     QString getLastPathProjectfile ();
+//     QString getLastPathShapefile ();
+//     void getLastPathNgw (QString &url, QString &login);
 
      // conversions
      QString getErrStr (FBErr err);
@@ -345,12 +351,25 @@ class FB: public QWidget
      void updateScreen ();
 
      // project
-     void newProjectCommonActions (FBProject *proj, QString path);
+     bool newProjectCommonActions(FBProject *proj, QString path);
      void saveProjectCommonActions (QString ngfpFullPath);
 
     private: // fields
 
      bool isInited;
+
+     // Settings.
+     struct FBSetting
+     {
+         QString key;
+         QString value;
+         QString defaultValue;
+     };
+     FBSetting settLastShapeFullPath;
+     FBSetting settLastNgfpFullPath;
+     FBSetting settLastLanguageSelected;
+     FBSetting settLastNgwUrl;
+     FBSetting settLastNgwLogin;
 
      // Supported languages in program.
      struct FBLangInfo

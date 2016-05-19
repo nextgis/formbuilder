@@ -318,7 +318,7 @@ class FBForm: public QWidget
 
      // json
      Json::Value toJson ();
-     static QList<FBElem*> parseJson (Json::Value jsonVal);
+     static bool parseJson (Json::Value jsonVal, QList<FBElem*> &retList);
      bool fromJson (Json::Value jsonVal);
 
      // visual

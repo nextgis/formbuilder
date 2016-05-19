@@ -26,6 +26,7 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QScrollArea>
+#include <QScrollBar>
 
 #include "form/form_core.h"
 
@@ -67,6 +68,8 @@ struct FBDevice
 // Default void grey screen.
 class FBScreen: public QWidget
 {
+    Q_OBJECT
+
     public:
 
      FBScreen (QWidget *parent);
@@ -80,6 +83,7 @@ class FBScreen: public QWidget
      QList<FBState> getStates () { return states; }
      virtual void setState (int index);
      virtual void setDevice (int index);
+     void requestScrollToBottom () { canScrollToBottom = true; }
 
     protected:
 
@@ -95,6 +99,11 @@ class FBScreen: public QWidget
      int curState;
      QList<FBDevice> devices;
      int curDevice;
+
+    private slots:
+     void scrollToBottom (int min, int max);
+    private:
+     bool canScrollToBottom;
 };
 
 // Abstract screen for mobiles with portrait and landscape orientations.
