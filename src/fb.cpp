@@ -22,7 +22,7 @@
 #include "fb.h"
 #include "ui_fb.h"
 
-#include "elements.h"
+#include "form/elements.h"
 
 
 FB::~FB()
@@ -31,17 +31,10 @@ FB::~FB()
     delete ui;
 }
 
-FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
+FB::FB(QWidget *parent):
+    QWidget(parent), ui(new Ui::FB)
 {
     isInited = false;
-
-    settLastShapeFullPath.key = "last_shp";
-    settLastNgfpFullPath.key = "last_ngfp";
-    settLastLanguageSelected.key = "language";
-     settLastLanguageSelected.defaultValue = "en_GB";
-    settLastNgwUrl.key = "last_ngw_url";
-    settLastNgwLogin.key = "last_ngw_login";
-    this->readSettings();
 
     FBLangInfo lang;
 
@@ -50,16 +43,24 @@ FB::FB(QWidget *parent): QWidget(parent), ui(new Ui::FB)
     lang.imgFlagPath = "";
     lang.imgNextgisPath = ":/img/nextgis_en.png";
     lang.offLink = "http://nextgis.ru/en/nextgis-formbuilder";
-    strsLanguages.append(lang);
+    languages.append(lang);
 
     lang.name = tr("Russian");
     lang.code = "ru_RU";
     lang.imgFlagPath = "";
     lang.imgNextgisPath = ":/img/nextgis_ru.png";
     lang.offLink = "http://nextgis.ru/nextgis-formbuilder";
-    strsLanguages.append(lang);
+    languages.append(lang);
 
     indexLang = 0;
+
+    settLastShapeFullPath.key = "last_shp";
+    settLastNgfpFullPath.key = "last_ngfp";
+    settLastLanguageSelected.key = "language";
+     settLastLanguageSelected.defaultValue = languages[0].code;
+    settLastNgwUrl.key = "last_ngw_url";
+    settLastNgwLogin.key = "last_ngw_login";
+    this->readSettings();
 
     project = NULL;
 
@@ -209,9 +210,9 @@ void FB::initGui ()
     // Settings.
     this->addTopMenuSpacer(wSettings);
     QStringList strsLangs;
-    for (int i=0; i<strsLanguages.size(); i++)
+    for (int i=0; i<languages.size(); i++)
     {
-        strsLangs.append(strsLanguages[i].name);
+        strsLangs.append(languages[i].name);
     }
     comboLang = addTopMenuCombo(wSettings, tr("Language"), strsLangs);
     QObject::connect(comboLang, SIGNAL(activated(int)),
@@ -222,13 +223,13 @@ void FB::initGui ()
     this->addTopMenuLabel(wAbout, FBProject::getProgVersionStr(),
                           tr("Version of\nprogram"));
     QLabel *labAboutImg = new QLabel(wAbout);
-    QPixmap pixAbout = QPixmap(strsLanguages[indexLang].imgNextgisPath);
+    QPixmap pixAbout = QPixmap(languages[indexLang].imgNextgisPath);
     labAboutImg->setPixmap(pixAbout);
     labAboutImg->setAlignment(Qt::AlignCenter);
     this->addTopMenuSpacer(wAbout);
     QLabel *labAboutUrl = new QLabel(wAbout);
     labAboutUrl->setAlignment(Qt::AlignCenter);
-    labAboutUrl->setText(QString("<a href=\"") + strsLanguages[indexLang].offLink
+    labAboutUrl->setText(QString("<a href=\"") + languages[indexLang].offLink
                    + QString("\">") + tr("Official page") + "</a>");
     labAboutUrl->setTextFormat(Qt::RichText);
     labAboutUrl->setTextInteractionFlags(Qt::TextBrowserInteraction);
@@ -1156,7 +1157,7 @@ void FB::onLanguageSelect (int index)
     if (index == indexLang)
         return;
     indexLang = index;
-    // TODO: propose user to exit the application?
+    settLastLanguageSelected.value = languages[indexLang].code;
     this->onShowInfo(tr("To change language please restart the application"));
 }
 

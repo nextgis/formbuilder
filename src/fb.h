@@ -312,10 +312,6 @@ class FB: public QWidget
      // settings
      void writeSettings ();
      void readSettings ();
-//     void updateSettings ();
-//     QString getLastPathProjectfile ();
-//     QString getLastPathShapefile ();
-//     void getLastPathNgw (QString &url, QString &login);
 
      // conversions
      QString getErrStr (FBErr err);
@@ -380,7 +376,7 @@ class FB: public QWidget
          QString imgNextgisPath;
          QString offLink;
      };
-     QList<FBLangInfo> strsLanguages; // the order is important
+     QList<FBLangInfo> languages; // the order is important
      int indexLang; // index in this list, default is 0 = English
 
      // Current project of the app.
