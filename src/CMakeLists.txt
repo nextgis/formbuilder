@@ -71,7 +71,7 @@ endif(WIN32)
 #
 
 target_link_libraries(${APP_NAME} Qt5::Widgets Qt5::Network)# Qt5::LinguistTools)
-if(UNIX)
+if(NOT WIN32)
     target_link_libraries(${APP_NAME} ${EXTRA_LIBS})
 endif()
 target_link_extlibraries(${APP_NAME}) 
