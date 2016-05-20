@@ -48,7 +48,15 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
     set( CMAKE_C_FLAGS   "-fpic ${CMAKE_C_FLAGS}" )  
 endif()
 
-find_package(Threads)
+set(EXTRA_LIBS)
+if(UNIX)
+    find_package(Threads)
+    set(EXTRA_LIBS ${EXTRA_LIB} ${CMAKE_THREAD_LIBS_INIT})
+    find_library(DL_LIB dl)
+    set(EXTRA_LIBS ${EXTRA_LIB} ${DL_LIB})
+    find_library(M_LIB m)
+    set(EXTRA_LIBS ${EXTRA_LIB} ${M_LIB})
+endif()
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
