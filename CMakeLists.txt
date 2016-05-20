@@ -48,6 +48,8 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
     set( CMAKE_C_FLAGS   "-fpic ${CMAKE_C_FLAGS}" )  
 endif()
 
+find_package(Threads)
+
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Instruct CMake to run moc automatically when needed.

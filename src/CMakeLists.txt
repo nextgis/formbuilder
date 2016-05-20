@@ -71,6 +71,7 @@ endif(WIN32)
 #
 
 target_link_libraries(${APP_NAME} Qt5::Widgets Qt5::Network)# Qt5::LinguistTools)
+target_link_libraries(${APP_NAME} ${CMAKE_THREAD_LIBS_INIT})
 target_link_extlibraries(${APP_NAME}) 
 
 # Install built executable, required dynamic libs, qm files and /gdal_data to
