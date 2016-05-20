@@ -28,7 +28,7 @@
 
 #include <QLineEdit>
 #include <QSpinBox>
-#include <QCombobox>
+#include <QComboBox>
 #include <QLabel>
 #include <QListWidget>
 #include <QToolButton>
