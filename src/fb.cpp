@@ -52,8 +52,6 @@ FB::FB(QWidget *parent):
     lang.offLink = "http://nextgis.ru/nextgis-formbuilder";
     languages.append(lang);
 
-    indexLang = 0;
-
     settLastShapeFullPath.key = "last_shp";
     settLastNgfpFullPath.key = "last_ngfp";
     settLastLanguageSelected.key = "language";
@@ -61,6 +59,16 @@ FB::FB(QWidget *parent):
     settLastNgwUrl.key = "last_ngw_url";
     settLastNgwLogin.key = "last_ngw_login";
     this->readSettings();
+
+    indexLang = 0;
+    for (int i=0; i<languages.size(); i++)
+    {
+        if (languages[i].code == settLastLanguageSelected.value)
+        {
+            indexLang = i;
+            break;
+        }
+    }
 
     project = NULL;
 
@@ -206,7 +214,6 @@ void FB::initGui ()
       tr("Update"),tr("Update layer with data\nfrom other Shapefile"),false,true);
     QObject::connect(toolbUpdateData, SIGNAL(clicked()),
                      this, SLOT(onUpdateDataClick()));
-
     // Settings.
     this->addTopMenuSpacer(wSettings);
     QStringList strsLangs;
@@ -215,9 +222,9 @@ void FB::initGui ()
         strsLangs.append(languages[i].name);
     }
     comboLang = addTopMenuCombo(wSettings, tr("Language"), strsLangs);
+    comboLang->setCurrentIndex(indexLang);
     QObject::connect(comboLang, SIGNAL(activated(int)),
                      this, SLOT(onLanguageSelect(int)));
-
     // About.
     this->addTopMenuSpacer(wAbout);
     this->addTopMenuLabel(wAbout, FBProject::getProgVersionStr(),
