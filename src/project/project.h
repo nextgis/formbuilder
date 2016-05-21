@@ -42,10 +42,8 @@
 #include "ogrsf_frmts.h"
 #include "json/json.h"
 
-// TODO: add these constants to CMake:
-#define _FB_VERSION 2.0
-//#define _FB_GDAL_DEBUG "D:/nextgis/formbuilder/gdal-log.txt" // uncomment for debugging
-//#define _FB_INSTALLPATH_GDALDATA "/gdal_data"
+// The only version constant of all project.
+#define FB_VERSION 2.1
 
 // Names.
 #define FB_PROJECT_EXTENSION "ngfp"

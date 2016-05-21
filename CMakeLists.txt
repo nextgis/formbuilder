@@ -37,6 +37,8 @@ if(WIN32)
     set(CMAKE_PREFIX_PATH ${QT_DIR_PREFIX_PATH})
 endif(WIN32)
 
+set(BUILD_SHARED_LIBS ON)
+
 include(GNUInstallDirs)
 
 set(INSTALL_BIN_DIR ${CMAKE_INSTALL_BINDIR} CACHE INTERNAL "Installation directory for executables" FORCE)
@@ -49,7 +51,7 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 set(EXTRA_LIBS)
-if(NOT WIN32)
+if(UNIX) #if(NOT WIN32)
     find_package(Threads)
     set(EXTRA_LIBS ${EXTRA_LIBS} ${CMAKE_THREAD_LIBS_INIT})
     find_library(DL_LIB dl)
@@ -202,6 +204,16 @@ if(GDAL_FOUND AND NOT WITH_GDAL_EXTERNAL)
     if(${GDAL_VERSION} VERSION_LESS GDAL_REQUIRED_VERSION)
         message(FATAL_ERROR "GDAL must be of version 2.1 or higher!")
     endif()
+endif()
+
+# TODO: move these definitions to the fb cmake.
+# Set FULL path to /gdal_data while it will be used after installation of hte app.
+if(WIN32) 
+    add_definitions(-DFB_INSTALLPATH_GDALDATA="${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/gdal_data")
+endif()
+option(USE_GDAL_LOG OFF)
+if(USE_GDAL_LOG) 
+    add_definitions(-DFB_GDAL_DEBUG="${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/gdal-log.txt")
 endif()
 
 # Build gui executable.

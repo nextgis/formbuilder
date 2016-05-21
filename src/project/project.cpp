@@ -47,15 +47,15 @@ void FBProject::initEnv () // STATIC
     // Settings for GDAL.
     // We need GDAL in any project, even void, because we will at least use vsizip
     // for packaging to .ngfp and GeoJSON driver for layer creation.
-    #ifdef _FB_GDAL_DEBUG
+    #ifdef FB_GDAL_DEBUG
     CPLSetConfigOption("CPL_DEBUG","ON");
     CPLSetConfigOption("CPL_CURL_VERBOSE","YES");
     CPLSetConfigOption("CPL_LOG",_FB_GDAL_DEBUG);
     CPLSetConfigOption("CPL_LOG_ERRORS","ON");
     #endif
     CPLSetConfigOption("CPL_VSIL_ZIP_ALLOWED_EXTENSIONS",FB_PROJECT_EXTENSION);
-    #ifdef _FB_INSTALLPATH_GDALDATA
-    QByteArray ba = QString(QDir::currentPath() + _FB_INSTALLPATH_GDALDATA).toUtf8();
+    #ifdef FB_INSTALLPATH_GDALDATA
+    QByteArray ba = QString(FB_INSTALLPATH_GDALDATA).toUtf8();
     CPLSetConfigOption("GDAL_DATA", ba.data());
     #endif
     GDALAllRegister();
@@ -111,7 +111,7 @@ void FBProject::deinitEnv () // STATIC
 
 QString FBProject::getProgVersionStr () // STATIC
 {
-    return QString::number(_FB_VERSION,'f',1);
+    return QString::number(FB_VERSION,'f',1);
 }
 
 
