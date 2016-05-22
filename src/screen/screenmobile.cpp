@@ -29,68 +29,77 @@
 FBScreenMobile::FBScreenMobile (QWidget *parent):
     FBScreen (parent)
 {
-    // WARNING. Do not forget to change indexes in the state setting method
-    // if editing this list.
-    states.append(FBState(
-          tr("Portrait"),tr("Portrait orientation"),":/img/phone_port.png"));
-    states.append(FBState(
-          tr("Landscape"),tr("Landscape orientation"),":/img/phone_land.png"));
 
-    // TODO: remove maximized screen for phones here and in setState()?
 }
 
 FBScreenMobile::~FBScreenMobile ()
 {
 }
 
-void FBScreenMobile::setDevice (int index)
+void FBScreenMobile::changeDevice (int index)
 {
-    if (index < 0 || index > devices.size()-1)
-            //|| index == curDevice)
-        return;
-
-    // Apply screen settings.
-
+    // TODO: check indexes.
 
     curDevice = index;
-}
 
-void FBScreenMobile::setState (int index)
-{
-    if (index < 0 || index > states.size()-1)
-            //|| index == curState)
-        return;
-
-    if (index == 1) // portrait
+    if (index == 0)
     {
-        for (int i=0; i<3; i++) wsWorkingArea[i]->setSizePolicy(
-                    QSizePolicy::Minimum, QSizePolicy::Minimum);
-        for (int i=5; i<8; i++) wsWorkingArea[i]->setSizePolicy(
-                    QSizePolicy::Minimum, QSizePolicy::Minimum);
-        wsWorkingArea[3]->setSizePolicy(
-                    QSizePolicy::Expanding, QSizePolicy::Expanding);
-        wsWorkingArea[4]->setSizePolicy(
-                    QSizePolicy::Expanding, QSizePolicy::Expanding);
+        FBScreen::changeDevice(0);
     }
-
-    else if (index == 2) // landscape
-    {
-        for (int i=0; i<3; i++) wsWorkingArea[i]->setSizePolicy(
-                    QSizePolicy::Expanding, QSizePolicy::Expanding);
-        for (int i=5; i<8; i++) wsWorkingArea[i]->setSizePolicy(
-                    QSizePolicy::Expanding, QSizePolicy::Expanding);
-        wsWorkingArea[3]->setSizePolicy(
-                    QSizePolicy::Minimum, QSizePolicy::Minimum);
-        wsWorkingArea[4]->setSizePolicy(
-                    QSizePolicy::Minimum, QSizePolicy::Minimum);
-    }
-
-    // TODO: remove maximized screen for phones here?
     else
     {
-        FBScreen::setState(0);
+        this->changeState(0); // always the first occur state
     }
+}
+
+void FBScreenMobile::changeState (int index)
+{
+    // TODO: check indexes.
 
     curState = index;
+
+    int width;
+    int height;
+
+    width = devices[curDevice].getResolution().first;
+    height = devices[curDevice].getResolution().second;
+
+    QPair<int,int> realSize = FBScreenMobile::calculateScreenSize(
+            devices[curDevice].getDiagonal(),width,height);
+
+    if (index == 0)
+    {
+        this->setFixedWidth(realSize.second);
+        this->setFixedHeight(realSize.first);
+    }
+    else
+    {
+        this->setFixedWidth(realSize.first);
+        this->setFixedHeight(realSize.second);
+    }
+
+    // TODO: switch to another form (second set of elems) here.
 }
+
+
+QPair<int,int> FBScreenMobile::calculateScreenSize (float d, float w, float h)
+{
+    QPair<int,int> ret;
+    ret.first = 0;
+    ret.second = 0;
+    if (d <= 0 || w <= 0 || h <= 0)
+        return ret;
+    float r; // aspect ratio
+    if (w > h)
+        r = w/h;
+    else
+        r = h/w;
+    float x, y;
+    y = sqrt(d*d/(r*r+1));
+    x = r*y;
+    return QPair<int,int>(x*FB_COEFF_SCREENSIZE,y*FB_COEFF_SCREENSIZE);
+}
+
+
+
 

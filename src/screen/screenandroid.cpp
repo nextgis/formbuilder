@@ -24,10 +24,12 @@
 FBScreenAndroid::FBScreenAndroid (QWidget* parent):
     FBScreenMobile (parent)
 { 
-    devices.append(FBDevice(
-                   QPair<int,int>(800,480),7.0,1.0,"Samsung Ace",""));
-    devices.append(FBDevice(
-                   QPair<int,int>(1280,720),6.3,1.5,"Galaxy Mega",""));
+    devices.append(FBDeviceMobile(
+                   QPair<int,int>(480,800),4.0,1.0,"Samsung Ace 4",""));
+    devices.append(FBDeviceTablet(
+                   QPair<int,int>(1280,800),9.6,1.0,"Galaxy Tab E",""));
+    devices.append(FBDeviceMobile(
+                   QPair<int,int>(720,1280),4.6,2.0,"Sony Xperia Z5",""));
 }
 
 FBScreenAndroid::~FBScreenAndroid ()
@@ -39,17 +41,15 @@ void FBScreenAndroid::updateStyle ()
     // Delete all decor widgets except Scrollarea+form.
     for (int i=0; i<labsScreenDecor.size(); i++)
     {
-        lvScreen->removeWidget(labsScreenDecor[i]);
+        lvMain->removeWidget(labsScreenDecor[i]);
         delete labsScreenDecor[i];
     }
     labsScreenDecor.clear();
 
     // Clear old style.
     // Reset general stylesheet of the screen.
-    wScreen->setStyleSheet("");
-
     // Grey background.
-    wScreen->setStyleSheet("QWidget {background-color: "
+    this->setStyleSheet("QWidget {background-color: "
                            +QString(FB_COLOR_LIGHTGREY)+";"
                            "border-top-left-radius: 4px;"
                            "border-top-right-radius: 4px;"
@@ -57,8 +57,8 @@ void FBScreenAndroid::updateStyle ()
                            "border-bottom-right-radius: 4px;}");
 
     // Top black decor line.
-    QLabel *labDecorTop = new QLabel(wScreen);
-    lvScreen->insertWidget(0,labDecorTop);
+    QLabel *labDecorTop = new QLabel(this);
+    lvMain->insertWidget(0,labDecorTop);
     labsScreenDecor.append(labDecorTop);
     labDecorTop->setStyleSheet("QLabel"
                                "{"
@@ -86,8 +86,8 @@ void FBScreenAndroid::updateStyle ()
     layDecorTop->addSpacing(5);
 
     // Top blue decor line.
-    QLabel *labDecorTop2 = new QLabel(wScreen);
-    lvScreen->insertWidget(1,labDecorTop2);
+    QLabel *labDecorTop2 = new QLabel(this);
+    lvMain->insertWidget(1,labDecorTop2);
     labsScreenDecor.append(labDecorTop2);
     labDecorTop2->setStyleSheet("QLabel{background-color: rgb(3,169,244);"
                                 "border-top-left-radius: 0px;"
@@ -123,8 +123,8 @@ void FBScreenAndroid::updateStyle ()
     layDecorTop2->addSpacing(5);
 
     // Bottom black decor line.
-    QLabel *labDecorBottom = new QLabel(wScreen);
-    lvScreen->insertWidget(3,labDecorBottom);
+    QLabel *labDecorBottom = new QLabel(this);
+    lvMain->insertWidget(3,labDecorBottom);
     labsScreenDecor.append(labDecorBottom);
     labDecorBottom->setStyleSheet("QLabel"
                                   "{"

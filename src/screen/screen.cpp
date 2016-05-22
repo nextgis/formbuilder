@@ -21,54 +21,78 @@
 
 #include "screen.h"
 
+
+/****************************************************************************/
+/*                                                                          */
+/*                              Device                                      */
+/*                                                                          */
+/****************************************************************************/
+
+FBDevice::FBDevice (QPair<int,int> resolution, float diagonal, float dpi, QString name,
+                    QString imgPath)
+{
+    this->resolution = resolution;
+    this->diagonal = diagonal;
+    this->dpi = dpi;
+    this->name = name;
+    this->imgPath = imgPath;
+}
+
+FBDeviceDefault::FBDeviceDefault ():
+    FBDevice(QPair<int,int>(-1,-1),-1.0,-1.0,QObject::tr("Default"),"")
+{
+    states.append(FBState(QObject::tr("Maximized"),
+                          QObject::tr("Maximize"),":/img/maximized.png"));
+}
+
+FBDeviceMobile::FBDeviceMobile (QPair<int,int> resolution, float diagonal, float dpi,
+                                QString name, QString imgPath):
+    FBDevice(resolution,diagonal,dpi,name,imgPath)
+{
+    states.append(FBState(QObject::tr("Portrait"),
+                          QObject::tr("Portrait orientation"),":/img/phone_port.png"));
+    states.append(FBState(QObject::tr("Landscape"),
+                          QObject::tr("Landscape orientation"),":/img/phone_land.png"));
+}
+
+FBDeviceTablet::FBDeviceTablet (QPair<int,int> resolution, float diagonal, float dpi,
+                                QString name, QString imgPath):
+    FBDevice(resolution,diagonal,dpi,name,imgPath)
+{
+    states.append(FBState(QObject::tr("Landscape"),
+                          QObject::tr("Landscape orientation"),":/img/tablet_land.png"));
+    states.append(FBState(QObject::tr("Portrait"),
+                          QObject::tr("Portrait orientation"),":/img/tablet_port.png"));
+}
+
+
+/****************************************************************************/
+/*                                                                          */
+/*                               Screen                                     */
+/*                                                                          */
+/****************************************************************************/
+
 FBScreen::FBScreen (QWidget *parent):
     QWidget(parent)
 {
     canScrollToBottom = false;
 
-    lgWorkingArea = new QGridLayout(this);
-    lgWorkingArea->setContentsMargins(0,0,0,0);
-    lgWorkingArea->setSpacing(0);
+    lvMain = new QVBoxLayout(this);
+    lvMain->setContentsMargins(0,0,0,0);
+    lvMain->setSpacing(0);
 
-    for (int i=0; i<3; i++)
-    {
-        for (int j=0; j<3; j++)
-        {
-            if (i == 1 && j == 1)
-                continue;
-            QWidget *w = new QWidget(this);
-            w->setSizePolicy(QSizePolicy::Expanding,
-                             QSizePolicy::Expanding);
-            lgWorkingArea->addWidget(w,i,j); // will be 7 items in array
-            wsWorkingArea.append(w);
-        }
-    }
-
-    wScreen = new QWidget(this);
-    wScreen->setSizePolicy(QSizePolicy::Expanding,
-                           QSizePolicy::Expanding);
-    lgWorkingArea->addWidget(wScreen,1,1);
-
-    lvScreen= new QVBoxLayout(wScreen);
-    lvScreen->setContentsMargins(0,0,0,0);
-    lvScreen->setSpacing(0);
-
-    scrollScreen = new QScrollArea(wScreen);
-    scrollScreen->setSizePolicy(QSizePolicy::Expanding,
+    scrollMain = new QScrollArea(this);
+    scrollMain->setSizePolicy(QSizePolicy::Expanding,
                                 QSizePolicy::Expanding);
-    scrollScreen->setStyleSheet("QScrollArea{border: 0px;}");
-    scrollScreen->setWidgetResizable(true);
-    QObject::connect(scrollScreen->verticalScrollBar(), SIGNAL(rangeChanged(int,int)),
+    scrollMain->setStyleSheet("QScrollArea{border: 0px;}");
+    scrollMain->setWidgetResizable(true);
+    QObject::connect(scrollMain->verticalScrollBar(), SIGNAL(rangeChanged(int,int)),
             this, SLOT(scrollToBottom(int, int)));
-    lvScreen->addWidget(scrollScreen);
+    lvMain->addWidget(scrollMain);
 
     formPtr = NULL;
 
-    // Defaults.
-    devices.append(FBDevice(
-                       QPair<int,int>(0,0),0.0,0.0,"Default",""));
-    states.append(FBState(
-                  tr("Maximized"),tr("Maximize"),":/img/maximized.png"));
+    devices.append(FBDeviceDefault());
     curDevice = 0;
     curState = 0;
 }
@@ -86,7 +110,7 @@ void FBScreen::setForm (FBForm* form)
         return;
     if (formPtr != NULL)
         this->deleteForm();
-    scrollScreen->setWidget(form);
+    scrollMain->setWidget(form);
     formPtr = form;
 }
 
@@ -94,7 +118,7 @@ void FBScreen::deleteForm ()
 {
     if (formPtr == NULL)
         return;
-    scrollScreen->takeWidget();
+    scrollMain->takeWidget();
     delete formPtr;
     formPtr = NULL;
 }
@@ -103,7 +127,7 @@ FBForm *FBScreen::takeForm ()
 {
     if (formPtr == NULL)
         return NULL;
-    FBForm *wForm = (FBForm*)(scrollScreen->takeWidget()); // can cast, because it was
+    FBForm *wForm = (FBForm*)(scrollMain->takeWidget()); // can cast, because it was
     formPtr = NULL;                                        // set via specific method
     return wForm;
 }
@@ -117,10 +141,8 @@ void FBScreen::updateStyle ()
 {
     // Clear old style.
     // Reset general stylesheet of the screen.
-    wScreen->setStyleSheet("");
-
     // Grey background.
-    wScreen->setStyleSheet("QWidget {background-color: "
+    this->setStyleSheet("QWidget {background-color: "
                            +QString(FB_COLOR_LIGHTGREY)+";"
                            "border-top-left-radius: 4px;"
                            "border-top-right-radius: 4px;"
@@ -132,10 +154,21 @@ void FBScreen::updateStyle ()
         formPtr->updateStyle(FB_STYLENAME_DEFAULT);
 }
 
-void FBScreen::setDevice (int index)
+
+void FBScreen::changeDevice (int index)
 {
-    curDevice = index;
+    // Default screen appearance: "maximized screen".
+    this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+    this->setMinimumSize(0,0);
+    this->setMaximumSize(QWIDGETSIZE_MAX,QWIDGETSIZE_MAX);
+    curDevice = 0;
 }
+void FBScreen::changeState (int index)
+{
+    // Nothing to do with screen appearance.
+    curState = 0;
+}
+
 
 // Scroll scrollArea to the end.
 // Can not do it with setValue() method.
@@ -145,21 +178,9 @@ void FBScreen::scrollToBottom (int min, int max)
 {
     if (canScrollToBottom)
     {
-        scrollScreen->verticalScrollBar()->setValue(max);
+        scrollMain->verticalScrollBar()->setValue(max);
         canScrollToBottom = false;
     }
 }
 
-void FBScreen::setState (int index)
-{
-    // Maximize working area.
-    for (int i=0; i<wsWorkingArea.size(); i++)
-    {
-        //wsWorkingArea[i]->setMinimumSize(0,0);
-        wsWorkingArea[i]->setSizePolicy(QSizePolicy::Minimum,
-                                        QSizePolicy::Minimum);
-    }
-
-    curState = index;
-}
 

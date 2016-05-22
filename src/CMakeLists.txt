@@ -77,16 +77,15 @@ install(TARGETS ${APP_NAME}
         ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
         LIBRARY DESTINATION ${INSTALL_LIB_DIR})
 if(WIN32)
-    # Install Qt libraries.
+    # Install Qt dlls (do it anyway because Qt is not supported in external build system).
     install(FILES ${QT_DIR_PREFIX_PATH}/lib/Qt5Core.dll DESTINATION ${INSTALL_BIN_DIR})
     install(FILES ${QT_DIR_PREFIX_PATH}/lib/Qt5Gui.dll DESTINATION ${INSTALL_BIN_DIR})
     install(FILES ${QT_DIR_PREFIX_PATH}/lib/Qt5Widgets.dll DESTINATION ${INSTALL_BIN_DIR})
     install(FILES ${QT_DIR_PREFIX_PATH}/lib/Qt5Network.dll DESTINATION ${INSTALL_BIN_DIR})
     install(FILES ${QT_DIR_PREFIX_PATH}/plugins/platforms/qwindows.dll DESTINATION ${INSTALL_BIN_DIR}/platforms)
-    # Install GDAL libraries.
-    # ...
-    # Install GDAL data.
-    # ...
     # Install language files.
-    #install(FILES ${CMAKE_CURRENT_BINARY_DIR}/fb_en_GB.qm DESTINATION ${INSTALL_BIN_DIR})
+#    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/fb_en_GB.qm DESTINATION ${INSTALL_BIN_DIR})
+    # WARNING: For now use only external GDAL libraries.
+    # TODO: for future: install GDAL dlls and gdal_data to the exe folder in case of use internal libraries so
+    # it can be possible to pack the full set of files into one installer file. For that ask user about required paths. 
 endif(WIN32)

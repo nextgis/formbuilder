@@ -280,8 +280,8 @@ class FB: public QWidget
      void onScreenIosPick ();
      void onScreenWebPick ();
      void onScreenQgisPick ();
-     void onScreenStatePick ();
      void onScreenDeviceSelect (int index);
+     void onScreenStatePick ();
      void onUndoClick ();
      void onRedoClick ();
      void onClearScreenClick ();
@@ -337,14 +337,15 @@ class FB: public QWidget
      void updateRightMenu ();
      void setBottomString (QString strToShorten, QString strToPrepend = "");
      void updateProjectString ();
-     void updateMenuView ();
+     void updateDevices ();
+     void updateStates ();
+     void updateDeviceInfo ();
      void afterPickScreen (QToolButton *toolbDown);
 
      // screen
      void pickDefaultScreen ();
      void pickVoidScreen ();
      void recreateScreen (FBScreen *newScreen, bool destroyForm);
-     void updateScreen ();
 
      // project
      bool newProjectCommonActions(FBProject *proj, QString path);
@@ -410,6 +411,9 @@ class FB: public QWidget
      QComboBox *comboScreenDevice;
      QList<QToolButton*> toolbsScreenState;
      QWidget *wScreenInfo;
+      QLabel *labScreenInfo1;
+      QLabel *labScreenInfo2;
+      QLabel *labScreenInfo3;
      QToolButton *toolbUndo;
      QToolButton *toolbRedo;
      QToolButton *toolbClearScreen;
@@ -434,6 +438,9 @@ class FB: public QWidget
      QLabel *labRight;
      
      // working area
+     QScrollArea *wWorkingArea;
+
+     // screen
      FBScreen *wScreen;
           
      // other gui

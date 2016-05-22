@@ -24,7 +24,7 @@
 FBScreenIos::FBScreenIos (QWidget* parent):
     FBScreenMobile(parent)
 {
-    devices.append(FBDevice(
+    devices.append(FBDeviceMobile(
                    QPair<int,int>(640,960),3.5,1.0,"iPhone 4",""));
 }
 
@@ -38,14 +38,12 @@ void FBScreenIos::updateStyle ()
 
     for (int i=0; i<labsScreenDecor.size(); i++)
     {
-        lvScreen->removeWidget(labsScreenDecor[i]);
+        lvMain->removeWidget(labsScreenDecor[i]);
         delete labsScreenDecor[i];
     }
     labsScreenDecor.clear();
 
-    wScreen->setStyleSheet("");
-
-    wScreen->setStyleSheet("QWidget {background-color: "
+    this->setStyleSheet("QWidget {background-color: "
                            +QString(FB_COLOR_LIGHTGREY)+";"
                            "border-top-left-radius: 4px;"
                            "border-top-right-radius: 4px;"

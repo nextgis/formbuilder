@@ -30,42 +30,88 @@
 
 #include "form/form_core.h"
 
+#define FB_COEFF_SCREENSIZE 120.0 // real screen size coefficient
+
 struct FBState
 {
     QString name;
     QString descr;
     QString imgPath;
-
     FBState (QString name, QString descr, QString imgPath)
-        { this->name = name; this->descr = descr; this->imgPath = imgPath; }
+    {
+        this->name = name;
+        this->descr = descr;
+        this->imgPath = imgPath;
+    }
 };
 
-struct FBDevice
+
+/**
+ * Abstract device class.
+ *
+ * Device defines the screen parameters of one type (e.g. Android) in order
+ * to correctly display the form for different real target devices.
+ * Device class also contains several states which can change such parameters
+ * and simulate the changes of the real device, such as rotation.
+ */
+class FBDevice
 {
+   public:
+    FBDevice (QPair<int,int> resolution, float diagonal, float dpi, QString name,
+              QString imgPath);
+    virtual ~FBDevice () {}
+
+    QPair<int,int> getResolution () { return resolution; }
+    float getDiagonal () { return diagonal; }
+    float getDpi () { return dpi; }
+    QString getName () { return name; }
+    QString getImgPath () { return imgPath; }
+    QList<FBState> getStates () { return states; }
+
+   protected:
     //QPair<int,int> aspectRatio;
     QPair<int,int> resolution;
     float diagonal; // inches
     float dpi;
     QString name;
     QString imgPath;
+    QList<FBState> states;
+};
 
-    FBDevice (QPair<int,int> resolution, float diagonal, float dpi, QString name,
-              QString imgPath)
-        { this->resolution = resolution; this->diagonal = diagonal; this->dpi = dpi;
-        this->name = name; this->imgPath = imgPath; }
+// Common desktop device. Has one "maximized" (fullscreen) state.
+class FBDeviceDefault: public FBDevice
+{
+   public:
+    FBDeviceDefault ();
+    virtual ~FBDeviceDefault() {}
+};
 
-    QString getDisplayString ()
-        { return name; }
+// Has two states: portrait and landscape.
+class FBDeviceMobile: public FBDevice
+{
+    public:
+     FBDeviceMobile (QPair<int,int> resolution, float diagonal, float dpi,
+                     QString name, QString imgPath);
+     virtual ~FBDeviceMobile() {}
+};
+class FBDeviceTablet: public FBDevice
+{
+    public:
+     FBDeviceTablet (QPair<int,int> resolution, float diagonal, float dpi,
+                     QString name, QString imgPath);
+     virtual ~FBDeviceTablet() {}
 };
 
 
 /**
- * Screen contains the form and render it.
- * WARNING. Each concrete screen must have at least one device and according
- * state (orientation).
+ * Common screen class.
+ *
+ * Screen contains the form and renders it with some style (e.g. Android, iOS, ...).
+ * Each screen can have a list of specific devices and at the same time all screens
+ * have the default device: "maximized" desktop device.
+ *
+ * By default screen is a grey void area.
  */
-
-// Default void grey screen.
 class FBScreen: public QWidget
 {
     Q_OBJECT
@@ -78,27 +124,26 @@ class FBScreen: public QWidget
      void deleteForm ();
      FBForm *takeForm ();
      FBForm *getFormPtr ();
+
      virtual void updateStyle ();
+     virtual void changeDevice (int index);
+     virtual void changeState (int index);
+
      QList<FBDevice> getDevices() { return devices; }
-     QList<FBState> getStates () { return states; }
-     virtual void setState (int index);
-     virtual void setDevice (int index);
+     FBDevice getCurDevice () { return devices[curDevice]; }
+
      void requestScrollToBottom () { canScrollToBottom = true; }
 
     protected:
 
-     QGridLayout *lgWorkingArea;
-     QList<QWidget*> wsWorkingArea;
-     QVBoxLayout *lvScreen; // the layout of screen widget
-     QWidget *wScreen; // parent widget for decor labels (if some) and scroll area
-     QScrollArea *scrollScreen; // actual parent of form widget
+     QVBoxLayout *lvMain; // the layout of the screen
+     QScrollArea *scrollMain; // actual parent of form widget
 
      FBForm *formPtr; // actually form widget is owned by scroll area
 
-     QList<FBState> states;
-     int curState;
      QList<FBDevice> devices;
      int curDevice;
+     int curState;
 
     private slots:
      void scrollToBottom (int min, int max);
@@ -113,12 +158,16 @@ class FBScreenMobile: public FBScreen
      FBScreenMobile (QWidget *parent);
      virtual ~FBScreenMobile ();
      virtual void updateStyle () = 0;
-     void setDevice (int index); // common for all mobile, so not virtual
-     void setState (int index); // common for all mobile, so not virtual
+     void changeDevice (int index); // common for all mobile, so not virtual
+     void changeState (int index);
+
+     static QPair<int,int> calculateScreenSize (float diagonal,
+                                                float widthResol, float heightResol);
 
     protected:
      QList<QLabel*> labsScreenDecor;
-     QList<FBElem*> otherElemsSet; // the order of elems is important
+
+     FBForm *form2Ptr; // other set of elements
 };
 
 // Screen with Android style.
@@ -139,15 +188,8 @@ class FBScreenIos: public FBScreenMobile
      void updateStyle ();
 };
 
-/*
-class FBScreenWeb: public FBScreen
-{
-};
 
-class FBScreenQgis: public FBScreen
-{
-};
-*/
+
 
 
 #endif //SCREEN_H
