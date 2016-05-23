@@ -87,10 +87,10 @@ void FB::initGui ()
     //                              Working area
     //----------------------------------------------------------------------
 
-    wScreen = new FBScreen(NULL); // currently with no form
-    wScreen->updateStyle();
+    wScreen = new FBScreen(NULL); // currently with no form 
     wScreen->changeDevice(0);
     wScreen->changeState(0);
+    wScreen->updateStyle();
 
     wWorkingArea = new QScrollArea(this);
     wWorkingArea->setWidget(wScreen);
@@ -98,6 +98,7 @@ void FB::initGui ()
                                 "background-color: rgb(0,0,0,0)}");
     wWorkingArea->setAlignment(Qt::AlignCenter);
     wWorkingArea->setAutoFillBackground(false);
+    wWorkingArea->setWidgetResizable(true); // only for default device/state
 
     //----------------------------------------------------------------------
     //                              Top menu
@@ -807,25 +808,25 @@ void FB::onSaveAsClick ()
 // SCREENS PICK
 void FB::onScreenAndroidPick ()
 {
-    FBScreenAndroid *screen = new FBScreenAndroid(this);
+    FBScreenAndroid *screen = new FBScreenAndroid(NULL);
     this->recreateScreen(screen,false);
     this->afterPickScreen(toolbScreenAndroid);
 }
 void FB::onScreenIosPick ()
 {
-    FBScreenIos *screen = new FBScreenIos(this);
+    FBScreenIos *screen = new FBScreenIos(NULL);
     this->recreateScreen(screen,false);
     this->afterPickScreen(toolbScreenIos);
 }
 void FB::onScreenWebPick ()
 {
-    FBScreen *screen = new FBScreen(this);
+    FBScreen *screen = new FBScreen(NULL);
     this->recreateScreen(screen,false);
     this->afterPickScreen(toolbScreenWeb);
 }
 void FB::onScreenQgisPick ()
 {
-    FBScreen *screen = new FBScreen(this);
+    FBScreen *screen = new FBScreen(NULL);
     this->recreateScreen(screen,false);
     this->afterPickScreen(toolbScreenQgis);
 }
@@ -833,7 +834,12 @@ void FB::onScreenQgisPick ()
 // SCREEN DEVICE SELECT
 void FB::onScreenDeviceSelect (int index)
 {
-    if (index == -1) index = 0;
+    if (index < 0)
+        index = 0;
+    if (index == 0)
+        wWorkingArea->setWidgetResizable(true); // help widget to expand self
+    else
+        wWorkingArea->setWidgetResizable(false);
     wScreen->changeDevice(index);
     this->updateStates();
     this->updateDeviceInfo();
@@ -1715,9 +1721,8 @@ void FB::updateEnableness ()
     }
 
     // TEMPORARY:
-    toolbScreenWeb->setEnabled(false);
-    toolbScreenQgis->setEnabled(false);
-    if (toolbsScreenState.size()>=2) toolbsScreenState[2]->setEnabled(false);
+    //toolbScreenWeb->setEnabled(false);
+    //toolbScreenQgis->setEnabled(false);
     toolbUndo->setEnabled(false);
     toolbRedo->setEnabled(false);
 }
@@ -1973,9 +1978,6 @@ void FB::afterPickScreen (QToolButton *toolbDown)
     this->updateStates();
     this->updateDeviceInfo();
 
-    wScreen->changeDevice(0); // anyway 0 indexes because we have recreated menus
-    wScreen->changeState(0);
-
     // Highlight buttons:
     toolbScreenAndroid->setDown(false);
     toolbScreenIos->setDown(false);
@@ -1998,14 +2000,14 @@ void FB::pickDefaultScreen ()
     // TODO: think about what other screen to set in this situation - may be
     // read it from the current project structure. Currently we set Android
     // screen.
-    FBScreenAndroid *screen = new FBScreenAndroid(this);
+    FBScreenAndroid *screen = new FBScreenAndroid(NULL);
     this->recreateScreen(screen,false); // with form copy, if was some
     this->afterPickScreen(toolbScreenAndroid);
 }
 // Recreate screen to void. Just "reset to grey screen".
 void FB::pickVoidScreen ()
 {
-    FBScreen *screen = new FBScreen(this);
+    FBScreen *screen = new FBScreen(NULL);
     this->recreateScreen(screen,true); // do not copy form
     this->afterPickScreen(NULL);
 }
@@ -2022,11 +2024,14 @@ void FB::recreateScreen (FBScreen *newScreen, bool destroyForm)
         FBForm *curForm = wScreen->takeForm();
         newScreen->setForm(curForm);
     }
+    newScreen->changeDevice(0);
+    newScreen->changeState(0);
+    newScreen->updateStyle();
     wWorkingArea->takeWidget();
     delete wScreen;
     wWorkingArea->setWidget(newScreen);
+    wWorkingArea->setWidgetResizable(true); // because 0 index of device by default
     wScreen = newScreen;
-    wScreen->updateStyle(); // this will also update the style of form elems
 }
 
 

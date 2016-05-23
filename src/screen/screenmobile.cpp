@@ -46,10 +46,8 @@ void FBScreenMobile::changeDevice (int index)
     {
         FBScreen::changeDevice(0);
     }
-    else
-    {
-        this->changeState(0); // always the first occur state
-    }
+
+    this->changeState(0); // always the first occur state
 }
 
 void FBScreenMobile::changeState (int index)
@@ -58,24 +56,27 @@ void FBScreenMobile::changeState (int index)
 
     curState = index;
 
-    int width;
-    int height;
-
-    width = devices[curDevice].getResolution().first;
-    height = devices[curDevice].getResolution().second;
-
-    QPair<int,int> realSize = FBScreenMobile::calculateScreenSize(
-            devices[curDevice].getDiagonal(),width,height);
-
-    if (index == 0)
+    if (curDevice != 0)
     {
-        this->setFixedWidth(realSize.second);
-        this->setFixedHeight(realSize.first);
-    }
-    else
-    {
-        this->setFixedWidth(realSize.first);
-        this->setFixedHeight(realSize.second);
+        int width;
+        int height;
+
+        width = devices[curDevice].getResolution().first;
+        height = devices[curDevice].getResolution().second;
+
+        QPair<int,int> realSize = FBScreenMobile::calculateScreenSize(
+                devices[curDevice].getDiagonal(),width,height);
+
+        if (index == 0)
+        {
+            this->setFixedWidth(realSize.second);
+            this->setFixedHeight(realSize.first);
+        }
+        else
+        {
+            this->setFixedWidth(realSize.first);
+            this->setFixedHeight(realSize.second);
+        }
     }
 
     // TODO: switch to another form (second set of elems) here.

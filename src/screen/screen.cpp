@@ -59,10 +59,10 @@ FBDeviceTablet::FBDeviceTablet (QPair<int,int> resolution, float diagonal, float
                                 QString name, QString imgPath):
     FBDevice(resolution,diagonal,dpi,name,imgPath)
 {
-    states.append(FBState(QObject::tr("Landscape"),
-                          QObject::tr("Landscape orientation"),":/img/tablet_land.png"));
     states.append(FBState(QObject::tr("Portrait"),
                           QObject::tr("Portrait orientation"),":/img/tablet_port.png"));
+    states.append(FBState(QObject::tr("Landscape"),
+                          QObject::tr("Landscape orientation"),":/img/tablet_land.png"));
 }
 
 
@@ -88,6 +88,7 @@ FBScreen::FBScreen (QWidget *parent):
     scrollMain->setWidgetResizable(true);
     QObject::connect(scrollMain->verticalScrollBar(), SIGNAL(rangeChanged(int,int)),
             this, SLOT(scrollToBottom(int, int)));
+
     lvMain->addWidget(scrollMain);
 
     formPtr = NULL;
@@ -157,12 +158,14 @@ void FBScreen::updateStyle ()
 
 void FBScreen::changeDevice (int index)
 {
+    curDevice = 0;
     // Default screen appearance: "maximized screen".
     this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
     this->setMinimumSize(0,0);
     this->setMaximumSize(QWIDGETSIZE_MAX,QWIDGETSIZE_MAX);
-    curDevice = 0;
 }
+
+
 void FBScreen::changeState (int index)
 {
     // Nothing to do with screen appearance.
