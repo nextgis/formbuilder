@@ -841,6 +841,7 @@ void FB::onScreenDeviceSelect (int index)
     else
         wWorkingArea->setWidgetResizable(false);
     wScreen->changeDevice(index);
+    wScreen->updateStyle();
     this->updateStates();
     this->updateDeviceInfo();
 }
@@ -866,6 +867,7 @@ void FB::onScreenStatePick ()
         }
     }
     wScreen->changeState(index);
+    wScreen->updateStyle();
 }
 
 

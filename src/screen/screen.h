@@ -136,7 +136,8 @@ class FBScreen: public QWidget
 
     protected:
 
-     QVBoxLayout *lvMain; // the layout of the screen
+     QHBoxLayout *lhMain;
+     QVBoxLayout *lvMain1; // the layout of the screen
      QScrollArea *scrollMain; // actual parent of form widget
 
      FBForm *formPtr; // actually form widget is owned by scroll area
@@ -165,7 +166,8 @@ class FBScreenMobile: public FBScreen
                                                 float widthResol, float heightResol);
 
     protected:
-     QList<QLabel*> labsScreenDecor;
+     QList<QLabel*> labsScreenDecorVert;
+     QList<QLabel*> labsScreenDecorHor;
 
      FBForm *form2Ptr; // other set of elements
 };

@@ -69,5 +69,8 @@
         <file>img/ios.png</file>
         <file>img/nextgis_en.png</file>
         <file>img/nextgis_ru.png</file>
+        <file>img/decor_andr_7_rot.png</file>
+        <file>img/decor_andr_8_rot.png</file>
+        <file>img/decor_andr_9_rot.png</file>
     </qresource>
 </RCC>

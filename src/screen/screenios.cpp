@@ -35,13 +35,18 @@ FBScreenIos::~FBScreenIos ()
 void FBScreenIos::updateStyle ()
 {
     // See FBScreenAndroid.
-
-    for (int i=0; i<labsScreenDecor.size(); i++)
+    for (int i=0; i<labsScreenDecorVert.size(); i++)
     {
-        lvMain->removeWidget(labsScreenDecor[i]);
-        delete labsScreenDecor[i];
+        lvMain1->removeWidget(labsScreenDecorVert[i]);
+        delete labsScreenDecorVert[i];
     }
-    labsScreenDecor.clear();
+    labsScreenDecorVert.clear();
+    for (int i=0; i<labsScreenDecorHor.size(); i++)
+    {
+        lhMain->removeWidget(labsScreenDecorHor[i]);
+        delete labsScreenDecorHor[i];
+    }
+    labsScreenDecorHor.clear();
 
     this->setStyleSheet("QWidget {background-color: "
                            +QString(FB_COLOR_LIGHTGREY)+";"

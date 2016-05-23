@@ -24,6 +24,7 @@
 FBScreenAndroid::FBScreenAndroid (QWidget* parent):
     FBScreenMobile (parent)
 { 
+    // TODO: read list of devices from csv file.
     devices.append(FBDeviceMobile(
                    QPair<int,int>(480,800),4.0,1.0,"Samsung Ace 4",""));
     devices.append(FBDeviceTablet(
@@ -38,13 +39,19 @@ FBScreenAndroid::~FBScreenAndroid ()
 
 void FBScreenAndroid::updateStyle ()
 {
-    // Delete all decor widgets except Scrollarea+form.
-    for (int i=0; i<labsScreenDecor.size(); i++)
+    // Delete all decor widgets. Scrollarea and form are not touched.
+    for (int i=0; i<labsScreenDecorVert.size(); i++)
     {
-        lvMain->removeWidget(labsScreenDecor[i]);
-        delete labsScreenDecor[i];
+        lvMain1->removeWidget(labsScreenDecorVert[i]);
+        delete labsScreenDecorVert[i];
     }
-    labsScreenDecor.clear();
+    labsScreenDecorVert.clear();
+    for (int i=0; i<labsScreenDecorHor.size(); i++)
+    {
+        lhMain->removeWidget(labsScreenDecorHor[i]);
+        delete labsScreenDecorHor[i];
+    }
+    labsScreenDecorHor.clear();
 
     // Clear old style.
     // Reset general stylesheet of the screen.
@@ -58,16 +65,8 @@ void FBScreenAndroid::updateStyle ()
 
     // Top black decor line.
     QLabel *labDecorTop = new QLabel(this);
-    lvMain->insertWidget(0,labDecorTop);
-    labsScreenDecor.append(labDecorTop);
-    labDecorTop->setStyleSheet("QLabel"
-                               "{"
-                                   "background-color: black;"
-                                   "border-top-left-radius: 4px;"
-                                   "border-top-right-radius: 4px;"
-                                   "border-bottom-left-radius: 0px;"
-                                   "border-bottom-right-radius: 0px;"
-                               "}");
+    lvMain1->insertWidget(0,labDecorTop);
+    labsScreenDecorVert.append(labDecorTop);
     labDecorTop->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
     labDecorTop->setFixedHeight(15);
     QHBoxLayout *layDecorTop = new QHBoxLayout(labDecorTop);
@@ -87,14 +86,13 @@ void FBScreenAndroid::updateStyle ()
 
     // Top blue decor line.
     QLabel *labDecorTop2 = new QLabel(this);
-    lvMain->insertWidget(1,labDecorTop2);
-    labsScreenDecor.append(labDecorTop2);
+    lvMain1->insertWidget(1,labDecorTop2);
+    labsScreenDecorVert.append(labDecorTop2);
     labDecorTop2->setStyleSheet("QLabel{background-color: rgb(3,169,244);"
                                 "border-top-left-radius: 0px;"
                                 "border-top-right-radius: 0px;"
                                 "border-bottom-left-radius: 0px;"
-                                "border-bottom-right-radius: 0px;"
-                                "}");
+                                "border-bottom-right-radius: 0px;}");
     labDecorTop2->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
     labDecorTop2->setFixedHeight(35);
     QHBoxLayout *layDecorTop2 = new QHBoxLayout(labDecorTop2);
@@ -122,39 +120,91 @@ void FBScreenAndroid::updateStyle ()
     layDecorTop2->addWidget(labDecorTop23);
     layDecorTop2->addSpacing(5);
 
-    // Bottom black decor line.
-    QLabel *labDecorBottom = new QLabel(this);
-    lvMain->insertWidget(3,labDecorBottom);
-    labsScreenDecor.append(labDecorBottom);
-    labDecorBottom->setStyleSheet("QLabel"
-                                  "{"
-                                      "background-color: black;"
-                                  "border-top-left-radius: 0px;"
-                                  "border-top-right-radius: 0px;"
+    // If portrait or maximized orientation.
+    if (curState == 0)
+    {
+        labDecorTop->setStyleSheet("QLabel"
+                                   "{background-color: black;"
+                                       "border-top-left-radius: 4px;"
+                                       "border-top-right-radius: 4px;"
+                                       "border-bottom-left-radius: 0px;"
+                                       "border-bottom-right-radius: 0px;}");
+
+        // Bottom black decor line.
+        QLabel *labDecorBottom = new QLabel(this);
+        lvMain1->insertWidget(3,labDecorBottom);
+        labsScreenDecorVert.append(labDecorBottom);
+        labDecorBottom->setStyleSheet("QLabel"
+                                      "{background-color: black;"
+                                      "border-top-left-radius: 0px;"
+                                      "border-top-right-radius: 0px;"
                                       "border-bottom-left-radius: 4px;"
-                                      "border-bottom-right-radius: 4px;"
-                                  "}");
-    labDecorBottom->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
-    labDecorBottom->setFixedHeight(30);
-    QHBoxLayout *layDecorBottom = new QHBoxLayout(labDecorBottom);
-    layDecorBottom->setContentsMargins(0,0,0,0);
-    layDecorBottom->setSpacing(0);
-    QLabel *labDecorBottom1 = new QLabel(labDecorBottom);
-    labDecorBottom1->setPixmap(QPixmap(":/img/decor_andr_7.png"));
-    labDecorBottom1->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
-    QLabel *labDecorBottom2 = new QLabel(labDecorBottom);
-    labDecorBottom2->setPixmap(QPixmap(":/img/decor_andr_8.png"));
-    labDecorBottom2->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
-    QLabel *labDecorBottom3 = new QLabel(labDecorBottom);
-    labDecorBottom3->setPixmap(QPixmap(":/img/decor_andr_9.png"));
-    labDecorBottom3->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
-    layDecorBottom->addStretch();
-    layDecorBottom->addWidget(labDecorBottom1);
-    layDecorBottom->addStretch();
-    layDecorBottom->addWidget(labDecorBottom2);
-    layDecorBottom->addStretch();
-    layDecorBottom->addWidget(labDecorBottom3);
-    layDecorBottom->addStretch();
+                                      "border-bottom-right-radius: 4px;}");
+        labDecorBottom->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+        labDecorBottom->setFixedHeight(30);
+        QHBoxLayout *layDecorBottom = new QHBoxLayout(labDecorBottom);
+        layDecorBottom->setContentsMargins(0,0,0,0);
+        layDecorBottom->setSpacing(0);
+        QLabel *labDecorBottom1 = new QLabel(labDecorBottom);
+        labDecorBottom1->setPixmap(QPixmap(":/img/decor_andr_7.png"));
+        labDecorBottom1->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
+        QLabel *labDecorBottom2 = new QLabel(labDecorBottom);
+        labDecorBottom2->setPixmap(QPixmap(":/img/decor_andr_8.png"));
+        labDecorBottom2->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
+        QLabel *labDecorBottom3 = new QLabel(labDecorBottom);
+        labDecorBottom3->setPixmap(QPixmap(":/img/decor_andr_9.png"));
+        labDecorBottom3->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
+        layDecorBottom->addStretch();
+        layDecorBottom->addWidget(labDecorBottom1);
+        layDecorBottom->addStretch();
+        layDecorBottom->addWidget(labDecorBottom2);
+        layDecorBottom->addStretch();
+        layDecorBottom->addWidget(labDecorBottom3);
+        layDecorBottom->addStretch();
+    }
+
+    // If landscape orientation.
+    else // if (curState == 1)
+    {
+        labDecorTop->setStyleSheet("QLabel"
+                                   "{background-color: black;"
+                                   "border-top-left-radius: 4px;"
+                                   "border-top-right-radius: 0px;"
+                                   "border-bottom-left-radius: 0px;"
+                                   "border-bottom-right-radius: 0px;}");
+
+        // Right black decor line.
+        QLabel *labDecorRight = new QLabel(this);
+        lhMain->addWidget(labDecorRight);
+        labsScreenDecorHor.append(labDecorRight);
+        labDecorRight->setStyleSheet("QLabel"
+                                      "{background-color: black;"
+                                      "border-top-left-radius: 0px;"
+                                      "border-top-right-radius: 4px;"
+                                      "border-bottom-left-radius: 0px;"
+                                      "border-bottom-right-radius: 4px;}");
+        labDecorRight->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Expanding);
+        labDecorRight->setFixedWidth(30);
+        QVBoxLayout *layDecorRight = new QVBoxLayout(labDecorRight);
+        layDecorRight->setContentsMargins(0,0,0,0);
+        layDecorRight->setSpacing(0);
+        QLabel *labDecorRight1 = new QLabel(labDecorRight);
+        labDecorRight1->setPixmap(QPixmap(":/img/decor_andr_9_rot.png"));
+        labDecorRight1->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
+        QLabel *labDecorRight2 = new QLabel(labDecorRight);
+        labDecorRight2->setPixmap(QPixmap(":/img/decor_andr_8_rot.png"));
+        labDecorRight2->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
+        QLabel *labDecorRight3 = new QLabel(labDecorRight);
+        labDecorRight3->setPixmap(QPixmap(":/img/decor_andr_7_rot.png"));
+        labDecorRight3->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
+        layDecorRight->addStretch();
+        layDecorRight->addWidget(labDecorRight1);
+        layDecorRight->addStretch();
+        layDecorRight->addWidget(labDecorRight2);
+        layDecorRight->addStretch();
+        layDecorRight->addWidget(labDecorRight3);
+        layDecorRight->addStretch();
+    }
 
     // Signalize to elems of the form to change style accordingly.
     if (formPtr != NULL)

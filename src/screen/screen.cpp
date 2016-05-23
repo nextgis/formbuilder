@@ -77,9 +77,13 @@ FBScreen::FBScreen (QWidget *parent):
 {
     canScrollToBottom = false;
 
-    lvMain = new QVBoxLayout(this);
-    lvMain->setContentsMargins(0,0,0,0);
-    lvMain->setSpacing(0);
+    lhMain = new QHBoxLayout(this);
+    lhMain->setContentsMargins(0,0,0,0);
+    lhMain->setSpacing(0);
+
+    lvMain1 = new QVBoxLayout();
+    lvMain1->setContentsMargins(0,0,0,0);
+    lvMain1->setSpacing(0);
 
     scrollMain = new QScrollArea(this);
     scrollMain->setSizePolicy(QSizePolicy::Expanding,
@@ -89,7 +93,8 @@ FBScreen::FBScreen (QWidget *parent):
     QObject::connect(scrollMain->verticalScrollBar(), SIGNAL(rangeChanged(int,int)),
             this, SLOT(scrollToBottom(int, int)));
 
-    lvMain->addWidget(scrollMain);
+    lvMain1->addWidget(scrollMain);
+    lhMain->addLayout(lvMain1);
 
     formPtr = NULL;
 

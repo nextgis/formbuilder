@@ -44,8 +44,8 @@
 
 #define FB_FORMCONST_ELEMSPACING 9 //13
 
-#define FB_ANDROIDSCREEN_FONTSIZE_NORMAL 13 //14
-#define FB_ANDROIDSCREEN_FONTTYPE "Candara"
+#define FB_ANDROIDSCREEN_FONTSIZE_NORMAL 12 //14
+#define FB_ANDROIDSCREEN_FONTTYPE "Segoe UI"//"Candara"
 
 // Reserved string constants for project's form file.
 #define FB_JSONKEY_ELEM_TYPE "type"
