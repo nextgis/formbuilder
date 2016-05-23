@@ -50,7 +50,7 @@ FBErr FBProjectNgw::readFirst (QString anyPath)
 
     // Firstly initialize with default GDAL method.
     FBErr err = this->readFromDataset(anyPath);
-    if (err != FBErrNone)
+    if (err != FBErrNone && err != FBErrIncorrectGdalDataset_NotForNgw)
         return err;
 
     // Replace metadata which we could not get in a common way, firstly checking its

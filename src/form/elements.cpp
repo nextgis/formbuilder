@@ -203,7 +203,7 @@ void FBElemTextedit::changeStyle (QString styleName)
 
     // ALL STYLES
     this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
-    this->setMaximumHeight(30);
+    this->setMaximumHeight(28);//(30);
 
     // ANDROID STYLE
     if (styleName == FB_STYLENAME_ANDROID)
@@ -223,9 +223,9 @@ void FBElemTextedit::changeStyle (QString styleName)
         widDecor->setMinimumHeight(7);
         widDecor->setStyleSheet("QWidget"
                    "{border-top: none;"
-                   "border-left: 3px solid "+QString(FB_COLOR_MEDIUMGREY)+";"
-                   "border-right: 3px solid "+QString(FB_COLOR_MEDIUMGREY)+";"
-                   "border-bottom: 3px solid "+QString(FB_COLOR_MEDIUMGREY)+";}");
+                   "border-left: 2px solid "+QString(FB_COLOR_MEDIUMGREY)+";"
+                   "border-right: 2px solid "+QString(FB_COLOR_MEDIUMGREY)+";"
+                   "border-bottom: 2px solid "+QString(FB_COLOR_MEDIUMGREY)+";}");
         lvMain->addWidget(labText);
         lvMain->addWidget(widDecor);
         lvMain->setContentsMargins(2,2,2,2);
@@ -330,7 +330,7 @@ void FBElemCombobox::changeStyle (QString styleName)
                     "{border-top: none;"
                     "border-left: none;"
                     "border-right: none;"
-                    "border-bottom: 3px solid "+QString(FB_COLOR_MEDIUMGREY)+";}");
+                    "border-bottom: 2px solid "+QString(FB_COLOR_MEDIUMGREY)+";}");
         vlayText->addWidget(labText);
         vlayText->addWidget(widDecor);
         QLabel *labImg = new QLabel(this);
@@ -454,7 +454,7 @@ void FBElemDoublecombobox::changeStyle (QString styleName)
                                 "{border-top: none;"
                                 "border-left: none;"
                                 "border-right: none;"
-                                "border-bottom: 3px solid "
+                                "border-bottom: 2px solid "
                                  +QString(FB_COLOR_MEDIUMGREY)+";}");
         QWidget *widDecor2 = new QWidget(this);
         widDecor2->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
@@ -463,7 +463,7 @@ void FBElemDoublecombobox::changeStyle (QString styleName)
                                 "{border-top: none;"
                                 "border-left: none;"
                                 "border-right: none;"
-                                "border-bottom: 3px solid "
+                                "border-bottom: 2px solid "
                                  +QString(FB_COLOR_MEDIUMGREY)+";}");
         QPixmap pixmap = QPixmap(":/img/for_combo.png");
         QLabel *labImg1 = new QLabel(this);

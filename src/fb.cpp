@@ -1403,6 +1403,7 @@ QString FB::getErrStr (FBErr err)
         case FBErrIncorrectJson: ret = tr("Incorrect JSON file structure"); break;
         case FBErrIncorrectFileStructure: ret = tr("Incorrect file structure"); break;
         case FBErrIncorrectGdalDataset: ret = tr("Incorrect GDAL dataset"); break;
+        case FBErrIncorrectGdalDataset_NotForNgw: ret = tr("Incorrect GDAL dataset"); break;
         case FBErrBadSavePath: ret = tr("Bad save path"); break;
         case FBErrTempFileFail: ret = tr("Temporary file error"); break;
         case FBErrGDALFail: ret = tr("GDAL error"); break;

@@ -80,8 +80,12 @@ enum FBErr
     // FOR DEVELOPERS: add string representations of new error codes to the
     // FB class.
     FBErrWrongVersion, FBErrIncorrectJson, FBErrIncorrectFileStructure,
-    FBErrIncorrectGdalDataset, FBErrBadSavePath, FBErrTempFileFail,
-    FBErrGDALFail, FBErrCPLFail, FBErrReadNgfpFail, FBErrStructureDiffers,
+    FBErrBadSavePath, FBErrTempFileFail, FBErrGDALFail, FBErrCPLFail,
+    FBErrReadNgfpFail, FBErrStructureDiffers, FBErrIncorrectGdalDataset,
+
+    // Says that for ngw dataset initializing it is not an error, but for others
+    // as FBErrIncorrectGdalDataset.
+    FBErrIncorrectGdalDataset_NotForNgw,
 
     // For the following codes it is not necessary to show detailed error info.
     // WARNING. It is always necessary to check for this type when displaying error

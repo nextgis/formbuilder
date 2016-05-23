@@ -30,7 +30,7 @@
 
 #include "form/form_core.h"
 
-#define FB_COEFF_SCREENSIZE 120.0 // real screen size coefficient
+#define FB_COEFF_SCREENSIZE 130.0 // real screen size coefficient
 
 struct FBState
 {

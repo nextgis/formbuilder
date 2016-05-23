@@ -213,7 +213,7 @@ FBInsertWidget::FBInsertWidget (QWidget* parent):
     QWidget(parent)
 {
     this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
-    this->setMinimumHeight(13);
+    this->setMinimumHeight(FB_FORMCONST_ELEMSPACING);
     this->setHideStyle();
 }
 

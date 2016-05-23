@@ -72,7 +72,7 @@ FBErr FBProjectGdal::readFromDataset (QString datasetPath)
         GDALClose(dataset);
         FBProject::CUR_ERR_INFO = QObject::tr("Selected GDAL dataset's layer must"
               " contain at least one field, while it contains no fields");
-        return FBErrIncorrectGdalDataset;
+        return FBErrIncorrectGdalDataset_NotForNgw;
     }
 
     OGRSpatialReference *layerSpaRef = layer->GetSpatialRef();
@@ -100,7 +100,7 @@ FBErr FBProjectGdal::readFromDataset (QString datasetPath)
         GDALClose(dataset);
         FBProject::CUR_ERR_INFO = QObject::tr("Selected GDAL dataset has unsupported"
                           " geometry type: ") + OGRGeometryTypeToName(geomType);
-        return FBErrIncorrectGdalDataset;
+        return FBErrIncorrectGdalDataset_NotForNgw;
     }
     geometry_type = gt;
 
