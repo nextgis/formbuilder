@@ -106,8 +106,8 @@ void FB::initGui ()
 
     tabMenuTop = new QTabWidget(this);
     tabMenuTop->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
-    tabMenuTop->setMaximumHeight(120);
-    tabMenuTop->setMinimumHeight(100);
+    tabMenuTop->setMaximumHeight(FB_GUI_SIZE_MENUTOP_MAX);
+    tabMenuTop->setMinimumHeight(FB_GUI_SIZE_MENUTOP_MIN);
     tabMenuTop->setFont(QFont(FB_GUI_FONTTYPE,FB_GUI_FONTSIZE_NORMAL));
 
     wProject = new QWidget();
@@ -187,8 +187,7 @@ void FB::initGui ()
                          this,SLOT(onScreenQgisPick()));
     this->addTopMenuSplitter(wView);
     QStringList stubList;
-    comboScreenDevice = this->addTopMenuCombo(wView, tr("Device\nsettings"),
-                                              stubList);
+    comboScreenDevice = this->addTopMenuCombo(wView,tr("Device\nsettings"),stubList);
     QObject::connect(comboScreenDevice, SIGNAL(activated(int)),
                      this, SLOT(onScreenDeviceSelect(int)));
     // Widget with device info.
@@ -306,8 +305,8 @@ void FB::initGui ()
             this,SLOT(onAddElemPress(QTreeWidgetItem*,int)));
 
     treeLeftShort = new QTreeWidget(wMenuLeft);
-    treeLeftShort->setMaximumWidth(35);
-    treeLeftShort->setMinimumWidth(35);
+    treeLeftShort->setMaximumWidth(FB_GUI_SIZE_TREELEFTSMALL);
+    treeLeftShort->setMinimumWidth(FB_GUI_SIZE_TREELEFTSMALL);
     treeLeftShort->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
     treeLeftShort->setIndentation(0);
     treeLeftShort->setItemsExpandable(false);
@@ -455,7 +454,8 @@ void FB::setFbStyle ()
                               "{"
                                   "background: white;"
                                   "border: none;"
-                                  "icon-size: 20px;"
+                                  "icon-size: "
+                                    +QString::number(FB_GUI_SIZE_TREEICON)+"px;"
                               "}"
                               "QTreeView::branch:has-children:opened"
                               "{"
@@ -1175,6 +1175,8 @@ void FB::onUpdateDataClick ()
         QStringList sPaths = dialog.selectedFiles();
         pathShapefile = sPaths[0];
 
+        // TODO: show warning if the selected dataset contains no data.
+
         // TODO: do it in separate thread like in Save As method.
         FBErr err = project->writeData(pathShapefile);
         if (err != FBErrNone)
@@ -1435,7 +1437,7 @@ QString FB::getGroupStr (FBElemtype type)
 
 /****************************************************************************/
 /*                                                                          */
-/*                            Top menu                                      */
+/*                           GUI top menu                                   */
 /*                                                                          */
 /****************************************************************************/
 
@@ -1463,13 +1465,13 @@ QToolButton *FB::addTopMenuButton (QWidget *parentTab, QString imgPath, QString 
       "QToolButton:disabled{}");
     if (isSmall)
     {
-        but->setIconSize(QSize(60,60));
-        but->setFixedSize(35,35);
+        but->setIconSize(QSize(FB_GUI_SIZE_TOPBUT_ICON,FB_GUI_SIZE_TOPBUT_ICON));
+        but->setFixedSize(FB_GUI_SIZE_TOPBUT_SMALL,FB_GUI_SIZE_TOPBUT_SMALL);
     }
     else
     {
-        but->setIconSize(QSize(60,60));
-        but->setFixedSize(65,65);
+        but->setIconSize(QSize(FB_GUI_SIZE_TOPBUT_ICON,FB_GUI_SIZE_TOPBUT_ICON));
+        but->setFixedSize(FB_GUI_SIZE_TOPBUT_BIG,FB_GUI_SIZE_TOPBUT_BIG);
     }
 
     QVBoxLayout *lay = new QVBoxLayout();
@@ -1479,7 +1481,7 @@ QToolButton *FB::addTopMenuButton (QWidget *parentTab, QString imgPath, QString 
     {
         but->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
         but->setFont(QFont(FB_GUI_FONTTYPE,FB_GUI_FONTSIZE_SMALL));
-        but->setIconSize(QSize(43,43));
+        but->setIconSize(QSize(FB_GUI_SIZE_TOPBUT_CAPTION,FB_GUI_SIZE_TOPBUT_CAPTION));
     }
 
     if (atTheEnd)
@@ -1502,8 +1504,7 @@ QComboBox *FB::addTopMenuCombo (QWidget *parentTab, QString caption,
     QComboBox *combo = new QComboBox(parentTab);
     combo->setSizePolicy(QSizePolicy::Maximum,QSizePolicy::Fixed);
     combo->setSizeAdjustPolicy(QComboBox::AdjustToContents);
-    //combo->setMaximumWidth(125);
-    combo->setFont(QFont("Segoe UI",FB_GUI_FONTSIZE_NORMAL));
+    combo->setFont(QFont(FB_GUI_FONTTYPE_2,FB_GUI_FONTSIZE_NORMAL));
     for (int i=0; i<values.size(); i++)
     {
         combo->addItem(values[i]);
@@ -1533,7 +1534,7 @@ void FB::addTopMenuSplitter (QWidget *parentTab)
 {
     QWidget *wid = new QWidget(wView);
     wid->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Expanding);
-    wid->setFixedWidth(1);
+    wid->setFixedWidth(FB_GUI_SIZE_TOPSPLITT);
     wid->setStyleSheet("QWidget {background-color: "
                              +QString(FB_COLOR_LIGHTMEDIUMGREY)+"}");
     QHBoxLayout *lhParent = (QHBoxLayout*)parentTab->layout();
@@ -1545,7 +1546,7 @@ void FB::addTopMenuSplitter (QWidget *parentTab)
 void FB::addTopMenuSpacer (QWidget *parentTab)
 {
     QHBoxLayout *lhParent = (QHBoxLayout*)parentTab->layout();
-    lhParent->insertSpacing(lhParent->count()-1,10); // last is stretch item.
+    lhParent->insertSpacing(lhParent->count()-1,FB_GUI_SIZE_TOPSPACE);
 }
 
 
@@ -1560,7 +1561,7 @@ QLabel *FB::addTopMenuLabel(QWidget *parentTab, QString text, QString caption)
     QLabel *lab2 = new QLabel(parentTab);
     lab2->setText(text);
     lab2->setAlignment(Qt::AlignCenter);
-    lab2->setFont(QFont(FB_GUI_FONTTYPE, 18));
+    lab2->setFont(QFont(FB_GUI_FONTTYPE, FB_GUI_FONTSIZE_TOPLABEL));
     lab2->setStyleSheet("QLabel {color: " + QString(FB_COLOR_VERYDARKGREY) + "}");
     QVBoxLayout *lv = new QVBoxLayout();
     lv->setContentsMargins(0,0,0,0);
@@ -1593,9 +1594,9 @@ FBForm *FB::createForm ()
 void FB::flipLeftMenu (bool isFull)
 {
     if (isFull)
-        wMenuLeft->setFixedWidth(240);
+        wMenuLeft->setFixedWidth(FB_GUI_SIZE_MENULEFT_FULL);
     else
-        wMenuLeft->setFixedWidth(70);
+        wMenuLeft->setFixedWidth(FB_GUI_SIZE_MENULEFT_SMALL);
 
 
     treeLeftFull->setVisible(isFull);
@@ -1611,10 +1612,9 @@ void FB::flipLeftMenu (bool isFull)
 void FB::flipRightMenu (bool isFull)
 {
     if (isFull)
-        wMenuRight->setFixedWidth(300);
+        wMenuRight->setFixedWidth(FB_GUI_SIZE_MENURIGHT_FULL);
     else
-        wMenuRight->setFixedWidth(40);
-
+        wMenuRight->setFixedWidth(FB_GUI_SIZE_MENURIGHT_SMALL);
 
     labRight->setVisible(isFull);
     for (int i=0; i<tablesRight.size(); i++)
@@ -1811,9 +1811,10 @@ void FB::updateRightMenu ()
         while (it != attrs.constEnd())
         {
             QString alias = (*it)->getDisplayName();
+            QString descr = (*it)->getDescription();
             QTableWidgetItem *itemAlias = new QTableWidgetItem(alias);
             itemAlias->setFlags(Qt::ItemIsEnabled);
-            itemAlias->setToolTip(alias);
+            itemAlias->setToolTip(descr);
             if ((*it)->getRole() == FBImportant)
             {
                 QFont font;

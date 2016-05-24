@@ -34,6 +34,7 @@ FBDialogProjectNgw::FBDialogProjectNgw (QWidget *parent,
 {
 //    this->setStyleSheet("");
 //    this->setStyleSheet("QWidget { color: black }");
+    this->setWindowTitle(tr("Establish NextGIS Web connection ..."));
 
     strUrl = "";
     strLogin = "";
@@ -43,7 +44,6 @@ FBDialogProjectNgw::FBDialogProjectNgw (QWidget *parent,
     itemToExpand = NULL;
 
     QVBoxLayout *dialogLayout = new QVBoxLayout(this);
-    this->setWindowTitle(tr("Establish NextGIS Web connection ..."));
     QLabel* label;
     QHBoxLayout *hLayout;
 

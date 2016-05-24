@@ -26,11 +26,11 @@ FBScreenAndroid::FBScreenAndroid (QWidget* parent):
 { 
     // TODO: read list of devices from csv file.
     devices.append(FBDeviceMobile(
-                   QPair<int,int>(480,800),4.0,1.0,"Samsung Ace 4",""));
+                   QPair<int,int>(480,800),4.0,-1.0,"Samsung Ace 4",""));
     devices.append(FBDeviceTablet(
-                   QPair<int,int>(1280,800),9.6,1.0,"Galaxy Tab E",""));
+                   QPair<int,int>(1280,800),9.6,-1.0,"Galaxy Tab E",""));
     devices.append(FBDeviceMobile(
-                   QPair<int,int>(720,1280),4.6,2.0,"Sony Xperia Z5",""));
+                   QPair<int,int>(720,1280),4.6,-1.0,"Sony Xperia Z5",""));
 }
 
 FBScreenAndroid::~FBScreenAndroid ()

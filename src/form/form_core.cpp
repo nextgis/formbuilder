@@ -29,19 +29,17 @@
 /*****************************************************************************/
 
 FBAttr::FBAttr (FBElem *parentElem, QString keyName, QString displayName,
-                FBAttrrole role):
+                QString descr, FBAttrrole role):
     QObject()
 {
     this->elemPtr = parentElem;
     this->keyName = keyName;
     this->displayName = displayName;
+    this->description = descr;
     this->role = role;
-
-    // Connect two main signals to any Elem which owns this Attr.
-//    QObject::connect(this,SIGNAL(changeAppearance()),
-//                     parentElem,SLOT(updateAppearance()));
-//    QObject::connect(this,SIGNAL(changeOtherAttr()),
-//                     parentElem,SLOT(changeAttrValue()));
+    // Note: the connection of two main signals is made inside elements, because
+    // only elements can know how their attributes have influence on them and on
+    // each other.
 }
 
 
@@ -213,7 +211,7 @@ FBInsertWidget::FBInsertWidget (QWidget* parent):
     QWidget(parent)
 {
     this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
-    this->setMinimumHeight(FB_FORMCONST_ELEMSPACING);
+    this->setMinimumHeight(FB_FORMSIZE_ELEMSPACING);
     this->setHideStyle();
 }
 
@@ -579,7 +577,7 @@ Json::Value FBForm::toJson ()
 // in that case.
 // See FBForm::toJson() how the form was converted to JSON.
 // Elements are created by their names.
-// If errors occur FALSE will be returned. Error is returned even if at least one
+// If errors occur false will be returned. Error is returned even if at least one
 // of the elems in JSON array is incorrect.
 // WARNING. Passed retList will be cleared even if the error occurs during the work
 // of the method. It is resposibility of the caller to avoid any memory leaks if to

@@ -42,10 +42,10 @@
 #define FB_STYLENAME_WEB "web"
 #define FB_STYLENAME_QGIS "qgis"
 
-#define FB_FORMCONST_ELEMSPACING 9 //13
+#define FB_FORMSIZE_ELEMSPACING 9 //13
 
 #define FB_ANDROIDSCREEN_FONTSIZE_NORMAL 12 //14
-#define FB_ANDROIDSCREEN_FONTTYPE "Segoe UI"//"Candara"
+#define FB_ANDROIDSCREEN_FONTTYPE "Segoe UI" //"Candara"
 
 // Reserved string constants for project's form file.
 #define FB_JSONKEY_ELEM_TYPE "type"
@@ -174,7 +174,7 @@ class FBAttr: public QObject
 {
     Q_OBJECT
     public:
-     FBAttr (FBElem *parentElem, QString keyName, QString displayName,
+     FBAttr (FBElem *parentElem, QString keyName, QString displayName, QString descr,
              FBAttrrole role);
      virtual ~FBAttr () { }
      virtual Json::Value toJson () = 0;
@@ -182,6 +182,7 @@ class FBAttr: public QObject
      virtual QWidget *getWidget () = 0; // its the caller responsib. to delete it
      QString getKeyName () { return keyName; }
      QString getDisplayName () { return displayName; }
+     QString getDescription () { return description; }
      FBAttrrole getRole () { return role; }
     signals:
      void changeOtherAttr (); // in order to signalize to other attrs of this element
@@ -192,6 +193,7 @@ class FBAttr: public QObject
      FBElem *elemPtr; // parent elem
      QString keyName;
      QString displayName;
+     QString description;
      FBAttrrole role;
 };
 

@@ -31,7 +31,7 @@ FBDialogProjectNew::FBDialogProjectNew (QWidget *parent):
 //    this->setStyleSheet("");
 //    this->setStyleSheet("QWidget { color: black }");
     this->setWindowTitle(tr("New project parameters ..."));
-    this->setFont(QFont(FB_GUI_FONTTYPE,FB_GUI_FONTSIZE_SMALL));
+//    this->setFont(QFont(FB_GUI_FONTTYPE,FB_GUI_FONTSIZE_SMALL));
 
     QLabel *label1 = new QLabel(this);
     label1->setText(tr("Geometry type: "));

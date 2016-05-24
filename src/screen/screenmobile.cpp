@@ -83,6 +83,12 @@ void FBScreenMobile::changeState (int index)
 }
 
 
+// Calculates the actual screen width and height, using the passed diagonal
+// and screen resolutions size. Diagonal is used to determine the screen size
+// while the resolution - to determine screen's aspect ratio. For example: two
+// devices with DPI = 1 and DPI = 2 but with the same diagonal will have the
+// same screen size.
+// In the returned pair the first value is always larger than the second.
 QPair<int,int> FBScreenMobile::calculateScreenSize (float d, float w, float h)
 {
     QPair<int,int> ret;
@@ -98,7 +104,7 @@ QPair<int,int> FBScreenMobile::calculateScreenSize (float d, float w, float h)
     float x, y;
     y = sqrt(d*d/(r*r+1));
     x = r*y;
-    return QPair<int,int>(x*FB_COEFF_SCREENSIZE,y*FB_COEFF_SCREENSIZE);
+    return QPair<int,int>(x*FB_SCREEN_SIZEFACTOR,y*FB_SCREEN_SIZEFACTOR);
 }
 
 

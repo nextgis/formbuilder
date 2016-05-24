@@ -25,7 +25,7 @@ FBScreenIos::FBScreenIos (QWidget* parent):
     FBScreenMobile(parent)
 {
     devices.append(FBDeviceMobile(
-                   QPair<int,int>(640,960),3.5,1.0,"iPhone 4",""));
+                   QPair<int,int>(640,960),3.5,-1.0,"iPhone 4",""));
 }
 
 FBScreenIos::~FBScreenIos ()

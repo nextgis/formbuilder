@@ -39,8 +39,9 @@ FBElemInput::FBElemInput (FBFactory *fctPtr):
     FBElem (fctPtr)
 {
     // ATTRIBUTE
-    attrFieldPtr = new FBAttrField(this, FB_ATTRNAME_FIELD,
-                  tr("Layer field"), FBImportant);
+    attrFieldPtr = new FBAttrField(this, FB_ATTRNAME_FIELD, tr("Layer's field"),
+      tr("The field of the underlying layer into which\nthe element will put its value"),
+      FBImportant);
     attrs.insert(attrFieldPtr);
 }
 
@@ -71,8 +72,9 @@ FBElemInputVariate::FBElemInputVariate (FBFactory *fctPtr):
     FBElemInput (fctPtr)
 {
     // ATTRIBUTE
-    attrKeepLastPtr = new FBAttrBoolean(this, FB_ATTRNAME_STORELAST,
-                  tr("Keep last value"), FBNoRole, false);
+    attrKeepLastPtr = new FBAttrBoolean(this, FB_ATTRNAME_STORELAST, tr("Keep last value"),
+      tr("Whether to keep last entered value from\nthe last input session"),
+      FBNoRole, false);
     attrs.insert(attrKeepLastPtr);
 }
 
@@ -87,8 +89,9 @@ FBElemText::FBElemText (FBFactory *fctPtr):
     FBElem(fctPtr)
 {
     // ATTRIBUTE
-    attrTextPtr = new FBAttrText(this, FB_ATTRNAME_TEXT,
-                  tr("Text"), FBNoRole, tr("Caption"));
+    attrTextPtr = new FBAttrText(this, FB_ATTRNAME_TEXT, tr("Text"),
+      tr("Displayed text"),
+      FBNoRole, tr("Caption"));
     QObject::connect(attrTextPtr, SIGNAL(changeAppearance()),
                      this, SLOT(updateAppearance()));
     attrs.insert(attrTextPtr);
@@ -179,20 +182,23 @@ FBElemTextedit::FBElemTextedit (FBFactory *fctPtr):
     FBElemInputVariate(fctPtr)
 {
     // ATTRIBUTE
-    attrTextPtr = new FBAttrText(this, FB_ATTRNAME_TEXT,
-                  tr("Initial text"), FBNoRole, tr("Text"));
+    attrTextPtr = new FBAttrText(this, FB_ATTRNAME_TEXT, tr("Initial text"),
+      tr("Initial text"),
+      FBNoRole, tr("Text"));
     QObject::connect(attrTextPtr, SIGNAL(changeAppearance()),
                      this, SLOT(updateAppearance()));
     attrs.insert(attrTextPtr);
 
     // ATTRIBUTE
     FBAttrNumber *attrMaxCountPtr = new FBAttrNumber(this, FB_ATTRNAME_MAXSTRINGCOUNT,
-                  tr("Max. string count"), FBNoRole, 1, 1, 65535);
+      tr("Max. string count"), tr("Maximium number of lines"),
+      FBNoRole, 1, 1, 65535);
     attrs.insert(attrMaxCountPtr);
 
     // ATTRIBUTE
     FBAttrBoolean *attrOnlyNumbers = new FBAttrBoolean(this, FB_ATTRNAME_ONLYNUMBERS,
-                  tr("Only numbers"), FBNoRole, false);
+      tr("Only numbers"), tr("User can type only whole/decimal numbers"),
+      FBNoRole, false);
     attrs.insert(attrOnlyNumbers);
 }
 
@@ -275,20 +281,24 @@ FBElemCombobox::FBElemCombobox (FBFactory *fctPtr, QWidget *appWidget):
     FBElemInputVariate(fctPtr)
 {
     // ATTRIBUTE
-    attrListvalsPtr = new FBAttrListvalues(this, FB_ATTRNAME_VALUE_mult,
-                  tr("Values"), FBNoRole, appWidget);
+    attrListvalsPtr = new FBAttrListvalues(this, FB_ATTRNAME_VALUE_mult, tr("Values"),
+      tr("List ov values and default selected value"),
+      FBNoRole, appWidget);
     QObject::connect(attrListvalsPtr, SIGNAL(changeAppearance()),
                      this, SLOT(updateAppearance()));
     attrs.insert(attrListvalsPtr);
 
     // ATTRIBUTE
     FBAttrBoolean *attrInputSearch = new FBAttrBoolean(this, FB_ATTRNAME_INPUTSEARCH,
-                  tr("Input with search"), FBNoRole, false);
+      tr("Input with search"),
+      tr("To show or not the corresponding items in the\nlist during the typing"),
+      FBNoRole, false);
     attrs.insert(attrInputSearch);
 
     // ATTRIBUTE
     FBAttrBoolean *attrAllowVals = new FBAttrBoolean(this, FB_ATTRNAME_ALLOWADDING,
-                  tr("Allow own values"), FBNoRole, false);
+      tr("Allow own values"), tr("User can add own values to the list"),
+      FBNoRole, false);
     attrs.insert(attrAllowVals);
 }
 
@@ -399,17 +409,22 @@ FBElemDoublecombobox::FBElemDoublecombobox (FBFactory *fctPtr, QWidget *appWidge
 
     // ATTRIBUTE
     FBAttrField *attrField1Ptr = new FBAttrField(this, FB_ATTRNAME_FIELD_dcmb_1,
-                  tr("Layer field for 1"), FBImportant);
+       tr("Layer's field for 1"),
+       tr("The field of the underlying layer into which\nthe first (main)"
+       " combo will put its value"), FBImportant);
     attrs.insert(attrField1Ptr);
 
     // ATTRIBUTE
     FBAttrField *attrField2Ptr = new FBAttrField(this, FB_ATTRNAME_FIELD_dcmb_2,
-                  tr("Layer field for 2"), FBImportant);
+      tr("Layer's field for 2"),
+      tr("The field of the underlying layer into which\nthe second (dependant)"
+      " combo will put its value"), FBImportant);
     attrs.insert(attrField2Ptr);
 
     // ATTRIBUTE
     attrListvalsDoublePtr = new FBAttrListvaluesDouble(this, FB_ATTRNAME_VALUE_mult,
-                  tr("Values"), FBNoRole, appWidget);
+      tr("Values"), tr("List of values for both combos and according\ndefault values"),
+      FBNoRole, appWidget);
     QObject::connect(attrListvalsDoublePtr, SIGNAL(changeAppearance()),
                      this, SLOT(updateAppearance()));
     attrs.insert(attrListvalsDoublePtr);
@@ -569,14 +584,16 @@ FBElemCheckbox::FBElemCheckbox (FBFactory *fctPtr):
 
     // ATTRIBUTE
     attrTextPtr = new FBAttrText(this, FB_ATTRNAME_TEXT,
-                  tr("Text"), FBNoRole, tr("Check"));
+      tr("Text"), tr("Displayed text"),
+      FBNoRole, tr("Check"));
     QObject::connect(attrTextPtr, SIGNAL(changeAppearance()),
                      this, SLOT(updateAppearance()));
     attrs.insert(attrTextPtr);
 
     // ATTRIBUTE
     attrCheckPtr = new FBAttrBoolean(this, FB_ATTRNAME_INITVALUE,
-                  tr("Initial value"), FBNoRole, false);
+      tr("Initial value"), tr("Initial value"),
+      FBNoRole, false);
     QObject::connect(attrCheckPtr, SIGNAL(changeAppearance()),
                      this, SLOT(updateAppearance()));
     attrs.insert(attrCheckPtr);
@@ -684,7 +701,8 @@ FBElemRadiogroup::FBElemRadiogroup (FBFactory *fctPtr, QWidget *appWidget):
 
     // ATTRIBUTE
     attrListvalsStrictPtr = new FBAttrListvaluesStrict(this, FB_ATTRNAME_VALUE_mult,
-                  tr("Values"), FBNoRole, appWidget);
+      tr("Values"), tr("List ov values and default selected value"),
+      FBNoRole, appWidget);
     QObject::connect(attrListvalsStrictPtr, SIGNAL(changeAppearance()),
                      this, SLOT(updateAppearance()));
     attrs.insert(attrListvalsStrictPtr);
@@ -806,7 +824,8 @@ FBElemDatetime::FBElemDatetime (FBFactory *fctPtr, QWidget *appWidget):
         strs.append(FBForm::DATETIME_FORMATS[i]->name);
     }
     attrTypePtr = new FBAttrSelect(this, FB_ATTRNAME_DATETYPE,
-                  tr("Type"), FBNoRole, strs, 0);
+       tr("Type"), tr("The type of value"),
+       FBNoRole, strs, 0);
     QObject::connect(attrTypePtr, SIGNAL(changeOtherAttr()),
                      this, SLOT(changeAttrValue()));          // will have influence
     QObject::connect(attrTypePtr, SIGNAL(changeAppearance()), // on the attrDatetimePtr
@@ -815,7 +834,8 @@ FBElemDatetime::FBElemDatetime (FBFactory *fctPtr, QWidget *appWidget):
 
     // ATTRIBUTE
     attrDatetimePtr = new FBAttrDatetime(this, FB_ATTRNAME_INITVALUE_datetime,
-                  tr("Initial value"), FBNoRole, appWidget);
+       tr("Initial value"), tr("Initial value"),
+       FBNoRole, appWidget);
     QObject::connect(attrDatetimePtr, SIGNAL(changeAppearance()),
                      this, SLOT(updateAppearance()));
     attrs.insert(attrDatetimePtr);
@@ -921,14 +941,16 @@ FBElemButton::FBElemButton (FBFactory *fctPtr):
 {
     // ATTRIBUTE
     attrTextPtr = new FBAttrText(this, FB_ATTRNAME_TEXT,
-                  tr("Text"), FBNoRole, tr("Press"));
+      tr("Text"), tr("Displayed text"),
+      FBNoRole, tr("Press"));
     QObject::connect(attrTextPtr, SIGNAL(changeAppearance()),
                      this, SLOT(updateAppearance()));
     attrs.insert(attrTextPtr);
 
     // ATTRIBUTE
-    FBAttrText *attrValuePtr = new FBAttrText(this, FB_ATTRNAME_VALUE,
-                  tr("Value"), FBNoRole, false);
+    FBAttrText *attrValuePtr = new FBAttrText(this, FB_ATTRNAME_VALUE, tr("Value"),
+      tr("The single value which will be put\nto the field when pressing button"),
+      FBNoRole, false);
     attrs.insert(attrValuePtr);
 }
 
@@ -1010,7 +1032,8 @@ FBElemPhoto::FBElemPhoto (FBFactory *fctPtr):
 {
     // ATTRIBUTE
     attrMaxCountPtr = new FBAttrNumber(this, FB_ATTRNAME_GALLERYSIZE,
-                  tr("Max. photo count"), FBNoRole, 1, 1, 5);
+       tr("Max. photo count"), tr("Maximum number of photos can be made"),
+       FBNoRole, 1, 1, 5);
     QObject::connect(attrMaxCountPtr, SIGNAL(changeAppearance()),
                      this, SLOT(updateAppearance()));
     attrs.insert(attrMaxCountPtr);

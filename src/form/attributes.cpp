@@ -29,8 +29,8 @@
 /*****************************************************************************/
 
 FBAttrDialog::FBAttrDialog (FBElem *parentElem, QString keyName, QString displayName,
-       FBAttrrole role, QWidget *parentForDialog):
-    FBAttr(parentElem ,keyName, displayName, role)
+       QString descr, FBAttrrole role, QWidget *parentForDialog):
+    FBAttr(parentElem ,keyName, displayName, descr, role)
 {
     // IMPORTANT: If parentForDialog is NULL it will cause issues in dialog displaying
     // for  some OSs.
@@ -69,8 +69,8 @@ void FBAttrField::updateValues (QStringList newKeyNames) // STATIC
 }
 
 FBAttrField::FBAttrField (FBElem *parentElem, QString keyName, QString displayName,
-            FBAttrrole role):
-    FBAttr (parentElem ,keyName, displayName, role)
+            QString descr, FBAttrrole role):
+    FBAttr (parentElem ,keyName, displayName, descr, role)
 {
     keyNameSelected = FB_DEFVALUE_NOTSELECTED;
 }
@@ -137,8 +137,8 @@ void FBAttrField::onEditEnd (QString keyNameSelected)
 /******************************************************************************/
 
 FBAttrText::FBAttrText (FBElem *parentElem, QString keyName, QString displayName,
-                         FBAttrrole role, QString initValue):
-    FBAttr(parentElem ,keyName, displayName, role)
+                        QString descr, FBAttrrole role, QString initValue):
+    FBAttr(parentElem ,keyName, displayName, descr, role)
 {
     value = initValue;
 }
@@ -183,8 +183,9 @@ void FBAttrText::onEditEnd (QString lineEditText)
 /******************************************************************************/
 
 FBAttrNumber::FBAttrNumber (FBElem *parentElem, QString keyName, QString displayName,
-            FBAttrrole role, int initValue, int min, int max):
-    FBAttr(parentElem ,keyName, displayName, role)
+                            QString descr, FBAttrrole role, int initValue,
+                            int min, int max):
+    FBAttr(parentElem ,keyName, displayName, descr, role)
 {
     this->value = initValue;
     this->min = min;
@@ -231,8 +232,8 @@ void FBAttrNumber::onEditEnd (int spinBoxValue)
 /******************************************************************************/
 
 FBAttrBoolean::FBAttrBoolean (FBElem *parentElem, QString keyName, QString displayName,
-            FBAttrrole role, bool initValue):
-    FBAttr(parentElem ,keyName, displayName, role)
+                              QString descr, FBAttrrole role, bool initValue):
+    FBAttr(parentElem ,keyName, displayName, descr, role)
 {
     value = initValue;
 }
@@ -278,8 +279,8 @@ void FBAttrBoolean::onEditEnd (int checkBoxValue)
 /******************************************************************************/
 
 FBAttrListvalues::FBAttrListvalues (FBElem *parentElem, QString keyName,
-           QString displayName, FBAttrrole role, QWidget *parentForDialog):
-    FBAttrDialog (parentElem, keyName, displayName, role, parentForDialog)
+           QString displayName, QString descr, FBAttrrole role, QWidget *parentForDialog):
+    FBAttrDialog (parentElem, keyName, displayName, descr, role, parentForDialog)
 {
     valueDefault = -1; // no default item selected
 }
@@ -380,8 +381,8 @@ void FBAttrListvalues::onEditStart ()
 /******************************************************************************/
 
 FBAttrListvaluesStrict::FBAttrListvaluesStrict (FBElem *parentElem, QString keyName,
-           QString displayName, FBAttrrole role, QWidget *parentForDialog):
-    FBAttrListvalues (parentElem, keyName, displayName, role, parentForDialog)
+         QString displayName, QString descr, FBAttrrole role, QWidget *parentForDialog):
+    FBAttrListvalues (parentElem, keyName, displayName, descr, role, parentForDialog)
 {
     // Default index can not be undefined. Define initial values.
     values.append(QPair<QString,QString>("1",tr("One")));
@@ -410,8 +411,8 @@ void FBAttrListvaluesStrict::onEditStart ()
 /******************************************************************************/
 
 FBAttrListvaluesDouble::FBAttrListvaluesDouble (FBElem *parentElem, QString keyName,
-           QString displayName, FBAttrrole role, QWidget *parentForDialog):
-    FBAttrListvalues(parentElem, keyName, displayName, role, parentForDialog)
+       QString displayName, QString descr, FBAttrrole role, QWidget *parentForDialog):
+    FBAttrListvalues(parentElem, keyName, displayName, descr, role, parentForDialog)
 {
 }
 
@@ -562,8 +563,8 @@ void FBAttrListvaluesDouble::getDefDispValues (QString &str1, QString &str2)
 /******************************************************************************/
 
 FBAttrSelect::FBAttrSelect (FBElem *parentElem, QString keyName, QString displayName,
-                            FBAttrrole role, QStringList valuesRange, int initValue):
-    FBAttr(parentElem ,keyName, displayName, role)
+           QString descr, FBAttrrole role, QStringList valuesRange, int initValue):
+    FBAttr(parentElem ,keyName, displayName, descr, role)
 {
     for (int i=0; i<valuesRange.size(); i++)
     {
@@ -616,8 +617,8 @@ void FBAttrSelect::onEditEnd (int indexSelected)
 /******************************************************************************/
 
 FBAttrDatetime::FBAttrDatetime (FBElem *parentElem, QString keyName,
-           QString displayName, FBAttrrole role, QWidget *parentForDialog):
-    FBAttrDialog (parentElem, keyName, displayName, role, parentForDialog)
+     QString displayName, QString descr, FBAttrrole role, QWidget *parentForDialog):
+    FBAttrDialog (parentElem, keyName, displayName, descr, role, parentForDialog)
 {
     value.setDate(QDate(2016,1,1));
     value.setTime(QTime(0,0,0));

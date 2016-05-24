@@ -49,7 +49,7 @@ class FBAttrDialog: public FBAttr
     Q_OBJECT
     public:
      FBAttrDialog (FBElem *parentElem, QString keyName, QString displayName,
-            FBAttrrole role, QWidget *parentForDialog);
+                   QString descr, FBAttrrole role, QWidget *parentForDialog);
      virtual ~FBAttrDialog () { }
      virtual QPushButton *getWidget ();
     protected slots:
@@ -63,7 +63,7 @@ class FBAttrField: public FBAttr
     Q_OBJECT
     public:
      FBAttrField (FBElem *parentElem, QString keyName, QString displayName,
-                 FBAttrrole role);
+                  QString descr, FBAttrrole role);
      ~FBAttrField () { }
      static void updateValues (QStringList newKeyNames);
      Json::Value toJson ();
@@ -85,7 +85,7 @@ class FBAttrText: public FBAttr
     Q_OBJECT
     public:
      FBAttrText (FBElem *parentElem, QString keyName, QString displayName,
-                 FBAttrrole role, QString initValue);
+                 QString descr, FBAttrrole role, QString initValue);
      ~FBAttrText () { }
      Json::Value toJson ();
      bool fromJson (Json::Value jsonVal);
@@ -102,7 +102,7 @@ class FBAttrNumber: public FBAttr
     Q_OBJECT
     public:
      FBAttrNumber (FBElem *parentElem, QString keyName, QString displayName,
-                 FBAttrrole role, int initValue, int min, int max);
+                 QString descr, FBAttrrole role, int initValue, int min, int max);
      ~FBAttrNumber () { }
      Json::Value toJson ();
      bool fromJson (Json::Value jsonVal);
@@ -121,7 +121,7 @@ class FBAttrBoolean: public FBAttr
     Q_OBJECT
     public:
      FBAttrBoolean (FBElem *parentElem, QString keyName, QString displayName,
-                 FBAttrrole role, bool initValue);
+                 QString descr, FBAttrrole role, bool initValue);
      ~FBAttrBoolean () { }
      Json::Value toJson ();
      bool fromJson (Json::Value jsonVal);
@@ -138,7 +138,7 @@ class FBAttrListvalues: public FBAttrDialog
     Q_OBJECT
     public:
      FBAttrListvalues (FBElem *parentElem, QString keyName, QString displayName,
-                FBAttrrole role, QWidget *parentForDialog);
+                QString descr, FBAttrrole role, QWidget *parentForDialog);
      virtual ~FBAttrListvalues () { }
      virtual Json::Value toJson ();
      virtual bool fromJson (Json::Value jsonVal);
@@ -186,7 +186,7 @@ class FBAttrListvaluesStrict: public FBAttrListvalues
     Q_OBJECT
     public:
      FBAttrListvaluesStrict (FBElem *parentElem, QString keyName, QString displayName,
-               FBAttrrole role, QWidget *parentForDialog);
+               QString descr, FBAttrrole role, QWidget *parentForDialog);
      virtual ~FBAttrListvaluesStrict () { }
     protected slots:
      virtual void onEditStart ();
@@ -197,7 +197,7 @@ class FBAttrListvaluesDouble: public FBAttrListvalues
     Q_OBJECT
     public:
      FBAttrListvaluesDouble (FBElem *parentElem, QString keyName, QString displayName,
-                FBAttrrole role, QWidget *parentForDialog);
+                QString descr, FBAttrrole role, QWidget *parentForDialog);
      virtual ~FBAttrListvaluesDouble () { }
      virtual Json::Value toJson ();
      virtual bool fromJson (Json::Value jsonVal);
@@ -253,7 +253,7 @@ class FBAttrSelect: public FBAttr
     Q_OBJECT
     public:
      FBAttrSelect (FBElem *parentElem, QString keyName, QString displayName,
-                 FBAttrrole role, QStringList valuesRange, int initValue);
+         QString descr, FBAttrrole role, QStringList valuesRange, int initValue);
      ~FBAttrSelect () { }
      Json::Value toJson ();
      bool fromJson (Json::Value jsonVal);
@@ -271,7 +271,7 @@ class FBAttrDatetime: public FBAttrDialog
     Q_OBJECT
     public:
      FBAttrDatetime (FBElem *parentElem, QString keyName, QString displayName,
-                FBAttrrole role, QWidget *parentForDialog);
+                QString descr, FBAttrrole role, QWidget *parentForDialog);
      virtual ~FBAttrDatetime () { }
      virtual Json::Value toJson ();
      virtual bool fromJson (Json::Value jsonVal);

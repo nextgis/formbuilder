@@ -9,7 +9,7 @@ int main (int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    // TODO: do the recognition and setting of the system language firstly.
+    // TODO: implement the recognition and setting of the system language firstly.
     //QString langSys = QLocale::system().name();
 /*    QSettings settings(QSettings::IniFormat, QSettings::UserScope,
                           "NextGIS", "FormBuilder");

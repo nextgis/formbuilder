@@ -33,7 +33,7 @@ FBDialogAbout::FBDialogAbout (QWidget *parent):
     this->setModal(true);
 
     this->setWindowTitle(tr("Graphics in program"));
-    this->setFont(QFont(FB_GUI_FONTTYPE, FB_GUI_FONTSIZE_SMALL));
+//    this->setFont(QFont(FB_GUI_FONTTYPE, FB_GUI_FONTSIZE_SMALL));
 
     QLabel *lab1 = new QLabel(this);
     lab1->setText(tr("Some images in program were modified and differ from"
