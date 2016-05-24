@@ -37,6 +37,7 @@
 #include <QProgressBar>
 #include <QLineEdit>
 #include <QTextEdit>
+#include <QCheckBox>
 
 #include <QDialog>
 #include <QFileDialog>
@@ -56,7 +57,7 @@
 #include "project/project.h"
 #include "screen/screen.h"
 
-// Visual.
+// GUI constants.
 #define FB_GUI_FONTTYPE "Candara"
 #define FB_GUI_FONTTYPE_2 "Segoe UI"
 #define FB_GUI_FONTSIZE_NORMAL 11
@@ -72,12 +73,14 @@
 #define FB_GUI_FONTSIZE_TOPLABEL 18
 #define FB_GUI_SIZE_TREELEFTSMALL 35
 #define FB_GUI_SIZE_TREEICON 20
+#define FB_GUI_SIZE_TREEITEM_HEIGHT 20
+#define FB_GUI_SIZE_TREEITEM_PADD 5
 #define FB_GUI_SIZE_MENULEFT_FULL 240
 #define FB_GUI_SIZE_MENULEFT_SMALL 70
 #define FB_GUI_SIZE_MENURIGHT_FULL 300
 #define FB_GUI_SIZE_MENURIGHT_SMALL 40
 
-// Constants and limits.
+// Limits.
 #define FB_MENURIGHT_TABLES_MAX 5
 #define FB_BOTTOMSTRING_LEN_MAX 40
 
@@ -86,6 +89,7 @@
 #define FB_NGW_ITEMTYPE_RESOURCEGROUP 1
 #define FB_NGW_ITEMTYPE_VECTORLAYER 2
 #define FB_NGW_ITEMTYPE_POSTGISLAYER 3
+#define FB_NGW_WEBGIS_SUFFIX ".nextgis.com"
 
 namespace Ui
 {
@@ -135,6 +139,8 @@ class FBDialogProjectNgw: public QDialog
      void onConnectClicked ();
      void onSelectClicked ();
 
+void onCheckboxClick (bool pressed);
+
      void httpOnItemExpended (QTreeWidgetItem *treeItem);
      void httpOnItemCollapsed (QTreeWidgetItem *treeItem);
      void httpOnItemClicked (QTreeWidgetItem *treeItem, int treeItemColumn);
@@ -172,6 +178,7 @@ class FBDialogProjectNgw: public QDialog
      QTreeWidget *wTree;
      QProgressBar *wProgBar;
      QLabel *wLabelStatus;
+QCheckBox *chbGuest;
 
      QNetworkAccessManager httpManager;
      QNetworkReply *httpAuthReply;

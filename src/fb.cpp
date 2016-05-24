@@ -329,7 +329,8 @@ void FB::initGui ()
     lhMenuLeft->addLayout(lvMenuLeft2);
 
     this->updateLeftTrees(); // fill trees with elements' representations
-    this->flipLeftMenu(false);
+    this->flipLeftMenu(true);    // do this twice, otherwise there is some strange bug
+    this->flipLeftMenu(false);   // with displaying two last items in the full tree
 
     //----------------------------------------------------------------------
     //                              Right menu
@@ -455,7 +456,7 @@ void FB::setFbStyle ()
                                   "background: white;"
                                   "border: none;"
                                   "icon-size: "
-                                    +QString::number(FB_GUI_SIZE_TREEICON)+"px;"
+                                   +QString::number(FB_GUI_SIZE_TREEICON)+"px;"
                               "}"
                               "QTreeView::branch:has-children:opened"
                               "{"
@@ -475,9 +476,13 @@ void FB::setFbStyle ()
                               "}"
                               "QTreeWidget::item"
                               "{"
+                                  "height: "
+                                   +QString::number(FB_GUI_SIZE_TREEITEM_HEIGHT)+"px;"
                                   "border: none;"
-                                  "padding-top: 5px;"
-                                  "padding-bottom: 5px;"
+                                  "padding-top: "
+                                   +QString::number(FB_GUI_SIZE_TREEITEM_PADD)+"px;"
+                                  "padding-bottom: "
+                                   +QString::number(FB_GUI_SIZE_TREEITEM_PADD)+"px;"
                               "}"
                               "QTreeWidget::item:has-children"
                               "{"
@@ -1764,10 +1769,12 @@ void FB::updateLeftTrees ()
     }
 
     treeLeftFull->sortItems(0,Qt::AscendingOrder);
-
-    //treeLeftFull->expandAll();
-    //treeLeftFull->topLevelItem(treeLeftFull->topLevelItemCount()-1)
-    //        ->setExpanded(false);
+    treeLeftFull->expandAll();
+    // Note: see initGui() method how to solve strange proplem which used to happen
+    // here after expandAll() - two last items of treeLeftShort were smaller size then
+    // the other items and at the same time collapsing+expanding top-level item which
+    // contains them making them normal size. Bug in Qt? Smth wrong with styles and/or
+    // visibility of tree an its items.
 }
 
 

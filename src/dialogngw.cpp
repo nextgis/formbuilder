@@ -48,17 +48,31 @@ FBDialogProjectNgw::FBDialogProjectNgw (QWidget *parent,
     QHBoxLayout *hLayout;
 
     hLayout = new QHBoxLayout();
+    hLayout->setSpacing(0);
     label = new QLabel(this);
-    label->setText(tr("URL:          "));
+label->setText("Web GIS name:     ");//(tr("URL:          "));
     hLayout->addWidget(label);
     wEditUrl = new QLineEdit(this);
     wEditUrl->setText(lastNgwUrl);
+QLabel *labUrl2 = new QLabel(this);
+labUrl2->setText(QString(" ") + FB_NGW_WEBGIS_SUFFIX);
     hLayout->addWidget(wEditUrl);
+hLayout->addWidget(labUrl2);
     dialogLayout->addLayout(hLayout);
+
+hLayout = new QHBoxLayout();
+hLayout->setAlignment(Qt::AlignLeft);
+chbGuest = new QCheckBox(this);
+chbGuest->setChecked(true);
+chbGuest->setText(tr("Login as guest"));
+hLayout->addSpacing(89);
+hLayout->addWidget(chbGuest);
+dialogLayout->addLayout(hLayout);
+connect(chbGuest,SIGNAL(clicked(bool)),this,SLOT(onCheckboxClick(bool)));
 
     hLayout = new QHBoxLayout();
     label = new QLabel(this);
-    label->setText(tr("Login:        "));
+label->setText(tr("Login:                  "));//(tr("Login:        "));
     hLayout->addWidget(label);
     wEditLogin = new QLineEdit(this);
     wEditLogin->setText(lastNgwLogin);
@@ -67,12 +81,14 @@ FBDialogProjectNgw::FBDialogProjectNgw (QWidget *parent,
 
     hLayout = new QHBoxLayout();
     label = new QLabel(this);
-    label->setText(tr("Password: "));
+label->setText(tr("Password:           "));//(tr("Password: "));
     hLayout->addWidget(label);
     wEditPass = new QLineEdit(this);
     wEditPass->setEchoMode(QLineEdit::Password);
     hLayout->addWidget(wEditPass);
     dialogLayout->addLayout(hLayout);
+
+this->onCheckboxClick(true);
 
     wButConnect = new QPushButton(this);
     wButConnect->setText(tr("Connect"));
@@ -120,6 +136,13 @@ FBDialogProjectNgw::FBDialogProjectNgw (QWidget *parent,
 }
 
 
+void FBDialogProjectNgw::onCheckboxClick (bool pressed)
+{
+    wEditPass->setEnabled(!pressed);
+    wEditLogin->setEnabled(!pressed);
+}
+
+
 void FBDialogProjectNgw::onConnectClicked ()
 {
     wButConnect->setEnabled(false);
@@ -137,12 +160,18 @@ void FBDialogProjectNgw::onConnectClicked ()
     strLogin = wEditLogin->text();
     strPass = wEditPass->text();
 
-    // Remove last '/' symbol.
+if (chbGuest->isChecked()) { strLogin=""; strPass=""; }
+
+    // Remove last '/' symbol:
     while (strUrl.endsWith("/"))
         strUrl.chop(1);
-    // Add "http" prefix if needed.
+
+    // Add "http" prefix if needed:
     if (!strUrl.startsWith("http://",Qt::CaseInsensitive))
         strUrl.prepend("http://");
+
+// Add main erl suffix:
+strUrl+=FB_NGW_WEBGIS_SUFFIX;
 
     QUrl url;
     url.setUrl(strUrl+"/login");
@@ -218,7 +247,7 @@ void FBDialogProjectNgw::httpOnItemClicked(QTreeWidgetItem *treeItem, int treeIt
 // the dialogue will be closed if all was successful.
 void FBDialogProjectNgw::onSelectClicked ()
 {
-    // TODO: show the progress bar here, while the received JSON etwa 90Mb can
+    // TODO: show the progress bar here, while the received JSON ~ 90Mb can
     // significantly increase waiting time.
 
     // As in other menthods we block buttons which can cause another requests.
@@ -303,7 +332,7 @@ void FBDialogProjectNgw::httpFinished ()
     if (!newItems.isEmpty())
     {
         wTree->insertTopLevelItems(0,newItems);
-        wLabelStatus->setText(tr("Connection was successful"));
+        wLabelStatus->setText(tr("Connection successful"));
         wProgBar->setValue(100);
         // Save connection settings.
         emit updateNgwSettings(wEditUrl->text(),wEditLogin->text());
@@ -325,7 +354,7 @@ void FBDialogProjectNgw::httpResourceFinished ()
     if (!newItems.isEmpty())
     {
         itemToExpand->insertChildren(0,newItems);
-        wLabelStatus->setText(tr("Connection was successful"));
+        wLabelStatus->setText(tr("Connection successful"));
         wProgBar->setValue(100);
     }
     else
@@ -379,7 +408,7 @@ void FBDialogProjectNgw::httpSelectedFinished ()
                 jsonLayerMeta[FB_JSON_META_SRS]
                         = json_root["vector_layer"]["srs"];
 
-                wLabelStatus->setText(tr("Connection was successful"));
+                wLabelStatus->setText(tr("Connection successful"));
                 httpSelectedReply->deleteLater();
 
                 this->accept();
@@ -417,7 +446,7 @@ QList<QTreeWidgetItem*> FBDialogProjectNgw::parseJsonReply (QNetworkReply *reply
     {
         if (!receivedJson.empty())
         {
-            Json::Value jResources; // will contains the root value after parsing
+            Json::Value jResources; // will contain the root value after parsing
             Json::Reader jReader;
             if (jReader.parse(receivedJson, jResources, false))
             {
