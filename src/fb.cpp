@@ -654,18 +654,18 @@ void FB::onNewNgwClick ()
     if (dialog.exec())
     {
         QString pathNgwUrl;
-        QString strUrl, strLogin, strPass;
+        QString strUrl, strUrlName, strLogin, strPass;
         int nId;
         Json::Value jsonLayerMeta;
         pathNgwUrl = dialog.getSelectedNgwResource(
-                    strUrl, strLogin, strPass, nId, jsonLayerMeta);
+strUrl, strUrlName, strLogin, strPass, nId, jsonLayerMeta);
 
         FBProjectNgw *projNgw = new FBProjectNgw(
                     strUrl, strLogin, strPass, nId, jsonLayerMeta);
         QObject::connect(projNgw, SIGNAL(changeProgress(int)),
                 dlgProgress, SLOT(onChangeProgress(int)));
         this->newProjectCommonActions(projNgw, pathNgwUrl);
-        settLastNgwUrl.value = strUrl; // anyway save last parameters
+settLastNgwUrl.value = strUrlName; // anyway save last parameters
         settLastNgwLogin.value = strLogin;
     }
 }
@@ -1272,14 +1272,14 @@ int FB::onShowBox (QString msg, QString caption)
     msgBox.setText(msg);
     msgBox.setWindowTitle(caption);
     QMessageBox::Icon icon;
-    if (caption == "Warning")
+    if (caption == tr("Warning"))
     {
         icon = QMessageBox::Warning;
         msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
     }
     else
     {
-        if (caption == "Error")
+        if (caption == tr("Error"))
         {
             icon = QMessageBox::Critical;
         }
@@ -1648,7 +1648,7 @@ QTableWidget* FB::addRightMenuTable ()
     table->setColumnCount(2);
     table->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
     table->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-    table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    table->horizontalHeader()->setSectionResizeMode(0,QHeaderView::Stretch);
     //table->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     table->setStyleSheet("QTableWidget"
                          "{border: none;"

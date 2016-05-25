@@ -11,13 +11,25 @@ int main (int argc, char *argv[])
 
     // TODO: implement the recognition and setting of the system language firstly.
     //QString langSys = QLocale::system().name();
-/*    QSettings settings(QSettings::IniFormat, QSettings::UserScope,
+
+    // TODO: move this and reading of other settings somewhere else.
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope,
                           "NextGIS", "FormBuilder");
     QString langSet;
-    langSet = settings.value(,).toString();
+    langSet = settings.value("language","en_GB").toString();
+
+    // TODO: how else to get qt translation file suffix?
+    QString langSetSys = langSet;
+    langSetSys.chop(3);
+
+    QTranslator translatorSys;
+    translatorSys.load("qt_" + langSetSys,
+            QLibraryInfo::location(QLibraryInfo::TranslationsPath));
+    a.installTranslator(&translatorSys);
+
     QTranslator translator;
     translator.load("fb_" + langSet);
-    a.installTranslator(&translator); */
+    a.installTranslator(&translator);
 
     FB w;
 

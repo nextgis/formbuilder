@@ -56,12 +56,14 @@ void FBScreenAndroid::updateStyle ()
     // Clear old style.
     // Reset general stylesheet of the screen.
     // Grey background.
-    this->setStyleSheet("QWidget {background-color: "
+    this->setStyleSheet("background-color: "
                            +QString(FB_COLOR_LIGHTGREY)+";"
                            "border-top-left-radius: 4px;"
                            "border-top-right-radius: 4px;"
                            "border-bottom-left-radius: 4px;"
-                           "border-bottom-right-radius: 4px;}");
+                           "border-bottom-right-radius: 4px;");
+                           //"border: 1px solid black;"
+                           //"margin: 1;");
 
     // Top black decor line.
     QLabel *labDecorTop = new QLabel(this);

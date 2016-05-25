@@ -82,7 +82,7 @@
 
 // Limits.
 #define FB_MENURIGHT_TABLES_MAX 5
-#define FB_BOTTOMSTRING_LEN_MAX 40
+#define FB_BOTTOMSTRING_LEN_MAX 60
 
 // NGW.
 #define FB_NGW_ITEMTYPE_UNDEFINED 0
@@ -127,8 +127,8 @@ class FBDialogProjectNgw: public QDialog
      FBDialogProjectNgw (QWidget *parent, QString lastNgwUrl, QString lastNgwLogin);
      ~FBDialogProjectNgw ();
 
-     QString getSelectedNgwResource (QString &strUrl, QString &strLogin,
-                 QString &strPass, int &strId, Json::Value &jsonLayerMeta);
+     QString getSelectedNgwResource (QString &strUrl, QString &strUrlName,
+         QString &strLogin, QString &strPass, int &strId, Json::Value &jsonLayerMeta);
 
     signals:
 
@@ -163,6 +163,7 @@ void onCheckboxClick (bool pressed);
 
      // selected params
      QString strUrl;
+QString strUrlName;
      QString strLogin;
      QString strPass;
      QString strId;

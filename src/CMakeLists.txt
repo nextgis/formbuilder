@@ -53,16 +53,16 @@ set(UI_HDRS ${fb_ui})
 qt5_add_resources(fb_res res.qrc)
 set(RESOURCES ${fb_res})
 
-if(WIN32)
-    add_executable(${APP_NAME} WIN32 ${APP_SOURCES} ${FB_TARGET_OBJECTS} ${RESOURCES} ${UI_HDRS})# ${QM_FILES})
-else(WIN32)
-    add_executable(${APP_NAME} ${APP_SOURCES} ${FB_TARGET_OBJECTS} ${RESOURCES} ${UI_HDRS})# ${QM_FILES})
-endif(WIN32)
-
 ## TODO: make automatic updating *.ts files via qt5_create_translation()
 ## Use lupdate utility directly for now.
-#set(TS_FILES translations/fb_en_GB.ts) # manually written .ts files
-#qt5_add_translation(QM_FILES ${TS_FILES}) # no lupdate calling.
+set(TS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/translations/fb_ru_RU.ts)
+qt5_add_translation(QM_FILES ${TS_FILES}) # no lupdate calling.
+
+if(WIN32)
+    add_executable(${APP_NAME} WIN32 ${APP_SOURCES} ${FB_TARGET_OBJECTS} ${RESOURCES} ${UI_HDRS} ${QM_FILES})
+else(WIN32)
+    add_executable(${APP_NAME} ${APP_SOURCES} ${FB_TARGET_OBJECTS} ${RESOURCES} ${UI_HDRS} ${QM_FILES})
+endif(WIN32)
 
 target_link_libraries(${APP_NAME} Qt5::Widgets Qt5::Network)# Qt5::LinguistTools)
 if(UNIX) #if(NOT WIN32)
@@ -84,7 +84,8 @@ if(WIN32)
     install(FILES ${QT_DIR_PREFIX_PATH}/lib/Qt5Network.dll DESTINATION ${INSTALL_BIN_DIR})
     install(FILES ${QT_DIR_PREFIX_PATH}/plugins/platforms/qwindows.dll DESTINATION ${INSTALL_BIN_DIR}/platforms)
     # Install language files.
-#    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/fb_en_GB.qm DESTINATION ${INSTALL_BIN_DIR})
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/fb_ru_RU.qm DESTINATION ${INSTALL_BIN_DIR})
+    install(FILES ${QT_DIR_PREFIX_PATH}/translations/qt_ru.qm DESTINATION ${INSTALL_BIN_DIR})
     # WARNING: For now use only external GDAL libraries.
     # TODO: for future: install GDAL dlls and gdal_data to the exe folder in case of use internal libraries so
     # it can be possible to pack the full set of files into one installer file. For that ask user about required paths. 

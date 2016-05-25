@@ -43,56 +43,56 @@ FBDialogProjectNgw::FBDialogProjectNgw (QWidget *parent,
 
     itemToExpand = NULL;
 
-    QVBoxLayout *dialogLayout = new QVBoxLayout(this);
     QLabel* label;
-    QHBoxLayout *hLayout;
 
-    hLayout = new QHBoxLayout();
-    hLayout->setSpacing(0);
+    QVBoxLayout *lvL = new QVBoxLayout(this);
+    lvL->setSpacing(4);
+
+    QGridLayout *lgLayout = new QGridLayout();
+    lgLayout->setAlignment(Qt::AlignLeft);
+    lgLayout->setSpacing(6);
+
     label = new QLabel(this);
-label->setText("Web GIS name:     ");//(tr("URL:          "));
-    hLayout->addWidget(label);
+    label->setText(tr("Web GIS:"));//(tr("URL:          "));
+    lgLayout->addWidget(label,0,0);
+
     wEditUrl = new QLineEdit(this);
     wEditUrl->setText(lastNgwUrl);
-QLabel *labUrl2 = new QLabel(this);
-labUrl2->setText(QString(" ") + FB_NGW_WEBGIS_SUFFIX);
-    hLayout->addWidget(wEditUrl);
-hLayout->addWidget(labUrl2);
-    dialogLayout->addLayout(hLayout);
+    QLabel *labUrl2 = new QLabel(this);
+    labUrl2->setText(QString(" ") + FB_NGW_WEBGIS_SUFFIX);
+    QHBoxLayout *hLayout1 = new QHBoxLayout();
+    hLayout1->setSpacing(0);
+    hLayout1->addWidget(wEditUrl);
+    hLayout1->addWidget(labUrl2);
+    lgLayout->addLayout(hLayout1,0,1);
 
-hLayout = new QHBoxLayout();
-hLayout->setAlignment(Qt::AlignLeft);
-chbGuest = new QCheckBox(this);
-chbGuest->setChecked(true);
-chbGuest->setText(tr("Login as guest"));
-hLayout->addSpacing(89);
-hLayout->addWidget(chbGuest);
-dialogLayout->addLayout(hLayout);
-connect(chbGuest,SIGNAL(clicked(bool)),this,SLOT(onCheckboxClick(bool)));
+    chbGuest = new QCheckBox(this);
+    chbGuest->setChecked(true);
+    chbGuest->setText(tr("Login as guest"));
+    lgLayout->addWidget(chbGuest,1,1);
+    connect(chbGuest,SIGNAL(clicked(bool)),this,SLOT(onCheckboxClick(bool)));
 
-    hLayout = new QHBoxLayout();
     label = new QLabel(this);
-label->setText(tr("Login:                  "));//(tr("Login:        "));
-    hLayout->addWidget(label);
+    label->setText(tr("Login:"));//(tr("Login:        "));
+    lgLayout->addWidget(label,2,0);
     wEditLogin = new QLineEdit(this);
     wEditLogin->setText(lastNgwLogin);
-    hLayout->addWidget(wEditLogin);
-    dialogLayout->addLayout(hLayout);
+    lgLayout->addWidget(wEditLogin,2,1);
 
-    hLayout = new QHBoxLayout();
     label = new QLabel(this);
-label->setText(tr("Password:           "));//(tr("Password: "));
-    hLayout->addWidget(label);
+    label->setText(tr("Password:"));//(tr("Password: "));
+    lgLayout->addWidget(label,3,0);
     wEditPass = new QLineEdit(this);
     wEditPass->setEchoMode(QLineEdit::Password);
-    hLayout->addWidget(wEditPass);
-    dialogLayout->addLayout(hLayout);
+    lgLayout->addWidget(wEditPass,3,1);
 
-this->onCheckboxClick(true);
+    lvL->addLayout(lgLayout);
+
+    this->onCheckboxClick(true);
 
     wButConnect = new QPushButton(this);
     wButConnect->setText(tr("Connect"));
-    dialogLayout->addWidget(wButConnect);
+    lvL->addWidget(wButConnect);
     QObject::connect(wButConnect, SIGNAL(clicked()),
             this, SLOT(onConnectClicked()));
 
@@ -130,9 +130,9 @@ this->onCheckboxClick(true);
     // connections are asynchronous.
     //wButCancel = new QPushButton(this);
 
-    dialogLayout->addLayout(cancelLayout);
-    dialogLayout->addWidget(wTree);
-    dialogLayout->addWidget(wButSelect);
+    lvL->addLayout(cancelLayout);
+    lvL->addWidget(wTree);
+    lvL->addWidget(wButSelect);
 }
 
 
@@ -157,6 +157,7 @@ void FBDialogProjectNgw::onConnectClicked ()
 
     // These parameters are read once only when user clicks connect button.
     strUrl = wEditUrl->text();
+strUrlName = wEditUrl->text();
     strLogin = wEditLogin->text();
     strPass = wEditPass->text();
 
@@ -563,10 +564,11 @@ QList<QTreeWidgetItem*> FBDialogProjectNgw::parseJsonReply (QNetworkReply *reply
 // returned string can be passed to GDALDataset creation. Also the additional
 // NGW connection parameters are returned via method parameters.
 // WARNING. Call this method only after the dialogue returns its end code.
-QString FBDialogProjectNgw::getSelectedNgwResource (QString &strUrl, QString &strLogin,
-                       QString &strPass, int &strId, Json::Value &jsonLayerMeta)
+QString FBDialogProjectNgw::getSelectedNgwResource (QString &strUrl, QString &strUrlName,
+            QString &strLogin, QString &strPass, int &strId, Json::Value &jsonLayerMeta)
 {
     strUrl = this->strUrl; // delete the last '/' (it is not neccessery)
+strUrlName = this->strUrlName;
     strLogin = this->strLogin;
     strPass = this->strPass;
     strId = this->strId.toInt(); // TODO: should we check for conversion errors?
