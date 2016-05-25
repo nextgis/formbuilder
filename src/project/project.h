@@ -43,7 +43,7 @@
 #include "json/json.h"
 
 // The only version constant of all project.
-#define FB_VERSION 2.1
+#define FB_VERSION 2.0
 
 // Names.
 #define FB_PROJECT_EXTENSION "ngfp"

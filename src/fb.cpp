@@ -1768,7 +1768,7 @@ void FB::updateLeftTrees ()
         treeLeftShort->addTopLevelItem(item2);
     }
 
-    treeLeftFull->sortItems(0,Qt::AscendingOrder);
+//    treeLeftFull->sortItems(0,Qt::AscendingOrder);
     treeLeftFull->expandAll();
     // Note: see initGui() method how to solve strange proplem which used to happen
     // here after expandAll() - two last items of treeLeftShort were smaller size then

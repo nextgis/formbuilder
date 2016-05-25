@@ -371,7 +371,7 @@ in program</source>
     </message>
     <message>
         <source>Need to save data to ngfp file. Current dataset: </source>
-        <translation>Необходимо сохранить данные в файл проекта. Текущий источник данных: </translation>
+        <translation>Необходимо сохранить проект. Текущий источник данных: </translation>
     </message>
     <message>
         <source>Current project: </source>
@@ -731,7 +731,7 @@ to the field when pressing button</source>
     <message>
         <source>To show or not the corresponding items in the
 list during the typing</source>
-        <translation>Показывать соответствующие значения во время печатания</translation>
+        <translation>Пользователю будут отображаться соответствующие значения при вводе в элемент</translation>
     </message>
     <message>
         <source>Allow own values</source>
@@ -796,7 +796,7 @@ default values</source>
     <message>
         <source>The field of the underlying layer into which
 the element will put its value</source>
-        <translation>Поле слоя в которое элемент будет записывать значение</translation>
+        <translation>Поле слоя, в которое элемент будет записывать значение</translation>
     </message>
 </context>
 <context>
