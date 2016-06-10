@@ -35,7 +35,6 @@ dialogdlistvalues.cpp
 dialogdatetime.cpp
 attributes.cpp
 elements.cpp
-registrar.cpp
 )
 
 set(FB_TARGET_OBJECTS ${FB_TARGET_OBJECTS} $<TARGET_OBJECTS:${LIB_NAME}> PARENT_SCOPE)

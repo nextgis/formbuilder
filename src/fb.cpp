@@ -87,10 +87,10 @@ void FB::initGui ()
     //                              Working area
     //----------------------------------------------------------------------
 
-    wScreen = new FBScreen(NULL); // currently with no form 
+    wScreen = new FBScreen(NULL,FB_SCREEN_SIZEFACTOR); // currently with no form
     wScreen->changeDevice(0);
     wScreen->changeState(0);
-    wScreen->updateStyle();
+    wScreen->redecorate();
 
     wWorkingArea = new QScrollArea(this);
     wWorkingArea->setWidget(wScreen);
@@ -535,7 +535,7 @@ void FB::setFbStyle ()
 /*                                                                          */
 /****************************************************************************/
 
-// ADD ELEM FROM RIGHT MENU
+// ADD ELEM FROM LEFT MENU
 void FB::onAddElemPress (QTreeWidgetItem* item, int column)
 {
     FBForm *form = wScreen->getFormPtr();
@@ -546,16 +546,16 @@ void FB::onAddElemPress (QTreeWidgetItem* item, int column)
         return;
 
     QString keyName = item->data(0,Qt::UserRole).toString();
-    FBFactory *fct = FBFactory::getFctByName(keyName);
-    if (fct == NULL)
-        return;
 
     wScreen->requestScrollToBottom();
 
-    FBElem *elem = fct->create();
+    FBElem *elem = FBForm::createElem(keyName);
     form->addElem(elem,NULL);
+    elem->setDecorator(wScreen->findDecorator(elem->getKeyName())); // can be NULL
+    elem->redecorateSelf();
+    elem->updateSelf();
 
-    this->onElemSelect();
+    this->updateRightMenu();
 }
 
 
@@ -739,6 +739,7 @@ void FB::onOpenClick ()
         project = projOpen;
         wScreen->deleteForm();
         wScreen->setForm(form);
+        wScreen->redecorateForm();
 
         // Update list of fields for all Input elements.
         FBElemInput::updateFields(project->getFields().keys());
@@ -813,25 +814,29 @@ void FB::onSaveAsClick ()
 // SCREENS PICK
 void FB::onScreenAndroidPick ()
 {
-    FBScreenAndroid *screen = new FBScreenAndroid(NULL);
+    FBScreenAndroid *screen = new FBScreenAndroid(NULL,FB_SCREEN_SIZEFACTOR);
+    screen->registerAllDecorators();
     this->recreateScreen(screen,false);
     this->afterPickScreen(toolbScreenAndroid);
 }
 void FB::onScreenIosPick ()
 {
-    FBScreenIos *screen = new FBScreenIos(NULL);
+    FBScreen *screen = new FBScreen(NULL,FB_SCREEN_SIZEFACTOR);
+    screen->registerAllDecorators();
     this->recreateScreen(screen,false);
     this->afterPickScreen(toolbScreenIos);
 }
 void FB::onScreenWebPick ()
 {
-    FBScreen *screen = new FBScreen(NULL);
+    FBScreenWeb *screen = new FBScreenWeb(NULL,FB_SCREEN_SIZEFACTOR);
+    screen->registerAllDecorators();
     this->recreateScreen(screen,false);
     this->afterPickScreen(toolbScreenWeb);
 }
 void FB::onScreenQgisPick ()
 {
-    FBScreen *screen = new FBScreen(NULL);
+    FBScreenQgis *screen = new FBScreenQgis(NULL,FB_SCREEN_SIZEFACTOR);
+    screen->registerAllDecorators();
     this->recreateScreen(screen,false);
     this->afterPickScreen(toolbScreenQgis);
 }
@@ -846,7 +851,7 @@ void FB::onScreenDeviceSelect (int index)
     else
         wWorkingArea->setWidgetResizable(false);
     wScreen->changeDevice(index);
-    wScreen->updateStyle();
+    wScreen->redecorate();
     this->updateStates();
     this->updateDeviceInfo();
 }
@@ -872,7 +877,7 @@ void FB::onScreenStatePick ()
         }
     }
     wScreen->changeState(index);
-    wScreen->updateStyle();
+    wScreen->redecorate();
 }
 
 
@@ -901,7 +906,7 @@ void FB::onClearScreenClick ()
         toolbClearScreen->setDown(false);
         return;
     }
-    form->clear();
+    form->resetContents(); // clear form
     this->updateRightMenu();
     toolbClearScreen->setDown(false);
 }
@@ -1118,6 +1123,9 @@ void FB::onImportControlsClick()
                                 " elements have been reset, because such fields do not"
                                 " exist in the current project: ") + strFields);
         }
+
+        // Update screen.
+        wScreen->redecorateForm();
 
         // Update right menu so the comboboxes with lists of fields of currently
         // selected elem will be updated.
@@ -1744,31 +1752,37 @@ void FB::updateLeftTrees ()
 
     // Create elements' representations for all trees.
     QMap<FBElemtype,QTreeWidgetItem*> groupItems;
-    QList<FBFactory*> fcts = FBFactory::getAllFcts();
-    for (int i=0; i<fcts.size(); i++)
+    for (int i=0; i<fctsElems.size(); i++)
     {
-        if (!groupItems.contains(fcts[i]->getType()))
+        // Create test element to get its data.
+        FBElem *testElem = fctsElems[i].first->create();
+
+        if (!groupItems.contains(testElem->getType()))
         {
             QTreeWidgetItem *item = new QTreeWidgetItem();
-            item->setText(0,this->getGroupStr(fcts[i]->getType()));
-            groupItems.insert(fcts[i]->getType(),item);
+            item->setText(0,this->getGroupStr(testElem->getType()));
+            groupItems.insert(testElem->getType(),item);
             treeLeftFull->addTopLevelItem(item);
         }
 
         QTreeWidgetItem *item1 = new QTreeWidgetItem();
-        item1->setText(0,fcts[i]->getDisplayName());
-        item1->setData(0,Qt::UserRole,fcts[i]->getKeyName());
-        item1->setIcon(0,QIcon(fcts[i]->getImgPath()));
-        groupItems[fcts[i]->getType()]->addChild(item1);
+        item1->setText(0,testElem->getDisplayName());
+        item1->setData(0,Qt::UserRole,testElem->getKeyName());
+        item1->setIcon(0,QIcon(fctsElems[i].second));
+        item1->setToolTip(0,testElem->getDescription());
+        groupItems[testElem->getType()]->addChild(item1);
 
         QTreeWidgetItem *item2 = new QTreeWidgetItem();
-        item2->setData(0,Qt::UserRole,fcts[i]->getKeyName());
-        item2->setIcon(0,QIcon(fcts[i]->getImgPath()));
-        item2->setToolTip(0,fcts[i]->getDisplayName());
+        item2->setData(0,Qt::UserRole,testElem->getKeyName());
+        item2->setIcon(0,QIcon(fctsElems[i].second));
+        item2->setToolTip(0,testElem->getDisplayName());
         treeLeftShort->addTopLevelItem(item2);
+
+        // Don't forget to delete test element.
+        delete testElem;
     }
 
-//    treeLeftFull->sortItems(0,Qt::AscendingOrder);
+    treeLeftFull->sortItems(0,Qt::AscendingOrder);
     treeLeftFull->expandAll();
     // Note: see initGui() method how to solve strange proplem which used to happen
     // here after expandAll() - two last items of treeLeftShort were smaller size then
@@ -1813,12 +1827,12 @@ void FB::updateRightMenu ()
 
         // Get attrs of selected elem.
         FBElem *elem = elemsSelected.first();
-        QSet<FBAttr*> attrs = elem->getAttrs();
-        QSet<FBAttr*>::const_iterator it = attrs.constBegin();
+        QMap<QString,FBAttr*> attrs = elem->getAttrs();
+        QMap<QString,FBAttr*>::const_iterator it = attrs.constBegin();
         while (it != attrs.constEnd())
         {
-            QString alias = (*it)->getDisplayName();
-            QString descr = (*it)->getDescription();
+            QString alias = it.value()->getDisplayName();
+            QString descr = it.value()->getDescription();
             QTableWidgetItem *itemAlias = new QTableWidgetItem(alias);
             itemAlias->setFlags(Qt::ItemIsEnabled);
             itemAlias->setToolTip(descr);
@@ -2011,14 +2025,16 @@ void FB::pickDefaultScreen ()
     // TODO: think about what other screen to set in this situation - may be
     // read it from the current project structure. Currently we set Android
     // screen.
-    FBScreenAndroid *screen = new FBScreenAndroid(NULL);
+    FBScreenAndroid *screen = new FBScreenAndroid(NULL,FB_SCREEN_SIZEFACTOR);
+    screen->registerAllDecorators();
     this->recreateScreen(screen,false); // with form copy, if was some
     this->afterPickScreen(toolbScreenAndroid);
 }
 // Recreate screen to void. Just "reset to grey screen".
 void FB::pickVoidScreen ()
 {
-    FBScreen *screen = new FBScreen(NULL);
+    FBScreen *screen = new FBScreen(NULL,FB_SCREEN_SIZEFACTOR);
+    screen->registerAllDecorators();
     this->recreateScreen(screen,true); // do not copy form
     this->afterPickScreen(NULL);
 }
@@ -2037,7 +2053,7 @@ void FB::recreateScreen (FBScreen *newScreen, bool destroyForm)
     }
     newScreen->changeDevice(0);
     newScreen->changeState(0);
-    newScreen->updateStyle();
+    newScreen->redecorate();
     wWorkingArea->takeWidget();
     delete wScreen;
     wWorkingArea->setWidget(newScreen);
@@ -2072,6 +2088,7 @@ bool FB::newProjectCommonActions (FBProject *proj, QString path)
     wScreen->deleteForm();
     FBForm *form = this->createForm();
     wScreen->setForm(form);
+    wScreen->redecorateForm();
 
     // Reset list of fields for all future Input elements.
     FBElemInput::updateFields(project->getFields().keys());

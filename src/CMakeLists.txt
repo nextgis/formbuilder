@@ -43,6 +43,7 @@ dialognewvoid.cpp
 dialogngw.cpp
 dialogfieldmanager.cpp
 appicon.rc
+registrar.cpp
 fb.cpp
 main.cpp
 )

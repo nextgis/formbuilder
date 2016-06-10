@@ -132,18 +132,18 @@ void FBAttrField::onEditEnd (QString keyNameSelected)
 
 /******************************************************************************/
 /*                                                                            */
-/*                              FBAttrText                                    */
+/*                              FBAttrString                                  */
 /*                                                                            */
 /******************************************************************************/
 
-FBAttrText::FBAttrText (FBElem *parentElem, QString keyName, QString displayName,
+FBAttrString::FBAttrString (FBElem *parentElem, QString keyName, QString displayName,
                         QString descr, FBAttrrole role, QString initValue):
     FBAttr(parentElem ,keyName, displayName, descr, role)
 {
     value = initValue;
 }
 
-Json::Value FBAttrText::toJson ()
+Json::Value FBAttrString::toJson ()
 {
     Json::Value jsonRet;
     QByteArray ba = value.toUtf8();
@@ -151,7 +151,7 @@ Json::Value FBAttrText::toJson ()
     return jsonRet;
 }
 
-bool FBAttrText::fromJson (Json::Value jsonVal)
+bool FBAttrString::fromJson (Json::Value jsonVal)
 {
     if (jsonVal.isNull() || !jsonVal.isString())
         return false; // TODO: how else to check for correct string conversion?
@@ -160,7 +160,7 @@ bool FBAttrText::fromJson (Json::Value jsonVal)
     return true;
 }
 
-QWidget *FBAttrText::getWidget ()
+QWidget *FBAttrString::getWidget ()
 {
     QLineEdit *widget = new QLineEdit();
     widget->setText(value);
@@ -169,10 +169,10 @@ QWidget *FBAttrText::getWidget ()
     return widget;
 }
 
-void FBAttrText::onEditEnd (QString lineEditText)
+void FBAttrString::onEditEnd (QString lineEditText)
 {
     value = lineEditText;
-    emit changeAppearance();
+    emit changeAppearance(this);
 }
 
 
@@ -221,7 +221,7 @@ QWidget *FBAttrNumber::getWidget ()
 void FBAttrNumber::onEditEnd (int spinBoxValue)
 {
     value = spinBoxValue;
-    emit changeAppearance();
+    emit changeAppearance(this);
 }
 
 
@@ -268,7 +268,7 @@ void FBAttrBoolean::onEditEnd (int checkBoxValue)
         value = false;
     else
         value = true;
-    emit changeAppearance();
+    emit changeAppearance(this);
 }
 
 
@@ -343,6 +343,15 @@ bool FBAttrListvalues::fromJson (Json::Value jsonVal)
     return true;
 }
 
+QVariant FBAttrListvalues::getValue ()
+{
+    FBListValue ret;
+    ret.first = values;
+    ret.second = valueDefault;
+    QVariant var = QVariant::fromValue(ret);
+    return var;
+}
+
 QString FBAttrListvalues::getDefDispValue ()
 {
     if (valueDefault == -1)
@@ -368,7 +377,7 @@ void FBAttrListvalues::onEditStart ()
     if (dialog->exec())
     {
         dialog->getValues(values,valueDefault);
-        emit changeAppearance();
+        emit changeAppearance(this);
     }
     delete dialog;
 }
@@ -398,7 +407,7 @@ void FBAttrListvaluesStrict::onEditStart ()
     if (dialog->exec())
     {
         dialog->getValues(values,valueDefault);
-        emit changeAppearance();
+        emit changeAppearance(this);
     }
     delete dialog;
 }
@@ -533,9 +542,20 @@ void FBAttrListvaluesDouble::onEditStart ()
     if (dialog->exec())
     {
         dialog->getValues(values,valueDefault,values2,valuesDefault2);
-        emit changeAppearance();
+        emit changeAppearance(this);
     }
     delete dialog;
+}
+
+QVariant FBAttrListvaluesDouble::getValue ()
+{
+    FBDoublelistValue ret;
+    ret.first.first = values;
+    ret.first.second = valueDefault;
+    ret.second.first = values2;
+    ret.second.second = valuesDefault2;
+    QVariant var = QVariant::fromValue(ret);
+    return var;
 }
 
 void FBAttrListvaluesDouble::getDefDispValues (QString &str1, QString &str2)
@@ -606,7 +626,7 @@ void FBAttrSelect::onEditEnd (int indexSelected)
 {
     value = indexSelected;
     emit changeOtherAttr();
-    emit changeAppearance();
+    emit changeAppearance(this);
 }
 
 
@@ -670,8 +690,14 @@ bool FBAttrDatetime::fromJson (Json::Value jsonVal)
     return false;
 }
 
-QString FBAttrDatetime::getValueString ()
+
+QVariant FBAttrDatetime::getValue()
 {
+//    FBDatetimeValue ret;
+//    ret.first = value;
+//    QVariant var = QVariant::fromValue(ret);
+//    return var;
+    // Currently return string.
     if (ignoreValue)
         return "...";
     return value.toString(format->strDisplayEn);
@@ -690,7 +716,7 @@ void FBAttrDatetime::onEditStart ()
     if (dialog->exec())
     {
         dialog->getValues(value,ignoreValue);
-        emit changeAppearance();
+        emit changeAppearance(this);
     }
     delete dialog;
 }

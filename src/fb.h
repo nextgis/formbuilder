@@ -1,6 +1,6 @@
 /******************************************************************************
  * Project:  NextGIS Formbuilder
- * Purpose:  main app+gui class definitions
+ * Purpose:  main app+gui definitions
  * Author:   Mikhail Gusev, gusevmihs@gmail.com
  ******************************************************************************
 *   Copyright (C) 2014-2016 NextGIS
@@ -25,7 +25,6 @@
 #include <QWidget>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
-
 #include <QLabel>
 #include <QComboBox>
 #include <QPushButton>
@@ -38,24 +37,22 @@
 #include <QLineEdit>
 #include <QTextEdit>
 #include <QCheckBox>
-
 #include <QDialog>
 #include <QFileDialog>
 #include <QMessageBox>
-
 #include <QUrl>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
-
 #include <QFileInfo>
-
 #include <QThread>
-
 #include <QSettings>
 
+#include "project/project_core.h"
 #include "form/form_core.h"
-#include "project/project.h"
-#include "screen/screen.h"
+#include "screen/screen_core.h"
+
+#include "project/projects.h"
+#include "screen/screens.h"
 
 // GUI constants.
 #define FB_GUI_FONTTYPE "Candara"
@@ -79,17 +76,20 @@
 #define FB_GUI_SIZE_MENULEFT_SMALL 70
 #define FB_GUI_SIZE_MENURIGHT_FULL 300
 #define FB_GUI_SIZE_MENURIGHT_SMALL 40
+#define FB_COLOR_LIGHTGREY "rgb(238,238,238)"
+#define FB_COLOR_LIGHTMEDIUMGREY "rgb(210,210,210)"
+#define FB_COLOR_MEDIUMGREY "rgb(170,170,170)"
+#define FB_COLOR_DARKGREY "rgb(100,100,100)"
+#define FB_COLOR_VERYDARKGREY "rgb(46,46,46)"
+#define FB_COLOR_LIGHTBLUE "rgb(139,183,224)"
+#define FB_COLOR_DARKBLUE "rgb(23,111,193)"
 
-// Limits.
+// Limits for GUI.
 #define FB_MENURIGHT_TABLES_MAX 5
 #define FB_BOTTOMSTRING_LEN_MAX 60
 
-// NGW.
-#define FB_NGW_ITEMTYPE_UNDEFINED 0
-#define FB_NGW_ITEMTYPE_RESOURCEGROUP 1
-#define FB_NGW_ITEMTYPE_VECTORLAYER 2
-#define FB_NGW_ITEMTYPE_POSTGISLAYER 3
-#define FB_NGW_WEBGIS_SUFFIX ".nextgis.com"
+#define FB_SCREEN_SIZEFACTOR 130.0 // used for actual screen scale
+
 
 namespace Ui
 {
@@ -99,6 +99,7 @@ namespace Ui
 
 /**
  * New project's dialog.
+ * Used to select geometry type of newly created project.
  */
 class FBDialogProjectNew: public QDialog
 {
@@ -114,53 +115,38 @@ class FBDialogProjectNew: public QDialog
 
 /**
  * NextGIS Web new project's dialog.
- * Used to select GeoJSON dataset on NGW server.
- * See NextGIS Web syntax how to get json data from NGW server in the methods
+ * Used to select resource on NGW server (finally received as GeoJSON dataset).
+ * See NextGIS Web API how to get json data from NGW server in the methods
  * of this dialogue.
  */
 class FBDialogProjectNgw: public QDialog
 {
     Q_OBJECT
-
     public:
-
      FBDialogProjectNgw (QWidget *parent, QString lastNgwUrl, QString lastNgwLogin);
      ~FBDialogProjectNgw ();
-
      QString getSelectedNgwResource (QString &strUrl, QString &strUrlName,
          QString &strLogin, QString &strPass, int &strId, Json::Value &jsonLayerMeta);
-
     signals:
-
      void updateNgwSettings (QString lastUrl, QString lastLogin);
-
     private slots:
-
      void onConnectClicked ();
      void onSelectClicked ();
-
-void onCheckboxClick (bool pressed);
-
+    void onCheckboxClick (bool pressed);
      void httpOnItemExpended (QTreeWidgetItem *treeItem);
      void httpOnItemCollapsed (QTreeWidgetItem *treeItem);
      void httpOnItemClicked (QTreeWidgetItem *treeItem, int treeItemColumn);
-
      void httpReadyAuthRead ();
      void httpReadyRead ();
      void httpReadyResourceRead ();
      void httpReadySelectedRead ();
-
      void httpAuthFinished ();
      void httpFinished ();
      void httpResourceFinished ();
      void httpSelectedFinished ();
-
     private:
-
      QList<QTreeWidgetItem*> parseJsonReply (QNetworkReply *reply);
-
     private:
-
      // selected params
      QString strUrl;
 QString strUrlName;
@@ -168,7 +154,6 @@ QString strUrlName;
      QString strPass;
      QString strId;
      Json::Value jsonLayerMeta;
-
      // gui
      QLineEdit *wEditUrl;
      QLineEdit *wEditLogin;
@@ -180,14 +165,12 @@ QString strUrlName;
      QProgressBar *wProgBar;
      QLabel *wLabelStatus;
 QCheckBox *chbGuest;
-
      QNetworkAccessManager httpManager;
      QNetworkReply *httpAuthReply;
      QNetworkReply *httpReply;
      QNetworkReply *httpResourceReply;
      QNetworkReply *httpSelectedReply;
      std::string receivedJson;
-
      std::map<int,int> itemTypes; // <item_id, item_type>
      QTreeWidgetItem *itemToExpand;
 };
@@ -195,6 +178,7 @@ QCheckBox *chbGuest;
 
 /**
  * Fields manager dialog.
+ * Used to work with fields of the current project.
  */
 class FBDialogFieldsManager: public QDialog
 {
@@ -227,6 +211,7 @@ class FBDialogFieldsManager: public QDialog
 
 /**
  * Progress dialog.
+ * Shows progress bar.
  */
 class FBDialogProgress: public QDialog
 {
@@ -243,6 +228,7 @@ class FBDialogProgress: public QDialog
 
 /**
  * About dialog.
+ * Shows about information.
  */
 class FBDialogAbout: public QDialog
 {
@@ -275,9 +261,9 @@ class FBThreadSaveAs: public QThread
 
 
 /**
- * App's window class. Aggregates all GUI of the app, except specific dialogues.
- *
- * Contains the working area to which the screen with its form is rendered.
+ * App's main window class.
+ * Aggregates all GUI of the app, except specific dialogues. Contains the working area
+ * to which the screen with its form is rendered.
  */
 class FB: public QWidget
 {
@@ -289,6 +275,9 @@ class FB: public QWidget
      ~FB();
      void initGui ();
      void setFbStyle ();
+
+     void registerElements ();
+     void deregisterElements ();
 
     private slots: // main gui slots ~ button slots
 
@@ -408,6 +397,10 @@ class FB: public QWidget
      // TODO: For future here can be an array of projects - but that requires changes
      // in FB behaviour and appearance.
      FBProject *project;
+
+     // registrar
+     QList<QPair<FBFctelem*,QString> > fctsElems; // first = factory, second = image path
+     //QList<QPair<FBFctscreen*,QString> > fctsScreen;
 
      // main gui
      Ui::FB *ui;

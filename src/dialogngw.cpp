@@ -22,6 +22,13 @@
 
 #include "fb.h"
 
+// NGW API.
+#define FB_NGW_ITEMTYPE_UNDEFINED 0
+#define FB_NGW_ITEMTYPE_RESOURCEGROUP 1
+#define FB_NGW_ITEMTYPE_VECTORLAYER 2
+#define FB_NGW_ITEMTYPE_POSTGISLAYER 3
+#define FB_NGW_WEBGIS_SUFFIX ".nextgis.com"
+
 
 FBDialogProjectNgw::~FBDialogProjectNgw()
 {

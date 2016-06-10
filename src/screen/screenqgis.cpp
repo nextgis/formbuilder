@@ -1,6 +1,6 @@
 /******************************************************************************
  * Project:  NextGIS Formbuilder
- * Purpose:  Shapefile project implementations
+ * Purpose:  qgis screen implementation
  * Author:   Mikhail Gusev, gusevmihs@gmail.com
  ******************************************************************************
 *   Copyright (C) 2014-2016 NextGIS
@@ -19,34 +19,20 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
-#include "projects.h"
- 
+#include "screens.h"
 
-FBProjectShapefile::FBProjectShapefile ():
-    FBProjectGdal ()
+FBScreenQgis::FBScreenQgis (QWidget* parent, float sizeFactor):
+    FBScreen(parent,sizeFactor)
+{
+
+}
+
+FBScreenQgis::~FBScreenQgis ()
 {
 }
 
-FBProjectShapefile::~FBProjectShapefile ()
+void FBScreenQgis::registerDecorators ()
 {
+
 }
-
-FBErr FBProjectShapefile::readFirst (QString anyPath)
-{
-    if (isInited)
-        return FBErrAlreadyInited;
-
-    FBErr err = this->readFromDataset(anyPath);
-    if (err != FBErrNone)
-        return err;
-
-    version = FBProject::getProgVersionStr();
-
-    strDatasetPath = anyPath; // store the path to dataset for the first save
-    strNgfpPath = ""; // need to be saved first time
-
-    isInited = true;
-    return FBErrNone;
-}
-
 

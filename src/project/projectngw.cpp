@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 
-#include "project.h"
+#include "projects.h"
  
 
 FBProjectNgw::FBProjectNgw (QString strUrl, QString strLogin,

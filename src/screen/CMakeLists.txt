@@ -22,14 +22,19 @@
 set(LIB_NAME "fbscreen")
 
 set(LIB_HHEADERS
-screen.h
+screen_core.h
+screens.h
+devices.h
 )
 
 set(LIB_CSOURCES
-screen.cpp
+screen_core.cpp
+screencommon.cpp
 screenmobile.cpp
 screenandroid.cpp
 screenios.cpp
+screenweb.cpp
+screenqgis.cpp
 )
 
 set(FB_TARGET_OBJECTS ${FB_TARGET_OBJECTS} $<TARGET_OBJECTS:${LIB_NAME}> PARENT_SCOPE)

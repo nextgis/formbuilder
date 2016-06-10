@@ -67,6 +67,7 @@ set(CMAKE_AUTOMOC ON)
 
 include(FindAnyProject)
 
+# Need Qt >= 5 at least for QTemporaryDir class ...  
 # path example: <qt core dir>/qtbase/lib/cmake/Qt5Core
 find_package(Qt5Widgets REQUIRED) # finds its own dependencies (QtGui and QtCore)
 find_package(Qt5Network REQUIRED)
@@ -77,6 +78,7 @@ include_directories(${Qt5Network_INCLUDE_DIRS})
 include_directories(${Qt5LinguistTools_INCLUDE_DIRS})
 
 # TODO: need to check 2.1 version for external GDAL.
+# Need 2.1 because of VSI zip bug: https://trac.osgeo.org/gdal/ticket/6005
 # For internal GDAL version is checked further.
 find_anyproject(GDAL REQUIRED CMAKE_ARGS 
                     -DENABLE_PLSCENES=OFF

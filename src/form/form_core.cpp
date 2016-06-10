@@ -45,101 +45,76 @@ FBAttr::FBAttr (FBElem *parentElem, QString keyName, QString displayName,
 
 /*****************************************************************************/
 /*                                                                           */
+/*                               FBDecorator                                 */
+/*                                                                           */
+/*****************************************************************************/
+
+// Redecorate element.
+// Fully clear all decorations and set new ones.
+// By default an element - is the white rectangle with black border and with its
+// name inside.
+// See also important comments from the class declaration.
+void FBDecorator::redecor (FBElem *elem)
+{
+    if (elem == NULL) return;
+    elem->clearContents();
+    elem->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+    elem->setFixedHeight(FB_ELEM_DEFHEIGHT);
+    QLabel *labText = new QLabel(elem);
+    labText->setStyleSheet("QLabel"
+                          "{border: 1px solid black;"
+                          "border-radius: none;"
+                          "background: white;" // so could be displayed on any background
+                          "color: black;}");
+    labText->setFont(QFont(FB_ELEM_DEFFONTTYPE,
+                           FB_ELEM_DEFFONTSIZE));
+    labText->setText(elem->getDisplayName());
+    labText->setAlignment(Qt::AlignCenter);
+    elem->addAsDecor(labText);
+}
+
+// Update element.
+// Get the attributes of the element and update the look of it according to their values.
+// This method is implemented separetly of redecor() because some styles have common way
+// to update self but different way to redecorate self.
+// By default there is no updating actions.
+// See also important comments from the class declaration.
+void FBDecorator::update (FBElem *elem)
+{
+    return;
+}
+
+
+/*****************************************************************************/
+/*                                                                           */
 /*                                  FBElem                                   */
 /*                                                                           */
 /*****************************************************************************/
 
-// Constructor.
-// IMPORTANT. As usual the concrete elem's constructor creates the set of elem's
-// attributes!
-FBElem::FBElem (FBFactory *fctPtr):
+FBElem::FBElem ():
     QWidget()
 {
-    this->fctPtr = fctPtr;
-
-    this->setCursor(Qt::PointingHandCursor);
+    decoratorPtr = NULL;
     this->setDeselectStyle();
-
+    this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+    this->setFixedHeight(FB_ELEM_DEFHEIGHT); // to give to the elem some volume
+    this->setCursor(Qt::PointingHandCursor);
     lvMain = new QVBoxLayout(this);
-}
-
-// Convert Elem to JSON.
-// Each element in a form must at least convert its attributes to JSON.
-Json::Value FBElem::toJson ()
-{
-    Json::Value jsonFinal;
-    QSet<FBAttr*>::const_iterator it = attrs.constBegin();
-    Json::Value jsonAttrsSet;
-    while (it != attrs.constEnd())
-    {
-        QByteArray baKn;
-        baKn = (*it)->getKeyName().toUtf8();
-        jsonAttrsSet[baKn.data()] = ((*it)->toJson());
-        ++it;
-    }
-    jsonFinal[FB_JSONKEY_ELEM_ATTRS] = jsonAttrsSet;
-    return jsonFinal; // can be null = no attributes
-}
-
-// Convert Elem from JSON.
-// Each elem must at least read its attributes from JSON.
-// For now all attrs are stored in the Elem class while they had been created
-// in its constructor.
-bool FBElem::fromJson (Json::Value jsonValue)
-{
-    if (jsonValue.isNull())
-        return false;
-    Json::Value jsonAttrsSet = jsonValue[FB_JSONKEY_ELEM_ATTRS];
-    // Note: here we do not check jsonAttrsSet and jsonAttrsSet[...] for nulls
-    // because fore some elems it is ok to have no attrs at all and for some
-    // attrs - no values. The correctness of this was checked during the reading
-    // of the form (where all syntax checks are made).
-    QSet<FBAttr*>::const_iterator it = attrs.constBegin();
-    while (it != attrs.constEnd())
-    {
-        QByteArray baKn;
-        baKn = (*it)->getKeyName().toUtf8();
-        if (!((*it)->fromJson(jsonAttrsSet[baKn.data()])))
-        {
-            return false;
-        }
-        ++it;
-    }
-    return true;
-}
-
-
-// Get Elem's display name.
-QString FBElem::getDisplayName ()
-{
-    return fctPtr->getDisplayName();
-}
-
-
-// Change elem's look (style).
-// Usually it is done by creating some inner decorational widgets-children which represet
-// the "visual part" of the elem.
-// WARNING. FOR DEVELOPERS: Do not forget in the override changeStyle() methods to set the
-// parent of ALL decorational widgets as the Elem itself, because clearContents() method
-// will delete all child widgets and layouts of the Elem each time if there was a command
-// to change its style.
-void FBElem::changeStyle (QString styleName)
-{
-    // TODO: do we need the most common default style for all elems? Smth like "stub elem",
-    // which will be shown if no style was defined in the derived elem class.
+    lvMain->setContentsMargins(2,2,2,2); // so can be properly selected with red frame
+    lvMain->setSpacing(0);
 }
 
 
 // Will delete all widgets in the element: decorational and other elements.
 // This is equivalent to element re-creation - it will be fully clear at the end.
+// See FBForm::clear() for comments.
 void FBElem::clearContents ()
 {
-    // See FBForm::clear() for comments.
     QObjectList list = this->children();
     for (int i=0; i<list.size(); i++)
     {
         if (list[i]->isWidgetType())
-            delete list[i]; // will delete all child widgets of these widgets also
+            delete list[i]; // will delete all child widgets of these widget also
     }
     QLayoutItem *child;
     while ((child = lvMain->takeAt(0)) != 0)
@@ -159,6 +134,72 @@ void FBElem::clearContents ()
     }
 }
 
+//...
+// Pass only the widget which is a child of this FBElem already.
+// Returns whether widget was registered or not.
+bool FBElem::addAsDecor (QWidget *widget, QString regName)
+{
+    lvMain->addWidget(widget);
+    return this->registerAsDecor(widget,regName);
+}
+
+//...
+void FBElem::addAsDecor (QLayout *layout)
+{
+    lvMain->addLayout(layout);
+}
+
+//...
+// Returns whether widget was registered or not.
+bool FBElem::registerAsDecor (QWidget *widget, QString regName)
+{
+    if (regName != "")
+    {
+        QWidget* child = this->findChild<QWidget*>(regName,Qt::FindDirectChildrenOnly);
+        if (child == NULL && widget->parent() == this)
+        {
+            widget->setObjectName(regName);
+            return true;
+        }
+    }
+    return false;
+}
+
+//...
+QWidget *FBElem::findAsDecor (QString regName)
+{
+    return this->findChild<QWidget*>(regName,Qt::FindDirectChildrenOnly);
+}
+
+//...
+void FBElem::setDecorator (FBDecorator *decorator)
+{
+    if (decorator == NULL) // common situation: there is no corresponding to this elem
+        return;            // decorator for some screen
+    decoratorPtr = decorator;
+}
+
+
+// Return attribute of its elem by keyname (keynames of attrs are unique).
+FBAttr* FBElem::getAttr (QString attrKeyName)
+{
+    QMap<QString,FBAttr*>::iterator it = attrs.find(attrKeyName);
+    if (it != attrs.end())
+        return it.value();
+    return NULL;
+}
+
+
+void FBElem::onChangeAttrValue ()
+{
+    return;
+}
+
+void FBElem::onChangeAppearance (FBAttr *attr)
+{
+    this->updateSelf();
+}
+
 
 void FBElem::setSelectStyle ()
 {
@@ -174,6 +215,7 @@ void FBElem::setDeselectStyle ()
                         "{background-color: rgba(0,0,0,0); "
                         "border: 2px dashed rgba(0,0,0,0);}");
 }
+
 
 void FBElem::mousePressEvent (QMouseEvent *event)
 {
@@ -192,6 +234,9 @@ void FBElem::mouseMoveEvent (QMouseEvent *event)
     emit moved(event);
 }
 
+// Why we need paintEvent() and Q_OBJECT macro to paint widgets:
+// http://stackoverflow.com/questions/18344135/why-do-
+// stylesheets-not-work-when-subclassing-qwidget-and-using-q-object
 void FBElem::paintEvent (QPaintEvent *event)
 {
     QStyleOption o;
@@ -211,7 +256,7 @@ FBInsertWidget::FBInsertWidget (QWidget* parent):
     QWidget(parent)
 {
     this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
-    this->setMinimumHeight(FB_FORMSIZE_ELEMSPACING);
+    this->setMinimumHeight(FB_FORM_INSWIDGETHEIGHT);
     this->setHideStyle();
 }
 
@@ -229,6 +274,8 @@ void FBInsertWidget::setHideStyle()
                         "border: 2px dashed rgba(0,0,0,0);}");
 }
 
+
+// See: FBElem::paintEvent()
 void FBInsertWidget::paintEvent(QPaintEvent *event)
 {
     QStyleOption o;
@@ -245,19 +292,24 @@ void FBInsertWidget::paintEvent(QPaintEvent *event)
 /*                                                                           */
 /*****************************************************************************/
 
+QMap<QString,FBFctelem*> FBForm::FACTORIES;
+
 QList<FBDatetimeFormat*> FBForm::DATETIME_FORMATS;
-void FBForm::initEnv ()
+
+void FBForm::initDateTimeFormats () // STATIC
 {
-    FBForm::deinitEnv();
+    FBForm::deinitDateTimeFormats();
     DATETIME_FORMATS.append(
-      new FBDatetimeFormat("Date","yyyy.MM.dd","",0,"yyyy-MM-dd"));
+      new FBDatetimeFormat("Date","yyyy.MM.dd","",
+                           0,"yyyy-MM-dd"));
     DATETIME_FORMATS.append(
-      new FBDatetimeFormat("Time","HH:mm:ss","",1,"HH:mm:ss"));
+      new FBDatetimeFormat("Time","HH:mm:ss","",
+                           1,"HH:mm:ss"));
     DATETIME_FORMATS.append(
       new FBDatetimeFormat("Date and time","yyyy.MM.dd  HH:mm:ss","",
                            2,"yyyy-MM-dd HH:mm:ss"));
 }
-void FBForm::deinitEnv ()
+void FBForm::deinitDateTimeFormats () // STATIC
 {
     for (int i=0; i<DATETIME_FORMATS.size(); i++)
     {
@@ -266,12 +318,54 @@ void FBForm::deinitEnv ()
     DATETIME_FORMATS.clear();
 }
 
+// Register elem's factory.
+// The factory is registered by the elem's keyname which is obtained automatically. This
+// name should be unique in order the factory can be successfully registered.
+// False is returend if there is already a factory with such keyname.
+bool FBForm::registerElem (FBFctelem *fct) // STATIC
+{
+    if (fct == NULL)
+        return false;
+    FBElem *testElem = fct->create();
+    QString elemKeyName = testElem->getKeyName();
+    delete testElem;
+    if (FACTORIES.find(elemKeyName) != FACTORIES.end())
+        return false;
+    FACTORIES.insert(elemKeyName,fct);
+    return true;
+}
+
+// Create and return new element. Does not add it to any form.
+// See FBForm::registerElem().
+// It is the caller's responsibility to delete the returned elem, but usually it is
+// done by the form to which the elem is usually added after creation.
+// NULL is returned if there is no factory registered with the passed keyname.
+FBElem* FBForm::createElem (QString elemKeyName) // STATIC
+{
+    if (FACTORIES.find(elemKeyName) != FACTORIES.end())
+    {
+        FBElem *elem = FACTORIES.value(elemKeyName)->create();
+        return elem;
+    }
+    return NULL;
+}
+
+
+FBForm::~FBForm ()
+{
+    if (decoratorDefault != NULL)
+        delete decoratorDefault;
+}
+
+
 FBForm::FBForm ():
     QWidget()
 {
     SELECTED = NULL;
     IS_SELECTED_MOVING = false;
     INSERT_SHOWED = NULL;
+
+    decoratorDefault = new FBDecorator();
 
     // Set transparent background.
     this->setStyleSheet("QWidget{background-color:rgba(0,0,0,0);}");
@@ -281,15 +375,12 @@ FBForm::FBForm ():
     lvForm->setSpacing(0);
 
     // Add initial form components.
-    this->clear();
-
-    curStyle = FB_STYLENAME_DEFAULT;
+    this->resetContents();
 }
 
 
 // Add already outside-created elem to the form after the passed element
 // or at the end.
-// WARNING. Do not pass the elem which is already in the form to this method.
 void FBForm::addElem (FBElem *newElem, FBElem *afterThisElem)
 {
     if (newElem == NULL)
@@ -310,11 +401,8 @@ void FBForm::addElem (FBElem *newElem, FBElem *afterThisElem)
     }
     else
     {
-
+        //...
     }
-
-    // Visualize elem.
-    newElem->changeStyle(curStyle);
 
     // Connect all elem and form events.
     QObject::connect(newElem, SIGNAL(pressed(FBElem*)),
@@ -323,6 +411,9 @@ void FBForm::addElem (FBElem *newElem, FBElem *afterThisElem)
                      this, SLOT(onElemMoved(QMouseEvent*)));
     QObject::connect(newElem, SIGNAL(released()),
                      this, SLOT(onElemReleased()));
+
+    // Set default decorator (~ just assign pointer, no decoring actions).
+    newElem->setDecorator(decoratorDefault);
 
     // Select element right after addition.
     this->selectElem(newElem);
@@ -390,11 +481,11 @@ void FBForm::deleteSelected ()
 
 // Delete ALL items which are placed in the main form layout: form elements,
 // insert widgets and the last stretch layout. After that insert initial items.
-void FBForm::clear ()
+void FBForm::resetContents ()
 {
     this->deselectElem();
 
-    // Delete all widgets. We must do this, because layouts do not delete their
+    // Delete all elements. We must do this, because layouts do not delete their
     // widgets self.
     QObjectList list = this->children();
     for (int i=0; i<list.size(); i++)
@@ -499,21 +590,10 @@ QMap<int,FBElem*> FBForm::getTopElems ()
 
 // Returns ALL ELEMENTS of the form. The returned list contains not only container
 // elements, but also elements which are the child elements for these containers and
-// so on.
+// so on. The order of elems in the list can be any.
 QList<FBElem*> FBForm::getAllElems ()
 {
     QList<FBElem*> elemsAll;
-
-    // Firstly get top-level elems.
-
-//    QMap<int,FBElem*> mapTopElems = this->getTopElems();
-//    QMap<int,FBElem*>::const_iterator it = mapTopElems.constBegin();
-//    while (it != mapTopElems.constEnd())
-//    {
-//        elemsAll.append(it.value());
-//        ++it;
-//    }
-
     for (int i = 0; i < lvForm->count(); ++i) // do not use getTopElems()
     {
         QWidget *w = lvForm->itemAt(i)->widget();
@@ -527,17 +607,15 @@ QList<FBElem*> FBForm::getAllElems ()
             //...
         }
     }
-
     return elemsAll;
 }
 
 
 // Convert form to JSON.
 // Strategy: each json-form is just a one-dimentional array of json-elements as they
-// follow each other vertically in the form. Each element knows how to convert itself
-// to JSON, but form ADDS TO THE FINAL ELEM'S JSON VALUE the common thing: the key-name
-// of element, so in further reading it can be possible to identify and create elem by
-// its name.
+// follow each other vertically in the form. For each element tha name (so in further
+// reading it can be possible to identify and create elem by its name) and the set of
+// attributes is converted. Additionally each element can modify its json representation.
 Json::Value FBForm::toJson ()
 {
     Json::Value jsonRootArray;
@@ -548,23 +626,40 @@ Json::Value FBForm::toJson ()
     jsonRootArray.append(jsonStub);
     jsonRootArray.clear();
 
-    // Finally fill value with elements.
     QMap<int,FBElem*> mapTopElems = this->getTopElems(); // container elems will write
                                                          // their child elements
     QMap<int,FBElem*>::const_iterator it = mapTopElems.constBegin();
     while (it != mapTopElems.constEnd())
     {
-        // 1. Get JSON representation of an element.
         FBElem* elem = it.value();
-        Json::Value jsonElem = elem->toJson();
+        Json::Value jsonElem;
 
-        // 2. Add to this representation form's syntax.
+        // 1. Put attributes of an element.
+        QMap<QString,FBAttr*> attrs = elem->getAttrs();
+        QMap<QString,FBAttr*>::const_iterator it2 = attrs.constBegin();
+        Json::Value jsonAttrsSet;
+        while (it2 != attrs.constEnd())
+        {
+            QByteArray baKn;
+            baKn = (*it2)->getKeyName().toUtf8();
+            jsonAttrsSet[baKn.data()] = ((*it2)->toJson());
+            ++it2;
+        }
+        jsonElem[FB_JSONKEY_ELEM_ATTRS] = jsonAttrsSet;
+
+        // 2. Put keyname of an element.
         // We add here keyname of the element, because it's also a form's responsibility
         // to read and create an element of specific FBElem class in a parseJson()
         // method by its name.
         QByteArray ba;
-        ba = elem->getFctPtr()->getKeyName().toUtf8();
+        ba = elem->getKeyName().toUtf8();
         jsonElem[FB_JSONKEY_ELEM_TYPE] = ba.data();
+
+        // 3. Modify json for the concrete elem.
+        // E.g. convert inner elems of the container elem.
+        elem->modifyJsonOut(jsonElem);
+
+        // Finally append json representation of an elem to the array.
         jsonRootArray.append(jsonElem);
         ++it;
     }
@@ -576,7 +671,7 @@ Json::Value FBForm::toJson ()
 // them from given JSON. Returning void list is correct - the form has no elements
 // in that case.
 // See FBForm::toJson() how the form was converted to JSON.
-// Elements are created by their names.
+// Elements are created by their keynames.
 // If errors occur false will be returned. Error is returned even if at least one
 // of the elems in JSON array is incorrect.
 // WARNING. Passed retList will be cleared even if the error occurs during the work
@@ -606,25 +701,45 @@ bool FBForm::parseJson (Json::Value jsonVal, QList<FBElem*> &retList) // STATIC
             break;
         }
         QString keyElemName = QString::fromUtf8(jsonKeyName.asString().data());
-        FBFactory *fct = FBFactory::getFctByName(keyElemName);
-        if (fct == NULL) // some unknow elem's name
+        FBElem *elem = FBForm::createElem(keyElemName);
+        if (elem == NULL)
         {
-            ok = false;
+            ok = false; // Elem's name is undefined OR JUST NOT REGISTERED!
             break;
         }
-        FBElem *elem = fct->create();
 
-        // 2. And only than the element "will know" how to convert itself from JSON.
-        if (!elem->fromJson(jsonVal[k]))
+        // 2. Get elem's attributes.
+        // Note: here we do not check jsonAttrsSet and jsonAttrsSet[...] for nulls
+        // because fore some elems it is ok to have no attrs at all and for some
+        // attrs - no values. The correctness of this was checked during the reading
+        // of the form (where all syntax checks are made).
+        Json::Value jsonAttrsSet = jsonVal[k][FB_JSONKEY_ELEM_ATTRS];
+        QMap<QString,FBAttr*> attrs = elem->getAttrs();
+        QMap<QString,FBAttr*>::const_iterator it2 = attrs.constBegin();
+        while (it2 != attrs.constEnd())
         {
-            ok = false;
+            QByteArray baKn;
+            baKn = (*it2)->getKeyName().toUtf8();
+            if (!((*it2)->fromJson(jsonAttrsSet[baKn.data()])))
+            {
+                ok = false;
+                break;
+            }
+            ++it2;
+        }
+        if (!ok)
+        {
             break;
         }
+
+        // 3. Additionally modify elem if needed.
+        // E.g. add inner elems to container elem.
+        elem->modifyElemIn(jsonVal[k]);
 
         retList.append(elem);
     }
 
-    // Delete all already created elems if error occured.
+    // Delete all already created elems if any error occured.
     if (!ok)
     {
         for (int i=0; i<retList.size(); i++)
@@ -632,6 +747,8 @@ bool FBForm::parseJson (Json::Value jsonVal, QList<FBElem*> &retList) // STATIC
             delete retList[i];
         }
         retList.clear();
+
+        return false; // TODO: do we need it here?
     }
 
     return true;
@@ -648,32 +765,13 @@ bool FBForm::fromJson (Json::Value jsonVal)
     {
         return false;
     }
-    this->clear();
+    this->resetContents(); // clear form and add initial content
     for (int i=0; i<list.size(); i++)
     {
         // Add each elem to the end of form.
         this->addElem(list[i]);
-        // Change the appearance of elem, while its attrs have been changed.
-        list[i]->updateAppearance();
     }
     return true;
-}
-
-
-void FBForm::updateStyle (QString styleName)
-{
-    // Form itself has no style.
-    // Update style for all form elements.
-    QMap<int,FBElem*> elems = this->getTopElems(); // container elems will update their
-                                                   // child elems
-    QMap<int,FBElem*>::const_iterator it = elems.constBegin();
-    while (it != elems.constEnd())
-    {
-        it.value()->changeStyle(styleName);
-        ++it;
-    }
-
-    curStyle = styleName;
 }
 
 

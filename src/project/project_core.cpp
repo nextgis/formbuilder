@@ -1,6 +1,6 @@
 /******************************************************************************
  * Project:  NextGIS Formbuilder
- * Purpose:  basic project implementations
+ * Purpose:  core project implementations
  * Author:   Mikhail Gusev, gusevmihs@gmail.com
  ******************************************************************************
 *   Copyright (C) 2014-2016 NextGIS
@@ -20,13 +20,13 @@
  ****************************************************************************/
 
 #include <QByteArray>
-
 #include <QDir>
 #include <QTemporaryDir>
-
 #include <QTextStream>
 
-#include "project.h"
+#include "project_core.h"
+
+#include "projects.h"
  
 QList<FbGeomType*> FBProject::GEOM_TYPES;
 QList<FbDataType*> FBProject::DATA_TYPES;
@@ -270,7 +270,7 @@ Json::Value FBProject::readMeta (QString ngfpFullPath) // STATIC
     // - must be only one fixed SRS
     // type - so they can be translated to correct data for project, i.e. using
     // Json::Value::asInt() or as array of json values, etc.
-    // - ...
+    // ...
 
     return jsonRet;
 }
@@ -290,14 +290,17 @@ Json::Value FBProject::readForm (QString ngfpFullPath) // STATIC
     // b) attribute's value. For that try to read the necessery amount of attrs
     // and the necessary attr values as it is defined in the according FBAttr
     // class. See FBElem::fromJson() why we need this.
-    // - ...
+    // - more general: try to create an elem for the passed keyname: what if
+    // the keyname of the elem had been changed manually and it is correct
+    // while its structure belongs to the elem with another keyname?
+    // ...
 
     return jsonRet;
 }
 
 
 // READ DATA
-// Method does not retur any data, just checks its correctness.
+// Method does not return any data, just checks its correctness.
 bool FBProject::readData (QString ngfpFullPath) // STATIC
 {
     // TODO: check data file, firstly its existance.

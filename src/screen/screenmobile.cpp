@@ -19,21 +19,37 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
-#include "screen.h"
+#include "screens.h"
 
 
 /****************************************************************************/
 /*                             FBScreenMobile                               */
 /****************************************************************************/
 
-FBScreenMobile::FBScreenMobile (QWidget *parent):
-    FBScreen (parent)
+FBScreenMobile::FBScreenMobile (QWidget *parent, float sizeFactor):
+    FBScreen (parent,sizeFactor)
 {
 
 }
 
 FBScreenMobile::~FBScreenMobile ()
 {
+}
+
+void FBScreenMobile::clearDecor ()
+{
+    for (int i=0; i<labsScreenDecorVert.size(); i++)
+    {
+        lvMain2->removeWidget(labsScreenDecorVert[i]);
+        delete labsScreenDecorVert[i];
+    }
+    labsScreenDecorVert.clear();
+    for (int i=0; i<labsScreenDecorHor.size(); i++)
+    {
+        lhMain1->removeWidget(labsScreenDecorHor[i]);
+        delete labsScreenDecorHor[i];
+    }
+    labsScreenDecorHor.clear();
 }
 
 void FBScreenMobile::changeDevice (int index)
@@ -64,7 +80,7 @@ void FBScreenMobile::changeState (int index)
         width = devices[curDevice].getResolution().first;
         height = devices[curDevice].getResolution().second;
 
-        QPair<int,int> realSize = FBScreenMobile::calculateScreenSize(
+        QPair<int,int> realSize = this->calculateScreenSize(
                 devices[curDevice].getDiagonal(),width,height);
 
         if (index == 0)
@@ -81,32 +97,6 @@ void FBScreenMobile::changeState (int index)
 
     // TODO: switch to another form (second set of elems) here.
 }
-
-
-// Calculates the actual screen width and height, using the passed diagonal
-// and screen resolutions size. Diagonal is used to determine the screen size
-// while the resolution - to determine screen's aspect ratio. For example: two
-// devices with DPI = 1 and DPI = 2 but with the same diagonal will have the
-// same screen size.
-// In the returned pair the first value is always larger than the second.
-QPair<int,int> FBScreenMobile::calculateScreenSize (float d, float w, float h)
-{
-    QPair<int,int> ret;
-    ret.first = 0;
-    ret.second = 0;
-    if (d <= 0 || w <= 0 || h <= 0)
-        return ret;
-    float r; // aspect ratio
-    if (w > h)
-        r = w/h;
-    else
-        r = h/w;
-    float x, y;
-    y = sqrt(d*d/(r*r+1));
-    x = r*y;
-    return QPair<int,int>(x*FB_SCREEN_SIZEFACTOR,y*FB_SCREEN_SIZEFACTOR);
-}
-
 
 
 

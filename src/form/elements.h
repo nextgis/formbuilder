@@ -1,6 +1,6 @@
 /******************************************************************************
  * Project:  NextGIS Formbuilder
- * Purpose:  various elements declaration
+ * Purpose:  various elements
  * Author:   Mikhail Gusev, gusevmihs@gmail.com
  ******************************************************************************
 *   Copyright (C) 2014-2016 NextGIS
@@ -22,57 +22,53 @@
 #ifndef ELEMENTS_H
 #define ELEMENTS_H
 
-#include <QVBoxLayout>
-#include <QLabel>
+#include <QWidget>
 
-#include "form_core.h"
 #include "attributes.h"
-
 
 // Abstract element which can write values to the layer fields.
 class FBElemInput: public FBElem
 {
     Q_OBJECT
     public:
-     FBElemInput (FBFactory *fctPtr);
+     FBElemInput ();
      virtual ~FBElemInput () { }
      static void updateFields (QStringList fieldsKeyNames);
      virtual void resetSelectedField (QString keyname);
      virtual QStringList getSelectedFields ();
     protected:
      FBAttrField *attrFieldPtr;
-     //FBAttrText *attrCaption;
+     FBAttrString *attrCaptionPtr;
 };
 
 // Abstract element which can write values to the layer fields and these values
-// can vary in different sessions of working with form on the device.
+// can vary in different sessions of working with form in Mobile application.
 class FBElemInputVariate: public FBElemInput
 {
     Q_OBJECT
     public:
-     FBElemInputVariate (FBFactory *fctPtr);
+     FBElemInputVariate ();
      virtual ~FBElemInputVariate () { }
     protected:
      FBAttrBoolean *attrKeepLastPtr;
 };
 
-
 /*
-// This compound element may contain other elements which are even also compound.
-class FBElemCompound: protected FBElem
+// Abstract element may contain other elements.
+class FBElemContainer: protected FBElem
 {
+    Q_OBJECT
     public:
-     void addElem (FBElem* afterElem); // afterElem can be NULL
-     void removeElem (FBElem* elem);
-     void removeAllElems ();
-
-     virtual Json::Value toJson (); // also calls toJson() of inner elems
-     virtual FBErr fromJson (); // also calls fromJson() of inner elems
-
+     FBElemContainer ();
+     virtual ~FBElemContainer ();
+     virtual void addElem (FBElem* afterElem) = 0; // afterElem can be NULL
+     virtual void removeElem (FBElem* elem) = 0;
+     virtual void removeAllElems () = 0;
+     virtual Json::Value toJson () = 0; // also calls toJson() of inner elems
+     virtual bool fromJson (Json::Value jsonValue) = 0; // also calls fromJson() of inner elems
     protected:
-     // The elems are stored inside layout(s) and will be read for output as
-     // it is done for the whole form - via layout's iteration.
-
+     QWidget *wContainer; // can hold any layout in derived classes
+     virtual void clearContents(); // override to avoid deleteion of lvContainer
 };
 */
 
@@ -80,126 +76,101 @@ class FBElemText: public FBElem
 {
     Q_OBJECT
     public:
-     FBElemText (FBFactory *fctPtr);
-     ~FBElemText () {}
-     void changeStyle (QString styleName);
-    protected slots:
-     void changeAttrValue ();
-     void updateAppearance ();
-    protected:
-     QLabel *labText;
-     FBAttrText *attrTextPtr;
+     FBElemText ();
+     virtual ~FBElemText () { }
+     virtual QString getKeyName () { return FB_ELEMNAME_TEXT_LABEL; }
+     virtual QString getDisplayName () { return tr("Text label"); }
+     virtual QString getDescription () { return tr("Label which displays static text"); }
+     virtual FBElemtype getType () { return FBDecoration; }
 };
 
 class FBElemSpace: public FBElem
 {
     Q_OBJECT
     public:
-     FBElemSpace (FBFactory *fctPtr);
-     ~FBElemSpace () {}
-     void changeStyle (QString styleName);
-    protected slots:
-     void changeAttrValue () { return; }
-     void updateAppearance () { return; }
+     FBElemSpace ();
+     virtual ~FBElemSpace () { }
+     virtual QString getKeyName () { return FB_ELEMNAME_SPACE; }
+     virtual QString getDisplayName () { return tr("Space"); }
+     virtual QString getDescription () { return tr("..."); }
+     virtual FBElemtype getType () { return FBDecoration; }
 };
 
 class FBElemTextedit: public FBElemInputVariate
 {
     Q_OBJECT
     public:
-     FBElemTextedit (FBFactory *fctPtr);
-     ~FBElemTextedit () {}
-     void changeStyle (QString styleName);
-    protected slots:
-     void changeAttrValue ();
-     void updateAppearance ();
-    protected:
-     QLabel *labText;
-     FBAttrText *attrTextPtr;
+     FBElemTextedit ();
+     virtual ~FBElemTextedit () { }
+     virtual QString getKeyName () { return FB_ELEMNAME_TEXT_EDIT; }
+     virtual QString getDisplayName () { return tr("Text edit"); }
+     virtual QString getDescription () { return tr("..."); }
+     virtual FBElemtype getType () { return FBInput; }
 };
 
 class FBElemCombobox: public FBElemInputVariate
 {
     Q_OBJECT
     public:
-     FBElemCombobox (FBFactory *fctPtr, QWidget *appWidget = NULL);
-     ~FBElemCombobox () {}
-     void changeStyle (QString styleName);
-    protected slots:
-     void changeAttrValue ();
-     void updateAppearance ();
-    protected:
-     QLabel *labText;
-     FBAttrListvalues *attrListvalsPtr;
+     FBElemCombobox (QWidget *appWidget);
+     virtual ~FBElemCombobox () { }
+     virtual QString getKeyName () { return FB_ELEMNAME_COMBOBOX; }
+     virtual QString getDisplayName () { return tr("Combobox"); }
+     virtual QString getDescription () { return tr("..."); }
+     virtual FBElemtype getType () { return FBInput; }
 };
 
 class FBElemDoublecombobox: public FBElemInputVariate
 {
     Q_OBJECT
     public:
-     FBElemDoublecombobox (FBFactory *fctPtr, QWidget *appWidget = NULL);
-     ~FBElemDoublecombobox () {}
-     void changeStyle (QString styleName);
-    protected slots:
-     void changeAttrValue ();
-     void updateAppearance ();
-    protected:
-     QLabel *labText1;
-     QLabel *labText2;
-     FBAttrListvaluesDouble *attrListvalsDoublePtr;
+     FBElemDoublecombobox (QWidget *appWidget);
+     virtual ~FBElemDoublecombobox () { }
+     virtual QString getKeyName () { return FB_ELEMNAME_DOUBLE_COMBOBOX; }
+     virtual QString getDisplayName () { return tr("Doubled combobox"); }
+     virtual QString getDescription () { return tr("..."); }
+     virtual FBElemtype getType () { return FBInput; }
 };
 
 class FBElemCheckbox: public FBElemInputVariate
 {
     Q_OBJECT
     public:
-     FBElemCheckbox (FBFactory *fctPtr);
-     ~FBElemCheckbox () {}
-     void changeStyle (QString styleName);
-    protected slots:
-     void changeAttrValue ();
-     void updateAppearance ();
-    protected:
-     QLabel *labText;
-     QLabel *labImg;
-     QPixmap pixOnAndroid;
-     QPixmap pixOffAndroid;
-     FBAttrText *attrTextPtr;
-     FBAttrBoolean *attrCheckPtr;
-     QString curStyleName;
+     FBElemCheckbox ();
+     virtual ~FBElemCheckbox () { }
+     virtual QString getKeyName () { return FB_ELEMNAME_CHECKBOX; }
+     virtual QString getDisplayName () { return tr("Checkbox"); }
+     virtual QString getDescription () { return tr("..."); }
+     virtual FBElemtype getType () { return FBInput; }
 };
 
 class FBElemRadiogroup: public FBElemInputVariate
 {
     Q_OBJECT
     public:
-     FBElemRadiogroup (FBFactory *fctPtr, QWidget *appWidget = NULL);
-     ~FBElemRadiogroup () {}
-     void changeStyle (QString styleName);
-    protected slots:
-     void changeAttrValue ();
-     void updateAppearance ();
-    protected:
-     QPixmap pixOnAndroid;
-     QPixmap pixOffAndroid;
-     FBAttrListvaluesStrict *attrListvalsStrictPtr;
-     QString curStyleName;
+     FBElemRadiogroup (QWidget *appWidget);
+     virtual ~FBElemRadiogroup () { }
+     virtual QString getKeyName () { return FB_ELEMNAME_RADIOGROUP; }
+     virtual QString getDisplayName () { return tr("Radiogroup"); }
+     virtual QString getDescription () { return tr("..."); }
+     virtual FBElemtype getType () { return FBInput; }
 };
 
-// TODO: unite two attributes into one: the value of the date and its type (format),
-// because for now some strange dependacies between these two attributes are used.
 class FBElemDatetime: public FBElemInputVariate
 {
     Q_OBJECT
     public:
-     FBElemDatetime (FBFactory *fctPtr, QWidget *appWidget = NULL);
-     ~FBElemDatetime () {}
-     void changeStyle (QString styleName);
+     FBElemDatetime (QWidget *appWidget);
+     virtual ~FBElemDatetime () { }
+     virtual QString getKeyName () { return FB_ELEMNAME_DATE_TIME; }
+     virtual QString getDisplayName () { return tr("Date & time"); }
+     virtual QString getDescription () { return tr("..."); }
+     virtual FBElemtype getType () { return FBInput; }
     protected slots:
-     void changeAttrValue ();
-     void updateAppearance ();
+     void onChangeAttrValue ();
     protected:
-     QLabel *labText;
+     // TODO: unite two attributes into one: the value of the date and its type (format),
+     // because for now some strange dependancies between these two attributes are used.
      FBAttrSelect *attrTypePtr;
      FBAttrDatetime *attrDatetimePtr;
 };
@@ -208,44 +179,36 @@ class FBElemButton: public FBElemInput
 {
     Q_OBJECT
     public:
-     FBElemButton (FBFactory *fctPtr);
-     ~FBElemButton () {}
-     void changeStyle (QString styleName);
-    protected slots:
-     void changeAttrValue ();
-     void updateAppearance ();
-    protected:
-     QLabel *labText;
-     FBAttrText *attrTextPtr;
+     FBElemButton ();
+     virtual ~FBElemButton () { }
+     virtual QString getKeyName () { return FB_ELEMNAME_BUTTON; }
+     virtual QString getDisplayName () { return tr("Button"); }
+     virtual QString getDescription () { return tr("..."); }
+     virtual FBElemtype getType () { return FBInput; }
 };
 
 class FBElemPhoto: public FBElem
 {
     Q_OBJECT
     public:
-     FBElemPhoto (FBFactory *fctPtr);
-     ~FBElemPhoto () {}
-     void changeStyle (QString styleName);
-    protected slots:
-     void changeAttrValue ();
-     void updateAppearance ();
-    protected:
-     QHBoxLayout *lhItems;
-     QList<QLabel*> labsImg; // store these labels to delete them separetely
-     FBAttrNumber *attrMaxCountPtr;
-     QString curStyleName;
+     FBElemPhoto ();
+     virtual ~FBElemPhoto () { }
+     virtual QString getKeyName () { return FB_ELEMNAME_PHOTO; }
+     virtual QString getDisplayName () { return tr("Photo"); }
+     virtual QString getDescription () { return tr("..."); }
+     virtual FBElemtype getType () { return FBInput; }
 };
 
 class FBElemSignature: public FBElem
 {
     Q_OBJECT
     public:
-     FBElemSignature (FBFactory *fctPtr);
-     ~FBElemSignature () {}
-     void changeStyle (QString styleName);
-    protected slots:
-     void changeAttrValue () { return; }
-     void updateAppearance () { return; }
+     FBElemSignature ();
+     virtual ~FBElemSignature () { }
+     virtual QString getKeyName () { return FB_ELEMNAME_SIGNATURE; }
+     virtual QString getDisplayName () { return tr("Signature"); }
+     virtual QString getDescription () { return tr("..."); }
+     virtual FBElemtype getType () { return FBInput; }
 };
 
 

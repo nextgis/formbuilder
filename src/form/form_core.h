@@ -22,30 +22,23 @@
 #ifndef FORM_CORE_H
 #define FORM_CORE_H
 
+#include <QPair>
+#include <QList>
+#include <QDateTime>
 #include <QWidget>
+#include <QLabel>
 #include <QVBoxLayout>
 #include <QPushButton>
-
 #include <QMouseEvent>
-
-// See paintEvent() from widgets with Q_OBJECT.
-//http://stackoverflow.com/questions/18344135/why-do-
-//stylesheets-not-work-when-subclassing-qwidget-and-using-q-object
 #include <QPainter>
 #include <QStyleOption>
 
 #include "json/json.h"
 
-#define FB_STYLENAME_DEFAULT "default"
-#define FB_STYLENAME_ANDROID "android"
-#define FB_STYLENAME_IOS "ios"
-#define FB_STYLENAME_WEB "web"
-#define FB_STYLENAME_QGIS "qgis"
-
-#define FB_FORMSIZE_ELEMSPACING 9 //13
-
-#define FB_ANDROIDSCREEN_FONTSIZE_NORMAL 12 //14
-#define FB_ANDROIDSCREEN_FONTTYPE "Segoe UI" //"Candara"
+#define FB_FORM_INSWIDGETHEIGHT 8
+#define FB_ELEM_DEFHEIGHT 30
+#define FB_ELEM_DEFFONTTYPE "Segoe UI"
+#define FB_ELEM_DEFFONTSIZE 12
 
 // Reserved string constants for project's form file.
 #define FB_JSONKEY_ELEM_TYPE "type"
@@ -57,21 +50,13 @@
 #define FB_JSONKEY_ATTRVAL_VALUES "values"
 #define FB_JSONVALUE_ATTRVAL_NOKEYNAME "-1"
 #define FB_JSONVALUE_ATTRVAL_NODISPNAME "--"
-
 #define FB_DEFVALUE_NOTSELECTED "-"
-
-#define FB_COLOR_LIGHTGREY "rgb(238,238,238)"
-#define FB_COLOR_LIGHTMEDIUMGREY "rgb(210,210,210)"
-#define FB_COLOR_MEDIUMGREY "rgb(170,170,170)"
-#define FB_COLOR_DARKGREY "rgb(100,100,100)"
-#define FB_COLOR_VERYDARKGREY "rgb(46,46,46)"
-#define FB_COLOR_LIGHTBLUE "rgb(139,183,224)"
-#define FB_COLOR_DARKBLUE "rgb(23,111,193)"
-
 
 // Element & attribute names.
 // IMPORTANT. Change or add these names carefully, because this is critical for
 // NextGIS Mobile.
+// NOTE: keynames of elements and atributes are also usually used to define their
+// styles in the ScreenX classes.
 #define FB_ELEMNAME_TEXT_LABEL "text_label"
 #define FB_ELEMNAME_IMAGE "image"
 #define FB_ELEMNAME_TEXT_EDIT "text_edit"
@@ -109,7 +94,6 @@
 #define FB_ATTRNAME_ALLOWADDING "allow_adding_values"
 #define FB_ATTRNAME_GALLERYSIZE "gallery_size"
 
-
 enum FBElemtype
 {
     FBDecoration, FBInput, FBGrouping, FBLayout
@@ -117,7 +101,7 @@ enum FBElemtype
 
 enum FBAttrrole
 {
-    FBNoRole, FBImportant, FBOtherAttrChange, FBStructureChange,
+    FBNoRole, FBImportant, FBOtherAttrChange, //FBStructureChange,
 };
 
 struct FBDatetimeFormat
@@ -138,59 +122,76 @@ struct FBDatetimeFormat
     ~FBDatetimeFormat () { }
 };
 
+typedef QPair<QList<QPair<QString,QString> >, int> FBListValue;
+Q_DECLARE_METATYPE(FBListValue);
+typedef QPair<QList<QList<QPair<QString,QString> > >, QList<int> > FBListsValues;
+Q_DECLARE_METATYPE(FBListsValues);
+typedef QPair<FBListValue,FBListsValues> FBDoublelistValue;
+Q_DECLARE_METATYPE(FBDoublelistValue);
+//typedef QPair<QDateTime,bool> FBDatetimeValue;
+//Q_DECLARE_METATYPE(FBDatetimeValue);
 
 class FBForm;
 class FBElem;
-class FBFactory;
+class FBFctelem;
 
 
 /**
- * Attribute.
- * Each FBAttrX class - is an "attribute type" (not "attribute instance") because
- * different elements can have the same attribute types, but with different display
- * names and used for different purposes.
+ * Abstract attribute.
+ * Each concrete FBAttrX class - is an "attribute type" (not "attribute instance")
+ * because different elements can have the same attribute types, but with different
+ * display names and used for different purposes.
  *
  * Each attribute must be able to:
  * 1. Store its value;
- * 2. Return the QWidget so it can be possible for user to work with value (firstly
+ * 2. Save/load self to/from JSON;
+ * 3. Return its value (may be complex) so element, which is the owner of this attr
+ * can change its appearance or change other attribute's value.
+ * 4. Return the QWidget so it can be possible for user to work with value (firstly
  * read and display, secondly write);
- * 3. Save/load self to/from JSON;
- * 4. (Optionally) return its value (may be complex) so element, which is the owner
- * of this attr, can change its appearance.
  *
- * One attribute equals to one value in the project (in form.json of ngfp file).
+ * One attribute equals to one SINGLE value in the project (in form.json of ngfp file).
  * That's why complex attribute (e.g. lists of values for Double-list elem) is
  * usually edited in complex way: with the help of special dialogues, which are
  * opened by pressing BUTTON in the attrs table.
  *
- * The getWidget() method must return a QWidget which is inited without parent. The
- * actual parent may be table in main app's GUI which will delete this widget self.
- *
  * FOR DEVELOPERS: add new attribute by subclassing from one of the FBAttrX classes
- * or FBAttr class.
- * WARNING. Each attribute must have a unique key name.
+ * or FBAttr class. The getWidget() method must return a QWidget which is inited
+ * without parent. The actual parent may be table in main app's GUI which will delete
+ * this widget self.
  */
 class FBAttr: public QObject
 {
     Q_OBJECT
+
     public:
+
      FBAttr (FBElem *parentElem, QString keyName, QString displayName, QString descr,
              FBAttrrole role);
      virtual ~FBAttr () { }
+
      virtual Json::Value toJson () = 0;
      virtual bool fromJson (Json::Value jsonVal) = 0;
+
      virtual QWidget *getWidget () = 0; // its the caller responsib. to delete it
+
+     virtual QVariant getValue () = 0;
+
      QString getKeyName () { return keyName; }
      QString getDisplayName () { return displayName; }
      QString getDescription () { return description; }
      FBAttrrole getRole () { return role; }
+
     signals:
-     void changeOtherAttr (); // in order to signalize to other attrs of this element
-                          // that they can be changed
-     void changeAppearance (); // indicates that changing this attr changes elem's
-                               // appearance
+
+     void changeOtherAttr (); // in order to signalize to some other attrs of this element
+                              // that they should be changed
+     void changeAppearance (FBAttr* thisAttr); // indicates that changing this attr
+                                               // changes elem's appearance
     protected:
-     FBElem *elemPtr; // parent elem
+
+     FBElem *elemPtr; // "parent" elem
+
      QString keyName;
      QString displayName;
      QString description;
@@ -199,69 +200,135 @@ class FBAttr: public QObject
 
 
 /**
- * Element.
- * Each element has:
- * 1. List of attributes (but can be void);
- * 2. Its own graphical representation which can vary among form styles;
- * 3. Common way to convert itself to/from JSON: basically it is just a listing of
- * its attributes.
+ * Default decorator class.
+ * Decorators are used to set the visual apperance to elememnts of the form.
  *
- * FOR DEVELOPERS: add new element by subclassing one of the FBElemX classes.
- * See FBFactory class how to add new element. Do not forget to put Q_OBJECT macro
- * to each FBElem class, while in FB it will be used for type casting for
- * implementing common actions for elems.
+ * IMPORTANT FOR DEVELOPERS. Decorate elements only with the help of other widgets:
+ * add them to the main layout of elem via according methods and change their
+ * appearance. DO NOT CHANGE FBElem widget itself (except size policy and hint).
+ * TODO: maybe somehow make FBElem protected-inherited from QWidget and implement
+ * according interface, but that is probably not possible because all QWidget-s have
+ * their copy-constructors declared private.
+ *
+ * IMPORTANT FOR DEVELOPERS. In overriden methods ensure that all added to the elem
+ * decorational widgets/layouts/etc are finally the child widgets for the elem, so
+ * there will be no memory leaks after the clearing or deletion the elem.
+ */
+class FBDecorator
+{
+    public:
+     FBDecorator () { }
+     virtual ~FBDecorator () { }
+     virtual void redecor (FBElem* elem);
+     virtual void update (FBElem *elem);
+};
+
+
+/**
+ * Abstract element.
+ *
+ * Each concrete element has: a list of attributes (but can be void) and (optionally)
+ * describes how attributes' changings have influence on other attributes of this elem
+ * and on elem's appearance. Each concrete elem must contain only unique set of attributes
+ * - i.e. their keynames must be unique in the context of this elem, but the FBAttrX
+ * classes can be any.
+ *
+ * Every element must fully describe itself. It should be possible to create element
+ * directly via constructor or via factory in a common way.
+ * IMPORTANT. Each FBElemX should have the FBFctelemX pair in order the form can read
+ * and create element from the project file!
+ *
+ * Every element IS NOT responsible for its visual appearance. This is done by decorators
+ * - see FBDecorator class. Decorational widgets will belong to elem as the children
+ * widgets and will be deleted with it. Reason of such approach: each concrete screen/style
+ * can create very different set of widgets for decoring and also because elements are
+ * not "for visual purpose" while "for aggregating attributes" + "for standard form
+ * manipulations".
+ *
+ * FOR DEVELOPERS: add new element by subclassing FBElem or derived classes. Do not
+ * forget to put Q_OBJECT macro to the class, while in FB it will be used for type
+ * casting for implementing common actions for elems. If you want to set an elem's
+ * style for some screen - see FBDecoratorX classes.
+ * IMPORTANT. After adding new elem do not forget to create its factory and register
+ * it in FBForm during runtime.
  */
 class FBElem: public QWidget
 {
     friend class FBForm;
 
-    Q_OBJECT // we need this also for type-casting with qobject_cast
+    Q_OBJECT // we need this also for type-casting with qobject_cast!
+
+    signals:
+
+     void pressed (FBElem *thisElem);
+     void moved (QMouseEvent *event);
+     void released ();
 
     public:
-     FBElem (FBFactory *fctPtr);
+
+     // Main:
+     FBElem ();
      virtual ~FBElem () { }
-     virtual Json::Value toJson ();
-     virtual bool fromJson (Json::Value jsonValue);
-     QSet<FBAttr*> getAttrs () { return attrs; }
-     FBFactory *getFctPtr () { return fctPtr; }
-     QString getDisplayName ();
+
+     // Json:
+     virtual void modifyJsonOut (Json::Value &jsonValue) { return; }
+     virtual void modifyElemIn (Json::Value jsonValue) { return; }
+
+     // For decoring:
+     void clearContents ();
+     bool addAsDecor (QWidget *widget, QString regName = "");
+     void addAsDecor (QLayout *layout);
+     bool registerAsDecor (QWidget *widget, QString regName);
+     QWidget *findAsDecor (QString regName);
+     void setDecorator (FBDecorator *decorator);
+     void redecorateSelf () { decoratorPtr->redecor(this); }
+     void updateSelf () { decoratorPtr->update(this); }
+
+     // Info:
+     QMap<QString,FBAttr*> getAttrs () { return attrs; }
+     FBAttr* getAttr (QString attrKeyName);
+     virtual QString getKeyName () = 0;
+     virtual QString getDisplayName () = 0;
+     virtual QString getDescription () = 0;
+     virtual FBElemtype getType () = 0;
 
     protected slots:
-     virtual void changeAttrValue () = 0;
-     virtual void updateAppearance () = 0;
 
-    protected:
-     virtual void changeStyle (QString styleName);
-     void clearContents ();
+     virtual void onChangeAttrValue ();
+     virtual void onChangeAppearance (FBAttr *attr);
+
+    protected: // methods
+
      void setSelectStyle ();
      void setDeselectStyle ();
+
      void mousePressEvent (QMouseEvent *event);
      void mouseReleaseEvent (QMouseEvent *event);
      void mouseMoveEvent (QMouseEvent *event);
      void paintEvent (QPaintEvent *event);
-
-    signals:
-     void pressed (FBElem *thisElem);
-     void moved (QMouseEvent *event);
-     void released ();
     
     protected: // fields
-     FBFactory *fctPtr; // parent factory
-     QSet<FBAttr*> attrs;
+
+     QMap<QString,FBAttr*> attrs;
      QVBoxLayout *lvMain; // store it for deleting style decorations & inner elems
+
+     // We store the pointer to decoartor so not to connect every elem with screen
+     // to change its appearance each time.
+     FBDecorator *decoratorPtr; // FBElem is not the owner of the decorator!
 };
 
 
 /** 
  * Insert widget.
- * Final helper class for elements movement.
+ * Helper class for elements movement.
  *
  * WARNING. FBInsertWidget class name will be used to determine widget type! Do
  * not change it.
  * TODO: may be use other way to determine the Insert Widget, e.g. qobject_cast<>.
  */
-class FBInsertWidget: public QWidget 
+class FBInsertWidget: public QWidget
 {
+    friend class FBForm;
     Q_OBJECT  // required for widget type determination
     public:
      FBInsertWidget (QWidget* parent);
@@ -269,6 +336,36 @@ class FBInsertWidget: public QWidget
      void paintEvent (QPaintEvent *event);
      void setShowStyle ();
      void setHideStyle ();
+};
+
+
+/**
+ * Abstract elem's factory.
+ * See FBElem description.
+ */
+class FBFctelem
+{
+    public:
+     FBFctelem () { }
+     virtual ~FBFctelem () { }
+     virtual FBElem *create () = 0;
+};
+
+/**
+ * Abstract factory for elems which attributes need application widget for displaying
+ * its dialogs.
+ * See FBFctelem description.
+ */
+class FBFctelemAppwidget: public FBFctelem
+{
+    public:
+     FBFctelemAppwidget (QWidget *appWidget): FBFctelem ()
+     {
+         this->appWidget = appWidget;
+     }
+     virtual ~FBFctelemAppwidget () { }
+    protected:
+     QWidget *appWidget;
 };
 
 
@@ -284,8 +381,9 @@ class FBInsertWidget: public QWidget
  *
  * All elements are always followed each other in the form vertically. This
  * is because of the structure of the final JSON file where form is saved, and
- * also because that's why we can get all form's elems by their Y coordinate.
- * All other layouts and groupings of elems are made via specific elements.
+ * also because that's why we can determine the elems' order by their Y coordinate.
+ * All other layouts and groupings of elems are made via specific "container"
+ * elements.
  *
  * The special insert-element is placed between any pair of elements  so it can
  * be possible to move them via mouse.
@@ -298,20 +396,31 @@ class FBForm: public QWidget
     Q_OBJECT
 
     public:
+
      static QList<FBDatetimeFormat*> DATETIME_FORMATS;
-     static void initEnv ();
-     static void deinitEnv ();
+     static void initDateTimeFormats ();
+     static void deinitDateTimeFormats ();
+
+     static bool registerElem (FBFctelem *fct);
+     //static void registerAll ();
+     static FBElem* createElem (QString elemKeyName);
+
+    signals: // can be used by GUI to update its menus
+
+     void elemPressed ();
+     void elemMoved ();
 
     public:
+
      FBForm ();
-     ~FBForm () { }
+     ~FBForm ();
 
      // manipulation
      void addElem (FBElem *newElem, FBElem *afterThisElem = NULL);
      void moveElem (FBElem* elem, FBInsertWidget *insteadInsWidget);
      void deleteElem (FBElem* elem);
      void deleteSelected ();
-     void clear ();
+     void resetContents ();
 
      // selection
      void selectElem (FBElem *elem);
@@ -322,20 +431,15 @@ class FBForm: public QWidget
      QMap<int,FBElem*> getTopElems ();
      QList<FBElem*> getAllElems ();
      QList<FBElem*> getSelectedElems ();
+     FBDecorator *getDefaultDecoratorPtr () { return decoratorDefault; }
 
      // json
      Json::Value toJson ();
      static bool parseJson (Json::Value jsonVal, QList<FBElem*> &retList);
      bool fromJson (Json::Value jsonVal);
 
-     // visual
-     void updateStyle (QString styleName);
+    private slots: // used by form to work with global elem variables
 
-    signals: // used by GUI to update its menus
-     void elemPressed ();
-     void elemMoved ();
-
-    private slots: // used by form to work with global elems variables
      void onElemPressed (FBElem *elem);
      void onElemReleased ();
      void onElemMoved (QMouseEvent *event);
@@ -345,57 +449,17 @@ class FBForm: public QWidget
      bool modified; // will be set to true/false in order to signalize that the
                     // form's elements structure has been changed and there is
                     // a need to save it
-
      QVBoxLayout *lvForm; // the layout of the form, i.e. the layout of this widget
 
-     // global variables for elems manipulating
-     FBElem *SELECTED; //QList<FBElem*> SELECTED;
+     // global variables for elems manipulating. Not static!
+     FBElem *SELECTED;
+     //QList<FBElem*> SELECTED;
      bool IS_SELECTED_MOVING;
      FBInsertWidget* INSERT_SHOWED;
 
-     QString curStyle;
-};
+     static QMap<QString,FBFctelem*> FACTORIES; // registered elements
 
-
-/**
- * Factory. For each elem must be its own concrete factory.
- * The main purpose of factory is to create elems in a common way. Factory also stores
- * static data of the elems.
- *
- * FOR DEVELOPERS: create new FBElemX and its FBFactoryX implementations. After this
- * add FBFactoryX to static method initAll() to register it.
- * WARNING. Each element must have a unique key name.
- */
-class FBFactory
-{
-    public:
-
-     static void initAll (QWidget *appWidget = NULL);
-     static void deinitAll ();
-     static FBFactory *getFctByName (QString keyName);
-     static QList<FBFactory*> getAllFcts () { return fctsElem; }
-
-    public:
-
-     FBFactory (QString keyName, QString displayName,
-                FBElemtype type, QString imgPath)
-        { this->keyName = keyName; this->displayName = displayName;
-          this->type = type; this->imgPath = imgPath; }
-     virtual ~FBFactory () {}
-     virtual FBElem *create () = 0;
-     QString getKeyName () { return keyName; }
-     QString getDisplayName () { return displayName; }
-     FBElemtype getType () { return type; }
-     QString getImgPath () { return imgPath; }
-
-    protected:
-
-     QString keyName;
-     QString displayName;
-     FBElemtype type;
-     QString imgPath;
-
-     static QList<FBFactory*> fctsElem;
+     FBDecorator *decoratorDefault;
 };
 
 

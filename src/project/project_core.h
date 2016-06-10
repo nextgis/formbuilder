@@ -1,6 +1,6 @@
 /******************************************************************************
  * Project:  NextGIS Formbuilder
- * Purpose:  project declarations
+ * Purpose:  project core definitions
  * Author:   Mikhail Gusev, gusevmihs@gmail.com
  ******************************************************************************
 *   Copyright (C) 2014-2016 NextGIS
@@ -19,31 +19,21 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
-#ifndef PROJECT_H
-#define PROJECT_H
-
-// GLOBAL NOTE:
-// TODO: add this to the CMake!
-// 1) Do not use GDAL < 2.1.0 in program at all because of vsizip bug, see
-// https://trac.osgeo.org/gdal/ticket/6005
-// 2) Do not use Qt < 5, at least because the QTemporaryDir class is used in
-// program.
+#ifndef PROJECT_CORE_H
+#define PROJECT_CORE_H
 
 #include <QObject>
-
 #include <QList>
 #include <QMap>
 #include <QSet>
-
 #include <QString>
-
 #include <QFile>
 
 #include "ogrsf_frmts.h"
 #include "json/json.h"
 
-// The only version constant of all project.
-#define FB_VERSION 2.0
+// The only version constant of all Formbuilder project.
+#define FB_VERSION 2.1
 
 // Names.
 #define FB_PROJECT_EXTENSION "ngfp"
@@ -298,46 +288,5 @@ class FBProject: public QObject
      FBErr reprojectLayer (OGRLayer *layer);
 };
 
-class FBProjectVoid: public FBProject
-{
-    public:
-     FBProjectVoid (FbGeomType *geomType);
-     virtual ~FBProjectVoid ();
-     virtual FBErr readFirst (QString anyPath);
-     virtual QString getDatasetPath () { return QObject::tr("no dataset"); }
-};
 
-class FBProjectGdal: public FBProject
-{
-    public:
-     FBProjectGdal ();
-     virtual ~FBProjectGdal ();
-     QString getDatasetPath () { return strDatasetPath; }
-    protected:
-     FBErr readFromDataset (QString datasetPath);
-     FBErr writeDataFileFirst (QString strPath);
-    protected:
-     QString strDatasetPath;
-};
-
-class FBProjectShapefile: public FBProjectGdal
-{
-    public:
-     FBProjectShapefile ();
-     ~FBProjectShapefile ();
-     FBErr readFirst (QString anyPath);
-};
-
-class FBProjectNgw: public FBProjectGdal
-{
-    public:
-     FBProjectNgw (QString strUrl, QString strLogin,
-                   QString strPass, int nId, Json::Value jsonMeta);
-     virtual ~FBProjectNgw ();
-     virtual FBErr readFirst (QString anyPath);
-    protected:
-     Json::Value jsonTempMeta; // only for initialize step
-};
-
-
-#endif //PROJECT_H
+#endif //PROJECT_CORE_H

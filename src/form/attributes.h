@@ -1,6 +1,6 @@
 /******************************************************************************
  * Project:  NextGIS Formbuilder
- * Purpose:  various attributes declaration
+ * Purpose:  various attributes
  * Author:   Mikhail Gusev, gusevmihs@gmail.com
  ******************************************************************************
 *   Copyright (C) 2014-2016 NextGIS
@@ -22,10 +22,7 @@
 #ifndef ATTRIBUTES_H
 #define ATTRIBUTES_H
 
-#include "form_core.h"
-
 #include <QDialog>
-
 #include <QLineEdit>
 #include <QSpinBox>
 #include <QComboBox>
@@ -35,8 +32,9 @@
 #include <QGroupBox>
 #include <QCheckBox>
 #include <QTableWidget>
-
 #include <QDateTime>
+
+#include "form_core.h"
 
 #define FB_ATTRLIMIT_LISTVALUES_MAXCOUNT 65535
 #define FB_ATTRLIMIT_STRDISPLAY_MAXSIZE 23
@@ -69,7 +67,7 @@ class FBAttrField: public FBAttr
      Json::Value toJson ();
      bool fromJson (Json::Value jsonVal);
      QWidget *getWidget ();
-     QString getValue () { return keyNameSelected; }
+     QVariant getValue () { return keyNameSelected; }
      void resetValue ();
     protected:
      static QStringList keyNames; // fields are common for all Field attributes
@@ -80,17 +78,17 @@ class FBAttrField: public FBAttr
                               // safe because keynames are unique
 };
 
-class FBAttrText: public FBAttr
+class FBAttrString: public FBAttr
 {
     Q_OBJECT
     public:
-     FBAttrText (FBElem *parentElem, QString keyName, QString displayName,
+     FBAttrString (FBElem *parentElem, QString keyName, QString displayName,
                  QString descr, FBAttrrole role, QString initValue);
-     ~FBAttrText () { }
+     ~FBAttrString () { }
      Json::Value toJson ();
      bool fromJson (Json::Value jsonVal);
      QWidget *getWidget ();
-     QString getValue () { return value; }
+     QVariant getValue () { return value; }
     protected slots:
      void onEditEnd (QString lineEditText);
     private:
@@ -107,7 +105,7 @@ class FBAttrNumber: public FBAttr
      Json::Value toJson ();
      bool fromJson (Json::Value jsonVal);
      QWidget *getWidget ();
-     int getValue () { return value; }
+     QVariant getValue () { return value; }
     protected slots:
      void onEditEnd (int spinBoxValue);
     private:
@@ -126,7 +124,7 @@ class FBAttrBoolean: public FBAttr
      Json::Value toJson ();
      bool fromJson (Json::Value jsonVal);
      QWidget *getWidget ();
-     bool getValue () { return value; }
+     QVariant getValue () { return value; }
     protected slots:
      void onEditEnd (int checkBoxValue);
     private:
@@ -142,6 +140,7 @@ class FBAttrListvalues: public FBAttrDialog
      virtual ~FBAttrListvalues () { }
      virtual Json::Value toJson ();
      virtual bool fromJson (Json::Value jsonVal);
+     QVariant getValue ();
      QString getDefDispValue ();
      QStringList getDispValues ();
      int getDefIndex () { return valueDefault; }
@@ -201,6 +200,7 @@ class FBAttrListvaluesDouble: public FBAttrListvalues
      virtual ~FBAttrListvaluesDouble () { }
      virtual Json::Value toJson ();
      virtual bool fromJson (Json::Value jsonVal);
+     QVariant getValue ();
      void getDefDispValues (QString &str1, QString &str2);
     protected slots:
      virtual void onEditStart ();
@@ -258,7 +258,7 @@ class FBAttrSelect: public FBAttr
      Json::Value toJson ();
      bool fromJson (Json::Value jsonVal);
      QWidget *getWidget ();
-     int getValue () { return value; }
+     QVariant getValue () { return value; }
     protected slots:
      void onEditEnd (int indexSelected);
     private:
@@ -275,7 +275,7 @@ class FBAttrDatetime: public FBAttrDialog
      virtual ~FBAttrDatetime () { }
      virtual Json::Value toJson ();
      virtual bool fromJson (Json::Value jsonVal);
-     QString getValueString ();
+     QVariant getValue ();
      void changeFormat (FBDatetimeFormat *newFormat);
     protected slots:
      virtual void onEditStart ();

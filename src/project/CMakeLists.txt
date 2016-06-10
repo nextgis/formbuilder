@@ -22,11 +22,12 @@
 set(LIB_NAME "fbproject")
 
 set(LIB_HHEADERS
-project.h
+project_core.h
+projects.h
 )
 
 set(LIB_CSOURCES
-project.cpp
+project_core.cpp
 projectvoid.cpp
 projectgdal.cpp
 projectshp.cpp

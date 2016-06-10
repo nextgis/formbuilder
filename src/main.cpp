@@ -33,19 +33,21 @@ int main (int argc, char *argv[])
 
     FB w;
 
-    FBForm::initEnv();
+    FBForm::initDateTimeFormats();
     FBProject::initEnv();
-    FBFactory::initAll(&w);
+    w.registerElements();
+    //w.registerScreens();
 
     w.initGui();
     w.setFbStyle();
-
     w.show();
+
     int ret = a.exec();
 
-    FBFactory::deinitAll();
+    //w.deregisterScreens();
+    w.deregisterElements();
     FBProject::deinitEnv();
-    FBForm::deinitEnv();
+    FBForm::deinitDateTimeFormats();
 
     return ret;
 }

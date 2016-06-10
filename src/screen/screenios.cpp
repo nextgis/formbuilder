@@ -19,11 +19,13 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
-#include "screen.h"
+#include "screens.h"
+#include "devices.h"
 
-FBScreenIos::FBScreenIos (QWidget* parent):
-    FBScreenMobile(parent)
+FBScreenIos::FBScreenIos (QWidget* parent, float sizeFactor):
+    FBScreenMobile(parent,sizeFactor)
 {
+    // TODO: read list of devices from csv file.
     devices.append(FBDeviceMobile(
                    QPair<int,int>(640,960),3.5,-1.0,"iPhone 4",""));
 }
@@ -32,29 +34,3 @@ FBScreenIos::~FBScreenIos ()
 {
 }
 
-void FBScreenIos::updateStyle ()
-{
-    // See FBScreenAndroid.
-    for (int i=0; i<labsScreenDecorVert.size(); i++)
-    {
-        lvMain1->removeWidget(labsScreenDecorVert[i]);
-        delete labsScreenDecorVert[i];
-    }
-    labsScreenDecorVert.clear();
-    for (int i=0; i<labsScreenDecorHor.size(); i++)
-    {
-        lhMain->removeWidget(labsScreenDecorHor[i]);
-        delete labsScreenDecorHor[i];
-    }
-    labsScreenDecorHor.clear();
-
-    this->setStyleSheet("QWidget {background-color: "
-                           +QString(FB_COLOR_LIGHTGREY)+";"
-                           "border-top-left-radius: 4px;"
-                           "border-top-right-radius: 4px;"
-                           "border-bottom-left-radius: 4px;"
-                           "border-bottom-right-radius: 4px;}");
-
-    if (formPtr != NULL)
-        formPtr->updateStyle(FB_STYLENAME_IOS);
-}
