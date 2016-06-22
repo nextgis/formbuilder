@@ -51,6 +51,8 @@
 #include "form/form_core.h"
 #include "screen/screen_core.h"
 
+#include "ngw.h"
+
 #include "project/projects.h"
 #include "screen/screens.h"
 
@@ -90,12 +92,10 @@
 
 #define FB_SCREEN_SIZEFACTOR 130.0 // used for actual screen scale
 
-
 namespace Ui
 {
     class FB;
 }
-
 
 /**
  * New project's dialog.
@@ -112,69 +112,21 @@ class FBDialogProjectNew: public QDialog
      QComboBox *comboGeom;
 };
 
-
 /**
  * NextGIS Web new project's dialog.
  * Used to select resource on NGW server (finally received as GeoJSON dataset).
  * See NextGIS Web API how to get json data from NGW server in the methods
  * of this dialogue.
  */
-class FBDialogProjectNgw: public QDialog
+class FBDialogProjectNgw: public FBDialogNgw
 {
     Q_OBJECT
     public:
      FBDialogProjectNgw (QWidget *parent, QString lastNgwUrl, QString lastNgwLogin);
-     ~FBDialogProjectNgw ();
+     virtual ~FBDialogProjectNgw () { }
      QString getSelectedNgwResource (QString &strUrl, QString &strUrlName,
          QString &strLogin, QString &strPass, int &strId, Json::Value &jsonLayerMeta);
-    signals:
-     void updateNgwSettings (QString lastUrl, QString lastLogin);
-    private slots:
-     void onConnectClicked ();
-     void onSelectClicked ();
-    void onCheckboxClick (bool pressed);
-     void httpOnItemExpended (QTreeWidgetItem *treeItem);
-     void httpOnItemCollapsed (QTreeWidgetItem *treeItem);
-     void httpOnItemClicked (QTreeWidgetItem *treeItem, int treeItemColumn);
-     void httpReadyAuthRead ();
-     void httpReadyRead ();
-     void httpReadyResourceRead ();
-     void httpReadySelectedRead ();
-     void httpAuthFinished ();
-     void httpFinished ();
-     void httpResourceFinished ();
-     void httpSelectedFinished ();
-    private:
-     QList<QTreeWidgetItem*> parseJsonReply (QNetworkReply *reply);
-    private:
-     // selected params
-     QString strUrl;
-QString strUrlName;
-     QString strLogin;
-     QString strPass;
-     QString strId;
-     Json::Value jsonLayerMeta;
-     // gui
-     QLineEdit *wEditUrl;
-     QLineEdit *wEditLogin;
-     QLineEdit *wEditPass;
-     QPushButton *wButConnect;
-     //QPushButton *wButCancel;
-     QPushButton *wButSelect;
-     QTreeWidget *wTree;
-     QProgressBar *wProgBar;
-     QLabel *wLabelStatus;
-QCheckBox *chbGuest;
-     QNetworkAccessManager httpManager;
-     QNetworkReply *httpAuthReply;
-     QNetworkReply *httpReply;
-     QNetworkReply *httpResourceReply;
-     QNetworkReply *httpSelectedReply;
-     std::string receivedJson;
-     std::map<int,int> itemTypes; // <item_id, item_type>
-     QTreeWidgetItem *itemToExpand;
 };
-
 
 /**
  * Fields manager dialog.
@@ -208,7 +160,6 @@ class FBDialogFieldsManager: public QDialog
      QSet<QString> fieldsDeleted; // keynames of fields are stored
 };
 
-
 /**
  * Progress dialog.
  * Shows progress bar.
@@ -225,7 +176,6 @@ class FBDialogProgress: public QDialog
      QProgressBar *bar;
 };
 
-
 /**
  * About dialog.
  * Shows about information.
@@ -237,7 +187,6 @@ class FBDialogAbout: public QDialog
      FBDialogAbout(QWidget *parent);
      ~FBDialogAbout();
 };
-
 
 /**
  * Thread class for executing one action - "Save As".
@@ -258,7 +207,6 @@ class FBThreadSaveAs: public QThread
      FBProject *project;
      Json::Value jsonForm;
 };
-
 
 /**
  * App's main window class.
@@ -361,7 +309,7 @@ class FB: public QWidget
      void recreateScreen (FBScreen *newScreen, bool destroyForm);
 
      // project
-     bool newProjectCommonActions(FBProject *proj, QString path);
+     bool newProjectCommonActions (FBProject *proj, QString path);
      void saveProjectCommonActions (QString ngfpFullPath);
 
     private: // fields
@@ -464,6 +412,5 @@ class FB: public QWidget
      QLabel *labBottom;
      FBDialogProgress *dlgProgress;
 };
-
 
 #endif //FB_H

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Project:  NextGIS Formbuilder
- * Purpose:  nextgisweb access dialog
+ * Purpose:  interface for working with NextGIS Web
  * Author:   Mikhail Gusev, gusevmihs@gmail.com
  ******************************************************************************
 *   Copyright (C) 2014-2016 NextGIS
@@ -18,25 +18,11 @@
 *    You should have received a copy of the GNU General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
+ 
+#include "ngw.h"
+#include "project/project_core.h"
 
-
-#include "fb.h"
-
-// NGW API.
-#define FB_NGW_ITEMTYPE_UNDEFINED 0
-#define FB_NGW_ITEMTYPE_RESOURCEGROUP 1
-#define FB_NGW_ITEMTYPE_VECTORLAYER 2
-#define FB_NGW_ITEMTYPE_POSTGISLAYER 3
-#define FB_NGW_WEBGIS_SUFFIX ".nextgis.com"
-
-
-FBDialogProjectNgw::~FBDialogProjectNgw()
-{
-}
-
-
-FBDialogProjectNgw::FBDialogProjectNgw (QWidget *parent,
-                                        QString lastNgwUrl, QString lastNgwLogin):
+FBDialogNgw::FBDialogNgw (QWidget *parent):
     QDialog (parent)
 {
 //    this->setStyleSheet("");
@@ -47,6 +33,9 @@ FBDialogProjectNgw::FBDialogProjectNgw (QWidget *parent,
     strLogin = "";
     strPass = "";
     strId = "";
+    strUrlName = "";
+
+    availResTypes.append(FB_NGW_ITEMTYPE_RESOURCEGROUP);
 
     itemToExpand = NULL;
 
@@ -60,34 +49,32 @@ FBDialogProjectNgw::FBDialogProjectNgw (QWidget *parent,
     lgLayout->setSpacing(6);
 
     label = new QLabel(this);
-    label->setText(tr("Web GIS:"));//(tr("URL:          "));
+    label->setText(tr("URL:")); //label->setText(tr("WebGIS name:"));
     lgLayout->addWidget(label,0,0);
 
     wEditUrl = new QLineEdit(this);
-    wEditUrl->setText(lastNgwUrl);
-    QLabel *labUrl2 = new QLabel(this);
-    labUrl2->setText(QString(" ") + FB_NGW_WEBGIS_SUFFIX);
+//QLabel *labUrl2 = new QLabel(this);
+//labUrl2->setText(QString(" ") + FB_NGW_WEBGIS_SUFFIX);
     QHBoxLayout *hLayout1 = new QHBoxLayout();
     hLayout1->setSpacing(0);
     hLayout1->addWidget(wEditUrl);
-    hLayout1->addWidget(labUrl2);
+//hLayout1->addWidget(labUrl2);
     lgLayout->addLayout(hLayout1,0,1);
 
-    chbGuest = new QCheckBox(this);
-    chbGuest->setChecked(true);
-    chbGuest->setText(tr("Login as guest"));
-    lgLayout->addWidget(chbGuest,1,1);
-    connect(chbGuest,SIGNAL(clicked(bool)),this,SLOT(onCheckboxClick(bool)));
+//chbGuest = new QCheckBox(this);
+//chbGuest->setChecked(true);
+//chbGuest->setText(tr("Login as guest"));
+//lgLayout->addWidget(chbGuest,1,1);
+//connect(chbGuest,SIGNAL(clicked(bool)),this,SLOT(onCheckboxClick(bool)));
 
     label = new QLabel(this);
-    label->setText(tr("Login:"));//(tr("Login:        "));
+    label->setText(tr("Login:"));
     lgLayout->addWidget(label,2,0);
     wEditLogin = new QLineEdit(this);
-    wEditLogin->setText(lastNgwLogin);
     lgLayout->addWidget(wEditLogin,2,1);
 
     label = new QLabel(this);
-    label->setText(tr("Password:"));//(tr("Password: "));
+    label->setText(tr("Password:"));
     lgLayout->addWidget(label,3,0);
     wEditPass = new QLineEdit(this);
     wEditPass->setEchoMode(QLineEdit::Password);
@@ -95,7 +82,7 @@ FBDialogProjectNgw::FBDialogProjectNgw (QWidget *parent,
 
     lvL->addLayout(lgLayout);
 
-    this->onCheckboxClick(true);
+//this->onCheckboxClick(true);
 
     wButConnect = new QPushButton(this);
     wButConnect->setText(tr("Connect"));
@@ -143,14 +130,14 @@ FBDialogProjectNgw::FBDialogProjectNgw (QWidget *parent,
 }
 
 
-void FBDialogProjectNgw::onCheckboxClick (bool pressed)
-{
-    wEditPass->setEnabled(!pressed);
-    wEditLogin->setEnabled(!pressed);
-}
+//void FBDialogProjectNgw::onCheckboxClick (bool pressed)
+//{
+//    wEditPass->setEnabled(!pressed);
+//    wEditLogin->setEnabled(!pressed);
+//}
 
 
-void FBDialogProjectNgw::onConnectClicked ()
+void FBDialogNgw::onConnectClicked ()
 {
     wButConnect->setEnabled(false);
     wTree->setEnabled(false);
@@ -164,11 +151,11 @@ void FBDialogProjectNgw::onConnectClicked ()
 
     // These parameters are read once only when user clicks connect button.
     strUrl = wEditUrl->text();
-strUrlName = wEditUrl->text();
+//strUrlName = wEditUrl->text();
     strLogin = wEditLogin->text();
     strPass = wEditPass->text();
 
-if (chbGuest->isChecked()) { strLogin=""; strPass=""; }
+//if (chbGuest->isChecked()) { strLogin=""; strPass=""; }
 
     // Remove last '/' symbol:
     while (strUrl.endsWith("/"))
@@ -178,8 +165,8 @@ if (chbGuest->isChecked()) { strLogin=""; strPass=""; }
     if (!strUrl.startsWith("http://",Qt::CaseInsensitive))
         strUrl.prepend("http://");
 
-// Add main erl suffix:
-strUrl+=FB_NGW_WEBGIS_SUFFIX;
+    // Add main url suffix:
+//strUrl+=FB_NGW_WEBGIS_SUFFIX;
 
     QUrl url;
     url.setUrl(strUrl+"/login");
@@ -198,17 +185,15 @@ strUrl+=FB_NGW_WEBGIS_SUFFIX;
 
 
 // Expand tree elem for show the child resources of the current resource.
-void FBDialogProjectNgw::httpOnItemExpended (QTreeWidgetItem *treeItem)
+void FBDialogNgw::httpOnItemExpended (QTreeWidgetItem *treeItem)
 {
     wButConnect->setEnabled(false);
     wTree->setEnabled(false);
 
-    // Clear tree elem to fill it from the beginning.
+    // Clear item to fill it from the beginning.
     QList<QTreeWidgetItem*> childrenToDel = treeItem->takeChildren();
     for (int i=0; i<childrenToDel.size(); i++)
     {
-        // Delete according item from the dictionary by its id.
-        itemTypes.erase(childrenToDel[i]->data(0,Qt::UserRole).toInt());
         delete childrenToDel[i];
     }
 
@@ -218,7 +203,8 @@ void FBDialogProjectNgw::httpOnItemExpended (QTreeWidgetItem *treeItem)
 
     receivedJson = "";
     QUrl url;
-    url.setUrl(strUrl+"/resource/" + treeItem->data(0,Qt::UserRole).toString()+ "/child/");
+    int idStr = treeItem->data(0,Qt::UserRole).value<FBNgwResData>().first;
+    url.setUrl(strUrl+"/resource/" + QString::number(idStr) + "/child/");
     QNetworkRequest request(url);
     httpResourceReply = httpManager.get(request);
     QObject::connect(httpResourceReply, SIGNAL(finished()),
@@ -228,24 +214,24 @@ void FBDialogProjectNgw::httpOnItemExpended (QTreeWidgetItem *treeItem)
 }
 
 
-void FBDialogProjectNgw::httpOnItemCollapsed(QTreeWidgetItem *treeItem)
+void FBDialogNgw::httpOnItemCollapsed(QTreeWidgetItem *treeItem)
 {
     wButSelect->setEnabled(false);
 }
 
 
-void FBDialogProjectNgw::httpOnItemClicked(QTreeWidgetItem *treeItem, int treeItemColumn)
+void FBDialogNgw::httpOnItemClicked(QTreeWidgetItem *treeItem, int treeItemColumn)
 {
-    int itemId = treeItem->data(0,Qt::UserRole).toInt();
-
-    if (itemTypes[itemId] == FB_NGW_ITEMTYPE_VECTORLAYER
-        || itemTypes[itemId] == FB_NGW_ITEMTYPE_POSTGISLAYER)
+    QVariant var = treeItem->data(0,Qt::UserRole);
+    FBNgwResData itemData = var.value<FBNgwResData>();
+    if (itemData.second == FB_NGW_ITEMTYPE_RESOURCEGROUP
+            || itemData.second == FB_NGW_ITEMTYPE_UNDEFINED)
     {
-        wButSelect->setEnabled(true);
+        wButSelect->setEnabled(false);
     }
     else
     {
-        wButSelect->setEnabled(false);
+        wButSelect->setEnabled(true);
     }
 }
 
@@ -253,7 +239,7 @@ void FBDialogProjectNgw::httpOnItemClicked(QTreeWidgetItem *treeItem, int treeIt
 // Is called when press Select button.
 // Make another request to the server. In the connected httpSelectedFinished() method
 // the dialogue will be closed if all was successful.
-void FBDialogProjectNgw::onSelectClicked ()
+void FBDialogNgw::onSelectClicked ()
 {
     // TODO: show the progress bar here, while the received JSON ~ 90Mb can
     // significantly increase waiting time.
@@ -263,7 +249,9 @@ void FBDialogProjectNgw::onSelectClicked ()
     wTree->setEnabled(false);
 
     // Set the finally selected resource ID.
-    strId = wTree->currentItem()->data(0,Qt::UserRole).toString();
+    QVariant var = wTree->currentItem()->data(0,Qt::UserRole);
+    FBNgwResData itemData = var.value<FBNgwResData>();
+    strId = QString::number(itemData.first);
 
     // The returned JSON may not contain layer's metadata: e.g. list of fields, because
     // of structure of the GeoJSON vector format - if there is no data in a layer.
@@ -282,24 +270,24 @@ void FBDialogProjectNgw::onSelectClicked ()
 }
 
 
-void FBDialogProjectNgw::httpReadyAuthRead ()
+void FBDialogNgw::httpReadyAuthRead ()
 {
     QByteArray barr;
     barr = httpAuthReply->readAll();
 }
-void FBDialogProjectNgw::httpReadyRead ()
+void FBDialogNgw::httpReadyRead ()
 {
     QByteArray barr;
     barr = httpReply->readAll();
     receivedJson += QString(barr).toStdString();
 }
-void FBDialogProjectNgw::httpReadyResourceRead ()
+void FBDialogNgw::httpReadyResourceRead ()
 {
     QByteArray barr;
     barr = httpResourceReply->readAll();
     receivedJson += QString(barr).toStdString();
 }
-void FBDialogProjectNgw::httpReadySelectedRead ()
+void FBDialogNgw::httpReadySelectedRead ()
 {
     QByteArray barr;
     barr = httpSelectedReply->readAll();
@@ -307,7 +295,7 @@ void FBDialogProjectNgw::httpReadySelectedRead ()
 }
 
 
-void FBDialogProjectNgw::httpAuthFinished ()
+void FBDialogNgw::httpAuthFinished ()
 {
     if (httpAuthReply->error() == QNetworkReply::NoError)
     {
@@ -316,7 +304,6 @@ void FBDialogProjectNgw::httpAuthFinished ()
 
         QUrl url;
         url.setUrl(strUrl+"/resource/0/child/");
-        //url.setUrl(QUrl(strUrl+"/resource/store/"));
         QNetworkRequest request(url);
         httpReply = httpManager.get(request);
         QObject::connect(httpReply, SIGNAL(finished()),
@@ -334,7 +321,7 @@ void FBDialogProjectNgw::httpAuthFinished ()
 }
 
 
-void FBDialogProjectNgw::httpFinished ()
+void FBDialogNgw::httpFinished ()
 {
     QList<QTreeWidgetItem*> newItems = parseJsonReply(httpReply);
     if (!newItems.isEmpty())
@@ -342,8 +329,6 @@ void FBDialogProjectNgw::httpFinished ()
         wTree->insertTopLevelItems(0,newItems);
         wLabelStatus->setText(tr("Connection successful"));
         wProgBar->setValue(100);
-        // Save connection settings.
-        emit updateNgwSettings(wEditUrl->text(),wEditLogin->text());
     }
     else
     {
@@ -356,7 +341,7 @@ void FBDialogProjectNgw::httpFinished ()
 }
 
 
-void FBDialogProjectNgw::httpResourceFinished ()
+void FBDialogNgw::httpResourceFinished ()
 {
     QList<QTreeWidgetItem*> newItems = parseJsonReply(httpResourceReply);
     if (!newItems.isEmpty())
@@ -377,12 +362,12 @@ void FBDialogProjectNgw::httpResourceFinished ()
 }
 
 
-void FBDialogProjectNgw::httpSelectedFinished ()
+void FBDialogNgw::httpSelectedFinished ()
 {
     if (httpSelectedReply->error() == QNetworkReply::NoError)
     {
         // Get the last needed information (metada) about NGW layer.
-        // We do not check its correctness while it is done py project class at the
+        // We do not check its correctness while it is done by project class at the
         // creation step.
         if (!receivedJson.empty())
         {
@@ -446,7 +431,7 @@ void FBDialogProjectNgw::httpSelectedFinished ()
 
 
 
-QList<QTreeWidgetItem*> FBDialogProjectNgw::parseJsonReply (QNetworkReply *reply)
+QList<QTreeWidgetItem*> FBDialogNgw::parseJsonReply (QNetworkReply *reply)
 {
     QList<QTreeWidgetItem*> newItems;
 
@@ -472,9 +457,9 @@ QList<QTreeWidgetItem*> FBDialogProjectNgw::parseJsonReply (QNetworkReply *reply
                     if (jCls.isNull())
                         continue;
 
-                    if (jCls.asString() == "resource_group" ||
-                            jCls.asString() == "postgis_layer" ||
-                            jCls.asString() == "vector_layer")
+                    QByteArray baType = jCls.asString().data();
+                    QString strType = QString::fromUtf8(baType);
+                    if (availResTypes.contains(strType))
                     {
                         Json::Value jId = jRes["id"];
                         if (jId.isNull())
@@ -492,37 +477,23 @@ QList<QTreeWidgetItem*> FBDialogProjectNgw::parseJsonReply (QNetworkReply *reply
                             sDispName = QString::fromUtf8(jDispName.asString().data());
                         }
 
-                        int itemType = FB_NGW_ITEMTYPE_UNDEFINED;
-                        QString res_type = "";
-                        if (jCls.asString() == "postgis_layer")
-                        {
-                            res_type = " [PostGIS]";
-                            itemType = FB_NGW_ITEMTYPE_POSTGISLAYER;
-                        }
-                        else if (jCls.asString() == "vector_layer")
-                        {
-                            res_type = " [Vector]";
-                            itemType = FB_NGW_ITEMTYPE_VECTORLAYER;
-                        }
-                        else if (jCls.asString() == "resource_group")
-                        {
-                            itemType = FB_NGW_ITEMTYPE_RESOURCEGROUP;
-                        }
-
                         QTreeWidgetItem *treeItem;
                         treeItem = new QTreeWidgetItem();
-                        treeItem->setText(0,sDispName + res_type);
-                        treeItem->setData(0,Qt::UserRole,jId.asInt());
+                        FBNgwResData resData;
+                        resData.first = jId.asInt();
+                        if (availResTypes.contains(strType))
+                            resData.second = strType;
+                        else
+                            resData.second = FB_NGW_ITEMTYPE_UNDEFINED;
+                        treeItem->setData(0,Qt::UserRole,QVariant::fromValue(resData));
+                        treeItem->setText(0,sDispName
+                                          + this->getResTypeDispPrefix(resData.second));
                         newItems.append(treeItem);
-
-                        // Add ID and item type to the special dictionary, so later we
-                        // can allow/deny this item selection as the dataset.
-                        itemTypes.insert(std::make_pair(jId.asInt(),itemType));
 
                         Json::Value jChildren = jRes["children"];
                         if (!jChildren.isNull()
                                 && jChildren.asString() == "true"
-                                && jCls.asString() == "resource_group")
+                                && jCls.asString() == FB_NGW_ITEMTYPE_RESOURCEGROUP)
                         {
                             // So later we can expand this list.
                             treeItem->addChild(new QTreeWidgetItem(
@@ -554,6 +525,19 @@ QList<QTreeWidgetItem*> FBDialogProjectNgw::parseJsonReply (QNetworkReply *reply
 }
 
 
+QString FBDialogNgw::getResTypeDispPrefix (QString resType)
+{
+    QString ret = "";
+    if (resType == FB_NGW_ITEMTYPE_VECTORLAYER)
+        ret = " [Vector]";
+    else if (resType == FB_NGW_ITEMTYPE_POSTGISLAYER)
+        ret = " [PostGIS]";
+    else if (resType == FB_NGW_ITEMTYPE_LOOKUPTABLE)
+        ret = " [Lookup table]";
+    return ret;
+}
+
+
 //void FBDialogProjectNgw::HttpCancel()
 //{
 //
@@ -567,21 +551,3 @@ QList<QTreeWidgetItem*> FBDialogProjectNgw::parseJsonReply (QNetworkReply *reply
 //}
 
 
-// Get the full path to JSON dataset (GeoJSON layer) which was selected by user. The
-// returned string can be passed to GDALDataset creation. Also the additional
-// NGW connection parameters are returned via method parameters.
-// WARNING. Call this method only after the dialogue returns its end code.
-QString FBDialogProjectNgw::getSelectedNgwResource (QString &strUrl, QString &strUrlName,
-            QString &strLogin, QString &strPass, int &strId, Json::Value &jsonLayerMeta)
-{
-    strUrl = this->strUrl; // delete the last '/' (it is not neccessery)
-strUrlName = this->strUrlName;
-    strLogin = this->strLogin;
-    strPass = this->strPass;
-    strId = this->strId.toInt(); // TODO: should we check for conversion errors?
-    jsonLayerMeta = this->jsonLayerMeta;
-
-    QString ret = "";
-    ret = strUrl + "/resource/" + QString::number(strId) + "/geojson/";
-    return ret;
-}

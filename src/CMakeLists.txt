@@ -38,9 +38,9 @@ set(APP_NAME fb)
 
 set(APP_SOURCES
 jsoncpp.cpp
-dialogabout.cpp
+ngw.cpp
 dialognewvoid.cpp
-dialogngw.cpp
+dialogngwproject.cpp
 dialogfieldmanager.cpp
 appicon.rc
 registrar.cpp

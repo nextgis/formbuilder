@@ -19,8 +19,9 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
-#include "screen_core.h"
+#include <cmath>
 
+#include "screen_core.h"
 
 /****************************************************************************/
 /*                                                                          */

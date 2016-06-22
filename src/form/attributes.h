@@ -33,10 +33,14 @@
 #include <QCheckBox>
 #include <QTableWidget>
 #include <QDateTime>
+#include <QMessageBox>
+#include <QHeaderView>
 
 #include "form_core.h"
+#include "ngw.h"
 
 #define FB_ATTRLIMIT_LISTVALUES_MAXCOUNT 65535
+#define FB_ATTRLIMIT_LISTVALUE_MAXLENGTH 255
 #define FB_ATTRLIMIT_STRDISPLAY_MAXSIZE 23
 
 
@@ -131,6 +135,7 @@ class FBAttrBoolean: public FBAttr
      bool value;
 };
 
+
 class FBAttrListvalues: public FBAttrDialog
 {
     Q_OBJECT
@@ -138,6 +143,8 @@ class FBAttrListvalues: public FBAttrDialog
      FBAttrListvalues (FBElem *parentElem, QString keyName, QString displayName,
                 QString descr, FBAttrrole role, QWidget *parentForDialog);
      virtual ~FBAttrListvalues () { }
+     static void updateNgwParams (QString curNgwUrl, QString curNgwLogin,
+                                  QString curNgwPass);
      virtual Json::Value toJson ();
      virtual bool fromJson (Json::Value jsonVal);
      QVariant getValue ();
@@ -149,35 +156,88 @@ class FBAttrListvalues: public FBAttrDialog
     protected:
      QList<QPair<QString,QString> > values; // first = key name, second = display name
      int valueDefault;
+     static QString curNgwUrl;
+     static QString curNgwLogin;
+     static QString curNgwPass;
+};
+class FBTableDialoglistvalues: public QTableWidget
+{
+    Q_OBJECT
+    signals:
+     void keyLastEnterPressed ();
+     void keyNotLastDeletePressed ();
+     void keyNotLastEnterPressed ();
+    public:
+     FBTableDialoglistvalues (QWidget *parent): QTableWidget(parent) { }
+     ~FBTableDialoglistvalues () { }
+    private slots:
+     void keyPressEvent (QKeyEvent *event);
+    private:
+     bool commitAndClosePersistentEditor (QTableWidgetItem* item);
 };
 class FBDialogListvalues: public QDialog
 {
     Q_OBJECT
     public:
      FBDialogListvalues (QWidget *parent, bool addUndefinedValue=true);
-     ~FBDialogListvalues() { }
+     ~FBDialogListvalues () { }
      void putValues (QList<QPair<QString,QString> > values, int valueDefault);
      void getValues (QList<QPair<QString,QString> > &values, int &valueDefault);
+     void putNgwParams (QString curNgwUrl, QString curNgwLogin, QString curNgwPass);
     private slots:
+     void onTableSelectionChanged ();
+     void onCellChanged(int,int);
+     void onCurrentItemChanged (QTableWidgetItem *current, QTableWidgetItem *previous);
+     void onLastTableTabPressed ();
+     void onAddClicked ();
+     void onDeleteClicked ();
+     void onDefaultClicked ();
+     void onClearAllClicked ();
+     void onLoadNgwClicked ();
+     void onLoadNgwSyncClicked ();
+     void onLoadCsvClicked ();
      void onOkClicked ();
      void onCancelClicked ();
-     void onLeftClicked (QListWidgetItem *item);
-     void onLeftAddClicked ();
-     void onLeftRemoveClicked ();
-     void onLeftChangeClicked ();
+     int onShowAlertBox (QString msg, QMessageBox::Icon icon);
+     void onShowMsgBox (QString msg, QMessageBox::Icon icon);
+     void keyPressEvent (QKeyEvent *event);
     private:
+     void appendRow ();
+     void addEnterRow ();
+     void removeEnterRow ();
+     void completeRow (int row, int col);
+     void unmarkDefaultRow ();
+     void markDefaultRow (int row);
+     void updateDefaultButton (QTableWidgetItem *selectedItem);
+     void switchToEnterRow ();
+     bool isRowVoid (int row);
+     bool isOneInRowVoid (int row);
+     bool isItemVoid (QTableWidgetItem *item);
      static QString shortenStr (QString str);
     private:
+     int defaultRowIndex;
      bool hasUndefinedValue;
-     QString elemName;
-     QListWidget *listL;
-     QToolButton *butAddL; // +
-     QToolButton *butRemoveL; // -
-     QToolButton *butChangeL; // #
-     QLineEdit *editInnerL;
-     QLineEdit *editOuterL;
-     QComboBox *comboL;
+     QString curNgwUrl; // "" means that ngw-dictionary dialog can not be called
+     QString curNgwLogin;
+     QString curNgwPass;
+    private:
+     FBTableDialoglistvalues *table;
+     QPushButton *butAdd;
+     QPushButton *butDelete;
+     QPushButton *butDefault;
+     QToolButton *butClearAll;
+     QToolButton *butLoadNgw;
+     QToolButton *butLoadNgwSync;
+     QToolButton *butLoadCsv;
      QPushButton *butOk;
+};
+class FBDialogDictionaryNgw: public FBDialogNgw
+{
+    Q_OBJECT
+    public:
+     FBDialogDictionaryNgw (QWidget *parent, QString curNgwUrl, QString curNgwLogin,
+                             QString curNgwPass);
+     virtual ~FBDialogDictionaryNgw () { }
 };
 
 class FBAttrListvaluesStrict: public FBAttrListvalues
@@ -299,9 +359,6 @@ class FBDialogDatetime: public QDialog
      QCheckBox *chbCurrent;
 };
 
-
 #endif //ATTRIBUTES_H
-
-
 
 

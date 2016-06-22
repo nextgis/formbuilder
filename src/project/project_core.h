@@ -163,13 +163,14 @@ struct FBNgwConnection
     QString login;
     QString password;
     QString url;
-    FBNgwConnection () {}
+    FBNgwConnection () { }
     FBNgwConnection (int i, QString lg, QString ps, QString ul)
     {
         id = i;
         login = lg;
         password = ps;
-        url = ul; }
+        url = ul;
+    }
     //~FBNgwConnection();
 };
 
@@ -244,6 +245,7 @@ class FBProject: public QObject
      QString getCurrentFilePath () { return strNgfpPath; }
      virtual QString getDatasetPath () { return ""; }
      QMap<QString,FBField> getFields () { return fields; }
+     FBNgwConnection getNgwConnection () { return ngw_connection; }
 
     protected:
 

@@ -19,9 +19,9 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
-#include "attributes.h"
-
 #include <QDateTimeEdit>
+ 
+#include "attributes.h"
 
 FBDialogDatetime::FBDialogDatetime(QWidget *parent):
     QDialog(parent)

@@ -23,7 +23,6 @@
 
 #include "fb.h"
 
-
 FBDialogFieldsManager::~FBDialogFieldsManager()
 {
 }

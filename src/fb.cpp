@@ -21,9 +21,8 @@
 
 #include "fb.h"
 #include "ui_fb.h"
-
 #include "form/elements.h"
-
+#include "ngw.h"
 
 FB::~FB()
 {
@@ -657,15 +656,15 @@ void FB::onNewNgwClick ()
         QString strUrl, strUrlName, strLogin, strPass;
         int nId;
         Json::Value jsonLayerMeta;
-        pathNgwUrl = dialog.getSelectedNgwResource(
-strUrl, strUrlName, strLogin, strPass, nId, jsonLayerMeta);
-
+        pathNgwUrl = dialog.getSelectedNgwResource(strUrl, strUrlName,
+                                             strLogin, strPass, nId, jsonLayerMeta);
         FBProjectNgw *projNgw = new FBProjectNgw(
                     strUrl, strLogin, strPass, nId, jsonLayerMeta);
         QObject::connect(projNgw, SIGNAL(changeProgress(int)),
                 dlgProgress, SLOT(onChangeProgress(int)));
         this->newProjectCommonActions(projNgw, pathNgwUrl);
-settLastNgwUrl.value = strUrlName; // anyway save last parameters
+         // Anyway save last parameters:
+        settLastNgwUrl.value = strUrl; //settLastNgwUrl.value = strUrlName;
         settLastNgwLogin.value = strLogin;
     }
 }
@@ -743,6 +742,11 @@ void FB::onOpenClick ()
 
         // Update list of fields for all Input elements.
         FBElemInput::updateFields(project->getFields().keys());
+
+        // Update NGW params for some attributes (for combos' lists).
+        // Note: for non-ngw projects these params will be void.
+        FBNgwConnection ngwParams = project->getNgwConnection();
+        FBAttrListvalues::updateNgwParams(ngwParams.url,ngwParams.login,ngwParams.password);
 
         this->pickDefaultScreen(); // will be helpful if there is void screen now
         this->updateRightMenu();
@@ -2093,6 +2097,11 @@ bool FB::newProjectCommonActions (FBProject *proj, QString path)
     // Reset list of fields for all future Input elements.
     FBElemInput::updateFields(project->getFields().keys());
 
+    // Update NGW params for some attributes (for combos' lists).
+    // Note: for non-ngw projects these params will be void.
+    FBNgwConnection ngwParams = project->getNgwConnection();
+    FBAttrListvalues::updateNgwParams(ngwParams.url,ngwParams.login,ngwParams.password);
+
     this->pickDefaultScreen(); // will be helpful if there is void screen now
     this->updateRightMenu();
     this->updateEnableness();
@@ -2179,3 +2188,60 @@ void FBThreadSaveAs::run ()
 }
 
 
+/*****************************************************************************/
+/*                                                                           */
+/*                           FBDialogAbout                                   */
+/*                                                                           */
+/*****************************************************************************/
+
+FBDialogAbout::~FBDialogAbout ()
+{
+}
+
+FBDialogAbout::FBDialogAbout (QWidget *parent):
+    QDialog(parent)
+{
+    //this->setStyleSheet("QWidget { color: black }");
+
+    this->setModal(true);
+
+    this->setWindowTitle(tr("Graphics in program"));
+//    this->setFont(QFont(FB_GUI_FONTTYPE, FB_GUI_FONTSIZE_SMALL));
+
+    QLabel *lab1 = new QLabel(this);
+    lab1->setText(tr("Some images in program were modified and differ from"
+                     " the originals.\nList of authors:"));
+
+    // TODO: read this list from a file.
+    QTextEdit *edit = new QTextEdit(this);
+    edit->setReadOnly(true);
+    edit->append("hunotika, 2014");
+    edit->append("Zac Freundt, 2014");
+    edit->append("Creative Stall, 2015");
+    edit->append("Maximilian Becker, 2012");
+    edit->append("Diego Naive, 2012");
+    edit->append("Ilsur Aptukov");
+    edit->append("Aha-Soft");
+    edit->append("Jack Zwanenburg");
+    edit->append("Christopher Holm-Hansen");
+    edit->append("trasnik");
+    edit->append("mantisshrimpdesign");
+
+    QLabel *lab2 = new QLabel(this);
+    QString strCc = "http://creativecommons.org/licenses/by/3.0/us/legalcode";
+    lab2->setText(QString("<a href=\"" + strCc + "\">")
+                         + tr("Creative Commons license") + "</a>");
+    lab2->setTextFormat(Qt::RichText);
+    lab2->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    lab2->setOpenExternalLinks(true);
+
+    QPushButton *but = new QPushButton(this);
+    but->setText("OK");
+    connect(but,SIGNAL(clicked()),this,SLOT(accept()));
+
+    QVBoxLayout *vlay = new QVBoxLayout(this);
+    vlay->addWidget(lab1);
+    vlay->addWidget(edit);
+    vlay->addWidget(lab2);
+    vlay->addWidget(but);
+}

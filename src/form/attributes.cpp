@@ -20,7 +20,6 @@
  ****************************************************************************/
  
 #include "attributes.h"
- 
 
 /*****************************************************************************/
 /*                                                                           */
@@ -278,11 +277,23 @@ void FBAttrBoolean::onEditEnd (int checkBoxValue)
 /*                                                                            */
 /******************************************************************************/
 
+QString FBAttrListvalues::curNgwUrl = "";
+QString FBAttrListvalues::curNgwLogin = "";
+QString FBAttrListvalues::curNgwPass = "";
+
 FBAttrListvalues::FBAttrListvalues (FBElem *parentElem, QString keyName,
            QString displayName, QString descr, FBAttrrole role, QWidget *parentForDialog):
     FBAttrDialog (parentElem, keyName, displayName, descr, role, parentForDialog)
 {
     valueDefault = -1; // no default item selected
+}
+
+void FBAttrListvalues::updateNgwParams (QString curNgwUrl, QString curNgwLogin,
+                                        QString curNgwPass) // STATIC
+{
+    FBAttrListvalues::curNgwUrl = curNgwUrl;
+    FBAttrListvalues::curNgwLogin = curNgwLogin;
+    FBAttrListvalues::curNgwPass = curNgwPass;
 }
 
 Json::Value FBAttrListvalues::toJson ()
@@ -374,6 +385,8 @@ void FBAttrListvalues::onEditStart ()
     FBDialogListvalues *dialog;
     dialog = new FBDialogListvalues(parentForDialog);
     dialog->putValues(values,valueDefault);
+    dialog->putNgwParams(FBAttrListvalues::curNgwUrl,FBAttrListvalues::curNgwLogin,
+                         FBAttrListvalues::curNgwPass);
     if (dialog->exec())
     {
         dialog->getValues(values,valueDefault);

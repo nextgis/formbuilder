@@ -21,9 +21,6 @@
 
 #include "attributes.h"
 
-#include <QMessageBox>
-#include <QHeaderView>
-
 FBDialogDlistvalues::FBDialogDlistvalues (QWidget *parent):
     QDialog(parent)
 {
@@ -45,6 +42,7 @@ FBDialogDlistvalues::FBDialogDlistvalues (QWidget *parent):
     table1->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     table1->horizontalHeader()->setSectionResizeMode(0,//QHeaderView::Stretch
                                                       QHeaderView::Interactive);
+    table1->horizontalHeader()->setStretchLastSection(true);
     table1->setSelectionMode(QAbstractItemView::SingleSelection);
     QLabel *label1c = new QLabel(this);
     label1c->setText(tr("Default:"));
@@ -287,6 +285,7 @@ void FBDialogDlistvalues::addTable2 ()
     table2->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     table2->horizontalHeader()->setSectionResizeMode(0,//QHeaderView::Stretch
                                                      QHeaderView::Interactive);
+    table2->horizontalHeader()->setStretchLastSection(true);
     table2->setSelectionMode(QAbstractItemView::SingleSelection);
     QComboBox* combo2;
     combo2 = new QComboBox(this);

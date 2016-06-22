@@ -72,5 +72,9 @@
         <file>screen/img/android/for_radio_off.png</file>
         <file>screen/img/android/for_radio_on.png</file>
         <file>screen/img/android/for_signature.png</file>
+        <file>img/load_csv.png</file>
+        <file>img/load_ngw.png</file>
+        <file>img/clear_all.png</file>
+        <file>img/load_ngw_sync.png</file>
     </qresource>
 </RCC>

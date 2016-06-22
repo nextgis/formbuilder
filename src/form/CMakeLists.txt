@@ -21,6 +21,8 @@
 
 set(LIB_NAME "fbform")
 
+include_directories(${CMAKE_SOURCE_DIR}/src)
+
 set(LIB_HHEADERS
 form_core.h
 attributes.h
@@ -29,10 +31,11 @@ factories.h
 )
 
 set(LIB_CSOURCES
-form_core.cpp
 dialoglistvalues.cpp
+dialogngwlookup.cpp
 dialogdlistvalues.cpp
 dialogdatetime.cpp
+form_core.cpp
 attributes.cpp
 elements.cpp
 )
