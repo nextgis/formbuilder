@@ -21,11 +21,11 @@
 
 #include "attributes.h"
 
-FBDialogDictionaryNgw::FBDialogDictionaryNgw (QWidget *parent, QString curNgwUrl,
+FBDialogLookupNgw::FBDialogLookupNgw (QWidget *parent, QString curNgwUrl,
                                               QString curNgwLogin, QString curNgwPass):
     FBDialogNgw (parent)
-{
-    this->setWindowTitle(tr("Select NextGIS Web lookup table ..."));
+{  
+    this->setWindowTitle(tr("Select NextGIS Web lookup table"));
 
     availResTypes.append(FB_NGW_ITEMTYPE_LOOKUPTABLE);
 
@@ -37,5 +37,62 @@ FBDialogDictionaryNgw::FBDialogDictionaryNgw (QWidget *parent, QString curNgwUrl
     wEditPass->setEnabled(false);
 
     this->onConnectClicked(); // connect to the current ngw instance immidiately
+}
+
+
+void FBDialogLookupNgw::httpSelectedFinished ()
+{
+    if (httpSelectedReply->error() == QNetworkReply::NoError)
+    {
+        if (!receivedJson.empty())
+        {
+            Json::Reader json_reader;
+            Json::Value json_root;
+            if (json_reader.parse(receivedJson, json_root, false))
+            {
+                Json::Value json_items = json_root["lookup_table"]["items"];
+                Json::Value::Members mems = json_items.getMemberNames();
+
+                selectedLookup.clear();
+                for (int i=0; i<mems.size(); i++)
+                {
+                    QString strName = QString::fromUtf8(mems[i].data());
+                    QString strValue = QString::fromUtf8(json_items[mems[i]]
+                                                        .asString().data());
+                    selectedLookup.append(QPair<QString,QString>(strName,strValue));
+                }
+
+                wLabelStatus->setText(tr("Connection successful"));
+                httpSelectedReply->deleteLater();
+
+                this->accept();
+
+                return; // TODO: do we need return here?
+            }
+            else
+            {
+                wLabelStatus->setText(tr("Error reading JSON"));
+            }
+        }
+        else
+        {
+            wLabelStatus->setText(tr("Error reading JSON"));
+        }
+    }
+    else
+    {
+        wLabelStatus->setText(tr("Connection error"));
+    }
+
+    receivedJson = "";
+    httpSelectedReply->deleteLater();
+}
+
+
+int FBDialogLookupNgw::getSelectedLookupTable(QList<QPair<QString,QString> > &list)
+{
+    list = this->selectedLookup;
+
+    return strId.toInt();
 }
 

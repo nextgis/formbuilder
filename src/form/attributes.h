@@ -151,6 +151,8 @@ class FBAttrListvalues: public FBAttrDialog
      QString getDefDispValue ();
      QStringList getDispValues ();
      int getDefIndex () { return valueDefault; }
+     int getNgwLookupId () { return ngwLookupId; }
+     void setNgwLookupId (int id) { ngwLookupId = id; }
     protected slots:
      virtual void onEditStart ();
     protected:
@@ -159,6 +161,7 @@ class FBAttrListvalues: public FBAttrDialog
      static QString curNgwUrl;
      static QString curNgwLogin;
      static QString curNgwPass;
+     int ngwLookupId; // corresponds to those in FBDialogListvalues. See dialog class
 };
 class FBTableDialoglistvalues: public QTableWidget
 {
@@ -168,12 +171,15 @@ class FBTableDialoglistvalues: public QTableWidget
      void keyNotLastDeletePressed ();
      void keyNotLastEnterPressed ();
     public:
-     FBTableDialoglistvalues (QWidget *parent): QTableWidget(parent) { }
+     FBTableDialoglistvalues (QWidget *parent);
      ~FBTableDialoglistvalues () { }
+     void setDefaultEditTriggers () { this->setEditTriggers(editTrigs); }
     private slots:
      void keyPressEvent (QKeyEvent *event);
     private:
      bool commitAndClosePersistentEditor (QTableWidgetItem* item);
+    private:
+     QAbstractItemView::EditTriggers editTrigs;
 };
 class FBDialogListvalues: public QDialog
 {
@@ -183,43 +189,47 @@ class FBDialogListvalues: public QDialog
      ~FBDialogListvalues () { }
      void putValues (QList<QPair<QString,QString> > values, int valueDefault);
      void getValues (QList<QPair<QString,QString> > &values, int &valueDefault);
-     void putNgwParams (QString curNgwUrl, QString curNgwLogin, QString curNgwPass);
+     void putNgwParams (QString url, QString login, QString pass, int id);
+     void getNgwParams (int &id);
     private slots:
      void onTableSelectionChanged ();
      void onCellChanged(int,int);
-     void onCurrentItemChanged (QTableWidgetItem *current, QTableWidgetItem *previous);
-     void onLastTableTabPressed ();
      void onAddClicked ();
      void onDeleteClicked ();
      void onDefaultClicked ();
      void onClearAllClicked ();
-     void onLoadNgwClicked ();
+     int onLoadNgwClicked ();
      void onLoadNgwSyncClicked ();
      void onLoadCsvClicked ();
-     void onOkClicked ();
-     void onCancelClicked ();
+     void onOkClicked () { this->accept(); }
+     void onCancelClicked () { this->reject(); }
      int onShowAlertBox (QString msg, QMessageBox::Icon icon);
      void onShowMsgBox (QString msg, QMessageBox::Icon icon);
      void keyPressEvent (QKeyEvent *event);
     private:
      void appendRow ();
      void addEnterRow ();
-     void removeEnterRow ();
-     void completeRow (int row, int col);
+     //void removeEnterRow ();
+     void clearAllRows ();
+     void completeRow (int row);
      void unmarkDefaultRow ();
      void markDefaultRow (int row);
      void updateDefaultButton (QTableWidgetItem *selectedItem);
+     void updateItemButtons (bool enable);
      void switchToEnterRow ();
      bool isRowVoid (int row);
      bool isOneInRowVoid (int row);
      bool isItemVoid (QTableWidgetItem *item);
+     void updateNgwLabel ();
+     void updateTableEnableness ();
      static QString shortenStr (QString str);
     private:
-     int defaultRowIndex;
      bool hasUndefinedValue;
-     QString curNgwUrl; // "" means that ngw-dictionary dialog can not be called
-     QString curNgwLogin;
-     QString curNgwPass;
+     int rowDefault;
+     int ngwLookupId; // -1 means no ngw connection and no synchronisation
+     QString ngwUrl; // "" means that ngw-lookup dialog can not be called
+     QString ngwLogin;
+     QString ngwPass;
     private:
      FBTableDialoglistvalues *table;
      QPushButton *butAdd;
@@ -229,15 +239,21 @@ class FBDialogListvalues: public QDialog
      QToolButton *butLoadNgw;
      QToolButton *butLoadNgwSync;
      QToolButton *butLoadCsv;
+     QLabel *labNgw;
      QPushButton *butOk;
 };
-class FBDialogDictionaryNgw: public FBDialogNgw
+class FBDialogLookupNgw: public FBDialogNgw
 {
     Q_OBJECT
     public:
-     FBDialogDictionaryNgw (QWidget *parent, QString curNgwUrl, QString curNgwLogin,
+     FBDialogLookupNgw (QWidget *parent, QString curNgwUrl, QString curNgwLogin,
                              QString curNgwPass);
-     virtual ~FBDialogDictionaryNgw () { }
+     virtual ~FBDialogLookupNgw () { }
+     int getSelectedLookupTable (QList<QPair<QString,QString> > &list);
+    protected slots:
+     virtual void httpSelectedFinished ();
+    protected:
+     QList<QPair<QString,QString> > selectedLookup;
 };
 
 class FBAttrListvaluesStrict: public FBAttrListvalues

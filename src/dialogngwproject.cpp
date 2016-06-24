@@ -32,6 +32,73 @@ FBDialogProjectNgw::FBDialogProjectNgw (QWidget *parent, QString lastNgwUrl,
     wEditLogin->setText(lastNgwLogin);
 }
 
+void FBDialogProjectNgw::httpSelectedFinished ()
+{
+    if (httpSelectedReply->error() == QNetworkReply::NoError)
+    {
+        // Get the last needed information (metada) about NGW layer.
+        // We do not check its correctness while it is done by project class at the
+        // creation step.
+        if (!receivedJson.empty())
+        {
+            Json::Reader json_reader;
+            Json::Value json_root;
+            if (json_reader.parse(receivedJson, json_root, false))
+            {
+                Json::Value json_fields;
+                Json::Value json_new_fields;
+                json_fields = json_root["feature_layer"]["fields"];
+                for (int i=0; i<json_fields.size(); ++i)
+                {
+                    std::string str_keyname
+                            = json_fields[i]["keyname"].asString();
+                    std::string str_datatype
+                            = json_fields[i]["datatype"].asString();
+                    std::string str_display_name
+                            = json_fields[i]["display_name"].asString();
+
+                    Json::Value json_new_field;
+                    json_new_field[FB_JSON_META_KEYNAME] = str_keyname;
+                    json_new_field[FB_JSON_META_DATATYPE] = str_datatype;
+                    json_new_field[FB_JSON_META_DISPLAY_NAME] = str_display_name;
+                    json_new_fields.append(json_new_field);
+                }
+                jsonLayerMeta[FB_JSON_META_FIELDS] = json_new_fields;
+
+                jsonLayerMeta[FB_JSON_META_GEOMETRY_TYPE]
+                        = json_root["vector_layer"]["geometry_type"];
+
+                jsonLayerMeta[FB_JSON_META_SRS]
+                        = json_root["vector_layer"]["srs"];
+
+                wLabelStatus->setText(tr("Connection successful"));
+                httpSelectedReply->deleteLater();
+
+                this->accept();
+
+                return; // TODO: do we need return here?
+            }
+            else
+            {
+                // Unable to read fields decription.
+                wLabelStatus->setText(tr("Error reading JSON"));
+            }
+        }
+        else
+        {
+            // Unable to read fields decription.
+            wLabelStatus->setText(tr("Error reading JSON"));
+        }
+    }
+    else
+    {
+        wLabelStatus->setText(tr("Connection error"));
+    }
+
+    receivedJson = "";
+    httpSelectedReply->deleteLater();
+}
+
 // Get the full path to JSON dataset (GeoJSON layer) which was selected by user. The
 // returned string can be passed to GDALDataset creation. Also the additional
 // NGW connection parameters are returned via method parameters.

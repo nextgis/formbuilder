@@ -437,7 +437,7 @@ List of authors:</source>
     <name>FBDialogDatetime</name>
     <message>
         <source>Define date/time ...</source>
-        <translation>Определение даты/времени ...</translation>
+        <translation type="vanished">Определение даты/времени ...</translation>
     </message>
     <message>
         <source>Current date/time value</source>
@@ -447,12 +447,16 @@ List of authors:</source>
         <source>Cancel</source>
         <translation>Отменить</translation>
     </message>
+    <message>
+        <source>Define date/time attribute&apos;s value</source>
+        <translation>Задайте значение даты/времени для элемента</translation>
+    </message>
 </context>
 <context>
     <name>FBDialogDlistvalues</name>
     <message>
         <source>Define items for lists ...</source>
-        <translation>Задать списки значений ...</translation>
+        <translation type="vanished">Задать списки значений ...</translation>
     </message>
     <message>
         <source>Main list:</source>
@@ -477,6 +481,10 @@ List of authors:</source>
     <message>
         <source>Dependant list for: </source>
         <translation>Зависимый список для: </translation>
+    </message>
+    <message>
+        <source>Define values for the element</source>
+        <translation>Задайте значения элемента</translation>
     </message>
 </context>
 <context>
@@ -554,77 +562,193 @@ List of authors:</source>
     <name>FBDialogListvalues</name>
     <message>
         <source>Define items for the list ...</source>
-        <translation>Задать список значений ...</translation>
+        <translation type="vanished">Задать список значений ...</translation>
     </message>
     <message>
         <source>List elems:</source>
-        <translation>Значения:</translation>
+        <translation type="vanished">Значения:</translation>
     </message>
     <message>
         <source>Add new item</source>
-        <translation>Добавить новое значение</translation>
+        <translation type="vanished">Добавить новое значение</translation>
     </message>
     <message>
         <source>Delete selected item</source>
-        <translation>Удалить выбранное значение</translation>
+        <translation type="vanished">Удалить выбранное значение</translation>
     </message>
     <message>
         <source>Change selected item</source>
-        <translation>Изменить выбранное значение</translation>
+        <translation type="vanished">Изменить выбранное значение</translation>
     </message>
     <message>
         <source>Value</source>
-        <translation>Значение</translation>
+        <translation type="vanished">Значение</translation>
     </message>
     <message>
         <source>Inner:        </source>
-        <translation>Внутреннее:   </translation>
+        <translation type="vanished">Внутреннее:   </translation>
     </message>
     <message>
         <source>Displayed: </source>
-        <translation>Отображаемое: </translation>
+        <translation type="vanished">Отображаемое: </translation>
     </message>
     <message>
         <source>Default:    </source>
-        <translation>По умолчанию:   </translation>
+        <translation type="vanished">По умолчанию:   </translation>
     </message>
     <message>
         <source>OK</source>
         <translation>ОК</translation>
     </message>
+    <message>
+        <source>Define values of the element</source>
+        <translation>Задайте значения элемента</translation>
+    </message>
+    <message>
+        <source>Values:</source>
+        <translation>Значения:</translation>
+    </message>
+    <message>
+        <source>Reset the list, deleting all values from it</source>
+        <translation>Сбросить список, удалив все значения</translation>
+    </message>
+    <message>
+        <source>Load NextGIS Web lookup table once ...</source>
+        <translation>Загрузить список значений из словаря NextGIS Web единожды ...</translation>
+    </message>
+    <message>
+        <source>Establish synchronisation with NextGIS Web lookup table ...</source>
+        <translation>Установить синхронизацию со словарём NextGIS Web ...</translation>
+    </message>
+    <message>
+        <source>Load list from .csv file ...</source>
+        <translation>Загрузить список значений из .csv файла ...</translation>
+    </message>
+    <message>
+        <source>Inner</source>
+        <translation>Внутреннее</translation>
+    </message>
+    <message>
+        <source>Displayed</source>
+        <translation>Отображаемое</translation>
+    </message>
+    <message>
+        <source>Add</source>
+        <translation>Добавить</translation>
+    </message>
+    <message>
+        <source>Add new void value</source>
+        <translation>Добавить новое пустое значение</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>Удалить</translation>
+    </message>
+    <message>
+        <source>Delete selected value</source>
+        <translation>Удалить выбранное значение</translation>
+    </message>
+    <message>
+        <source>Unable to add new value. There is already a maximum number of items in the list</source>
+        <translation>Невозможно добавить новое значение: уже введено максимальное количество значений</translation>
+    </message>
+    <message>
+        <source>Do you want to reset the list of values? Current synchronisation with the NextGIS Web lookup table will be removed</source>
+        <translation>Вы точно хотите очистить список значений? Установленная синхронизация со справочником NextGIS Web будет отменена</translation>
+    </message>
+    <message>
+        <source>Do you want to delete all values from the list? This action can not be undone</source>
+        <translation>Вы точно хотите удалить все значения из списка? Это действие не может быть отменено</translation>
+    </message>
+    <message>
+        <source>Do you want to delete all values (except first two) from the list? This action can not be undone</source>
+        <translation>Вы точно хотите удалить все значения из списка (кроме первых двух)? Это действие не может быть отменено</translation>
+    </message>
+    <message>
+        <source>The list must have at least two values!</source>
+        <translation>Список должен иметь как минимум два значения!</translation>
+    </message>
+    <message>
+        <source>Unable to establish NextGIS Web connection. The project must be created on the base of the NextGIS Web instance</source>
+        <translation>Не удалось установить соединение с NextGIS Web. Проект должен быть создан на основе инстанса NextGIS Web</translation>
+    </message>
+    <message>
+        <source>If you load lookup table from NextGIS Web - all current items in the list will be removed. Continue?</source>
+        <translation>Если загрузить значения из справочника NextGIS Web - все текущие значения будут удалены. Продолжить?</translation>
+    </message>
+    <message>
+        <source>The selected lookup table is empty. Operation is cancelled</source>
+        <translation>Выбранный справочник NextGIS Web - пустой. Операция отменена</translation>
+    </message>
+    <message>
+        <source>Info</source>
+        <translation>Информация</translation>
+    </message>
+    <message>
+        <source>Warning</source>
+        <translation>Предупреждение</translation>
+    </message>
+    <message>
+        <source>Default Off</source>
+        <translation>По умолчанию Выкл</translation>
+    </message>
+    <message>
+        <source>Unmark default selected value</source>
+        <translation>Отменить значение по умолчанию</translation>
+    </message>
+    <message>
+        <source>Default On</source>
+        <translation>По умолчанию Вкл</translation>
+    </message>
+    <message>
+        <source>Mark selected value as default</source>
+        <translation>Отметить значение по умолчанию</translation>
+    </message>
+    <message>
+        <source>Synchronisation ON</source>
+        <translation>Синхронизация включена</translation>
+    </message>
+    <message>
+        <source>Current NextGIS Web id: </source>
+        <translation>Id текущего справочника NextGIS Web: </translation>
+    </message>
 </context>
 <context>
-    <name>FBDialogProjectNew</name>
+    <name>FBDialogLookupNgw</name>
     <message>
-        <source>New project parameters ...</source>
-        <translation>Параметры нового проекта ...</translation>
+        <source>Select NextGIS Web lookup table</source>
+        <translation>Выберите справочник NextGIS Web</translation>
     </message>
     <message>
-        <source>Geometry type: </source>
-        <translation>Тип геометрии: </translation>
+        <source>Connection successful</source>
+        <translation>Соединение успешно</translation>
     </message>
     <message>
-        <source>OK</source>
-        <translation>ОК</translation>
+        <source>Error reading JSON</source>
+        <translation>Ошибка чтения JSON</translation>
+    </message>
+    <message>
+        <source>Connection error</source>
+        <translation>Ошибка соединения</translation>
     </message>
 </context>
 <context>
-    <name>FBDialogProjectNgw</name>
+    <name>FBDialogNgw</name>
     <message>
-        <source>Establish NextGIS Web connection ...</source>
-        <translation>Установите соединение с NextGIS Web ...</translation>
+        <source>Establish NextGIS Web connection</source>
+        <translation>Установите соединение с NextGIS Web</translation>
     </message>
     <message>
-        <source>Login as guest</source>
-        <translation>Гостевая авторизация</translation>
+        <source>URL:</source>
+        <translation>URL:</translation>
     </message>
     <message>
-        <source>Login:                  </source>
-        <translation type="obsolete">Логин:                </translation>
+        <source>Login:</source>
+        <translation>Логин:</translation>
     </message>
     <message>
-        <source>Password:           </source>
-        <translation type="vanished">Пароль:              </translation>
+        <source>Password:</source>
+        <translation>Пароль:</translation>
     </message>
     <message>
         <source>Connect</source>
@@ -650,17 +774,79 @@ List of authors:</source>
         <source>Connection successful</source>
         <translation>Соединение успешно</translation>
     </message>
+</context>
+<context>
+    <name>FBDialogProjectNew</name>
+    <message>
+        <source>New project parameters ...</source>
+        <translation type="vanished">Параметры нового проекта ...</translation>
+    </message>
+    <message>
+        <source>Geometry type: </source>
+        <translation>Тип геометрии: </translation>
+    </message>
+    <message>
+        <source>OK</source>
+        <translation>ОК</translation>
+    </message>
+    <message>
+        <source>New project parameters</source>
+        <translation>Параметры нового проекта</translation>
+    </message>
+</context>
+<context>
+    <name>FBDialogProjectNgw</name>
+    <message>
+        <source>Establish NextGIS Web connection ...</source>
+        <translation type="vanished">Установите соединение с NextGIS Web ...</translation>
+    </message>
+    <message>
+        <source>Login as guest</source>
+        <translation type="vanished">Гостевая авторизация</translation>
+    </message>
+    <message>
+        <source>Login:                  </source>
+        <translation type="obsolete">Логин:                </translation>
+    </message>
+    <message>
+        <source>Password:           </source>
+        <translation type="vanished">Пароль:              </translation>
+    </message>
+    <message>
+        <source>Connect</source>
+        <translation type="vanished">Соединить</translation>
+    </message>
+    <message>
+        <source>Available resources:</source>
+        <translation type="vanished">Доступные ресурсы:</translation>
+    </message>
+    <message>
+        <source>Select</source>
+        <translation type="vanished">Выбрать</translation>
+    </message>
+    <message>
+        <source>Connecting ...</source>
+        <translation type="vanished">Соединение ...</translation>
+    </message>
+    <message>
+        <source>Connection error</source>
+        <translation>Ошибка соединения</translation>
+    </message>
+    <message>
+        <source>Connection successful</source>
+        <translation>Соединение успешно</translation>
+    </message>
     <message>
         <source>Error reading JSON</source>
         <translation>Ошибка чтения JSON</translation>
     </message>
     <message>
         <source>Login:</source>
-        <translation>Логин:</translation>
+        <translation type="vanished">Логин:</translation>
     </message>
     <message>
         <source>Password:</source>
-        <translation>Пароль:</translation>
+        <translation type="vanished">Пароль:</translation>
     </message>
     <message>
         <source>Web GIS name:</source>
@@ -668,7 +854,7 @@ List of authors:</source>
     </message>
     <message>
         <source>Web GIS:</source>
-        <translation>Web GIS:</translation>
+        <translation type="vanished">Web GIS:</translation>
     </message>
 </context>
 <context>
@@ -694,6 +880,20 @@ List of authors:</source>
 to the field when pressing button</source>
         <translation>Значение, которое будет записано в соответствующее поле при нажатии на элемент</translation>
     </message>
+    <message>
+        <source>Button</source>
+        <translation>Кнопка</translation>
+    </message>
+    <message>
+        <source>...</source>
+        <translation type="vanished">...</translation>
+    </message>
+    <message>
+        <source>Element which writes only one value
+when pressing on it</source>
+        <translation>Элемент, записывающий только одно значениe
+при нажатии</translation>
+    </message>
 </context>
 <context>
     <name>FBElemCheckbox</name>
@@ -712,6 +912,19 @@ to the field when pressing button</source>
     <message>
         <source>Initial value</source>
         <translation>Начальное значение</translation>
+    </message>
+    <message>
+        <source>Checkbox</source>
+        <translation>Флажок</translation>
+    </message>
+    <message>
+        <source>...</source>
+        <translation type="vanished">...</translation>
+    </message>
+    <message>
+        <source>Element which allows two values: true and false</source>
+        <translation type="unfinished">Элемент, позволяющий ввести только два
+значения: истина или ложь</translation>
     </message>
 </context>
 <context>
@@ -741,6 +954,20 @@ list during the typing</source>
         <source>User can add own values to the list</source>
         <translation>Пользователь может добавлять свои значения в список</translation>
     </message>
+    <message>
+        <source>Combobox</source>
+        <translation>Список</translation>
+    </message>
+    <message>
+        <source>...</source>
+        <translation type="vanished">...</translation>
+    </message>
+    <message>
+        <source>Drop-down list with predefined values</source>
+        <translation>Выпадающий список, содержащий заданные
+заранее значения и позволяющий выбрать
+только одно из них</translation>
+    </message>
 </context>
 <context>
     <name>FBElemDatetime</name>
@@ -755,6 +982,18 @@ list during the typing</source>
     <message>
         <source>Initial value</source>
         <translation>Начальное значение</translation>
+    </message>
+    <message>
+        <source>Date &amp; time</source>
+        <translation>Дата и время</translation>
+    </message>
+    <message>
+        <source>...</source>
+        <translation type="vanished">...</translation>
+    </message>
+    <message>
+        <source>Date, time or date+time picker</source>
+        <translation>Элемент для задания даты, времени или даты+времени</translation>
     </message>
 </context>
 <context>
@@ -785,6 +1024,20 @@ the second (dependant) combo will put its value</source>
         <source>List of values for both combos and according
 default values</source>
         <translation>Списки значений и соответствующие значения по умолчанию</translation>
+    </message>
+    <message>
+        <source>Doubled combobox</source>
+        <translation>Сдвоенный список</translation>
+    </message>
+    <message>
+        <source>...</source>
+        <translation type="vanished">...</translation>
+    </message>
+    <message>
+        <source>Pair of drop-down lists with predefined values</source>
+        <translation>Пара выпадающих списков, содержащих заданные
+заранее значения. Позволяют выбрать связанную пару
+значений</translation>
     </message>
 </context>
 <context>
@@ -821,6 +1074,20 @@ the last input session</source>
         <source>Maximum number of photos can be made</source>
         <translation>Максимальное количество фотографий, которое пользователь может сделать</translation>
     </message>
+    <message>
+        <source>Photo</source>
+        <translation>Фото</translation>
+    </message>
+    <message>
+        <source>...</source>
+        <translation type="vanished">...</translation>
+    </message>
+    <message>
+        <source>Allows to make and add photos with
+embedded camera</source>
+        <translation>Элемент для создания и добавления фотографий
+при помощи встроенной камеры</translation>
+    </message>
 </context>
 <context>
     <name>FBElemRadiogroup</name>
@@ -831,6 +1098,50 @@ the last input session</source>
     <message>
         <source>List ov values and default selected value</source>
         <translation>Список значений и значение по умолчанию</translation>
+    </message>
+    <message>
+        <source>Radiogroup</source>
+        <translation>Радио-группа</translation>
+    </message>
+    <message>
+        <source>...</source>
+        <translation type="vanished">...</translation>
+    </message>
+    <message>
+        <source>List of predefined values which allows
+the selection of only one value</source>
+        <translation>Список заранее заданных значений, позволяющий
+выбрать только одно из них</translation>
+    </message>
+</context>
+<context>
+    <name>FBElemSignature</name>
+    <message>
+        <source>Signature</source>
+        <translation>Подпись</translation>
+    </message>
+    <message>
+        <source>...</source>
+        <translation type="vanished">...</translation>
+    </message>
+    <message>
+        <source>Allows to add &quot;official signature&quot;</source>
+        <translation>Элемент для добавления &quot;официальной подписи&quot;</translation>
+    </message>
+</context>
+<context>
+    <name>FBElemSpace</name>
+    <message>
+        <source>Space</source>
+        <translation>Пробел</translation>
+    </message>
+    <message>
+        <source>...</source>
+        <translation type="vanished">...</translation>
+    </message>
+    <message>
+        <source>Void space for making indents</source>
+        <translation>Пустой элемент для создания отступов</translation>
     </message>
 </context>
 <context>
@@ -846,6 +1157,14 @@ the last input session</source>
     <message>
         <source>Caption</source>
         <translation>Заголовок</translation>
+    </message>
+    <message>
+        <source>Text label</source>
+        <translation>Текст</translation>
+    </message>
+    <message>
+        <source>Label which displays static text</source>
+        <translation>Элемент, отображающий статичный текст</translation>
     </message>
 </context>
 <context>
@@ -874,52 +1193,65 @@ the last input session</source>
         <source>User can type only whole/decimal numbers</source>
         <translation>Пользователь может вводить только числовые (целые или вещественные) значения</translation>
     </message>
-</context>
-<context>
-    <name>QObject</name>
-    <message>
-        <source>Text label</source>
-        <translation>Текст</translation>
-    </message>
-    <message>
-        <source>Space</source>
-        <translation>Пробел</translation>
-    </message>
     <message>
         <source>Text edit</source>
         <translation>Текстовое поле</translation>
     </message>
     <message>
+        <source>...</source>
+        <translation type="vanished">...</translation>
+    </message>
+    <message>
+        <source>Element for editing simple text</source>
+        <translation>Элемент, позволяющий редактировать простую
+строку текста</translation>
+    </message>
+</context>
+<context>
+    <name>QObject</name>
+    <message>
+        <source>Text label</source>
+        <translation type="vanished">Текст</translation>
+    </message>
+    <message>
+        <source>Space</source>
+        <translation type="vanished">Пробел</translation>
+    </message>
+    <message>
+        <source>Text edit</source>
+        <translation type="vanished">Текстовое поле</translation>
+    </message>
+    <message>
         <source>Combobox</source>
-        <translation>Список</translation>
+        <translation type="vanished">Список</translation>
     </message>
     <message>
         <source>Doubled combobox</source>
-        <translation>Сдвоенный список</translation>
+        <translation type="vanished">Сдвоенный список</translation>
     </message>
     <message>
         <source>Checkbox</source>
-        <translation>Флажок</translation>
+        <translation type="vanished">Флажок</translation>
     </message>
     <message>
         <source>Radiogroup</source>
-        <translation>Радио-группа</translation>
+        <translation type="vanished">Радио-группа</translation>
     </message>
     <message>
         <source>Date &amp; time</source>
-        <translation>Дата и время</translation>
+        <translation type="vanished">Дата и время</translation>
     </message>
     <message>
         <source>Button</source>
-        <translation>Кнопка</translation>
+        <translation type="vanished">Кнопка</translation>
     </message>
     <message>
         <source>Photo</source>
-        <translation>Фото</translation>
+        <translation type="vanished">Фото</translation>
     </message>
     <message>
         <source>Signature</source>
-        <translation>Подпись</translation>
+        <translation type="vanished">Подпись</translation>
     </message>
     <message>
         <source>Project file is of version </source>

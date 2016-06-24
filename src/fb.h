@@ -126,6 +126,8 @@ class FBDialogProjectNgw: public FBDialogNgw
      virtual ~FBDialogProjectNgw () { }
      QString getSelectedNgwResource (QString &strUrl, QString &strUrlName,
          QString &strLogin, QString &strPass, int &strId, Json::Value &jsonLayerMeta);
+    protected slots:
+     virtual void httpSelectedFinished ();
 };
 
 /**

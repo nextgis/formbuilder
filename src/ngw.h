@@ -56,10 +56,8 @@ Q_DECLARE_METATYPE(FBNgwResData);
 #define FB_NGW_ITEMTYPE_POSTGISLAYER "postgis_layer"
 #define FB_NGW_ITEMTYPE_LOOKUPTABLE "lookup_table"
 
-// TODO: create special class for using NextGIS Web API:
-//class FBNgw
-//{
-//};
+// TODO: create special class or set of C methods for using NextGIS Web API.
+
 
 class FBDialogNgw: public QDialog
 {
@@ -81,7 +79,7 @@ class FBDialogNgw: public QDialog
      void httpAuthFinished ();
      void httpFinished ();
      void httpResourceFinished ();
-     void httpSelectedFinished ();
+     virtual void httpSelectedFinished () = 0;
     protected:
      QList<QTreeWidgetItem*> parseJsonReply (QNetworkReply *reply);
      QString getResTypeDispPrefix (QString resType);

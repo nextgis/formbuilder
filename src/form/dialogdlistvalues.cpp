@@ -24,9 +24,8 @@
 FBDialogDlistvalues::FBDialogDlistvalues (QWidget *parent):
     QDialog(parent)
 {
-//    this->setStyleSheet("QWidget { color: black }");
     this->setWindowModality(Qt::ApplicationModal);
-    this->setWindowTitle(tr("Define items for lists ..."));
+    this->setWindowTitle(tr("Define values for the element"));
 
     QLabel *label1 = new QLabel(this);
     label1->setText(tr("Main list:"));

@@ -92,7 +92,7 @@ class FBElemSpace: public FBElem
      virtual ~FBElemSpace () { }
      virtual QString getKeyName () { return FB_ELEMNAME_SPACE; }
      virtual QString getDisplayName () { return tr("Space"); }
-     virtual QString getDescription () { return tr("..."); }
+     virtual QString getDescription () { return tr("Void space for making indents"); }
      virtual FBElemtype getType () { return FBDecoration; }
 };
 
@@ -104,7 +104,7 @@ class FBElemTextedit: public FBElemInputVariate
      virtual ~FBElemTextedit () { }
      virtual QString getKeyName () { return FB_ELEMNAME_TEXT_EDIT; }
      virtual QString getDisplayName () { return tr("Text edit"); }
-     virtual QString getDescription () { return tr("..."); }
+     virtual QString getDescription () { return tr("Element for editing simple text"); }
      virtual FBElemtype getType () { return FBInput; }
 };
 
@@ -114,10 +114,14 @@ class FBElemCombobox: public FBElemInputVariate
     public:
      FBElemCombobox (QWidget *appWidget);
      virtual ~FBElemCombobox () { }
+     virtual void modifyJsonOut (Json::Value &jsonValue);
+     virtual void modifyElemIn (Json::Value jsonValue);
      virtual QString getKeyName () { return FB_ELEMNAME_COMBOBOX; }
      virtual QString getDisplayName () { return tr("Combobox"); }
-     virtual QString getDescription () { return tr("..."); }
+     virtual QString getDescription () { return tr("Drop-down list with predefined values"); }
      virtual FBElemtype getType () { return FBInput; }
+    protected:
+     FBAttrListvalues *attrListvalsPtr;
 };
 
 class FBElemDoublecombobox: public FBElemInputVariate
@@ -128,7 +132,8 @@ class FBElemDoublecombobox: public FBElemInputVariate
      virtual ~FBElemDoublecombobox () { }
      virtual QString getKeyName () { return FB_ELEMNAME_DOUBLE_COMBOBOX; }
      virtual QString getDisplayName () { return tr("Doubled combobox"); }
-     virtual QString getDescription () { return tr("..."); }
+     virtual QString getDescription () { return tr("Pair of drop-down lists with predefined"
+                                                   " values"); }
      virtual FBElemtype getType () { return FBInput; }
 };
 
@@ -140,7 +145,8 @@ class FBElemCheckbox: public FBElemInputVariate
      virtual ~FBElemCheckbox () { }
      virtual QString getKeyName () { return FB_ELEMNAME_CHECKBOX; }
      virtual QString getDisplayName () { return tr("Checkbox"); }
-     virtual QString getDescription () { return tr("..."); }
+     virtual QString getDescription () { return tr("Element which allows two values:"
+                                                   " true and false"); }
      virtual FBElemtype getType () { return FBInput; }
 };
 
@@ -152,7 +158,8 @@ class FBElemRadiogroup: public FBElemInputVariate
      virtual ~FBElemRadiogroup () { }
      virtual QString getKeyName () { return FB_ELEMNAME_RADIOGROUP; }
      virtual QString getDisplayName () { return tr("Radiogroup"); }
-     virtual QString getDescription () { return tr("..."); }
+     virtual QString getDescription () { return tr("List of predefined values which allows"
+                                                   "\nthe selection of only one value"); }
      virtual FBElemtype getType () { return FBInput; }
 };
 
@@ -164,7 +171,7 @@ class FBElemDatetime: public FBElemInputVariate
      virtual ~FBElemDatetime () { }
      virtual QString getKeyName () { return FB_ELEMNAME_DATE_TIME; }
      virtual QString getDisplayName () { return tr("Date & time"); }
-     virtual QString getDescription () { return tr("..."); }
+     virtual QString getDescription () { return tr("Date, time or date+time picker"); }
      virtual FBElemtype getType () { return FBInput; }
     protected slots:
      void onChangeAttrValue ();
@@ -183,7 +190,8 @@ class FBElemButton: public FBElemInput
      virtual ~FBElemButton () { }
      virtual QString getKeyName () { return FB_ELEMNAME_BUTTON; }
      virtual QString getDisplayName () { return tr("Button"); }
-     virtual QString getDescription () { return tr("..."); }
+     virtual QString getDescription () { return tr("Element which writes only one value"
+                                                   "\nwhen pressing on it"); }
      virtual FBElemtype getType () { return FBInput; }
 };
 
@@ -195,7 +203,8 @@ class FBElemPhoto: public FBElem
      virtual ~FBElemPhoto () { }
      virtual QString getKeyName () { return FB_ELEMNAME_PHOTO; }
      virtual QString getDisplayName () { return tr("Photo"); }
-     virtual QString getDescription () { return tr("..."); }
+     virtual QString getDescription () { return tr("Allows to make and add photos with"
+                                                   "\nembedded camera"); }
      virtual FBElemtype getType () { return FBInput; }
 };
 
@@ -207,7 +216,7 @@ class FBElemSignature: public FBElem
      virtual ~FBElemSignature () { }
      virtual QString getKeyName () { return FB_ELEMNAME_SIGNATURE; }
      virtual QString getDisplayName () { return tr("Signature"); }
-     virtual QString getDescription () { return tr("..."); }
+     virtual QString getDescription () { return tr("Allows to add \"official signature\""); }
      virtual FBElemtype getType () { return FBInput; }
 };
 

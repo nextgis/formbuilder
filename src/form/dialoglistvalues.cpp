@@ -28,16 +28,16 @@ FBDialogListvalues::FBDialogListvalues (QWidget *parent, bool addUndefinedValue)
 {
     hasUndefinedValue = addUndefinedValue;
 
-    defaultRowIndex = -1;
+    rowDefault = -1;
 
-    curNgwUrl = ""; // no ngw connections
-    curNgwLogin = "";
-    curNgwPass = "";
+    ngwLookupId = -1;
 
-//    this->setStyleSheet("QWidget { color: black }");
+    ngwUrl = ""; // no ngw connections
+    ngwLogin = "";
+    ngwPass = "";
+
     this->setWindowModality(Qt::ApplicationModal);
     this->setWindowTitle(tr("Define values of the element"));
-
     this->resize(320,400);
 
     QLabel *labelL = new QLabel(this);
@@ -68,6 +68,9 @@ FBDialogListvalues::FBDialogListvalues (QWidget *parent, bool addUndefinedValue)
     QObject::connect(butLoadCsv, SIGNAL(clicked()),
             this, SLOT(onLoadCsvClicked()));
 
+    labNgw = new QLabel(this);
+    this->updateNgwLabel();
+
     table = new FBTableDialoglistvalues(this);
     table->setColumnCount(2);
     QStringList headers;
@@ -86,8 +89,6 @@ FBDialogListvalues::FBDialogListvalues (QWidget *parent, bool addUndefinedValue)
             this,SLOT(onTableSelectionChanged()));
     QObject::connect(table, SIGNAL(cellChanged(int,int)),
             this,SLOT(onCellChanged(int,int)));
-    QObject::connect(table, SIGNAL(currentItemChanged(QTableWidgetItem*,QTableWidgetItem*)),
-            this,SLOT(onCurrentItemChanged(QTableWidgetItem*,QTableWidgetItem*)));
     table->setStyleSheet(
                          "QTableWidget{"
                          "selection-background-color: rgb(230,230,230);"
@@ -139,6 +140,7 @@ FBDialogListvalues::FBDialogListvalues (QWidget *parent, bool addUndefinedValue)
     hlMiddle->addWidget(butDefault);
     QVBoxLayout *v = new QVBoxLayout(this);
     v->addLayout(hlTop);
+    v->addWidget(labNgw);
     v->addWidget(table);
     v->addLayout(hlMiddle);
     v->addWidget(butOk);
@@ -168,8 +170,11 @@ FBDialogListvalues::FBDialogListvalues (QWidget *parent, bool addUndefinedValue)
                      this, SLOT(onDefaultClicked()));
 }
 
+
 // Load values to the dialog.
-// Call only right after opening the dialog!
+// Call only after the proper initializing of the VOID table (with enter row):
+// 1) after initializing the dialog;
+// 2) after NGW lookup table loading.
 void FBDialogListvalues::putValues (QList<QPair<QString,QString> > values,
                                     int valueDefault)
 {
@@ -183,12 +188,12 @@ void FBDialogListvalues::putValues (QList<QPair<QString,QString> > values,
         table->setItem(table->rowCount()-2,0,new QTableWidgetItem(values[i].first));
         table->setItem(table->rowCount()-2,1,new QTableWidgetItem(values[i].second));
     }
-    defaultRowIndex = valueDefault;
-    this->markDefaultRow(defaultRowIndex);
+    rowDefault = valueDefault;
+    this->markDefaultRow(rowDefault);
     this->switchToEnterRow();
     table->blockSignals(false);
+    ngwLookupId = -1;
 }
-
 
 // Obtain values from the dialog.
 void FBDialogListvalues::getValues (QList<QPair<QString,QString> > &values,
@@ -198,21 +203,34 @@ void FBDialogListvalues::getValues (QList<QPair<QString,QString> > &values,
     for (int i=0; i<table->rowCount()-1; i++) // -1 so not to touch last enter row
     {
         QPair<QString,QString> pair;
-//        this->completeRow(i,0);
-//        this->completeRow(i,1);
         pair.first = table->item(i,0)->text();
         pair.second = table->item(i,1)->text();
         values.append(pair);
     }
-    valueDefault = defaultRowIndex;
+    valueDefault = rowDefault;
 }
 
-void FBDialogListvalues::putNgwParams (QString curNgwUrl, QString curNgwLogin,
-                                       QString curNgwPass)
+
+void FBDialogListvalues::putNgwParams (QString url, QString login, QString pass,
+                                       int id)
 {
-    this->curNgwUrl = curNgwUrl;
-    this->curNgwLogin = curNgwLogin;
-    this->curNgwPass = curNgwPass;
+    ngwUrl = url;
+    ngwLogin = login;
+    ngwPass = pass;
+    ngwLookupId = id;
+    this->updateItemButtons(false);
+    this->updateNgwLabel();
+    this->updateTableEnableness();
+    // Note: if there is a synchronisation with NextGIS Web lookup table - the
+    // according list of values is loaded via putValues() because it must be
+    // obtained from the file (ngfp) if there were any synchronisation with the
+    // server during the work of the form. We do not need to send any http requests
+    // here.
+}
+
+void FBDialogListvalues::getNgwParams (int &id)
+{
+    id = ngwLookupId;
 }
 
 
@@ -224,29 +242,8 @@ void FBDialogListvalues::putNgwParams (QString curNgwUrl, QString curNgwLogin,
 
 void FBDialogListvalues::onTableSelectionChanged ()
 {
-    QTableWidgetItem *selectedItem = table->currentItem();
-
-    if (selectedItem != NULL && selectedItem->row() == table->rowCount()-1)
-    {
-        butAdd->setEnabled(true);
-    }
-    else
-    {
-        butAdd->setEnabled(false);
-    }
-
-    if (selectedItem == NULL || selectedItem->row() == table->rowCount()-1)
-    {
-        butDelete->setEnabled(false);
-    }
-    else
-    {
-        butDelete->setEnabled(true);
-    }
-
-    this->updateDefaultButton(selectedItem);
+    this->updateItemButtons(true);
 }
-
 
 void FBDialogListvalues::onCellChanged (int row, int col)
 {
@@ -259,42 +256,14 @@ void FBDialogListvalues::onCellChanged (int row, int col)
     }
 
     // Remove void items.
-    this->completeRow(row,col); // will work also when table looses focus
-}
-
-void FBDialogListvalues::onCurrentItemChanged (QTableWidgetItem *current,
-                                               QTableWidgetItem *previous)
-{
-    /*
-    if (current->row() == 0 && current->column() == 0
-            && (previous != NULL && previous->row() == table->rowCount()-1)
-            && !this->isRowVoid(table->rowCount()-1))
-    {
-        //table->closePersistentEditor(current);
-        this->appendRow();
-        //table->clearSelection();
-        //table->commitAndClosePersistentEditor(current);
-        //table->selectRow(table->rowCount()-1);
-        //table->setCurrentItem(table->item(table->rowCount()-1,0));
-        //table->openPersistentEditor(table->item(table->rowCount()-1,0));
-    }
-    */
-}
-
-void FBDialogListvalues::onLastTableTabPressed ()
-{
-    /*
-    if (!this->isRowVoid(table->rowCount()-1))
-    {
-        this->appendRow();
-        this->switchToEnterRow();
-    }
-    */
+    this->completeRow(row); // will work also when table looses focus
 }
 
 
 void FBDialogListvalues::onAddClicked ()
 {
+    if (ngwLookupId != -1) // do nt allow if NGW syncing is On
+        return;
     QTableWidgetItem *selectedItem = table->currentItem();
     if (selectedItem == NULL)
         return;
@@ -319,6 +288,8 @@ void FBDialogListvalues::onAddClicked ()
 
 void FBDialogListvalues::onDeleteClicked ()
 {
+    if (ngwLookupId != -1) // do nt allow if NGW syncing is On
+        return;
     QTableWidgetItem *selectedItem = table->currentItem();
     if (selectedItem == NULL)
         return;
@@ -329,21 +300,21 @@ void FBDialogListvalues::onDeleteClicked ()
         return;
 
     table->removeRow(selectedRow);
-    if (defaultRowIndex == selectedRow)
+    if (rowDefault == selectedRow)
     {
         if (!hasUndefinedValue)
         {
-            defaultRowIndex = 0;
+            rowDefault = 0;
             this->markDefaultRow(0);
         }
         else
         {
-            defaultRowIndex = -1;
+            rowDefault = -1;
         }
     }
-    else if (selectedRow < defaultRowIndex)
+    else if (selectedRow < rowDefault)
     {
-        defaultRowIndex--;
+        rowDefault--;
     }
 
     table->setFocus();
@@ -352,6 +323,8 @@ void FBDialogListvalues::onDeleteClicked ()
 
 void FBDialogListvalues::onDefaultClicked ()
 {
+    // Note: here we allow selection of default value even if NGW syncing is On.
+
     QTableWidgetItem *selectedItem = table->currentItem();
     if (selectedItem == NULL)
         return;
@@ -359,19 +332,19 @@ void FBDialogListvalues::onDefaultClicked ()
     if (selectedRow == table->rowCount()-1)
         return;
 
-    if (defaultRowIndex == selectedRow)
+    if (rowDefault == selectedRow)
     {
         if (hasUndefinedValue)
         {
             this->unmarkDefaultRow();
-            defaultRowIndex = -1;
+            rowDefault = -1;
         }
     }
     else
     {
         this->unmarkDefaultRow();
-        defaultRowIndex = selectedRow;
-        this->markDefaultRow(defaultRowIndex);
+        rowDefault = selectedRow;
+        this->markDefaultRow(rowDefault);
     }
 
     table->setFocus();
@@ -380,91 +353,132 @@ void FBDialogListvalues::onDefaultClicked ()
 
 void FBDialogListvalues::onClearAllClicked ()
 {
-    int ret;
-    if (hasUndefinedValue)
-        ret = this->onShowAlertBox(tr("Do you want to delete all values from the list?"
-                                  " This action can not be undone."),
-                                   QMessageBox::Warning);
-    else
-        ret = this->onShowAlertBox(tr("Do you want to delete all values (except first two)"
-                                      " from the list? This action can not be undone."),
-                                   QMessageBox::Warning);
-    if (ret != QMessageBox::Ok)
-        return;
-
-    int n = 1; // don't forget about last enter row
-    if (!hasUndefinedValue)
-        n = 3;
-
-    while (table->rowCount() > n)
+    int ret = QMessageBox::Ok;
+    if (ngwLookupId != -1)
     {
-        table->removeRow(table->rowCount()-2);
+        ret = this->onShowAlertBox(tr("Do you want to reset the list of values?"
+                                      " Current synchronisation with the NextGIS Web"
+                                      " lookup table will be removed"),
+                               QMessageBox::Warning);
     }
-
-    if (!hasUndefinedValue)
+    else if (hasUndefinedValue)
     {
-        if (defaultRowIndex > 1)
+        if (table->rowCount() > 0+1) // +1 for enter row
         {
-            defaultRowIndex = 0;
-            this->markDefaultRow(defaultRowIndex);
+            ret = this->onShowAlertBox(tr("Do you want to delete all values from"
+                                          " the list? This action can not be undone"),
+                                   QMessageBox::Warning);
+        }
+        else
+        {
+            return;
         }
     }
     else
     {
-        defaultRowIndex = -1;
+        if (table->rowCount() > 2+1)
+        {
+            ret = this->onShowAlertBox(tr("Do you want to delete all values (except"
+                                          " first two) from the list? This action can"
+                                          " not be undone"),
+                                   QMessageBox::Warning);
+        }
+        else
+        {
+            this->onShowMsgBox(tr("The list must have at least two values!"),
+                               QMessageBox::Warning);
+            return;
+        }
     }
 
+    if (ret != QMessageBox::Ok)
+        return;
+
+    this->clearAllRows(); // will also reset ngw lookup id
+
     this->switchToEnterRow();
+    this->updateItemButtons(false);
+    this->updateNgwLabel();
+    this->updateTableEnableness();
 }
 
 
-void FBDialogListvalues::onLoadNgwClicked ()
+int FBDialogListvalues::onLoadNgwClicked ()
 {
-    if (curNgwUrl == "")
+    if (!hasUndefinedValue)
+        return -1; // only used for Combobox elem!
+
+    int ret = QMessageBox::Ok;
+
+    if (ngwUrl == "")
     {
         this->onShowMsgBox(tr("Unable to establish NextGIS Web connection. The project"
                       " must be created on the base of the NextGIS Web instance"),
                            QMessageBox::Warning);
-        return;
+        return -1;
     }
 
-    if (table->rowCount() > 1)
+    if (ngwLookupId != -1)
     {
-        int ret = this->onShowAlertBox(tr("If you load lookup table from NextGIS Web -"
+        ret = this->onShowAlertBox(tr("Do you want to reset the list of values?"
+                                      " Current synchronisation with the NextGIS Web"
+                                      " lookup table will be removed"),
+                               QMessageBox::Warning);
+    }
+
+    else if (table->rowCount() > 0+1) // +1 for enter row
+    {
+       ret = this->onShowAlertBox(tr("If you load lookup table from NextGIS Web -"
                   " all current items in the list will be removed. Continue?"),
                                        QMessageBox::Warning);
-        if (ret != QMessageBox::Ok)
-            return;
     }
 
-    FBDialogDictionaryNgw dialog(this,curNgwUrl,curNgwLogin,curNgwPass);
+    if (ret != QMessageBox::Ok)
+        return -1;
+
+    int id = -1;
+    FBDialogLookupNgw dialog(this,ngwUrl,ngwLogin,ngwPass);
     if (dialog.exec())
     {
+        QList<QPair<QString,QString> > list;
+        id = dialog.getSelectedLookupTable(list);
 
+        if (list.isEmpty())
+        {
+            this->onShowMsgBox(tr("The selected lookup table is empty. Operation is"
+                                  " cancelled"),
+                               QMessageBox::Warning);
+            return -1;
+        }
+
+        this->clearAllRows(); // will also reset ngw lookup id
+        this->putValues(list,0); // rowDefault will be set inside
+
+        this->switchToEnterRow();
+        this->updateItemButtons(false);
+        this->updateNgwLabel();
+        this->updateTableEnableness();
     }
-}
 
+    return id;
+}
 
 void FBDialogListvalues::onLoadNgwSyncClicked ()
 {
+    ngwLookupId = this->onLoadNgwClicked();
 
+    if (ngwLookupId == -1) // no lookup table was selected
+        return;
+
+    this->updateItemButtons(false);
+    this->updateNgwLabel();
+    this->updateTableEnableness();
 }
 
 
 void FBDialogListvalues::onLoadCsvClicked ()
 {
 
-}
-
-
-void FBDialogListvalues::onOkClicked()
-{
-    this->accept();
-}
-
-void FBDialogListvalues::onCancelClicked()
-{
-    this->reject();
 }
 
 
@@ -512,12 +526,6 @@ void FBDialogListvalues::addEnterRow ()
     table->setItem(table->rowCount()-1,1,item01);
 }
 
-void FBDialogListvalues::removeEnterRow ()
-{
-    table->removeRow(table->rowCount()-1);
-}
-
-
 void FBDialogListvalues::appendRow ()
 {
     table->blockSignals(true); // so not to trigger cellChanged() signal
@@ -530,19 +538,47 @@ void FBDialogListvalues::appendRow ()
     table->item(lastIndex+1,0)->setText("");
     table->item(lastIndex+1,1)->setText("");
     table->blockSignals(false);
-    // Note: no need to change defaultRowIndex because new row is always added
+    // Note: no need to change rowDefault because new row is always added
     // to the end.
     table->scrollToBottom();
     this->switchToEnterRow();
 }
 
 
+void FBDialogListvalues::clearAllRows ()
+{
+    int n = 0+1;
+    if (!hasUndefinedValue)
+        n = 2+1;
+
+    while (table->rowCount() > n)
+    {
+        table->removeRow(table->rowCount()-1-1);
+    }
+
+    if (!hasUndefinedValue)
+    {
+        if (rowDefault > 1)
+        {
+            rowDefault = 0;
+            this->markDefaultRow(rowDefault);
+        }
+    }
+    else
+    {
+        rowDefault = -1;
+    }
+
+    ngwLookupId = -1; // reset ngw syncing if was some
+}
+
+
 void FBDialogListvalues::unmarkDefaultRow ()
 {
-    if (defaultRowIndex == -1)
+    if (rowDefault == -1)
         return;
-    table->item(defaultRowIndex,0)->setBackgroundColor(QColor(255,255,255));
-    table->item(defaultRowIndex,1)->setBackgroundColor(QColor(255,255,255));
+    table->item(rowDefault,0)->setBackgroundColor(QColor(255,255,255));
+    table->item(rowDefault,1)->setBackgroundColor(QColor(255,255,255));
     table->clearSelection();
 }
 
@@ -555,6 +591,7 @@ void FBDialogListvalues::markDefaultRow (int row)
     table->clearSelection();
 }
 
+
 void FBDialogListvalues::updateDefaultButton (QTableWidgetItem *selectedItem)
 {
     if (selectedItem == NULL || selectedItem->row() == table->rowCount()-1)
@@ -562,7 +599,7 @@ void FBDialogListvalues::updateDefaultButton (QTableWidgetItem *selectedItem)
     else
         butDefault->setEnabled(true);
     if (selectedItem != NULL
-            && selectedItem->row() == defaultRowIndex
+            && selectedItem->row() == rowDefault
             && hasUndefinedValue)
     {
         butDefault->setText(tr("Default Off"));
@@ -577,18 +614,44 @@ void FBDialogListvalues::updateDefaultButton (QTableWidgetItem *selectedItem)
     }
 }
 
-
-void FBDialogListvalues::completeRow (int row, int col)
+void FBDialogListvalues::updateItemButtons (bool enable)
 {
-    /*
-    int otherCol;
-    if (col == 0)
-        otherCol = 1;
+    if (enable)
+    {
+        QTableWidgetItem *selectedItem = table->currentItem();
+
+        if (selectedItem != NULL && selectedItem->row() == table->rowCount()-1)
+        {
+            butAdd->setEnabled(true);
+        }
+        else
+        {
+            butAdd->setEnabled(false);
+        }
+
+        if (selectedItem == NULL || selectedItem->row() == table->rowCount()-1)
+        {
+            butDelete->setEnabled(false);
+        }
+        else
+        {
+            butDelete->setEnabled(true);
+        }
+
+        this->updateDefaultButton(selectedItem);
+    }
+
     else
-        otherCol = 0;
-    if (this->isItemVoid(table->item(row,otherCol)))
-        table->item(row,otherCol)->setText(table->item(row,col)->text());
-    */
+    {
+        butAdd->setEnabled(false);
+        butDelete->setEnabled(false);
+        butDefault->setEnabled(true);
+    }
+}
+
+
+void FBDialogListvalues::completeRow (int row)
+{
     if (this->isItemVoid(table->item(row,0)))
         table->item(row,0)->setText(table->item(row,1)->text());
     if (this->isItemVoid(table->item(row,1)))
@@ -600,6 +663,38 @@ void FBDialogListvalues::switchToEnterRow ()
 {
     table->setFocus();
     table->setCurrentItem(table->item(table->rowCount()-1,0));
+}
+
+
+void FBDialogListvalues::updateNgwLabel ()
+{
+    if (ngwLookupId != -1)
+    {
+        labNgw->setText(tr("Synchronisation ON")
+                           + QString("\n") + tr("Current NextGIS Web id: ")
+                        + QString::number(ngwLookupId));
+        labNgw->show();
+    }
+    else
+    {
+        labNgw->hide();
+    }
+}
+
+
+void FBDialogListvalues::updateTableEnableness ()
+{
+    if (ngwLookupId != -1) // block
+    {
+        table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        table->setRowHidden(table->rowCount()-1,true);
+    }
+
+    else // unblock
+    {
+        table->setDefaultEditTriggers();
+        table->setRowHidden(table->rowCount()-1,false);
+    }
 }
 
 
@@ -648,11 +743,18 @@ QString FBDialogListvalues::shortenStr (QString str) // STATIC
 /*                                                                           */
 /*****************************************************************************/
 
+FBTableDialoglistvalues::FBTableDialoglistvalues (QWidget *parent):
+    QTableWidget(parent)
+{
+    editTrigs = this->editTriggers(); // because there is no any word about what are
+                                      // the defaults for this in the Qt docs
+}
+
 // Catch some keybord buttons and add required behaviour for them.
 void FBTableDialoglistvalues::keyPressEvent (QKeyEvent *event)
 {
-    if (event->key() == Qt::Key_Return ||
-            event->key() == Qt::Key_Enter)
+    if (event->key() == Qt::Key_Return)
+            //|| event->key() == Qt::Key_Enter)
     {
         // Emit signals for Enter key only if there is no persistant editor for
         // the cell. ANYWAY close persistant editor with saving data in the cell.

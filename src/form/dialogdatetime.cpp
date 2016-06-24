@@ -26,9 +26,8 @@
 FBDialogDatetime::FBDialogDatetime(QWidget *parent):
     QDialog(parent)
 {
-//    this->setStyleSheet("QWidget { color: black }");
     this->setWindowModality(Qt::ApplicationModal);
-    this->setWindowTitle(tr("Define date/time ..."));
+    this->setWindowTitle(tr("Define date/time attribute's value"));
 
     chbCurrent = new QCheckBox(this);
     chbCurrent->setChecked(false);

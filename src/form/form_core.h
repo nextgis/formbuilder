@@ -93,6 +93,7 @@
 #define FB_ATTRNAME_INPUTSEARCH "input_search"
 #define FB_ATTRNAME_ALLOWADDING "allow_adding_values"
 #define FB_ATTRNAME_GALLERYSIZE "gallery_size"
+#define FB_ATTRNAME_NGW_ID "ngw_id"
 
 enum FBElemtype
 {

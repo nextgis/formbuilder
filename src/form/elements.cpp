@@ -186,7 +186,7 @@ FBElemCombobox::FBElemCombobox (QWidget *appWidget):
     FBElemInputVariate()
 {
     // ATTRIBUTE
-    FBAttrListvalues *attrListvalsPtr = new FBAttrListvalues(this, FB_ATTRNAME_VALUE_mult,
+    attrListvalsPtr = new FBAttrListvalues(this, FB_ATTRNAME_VALUE_mult,
         tr("Values"),
         tr("List ov values and default selected value"),
         FBNoRole,
@@ -210,6 +210,19 @@ FBElemCombobox::FBElemCombobox (QWidget *appWidget):
         FBNoRole,
         false);
     attrs.insert(attrAllowVals->getKeyName(),attrAllowVals);
+}
+
+void FBElemCombobox::modifyJsonOut (Json::Value &jsonValue)
+{
+    // TODO: move this to the according attribute! See comment
+    // in FBAttrListvalues::toJson().
+    jsonValue[FB_JSONKEY_ELEM_ATTRS][FB_ATTRNAME_NGW_ID]
+            = attrListvalsPtr->getNgwLookupId();
+}
+void FBElemCombobox::modifyElemIn (Json::Value jsonValue)
+{
+    attrListvalsPtr->setNgwLookupId(jsonValue[FB_JSONKEY_ELEM_ATTRS]
+                                    [FB_ATTRNAME_NGW_ID].asInt());
 }
 
 

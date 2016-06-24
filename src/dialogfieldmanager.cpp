@@ -31,8 +31,6 @@ FBDialogFieldsManager::~FBDialogFieldsManager()
 FBDialogFieldsManager::FBDialogFieldsManager(QWidget *parent):
     QDialog(parent)
 {
-    //this->setStyleSheet("QWidget { color: black }");
-    //tree->setFont(QFont(FB_GUI_FONTTYPE,FB_GUI_FONTSIZE_NORMAL));
     this->setWindowTitle(tr("Fields in project"));
 
     tree = new QTreeWidget(this);

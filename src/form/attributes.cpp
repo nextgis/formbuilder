@@ -115,7 +115,6 @@ QWidget *FBAttrField::getWidget ()
     QObject::connect(widget, SIGNAL(currentIndexChanged(QString)),
                      this, SLOT(onEditEnd(QString)));
     return widget;
-
 }
 
 void FBAttrField::resetValue ()
@@ -286,6 +285,7 @@ FBAttrListvalues::FBAttrListvalues (FBElem *parentElem, QString keyName,
     FBAttrDialog (parentElem, keyName, displayName, descr, role, parentForDialog)
 {
     valueDefault = -1; // no default item selected
+    ngwLookupId = -1;
 }
 
 void FBAttrListvalues::updateNgwParams (QString curNgwUrl, QString curNgwLogin,
@@ -314,6 +314,13 @@ Json::Value FBAttrListvalues::toJson ()
         jsonRet.append(jsonItem);
     }
     return jsonRet;
+
+    // Note: here we do not save ngwLookupId because the value which is saved
+    // - has an array type.
+    // See according elem class how we write ngwLookupId into json file.
+    // TODO: make the Json value which is written in this method not an array but
+    // the collection of objects so it can be possible to store ngwLookupId in this
+    // attribute.
 }
 
 bool FBAttrListvalues::fromJson (Json::Value jsonVal)
@@ -352,6 +359,8 @@ bool FBAttrListvalues::fromJson (Json::Value jsonVal)
     }
     valueDefault = newValueDefault;
     return true;
+
+    // Note: see comment in toJson() about ngwLookupId.
 }
 
 QVariant FBAttrListvalues::getValue ()
@@ -386,10 +395,11 @@ void FBAttrListvalues::onEditStart ()
     dialog = new FBDialogListvalues(parentForDialog);
     dialog->putValues(values,valueDefault);
     dialog->putNgwParams(FBAttrListvalues::curNgwUrl,FBAttrListvalues::curNgwLogin,
-                         FBAttrListvalues::curNgwPass);
+                         FBAttrListvalues::curNgwPass,ngwLookupId);
     if (dialog->exec())
     {
         dialog->getValues(values,valueDefault);
+        dialog->getNgwParams(ngwLookupId);
         emit changeAppearance(this);
     }
     delete dialog;
