@@ -29,6 +29,8 @@ set(CMAKE_COLOR_MAKEFILE ON)
 # set path to additional CMake modules
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 
+include(util)
+
 # From docs:
 # The easiest way to use CMake is to set the CMAKE_PREFIX_PATH environment variable to the install prefix of Qt 5.
 # path example: <qt core dir>/qtbase
@@ -71,7 +73,7 @@ include(FindAnyProject)
 # path example: <qt core dir>/qtbase/lib/cmake/Qt5Core
 find_package(Qt5Widgets REQUIRED) # finds its own dependencies (QtGui and QtCore)
 find_package(Qt5Network REQUIRED)
-find_package(Qt5LinguistTools) # TODO: do we need it here?
+find_package(Qt5LinguistTools)
 
 include_directories(${Qt5Widgets_INCLUDE_DIRS})
 include_directories(${Qt5Network_INCLUDE_DIRS})
@@ -200,17 +202,20 @@ find_anyproject(GDAL REQUIRED CMAKE_ARGS
                     -DGDAL_BUILD_DOCS=OFF)
     
 if(GDAL_FOUND AND NOT WITH_GDAL_EXTERNAL)
-    message("GDAL version: " ${GDAL_VERSION})
     set(GDAL_REQUIRED_VERSION 2.1)
+    check_version(${GDAL_INCLUDE_DIR} GDAL_VERSION_MAJOR GDAL_VERSION_MINOR GDAL_VERSION_REV)
+    set(GDAL_VERSION "${GDAL_VERSION_MAJOR}.${GDAL_VERSION_MINOR}")
+    message("GDAL version: ${GDAL_VERSION}")
     if(${GDAL_VERSION} VERSION_LESS GDAL_REQUIRED_VERSION)
-        message(FATAL_ERROR "GDAL must be of version 2.1 or higher!")
+        message(FATAL_ERROR "GDAL must be of version " ${GDAL_REQUIRED_VERSION} " or higher!")
     endif()
 endif()
 
 # TODO: move these definitions to the fb cmake.
 # Set FULL path to /gdal_data while it will be used after installation of hte app.
 if(WIN32) 
-    add_definitions(-DFB_INSTALLPATH_GDALDATA="${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/gdal_data")
+    #add_definitions(-DFB_INSTALLPATH_GDALDATA="${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/gdal_data")
+    add_definitions(-DFB_INSTALLPATH_GDALDATA="./gdal_data")
 endif()
 option(USE_GDAL_LOG OFF)
 if(USE_GDAL_LOG) 

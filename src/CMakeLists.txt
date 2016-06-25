@@ -56,8 +56,10 @@ set(RESOURCES ${fb_res})
 
 ## TODO: make automatic updating *.ts files via qt5_create_translation()
 ## Use lupdate utility directly for now.
-set(TS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/translations/fb_ru_RU.ts)
-qt5_add_translation(QM_FILES ${TS_FILES}) # no lupdate calling.
+if(Qt5LinguistTools_FOUND)
+    set(TS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/translations/fb_ru_RU.ts)
+    qt5_add_translation(QM_FILES ${TS_FILES}) # no lupdate calling.
+endif()
 
 if(WIN32)
     add_executable(${APP_NAME} WIN32 ${APP_SOURCES} ${FB_TARGET_OBJECTS} ${RESOURCES} ${UI_HDRS} ${QM_FILES})
