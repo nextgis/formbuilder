@@ -36,7 +36,8 @@ FBDialogProjectNew::FBDialogProjectNew (QWidget *parent):
     comboGeom = new QComboBox(this);
     for (int i=0; i<FBProject::GEOM_TYPES.size(); i++)
     {
-        comboGeom->addItem(FBProject::GEOM_TYPES[i]->aliasNgw);
+        comboGeom->addItem(FBProject::GEOM_TYPES[i]->strDisplayName,
+                           FBProject::GEOM_TYPES[i]->aliasNgw);
     }
 
     QPushButton *but1 = new QPushButton(this);
@@ -54,6 +55,5 @@ FBDialogProjectNew::FBDialogProjectNew (QWidget *parent):
 
 QString FBDialogProjectNew::getSelectedGeom ()
 {
-    return comboGeom->currentText();
-    //return comboGeom->currentData(Qt::UserRole);
+    return comboGeom->currentData(Qt::UserRole).toString();
 }

@@ -64,12 +64,18 @@ void FBProject::initEnv () // STATIC
     // Note: no default value for this list.
     // WARNING. All values must be unique, because they are searched and returned by
     // their first appearance in the list.
-    GEOM_TYPES.append(new FbGeomType("POINT", wkbPoint));
-    GEOM_TYPES.append(new FbGeomType("LINESTRING", wkbLineString));
-    GEOM_TYPES.append(new FbGeomType("POLYGON", wkbPolygon));
-    GEOM_TYPES.append(new FbGeomType("MULTIPOINT", wkbMultiPoint));
-    GEOM_TYPES.append(new FbGeomType("MULTILINESTRING", wkbMultiLineString));
-    GEOM_TYPES.append(new FbGeomType("MULTIPOLYGON", wkbMultiPolygon));
+    GEOM_TYPES.append(new FbGeomType("POINT", wkbPoint,
+                                     tr("Point")));
+    GEOM_TYPES.append(new FbGeomType("LINESTRING", wkbLineString,
+                                     tr("Line")));
+    GEOM_TYPES.append(new FbGeomType("POLYGON", wkbPolygon,
+                                     tr("Polygon")));
+    GEOM_TYPES.append(new FbGeomType("MULTIPOINT", wkbMultiPoint,
+                                     tr("Multipoint")));
+    GEOM_TYPES.append(new FbGeomType("MULTILINESTRING", wkbMultiLineString,
+                                     tr("Multiline")));
+    GEOM_TYPES.append(new FbGeomType("MULTIPOLYGON", wkbMultiPolygon,
+                                     tr("Multipolygon")));
 
     // Data types.
     // WARNING. The 0 and 1 list value (string and integer types) have its named

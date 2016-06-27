@@ -89,10 +89,12 @@ struct FbGeomType
     QString aliasNgw;
     OGRwkbGeometryType aliasGdal;
 // QList<OGRwkbGeometryType> aliasesOtherGdal; // Polygon = Polygon25, Polygon3D, ...
-    FbGeomType (QString an, OGRwkbGeometryType ad)
+    QString strDisplayName;
+    FbGeomType (QString an, OGRwkbGeometryType ad, QString sdn)
     {
         aliasNgw = an;
         aliasGdal = ad;
+        strDisplayName = sdn;
     }
     ~FbGeomType () { }
 };

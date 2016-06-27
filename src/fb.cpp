@@ -181,7 +181,7 @@ void FB::initGui ()
     QObject::connect(toolbScreenWeb,SIGNAL(clicked()),
                          this,SLOT(onScreenWebPick()));
     toolbScreenQgis = this->addTopMenuButton(wView,
-               ":/img/qgis.png", tr("QGIS"), tr("QuantumGIS screen"),false);
+               ":/img/qgis.png", tr("QGIS"), tr("QGIS screen"),false);
     QObject::connect(toolbScreenQgis,SIGNAL(clicked()),
                          this,SLOT(onScreenQgisPick()));
     this->addTopMenuSplitter(wView);
@@ -214,7 +214,10 @@ void FB::initGui ()
                 tr("Undo"),tr("Cancel last form \noperation"),false,true);
     toolbRedo = this->addTopMenuButton(wTools,":/img/redo.png",
                 tr("Redo"),tr("Return last canceld\nform operation"),false,true);
-    this->addTopMenuSplitter(wTools);
+    // TEMPORARY:
+    toolbUndo->hide();
+    toolbRedo->hide();
+    //this->addTopMenuSplitter(wTools);
     toolbClearScreen = this->addTopMenuButton(wTools,":/img/clear_screen.png",
                 tr("Clear"),tr("Clear all screen\nelements"),false,true);
     QObject::connect(toolbClearScreen, SIGNAL(clicked()),

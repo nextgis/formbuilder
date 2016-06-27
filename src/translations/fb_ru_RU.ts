@@ -112,7 +112,7 @@ as ...</source>
     </message>
     <message>
         <source>QuantumGIS screen</source>
-        <translation>Экран QuantumGIS</translation>
+        <translation type="vanished">Экран QuantumGIS</translation>
     </message>
     <message>
         <source>Device
@@ -396,6 +396,10 @@ in program</source>
     <message>
         <source>Saving ...</source>
         <translation>Сохранение ...</translation>
+    </message>
+    <message>
+        <source>QGIS screen</source>
+        <translation>Экран QGIS</translation>
     </message>
 </context>
 <context>
@@ -923,7 +927,7 @@ when pressing on it</source>
     </message>
     <message>
         <source>Element which allows two values: true and false</source>
-        <translation type="unfinished">Элемент, позволяющий ввести только два
+        <translation>Элемент, позволяющий ввести только два
 значения: истина или ложь</translation>
     </message>
 </context>
@@ -1205,6 +1209,33 @@ the selection of only one value</source>
         <source>Element for editing simple text</source>
         <translation>Элемент, позволяющий редактировать простую
 строку текста</translation>
+    </message>
+</context>
+<context>
+    <name>FBProject</name>
+    <message>
+        <source>Point</source>
+        <translation>Точка</translation>
+    </message>
+    <message>
+        <source>Line</source>
+        <translation>Линия</translation>
+    </message>
+    <message>
+        <source>Polygon</source>
+        <translation>Полигон</translation>
+    </message>
+    <message>
+        <source>Multipoint</source>
+        <translation>Мультиточка</translation>
+    </message>
+    <message>
+        <source>Multiline</source>
+        <translation>Мультилиния</translation>
+    </message>
+    <message>
+        <source>Multipolygon</source>
+        <translation>Мультиполигон</translation>
     </message>
 </context>
 <context>

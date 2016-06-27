@@ -112,6 +112,7 @@ QWidget *FBAttrField::getWidget ()
     // From docs of QComboBox: " ... Otherwise, if there is a matching text in the
     // list, currentIndex is set to the corresponding index."
     widget->setCurrentText(keyNameSelected);
+    widget->setStyleSheet("QComboBox::drop-down {color: black}");
     QObject::connect(widget, SIGNAL(currentIndexChanged(QString)),
                      this, SLOT(onEditEnd(QString)));
     return widget;
