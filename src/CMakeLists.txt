@@ -54,42 +54,44 @@ set(UI_HDRS ${fb_ui})
 qt5_add_resources(fb_res res.qrc)
 set(RESOURCES ${fb_res})
 
-## TODO: make automatic updating *.ts files via qt5_create_translation()
-## Use lupdate utility directly for now.
+# TODO: make automatic updating of *.ts files via qt5_create_translation()
+# Use lupdate utility directly for now.
 if(Qt5LinguistTools_FOUND)
     set(TS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/translations/fb_ru_RU.ts)
     qt5_add_translation(QM_FILES ${TS_FILES}) # no lupdate calling.
+else()
+    message(WARNING "No Qt5LinguistTools found. All languages except english are inavailable!")
 endif()
 
 if(WIN32)
     add_executable(${APP_NAME} WIN32 ${APP_SOURCES} ${FB_TARGET_OBJECTS} ${RESOURCES} ${UI_HDRS} ${QM_FILES})
-else(WIN32)
+else()
     add_executable(${APP_NAME} ${APP_SOURCES} ${FB_TARGET_OBJECTS} ${RESOURCES} ${UI_HDRS} ${QM_FILES})
-endif(WIN32)
+endif()
 
 target_link_libraries(${APP_NAME} Qt5::Widgets Qt5::Network)# Qt5::LinguistTools)
-if(UNIX) #if(NOT WIN32)
+if(UNIX)
     target_link_libraries(${APP_NAME} ${EXTRA_LIBS})
 endif()
 target_link_extlibraries(${APP_NAME}) 
 
-# Install built executable, required dynamic libs, qm files and /gdal_data to
-# binary directory, e.g. all except Qt stuff.
 install(TARGETS ${APP_NAME} 
         RUNTIME DESTINATION ${INSTALL_BIN_DIR} 
         ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
         LIBRARY DESTINATION ${INSTALL_LIB_DIR})
 if(WIN32)
-    # Install Qt dlls (do it anyway because Qt is not supported in external build system).
-    install(FILES ${QT_DIR_PREFIX_PATH}/lib/Qt5Core.dll DESTINATION ${INSTALL_BIN_DIR})
-    install(FILES ${QT_DIR_PREFIX_PATH}/lib/Qt5Gui.dll DESTINATION ${INSTALL_BIN_DIR})
-    install(FILES ${QT_DIR_PREFIX_PATH}/lib/Qt5Widgets.dll DESTINATION ${INSTALL_BIN_DIR})
-    install(FILES ${QT_DIR_PREFIX_PATH}/lib/Qt5Network.dll DESTINATION ${INSTALL_BIN_DIR})
+    # Install Qt dlls (do it anyway because Qt is yet not supported in external build system).
+    install(FILES ${QT_DIR_PREFIX_PATH}/bin/Qt5Core.dll DESTINATION ${INSTALL_BIN_DIR})
+    install(FILES ${QT_DIR_PREFIX_PATH}/bin/Qt5Gui.dll DESTINATION ${INSTALL_BIN_DIR})
+    install(FILES ${QT_DIR_PREFIX_PATH}/bin/Qt5Widgets.dll DESTINATION ${INSTALL_BIN_DIR})
+    install(FILES ${QT_DIR_PREFIX_PATH}/bin/Qt5Network.dll DESTINATION ${INSTALL_BIN_DIR})
     install(FILES ${QT_DIR_PREFIX_PATH}/plugins/platforms/qwindows.dll DESTINATION ${INSTALL_BIN_DIR}/platforms)
-    # Install language files.
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/fb_ru_RU.qm DESTINATION ${INSTALL_BIN_DIR})
-    install(FILES ${QT_DIR_PREFIX_PATH}/translations/qt_ru.qm DESTINATION ${INSTALL_BIN_DIR})
-    # WARNING: For now use only external GDAL libraries.
-    # TODO: for future: install GDAL dlls and gdal_data to the exe folder in case of use internal libraries so
-    # it can be possible to pack the full set of files into one installer file. For that ask user about required paths. 
-endif(WIN32)
+    # Install QM files.
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/fb_ru_RU.qm DESTINATION ${INSTALL_SHARE_DIR}/translations)
+    install(FILES ${QT_DIR_PREFIX_PATH}/translations/qt_ru.qm DESTINATION ${INSTALL_SHARE_DIR}/translations)
+    # Note: we regard that gdal is correctly installed if there is an internal windows build - so here is no gdal data and dlls copying.
+elseif(UNIX)
+    # Install program's QM file.
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/fb_ru_RU.qm DESTINATION ${INSTALL_SHARE_DIR}/translations)
+endif()
+include(InstallRequiredSystemLibraries)

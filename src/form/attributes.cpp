@@ -19,6 +19,8 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
  
+#include <QStyledItemDelegate>
+
 #include "attributes.h"
 
 /*****************************************************************************/
@@ -112,7 +114,9 @@ QWidget *FBAttrField::getWidget ()
     // From docs of QComboBox: " ... Otherwise, if there is a matching text in the
     // list, currentIndex is set to the corresponding index."
     widget->setCurrentText(keyNameSelected);
-    widget->setStyleSheet("QComboBox::drop-down {color: black}");
+    QStyledItemDelegate *itDel = new QStyledItemDelegate(); // some magic in order style
+    widget->setItemDelegate(itDel);                    // sheets work properly for Linux
+    //widget->setStyleSheet("QComboBox QAbstractItemView {color: black}");
     QObject::connect(widget, SIGNAL(currentIndexChanged(QString)),
                      this, SLOT(onEditEnd(QString)));
     return widget;

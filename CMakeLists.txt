@@ -24,6 +24,8 @@
 cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 project(fb)
 
+set(VENDOR_NAME "nextgis")
+
 # some init settings
 set(CMAKE_COLOR_MAKEFILE ON)
 # set path to additional CMake modules
@@ -46,6 +48,7 @@ include(GNUInstallDirs)
 set(INSTALL_BIN_DIR ${CMAKE_INSTALL_BINDIR} CACHE INTERNAL "Installation directory for executables" FORCE)
 set(INSTALL_LIB_DIR ${CMAKE_INSTALL_LIBDIR} CACHE INTERNAL "Installation directory for libraries" FORCE)
 set(INSTALL_INC_DIR ${CMAKE_INSTALL_INCLUDEDIR} CACHE INTERNAL "Installation directory for headers" FORCE)
+set(INSTALL_SHARE_DIR "${CMAKE_INSTALL_DATADIR}/${VENDOR_NAME}/${PROJECT_NAME}" CACHE INTERNAL "Installation directory for share data" FORCE)
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX) 
     set( CMAKE_CXX_FLAGS "-fpic ${CMAKE_CXX_FLAGS}" )
@@ -53,7 +56,7 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 set(EXTRA_LIBS)
-if(UNIX) #if(NOT WIN32)
+if(UNIX)
     find_package(Threads)
     set(EXTRA_LIBS ${EXTRA_LIBS} ${CMAKE_THREAD_LIBS_INIT})
     find_library(DL_LIB dl)
@@ -79,152 +82,37 @@ include_directories(${Qt5Widgets_INCLUDE_DIRS})
 include_directories(${Qt5Network_INCLUDE_DIRS})
 include_directories(${Qt5LinguistTools_INCLUDE_DIRS})
 
-# TODO: need to check 2.1 version for external GDAL.
-# Need 2.1 because of VSI zip bug: https://trac.osgeo.org/gdal/ticket/6005
-# For internal GDAL version is checked further.
-find_anyproject(GDAL REQUIRED CMAKE_ARGS 
-                    -DENABLE_PLSCENES=OFF
-                    -DENABLE_AAIGRID_GRASSASCIIGRID=OFF
-                    -DENABLE_ADRG_SRP=OFF
-                    -DENABLE_AIG=OFF
-                    -DENABLE_AIRSAR=OFF
-                    -DENABLE_ARG=OFF
-                    -DENABLE_BLX=OFF
-                    -DENABLE_BMP=OFF
-                    -DENABLE_BSB=OFF
-                    -DENABLE_CALS=OFF
-                    -DENABLE_CEOS=OFF
-                    -DENABLE_CEOS2=OFF
-                    -DENABLE_COASP=OFF
-                    -DENABLE_COSAR=OFF
-                    -DENABLE_CTG=OFF
-                    -DENABLE_DIMAP=OFF
-                    -DENABLE_DTED=OFF
-                    -DENABLE_E00GRID=OFF
-                    -DENABLE_ELAS=OFF
-                    -DENABLE_ENVISAT=OFF
-                    -DENABLE_ERS=OFF
-                    -DENABLE_FIT=OFF
-                    -DENABLE_GFF=OFF
-                    -DENABLE_GRIB=OFF
-                    -DENABLE_GSAG_GSBG_GS7BG=OFF
-                    -DENABLE_GXF=OFF
-                    -DENABLE_HF2=OFF
-                    -DENABLE_IDRISI_RASTER=OFF
-                    -DENABLE_ILWIS=OFF
-                    -DENABLE_INGR=OFF
-                    -DENABLE_IRIS=OFF
-                    -DENABLE_JAXAPALSAR=OFF
-                    -DENABLE_JDEM=OFF
-                    -DENABLE_KMLSUPEROVERLAY=OFF
-                    -DENABLE_L1B=OFF
-                    -DENABLE_LEVELLER=OFF
-                    -DENABLE_MAP=OFF
-                    -DENABLE_MBTILES=OFF
-                    -DENABLE_MSGN=OFF
-                    -DENABLE_NGSGEOID=OFF
-                    -DENABLE_NITF_RPFTOC_ECRGTOC=OFF
-                    -DENABLE_NWT=OFF
-                    -DENABLE_OZI=OFF
-                    -DENABLE_PDS_ISIS2_ISIS3_VICAR=OFF
-                    -DENABLE_PLMOSAIC=OFF
-                    -DENABLE_PNG=OFF
-                    -DENABLE_POSTGISRASTER=OFF
-                    -DENABLE_R=OFF
-                    -DENABLE_RASTERLITE=OFF
-                    -DENABLE_RIK=OFF
-                    -DENABLE_RMF=OFF
-                    -DENABLE_RS2=OFF
-                    -DENABLE_SAGA=OFF
-                    -DENABLE_SDTS_RASTER=OFF
-                    -DENABLE_SGI=OFF
-                    -DENABLE_SRTMHGT=OFF
-                    -DENABLE_TERRAGEN=OFF
-                    -DENABLE_TIL=OFF
-                    -DENABLE_TSX=OFF
-                    -DENABLE_USGSDEM=OFF
-                    -DENABLE_WCS=OFF
-                    -DENABLE_WMS=OFF
-                    -DENABLE_WMTS=OFF
-                    -DENABLE_XPM=OFF
-                    -DENABLE_XYZ=OFF
-                    -DENABLE_ZMAP=OFF
-                    -DENABLE_AERONAVFAA=OFF
-                    -DENABLE_ARCGEN=OFF
-                    -DENABLE_AVC=OFF
-                    -DENABLE_BNA=OFF
-                    -DENABLE_CARTODB=OFF
-                    -DENABLE_CLOUDANT=OFF
-                    -DENABLE_COUCHDB=OFF
-                    -DENABLE_CSV=OFF
-                    -DENABLE_CSW=OFF
-                    -DENABLE_DGN=OFF
-                    -DENABLE_DXF=OFF
-                    -DENABLE_EDIGEO=OFF
-                    -DENABLE_ELASTIC=OFF
-                    -DENABLE_GEOCONCEPT=OFF
-                    -DENABLE_GEORSS=OFF
-                    -DENABLE_GFT=OFF
-                    -DENABLE_GML=OFF
-                    -DENABLE_GMT=OFF
-                    -DENABLE_GPSBABEL=OFF
-                    -DENABLE_GPX=OFF
-                    -DENABLE_GTM=OFF
-                    -DENABLE_HTF=OFF
-                    -DENABLE_IDRISI_VECTOR=OFF
-                    -DENABLE_JML=OFF
-                    -DENABLE_NTF=OFF
-                    -DENABLE_ODS=OFF
-                    -DENABLE_OPENAIR=OFF
-                    -DENABLE_OPENFILEGDB=OFF
-                    -DENABLE_OSM=OFF
-                    -DENABLE_PDS_VECTOR=OFF
-                    -DENABLE_PG=OFF
-                    -DENABLE_PGDUMP=OFF
-                    -DENABLE_REC=OFF
-                    -DENABLE_S57=OFF
-                    -DENABLE_SDTS_VECTOR=OFF
-                    -DENABLE_SEGUKOOA=OFF
-                    -DENABLE_SEGY=OFF
-                    -DENABLE_SELAFIN=OFF
-                #    -DENABLE_SHAPE=OFF
-                    -DENABLE_SQLITE_GPKG=OFF
-                    -DENABLE_SUA=OFF
-                    -DENABLE_SVG=OFF
-                    -DENABLE_SXF=OFF
-                    -DENABLE_TIGER=OFF
-                    -DENABLE_VDV=OFF
-                    -DENABLE_VFK=OFF
-                    -DENABLE_WASP=OFF
-                    -DENABLE_WFS=OFF
-                    -DENABLE_XLSX=OFF
-                    -DGDAL_BUILD_APPS=OFF
-                    -DGDAL_BUILD_DOCS=OFF)
-    
-if(GDAL_FOUND AND NOT WITH_GDAL_EXTERNAL)
-    set(GDAL_REQUIRED_VERSION 2.1)
+include(extlib) # Find GDAL (required)
+
+if(GDAL_FOUND AND NOT WITH_GDAL_EXTERNAL) 
+    # Check version.
+    # Need at least GDAL 2.1 because of VSI zip bug: https://trac.osgeo.org/gdal/ticket/6005
+    set(GDAL_REQUIRED_VERSION 2.1) # external GDAL is always of correct version
     check_version(${GDAL_INCLUDE_DIR} GDAL_VERSION_MAJOR GDAL_VERSION_MINOR GDAL_VERSION_REV)
     set(GDAL_VERSION "${GDAL_VERSION_MAJOR}.${GDAL_VERSION_MINOR}")
     message("GDAL version: ${GDAL_VERSION}")
     if(${GDAL_VERSION} VERSION_LESS GDAL_REQUIRED_VERSION)
         message(FATAL_ERROR "GDAL must be of version " ${GDAL_REQUIRED_VERSION} " or higher!")
-    endif()
+    endif()   
 endif()
 
-# TODO: move these definitions to the fb cmake.
-# Set FULL path to /gdal_data while it will be used after installation of hte app.
-if(WIN32) 
-    #add_definitions(-DFB_INSTALLPATH_GDALDATA="${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/gdal_data")
-    add_definitions(-DFB_INSTALLPATH_GDALDATA="./gdal_data")
+if(WIN32 AND WITH_GDAL_EXTERNAL) # TODO: move this to app cmake file
+    add_definitions(-DFB_GDALDATA_IN_SHARE)
+    # Note: if we have GDAL installed for Linux it will definitely have gdal data dir.
 endif()
-option(USE_GDAL_LOG OFF)
-if(USE_GDAL_LOG) 
-    add_definitions(-DFB_GDAL_DEBUG="${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/gdal-log.txt")
+
+if(WIN32)
+    add_definitions(-DFB_SYSTRANSLATIONS_IN_SHARE)
 endif()
+
+#option(USE_GDAL_LOG OFF) # TODO: move this to app cmake file
+#if(USE_GDAL_LOG)
+#    add_definitions(-DFB_GDAL_DEBUG="${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/gdal-log.txt")
+#endif()
 
 # Build gui executable.
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-# Add to the installation path all including Qt dlls and /platform dir.
+# Add to the installation path all including Qt dlls and /platform dir (needed for Windows).
 
 #...

@@ -56,6 +56,8 @@
 #include "project/projects.h"
 #include "screen/screens.h"
 
+#define FB_PATH_TRANSLATIONS "../share/nextgis/fb/translations"
+
 // GUI constants.
 #define FB_GUI_FONTTYPE "Candara"
 #define FB_GUI_FONTTYPE_2 "Segoe UI"

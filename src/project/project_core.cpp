@@ -54,8 +54,8 @@ void FBProject::initEnv () // STATIC
     CPLSetConfigOption("CPL_LOG_ERRORS","ON");
     #endif
     CPLSetConfigOption("CPL_VSIL_ZIP_ALLOWED_EXTENSIONS",FB_PROJECT_EXTENSION);
-    #ifdef FB_INSTALLPATH_GDALDATA
-    QByteArray ba = QString(FB_INSTALLPATH_GDALDATA).toUtf8();
+    #ifdef FB_GDALDATA_IN_SHARE
+    QByteArray ba = QString(FB_PATH_GDALDATA).toUtf8();
     CPLSetConfigOption("GDAL_DATA", ba.data());
     #endif
     GDALAllRegister();
