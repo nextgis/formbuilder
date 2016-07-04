@@ -429,6 +429,7 @@ class FBForm: public QWidget
 
      // info
      bool isVoid ();
+     bool isSaveRequired ();
      QMap<int,FBElem*> getTopElems ();
      QList<FBElem*> getAllElems ();
      QList<FBElem*> getSelectedElems ();

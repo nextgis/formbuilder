@@ -543,7 +543,26 @@ void FBForm::deselectElem ()
 
 bool FBForm::isVoid ()
 {
-    return false;
+    // The form is void only if there is no elems inside it (but there can be other
+    // helper widgets).
+    bool found = true;
+    for (int i=0; i<lvForm->count(); ++i)
+    {
+        QWidget *w = lvForm->itemAt(i)->widget();
+        FBElem *e = qobject_cast<FBElem*>(w);
+        if (e != NULL)
+        {
+            found = false;
+            break;
+        }
+    }
+    return found;
+}
+
+
+bool FBForm::isSaveRequired ()
+{
+    return true;
 }
 
 

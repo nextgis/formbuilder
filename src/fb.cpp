@@ -404,6 +404,7 @@ void FB::initGui ()
     //----------------------------------------------------------------------
 
     this->updateEnableness();
+    this->updateAppTitle();
 }
 
 
@@ -755,6 +756,7 @@ void FB::onOpenClick ()
         this->updateRightMenu();
         this->updateEnableness();
         this->updateProjectString();
+        this->updateAppTitle();
 
         settLastNgfpFullPath.value = strFullPath;
     }
@@ -1370,6 +1372,7 @@ void FB::onSaveAnyEnded (FBErr err)
         this->onShowInfo(tr("Project saved successfully"));
         this->updateEnableness();
         this->updateProjectString();
+        this->updateAppTitle();
         settLastNgfpFullPath.value = project->getCurrentFilePath();
     }
     toolbSaveAs->setDown(false);
@@ -2020,6 +2023,33 @@ void FB::afterPickScreen (QToolButton *toolbDown)
 }
 
 
+// Update application title.
+void FB::updateAppTitle ()
+{
+    QString str = tr("NextGIS Formbuilder");
+
+    if (project != NULL)
+    {
+        QString strPath;
+        QString strNameBase = "";
+        FBProject::getPathComponents(project->getCurrentFilePath(),strPath,strNameBase);
+
+        if (strNameBase == "")
+        {
+            strNameBase = tr("UNSAVED");
+        }
+        else
+        {
+            strNameBase = strNameBase + "." + FB_PROJECT_EXTENSION;
+        }
+
+        str = str + " - " + strNameBase;
+    }
+
+    this->setWindowTitle(str);
+}
+
+
 /****************************************************************************/
 /*                                                                          */
 /*                             Screen                                       */
@@ -2109,6 +2139,7 @@ bool FB::newProjectCommonActions (FBProject *proj, QString path)
     this->updateRightMenu();
     this->updateEnableness();
     this->updateProjectString();
+    this->updateAppTitle();
     return true;
 }
 
@@ -2140,6 +2171,56 @@ void FB::saveProjectCommonActions (QString ngfpFullPath)
 
     // The further work is made in the separate thread which ends with calling
     // onSaveAsEnded() method.
+}
+
+
+/****************************************************************************/
+/*                                                                          */
+/*                                  Other                                   */
+/*                                                                          */
+/****************************************************************************/
+
+bool FB::isSaveRequired ()
+{
+    if (project == NULL)
+        return false;
+    FBForm *form = wScreen->getFormPtr();
+    if (form == NULL)
+        return false;
+
+    if (!project->isSaveRequired() && !form->isSaveRequired())
+    {
+        return false;
+    }
+    return true;
+}
+
+
+/****************************************************************************/
+/*                                                                          */
+/*                                 EVENTS                                   */
+/*                                                                          */
+/****************************************************************************/
+
+// CLOSE EVENT
+void FB::closeEvent (QCloseEvent *event)
+{
+    /*
+    if (this->isSaveRequired())
+    {
+        int ret = this->onShowWarning(tr("Project hasn't been saved. Do you want"
+                                         " to close the application?"));
+        if (ret == QMessageBox::Ok)
+            event->accept();
+        else
+            event->ignore();
+    }
+    else
+    {
+        event->accept();
+    }
+    */
+    QWidget::closeEvent(event);
 }
 
 

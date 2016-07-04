@@ -88,7 +88,6 @@
 #define FB_COLOR_LIGHTBLUE "rgb(139,183,224)"
 #define FB_COLOR_DARKBLUE "rgb(23,111,193)"
 
-// Limits for GUI.
 #define FB_MENURIGHT_TABLES_MAX 5
 #define FB_BOTTOMSTRING_LEN_MAX 60
 
@@ -306,6 +305,7 @@ class FB: public QWidget
      void updateStates ();
      void updateDeviceInfo ();
      void afterPickScreen (QToolButton *toolbDown);
+     void updateAppTitle ();
 
      // screen
      void pickDefaultScreen ();
@@ -315,6 +315,12 @@ class FB: public QWidget
      // project
      bool newProjectCommonActions (FBProject *proj, QString path);
      void saveProjectCommonActions (QString ngfpFullPath);
+
+     // other
+     bool isSaveRequired ();
+
+     // events
+     void closeEvent (QCloseEvent *event);
 
     private: // fields
 
