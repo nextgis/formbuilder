@@ -31,6 +31,7 @@ factories.h
 )
 
 set(LIB_CSOURCES
+dialogcsv.cpp
 dialoglistvalues.cpp
 dialogngwlookup.cpp
 dialogdlistvalues.cpp

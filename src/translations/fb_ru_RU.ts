@@ -438,6 +438,49 @@ List of authors:</source>
     </message>
 </context>
 <context>
+    <name>FBDialogCsv</name>
+    <message>
+        <source>Select only 2 columns in CSV dataset</source>
+        <translation>Выбирете только 2 колонки в источнике данных CSV</translation>
+    </message>
+    <message>
+        <source>For inner</source>
+        <translation>Для внутреннего</translation>
+    </message>
+    <message>
+        <source>For displayed</source>
+        <translation>Для отображаемого</translation>
+    </message>
+    <message>
+        <source>OK</source>
+        <translation>ОК</translation>
+    </message>
+    <message>
+        <source>Unable to open CSV dataset via GDAL</source>
+        <translation type="vanished">Невозможно открыть CSV источник данных при помощи GDAL </translation>
+    </message>
+    <message>
+        <source>Unable to read the layer in CSV dataset via GDAL</source>
+        <translation type="vanished">Невозможно считать слой в источнике данных CSV при помощи GDAL</translation>
+    </message>
+    <message>
+        <source>The amount of columns in the dataset can not be less than 2</source>
+        <translation type="vanished">Количество колонок в источнике данных не может быть меньше двух</translation>
+    </message>
+    <message>
+        <source>The amount of rows in the dataset can not be less than 2</source>
+        <translation type="vanished">Количество значений (строк) в источнике данных не может быть меньше двух</translation>
+    </message>
+    <message>
+        <source>Column for inner value: </source>
+        <translation>Колонка для внутреннего значения: </translation>
+    </message>
+    <message>
+        <source>Column for displayed value: </source>
+        <translation>Колонка для отображаемого значения: </translation>
+    </message>
+</context>
+<context>
     <name>FBDialogDatetime</name>
     <message>
         <source>Define date/time ...</source>
@@ -638,19 +681,19 @@ List of authors:</source>
     </message>
     <message>
         <source>Add</source>
-        <translation>Добавить</translation>
+        <translation type="vanished">Добавить</translation>
     </message>
     <message>
         <source>Add new void value</source>
-        <translation>Добавить новое пустое значение</translation>
+        <translation type="vanished">Добавить новое пустое значение</translation>
     </message>
     <message>
         <source>Delete</source>
-        <translation>Удалить</translation>
+        <translation type="vanished">Удалить</translation>
     </message>
     <message>
         <source>Delete selected value</source>
-        <translation>Удалить выбранное значение</translation>
+        <translation type="vanished">Удалить выбранное значение</translation>
     </message>
     <message>
         <source>Unable to add new value. There is already a maximum number of items in the list</source>
@@ -694,19 +737,19 @@ List of authors:</source>
     </message>
     <message>
         <source>Default Off</source>
-        <translation>По умолчанию Выкл</translation>
+        <translation type="vanished">По умолчанию Выкл</translation>
     </message>
     <message>
         <source>Unmark default selected value</source>
-        <translation>Отменить значение по умолчанию</translation>
+        <translation type="vanished">Отменить значение по умолчанию</translation>
     </message>
     <message>
         <source>Default On</source>
-        <translation>По умолчанию Вкл</translation>
+        <translation type="vanished">По умолчанию Вкл</translation>
     </message>
     <message>
         <source>Mark selected value as default</source>
-        <translation>Отметить значение по умолчанию</translation>
+        <translation type="vanished">Отметить значение по умолчанию</translation>
     </message>
     <message>
         <source>Synchronisation ON</source>
@@ -715,6 +758,26 @@ List of authors:</source>
     <message>
         <source>Current NextGIS Web id: </source>
         <translation>Id текущего справочника NextGIS Web: </translation>
+    </message>
+    <message>
+        <source>If you load a list of values from CSV file - all current items in the list will be removed. Continue?</source>
+        <translation>Если вы загрузите список значений из файла CSV - текущий список будет очищен. Продолжить?</translation>
+    </message>
+    <message>
+        <source>Select CSV file ...</source>
+        <translation>Выбирете CSV файл ...</translation>
+    </message>
+    <message>
+        <source>Error while processing selected CSV dataset: </source>
+        <translation>Ошибка при работе с выбранным источником данны CSV:</translation>
+    </message>
+    <message>
+        <source>The size of selected set of values exceeds the limit for the current element. The number of elements finally added to the list: </source>
+        <translation type="vanished">Размер выбранного списка значений превышает лимит для данного элемента. Итоговое количество значений было уменьшено до  </translation>
+    </message>
+    <message>
+        <source>The size of selected set of values exceeds the limit for the current element. The number of values was redused to </source>
+        <translation type="vanished">Размер выбранного списка значений превышает лимит для данного элемента. Итоговое количество значений было уменьшено до </translation>
     </message>
 </context>
 <context>
@@ -1472,6 +1535,22 @@ Try to select another saving directory</source>
     <message>
         <source>Landscape orientation</source>
         <translation>Альбомная ориентация</translation>
+    </message>
+    <message>
+        <source>Unable to open CSV dataset via GDAL</source>
+        <translation>Невозможно открыть CSV источник данных при помощи GDAL </translation>
+    </message>
+    <message>
+        <source>Unable to read the layer in CSV dataset via GDAL</source>
+        <translation>Невозможно считать слой в источнике данных CSV при помощи GDAL</translation>
+    </message>
+    <message>
+        <source>The amount of columns in the dataset can not be less than 2</source>
+        <translation>Количество колонок в источнике данных не может быть меньше двух</translation>
+    </message>
+    <message>
+        <source>The amount of rows in the dataset can not be less than 2</source>
+        <translation>Количество значений (строк) в источнике данных не может быть меньше двух</translation>
     </message>
 </context>
 </TS>

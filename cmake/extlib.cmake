@@ -19,37 +19,37 @@
 ################################################################################
 
 set(WITH_GDAL ON CACHE BOOL "GDAL on" FORCE)
-#set(WITH_GDAL_EXTERNAL ON CACHE BOOL "GDAL external on")
+set(WITH_GDAL_EXTERNAL OFF CACHE BOOL "GDAL external on")
 
 set(WITH_OpenSSL ON CACHE BOOL "OpenSSL on" FORCE)
-#set(WITH_OpenSSL_EXTERNAL ON CACHE BOOL "OpenSSL external on")
+set(WITH_OpenSSL_EXTERNAL OFF CACHE BOOL "OpenSSL external on")
 set(WITH_ICONV ON CACHE BOOL "iconv on")
-#set(WITH_ICONV_EXTERNAL ON CACHE BOOL "iconv external on")
+set(WITH_ICONV_EXTERNAL OFF CACHE BOOL "iconv external on")
 set(WITH_CURL ON CACHE BOOL "CURL on" FORCE)
-#set(WITH_CURL_EXTERNAL ON CACHE BOOL "CURL external on")
+set(WITH_CURL_EXTERNAL OFF CACHE BOOL "CURL external on")
 set(WITH_GEOS ON CACHE BOOL "GEOS on" FORCE)
-#set(WITH_GEOS_EXTERNAL ON CACHE BOOL "GEOS external on")
+set(WITH_GEOS_EXTERNAL OFF CACHE BOOL "GEOS external on")
 set(WITH_PROJ4 ON CACHE BOOL "PROJ4 on" FORCE)
-#set(WITH_PROJ4_EXTERNAL ON CACHE BOOL "PROJ4 external on")
+set(WITH_PROJ4_EXTERNAL OFF CACHE BOOL "PROJ4 external on")
 set(WITH_EXPAT ON CACHE BOOL "EXPAT on" FORCE)
-#set(WITH_EXPAT_EXTERNAL ON CACHE BOOL "EXPAT external on")
+set(WITH_EXPAT_EXTERNAL OFF CACHE BOOL "EXPAT external on")
 set(WITH_JSONC ON CACHE BOOL "JSONC on" FORCE)
-#set(WITH_JSONC_EXTERNAL ON CACHE BOOL "JSONC external on")
+set(WITH_JSONC_EXTERNAL OFF CACHE BOOL "JSONC external on")
 set(WITH_ZLIB ON CACHE BOOL "ZLIB on" FORCE)
-#set(WITH_ZLIB_EXTERNAL ON CACHE BOOL "ZLIB external on")
+set(WITH_ZLIB_EXTERNAL OFF CACHE BOOL "ZLIB external on")
 
 set(WITH_TIFF ON CACHE BOOL "TIFF on" FORCE)
-#set(WITH_TIFF_EXTERNAL ON CACHE BOOL "TIFF external on") 
+set(WITH_TIFF_EXTERNAL OFF CACHE BOOL "TIFF external on") 
 set(WITH_JPEG ON CACHE BOOL "JPEG on" FORCE)
-#set(WITH_JPEG_EXTERNAL ON CACHE BOOL "JPEG external on")
+set(WITH_JPEG_EXTERNAL OFF CACHE BOOL "JPEG external on")
 set(WITH_GeoTIFF ON CACHE BOOL "GeoTIFF on" FORCE)
-#set(WITH_GeoTIFF_EXTERNAL ON CACHE BOOL "GeoTIFF external on")
+set(WITH_GeoTIFF_EXTERNAL OFF CACHE BOOL "GeoTIFF external on")
 
-set(WITH_SQLite3 OFF CACHE BOOL "SQLite3 off" FORCE)
-set(WITH_JPEG12 OFF CACHE BOOL "JPEG12 off" FORCE)
-set(WITH_LibLZMA OFF CACHE BOOL "LibLZMA off" FORCE)
-set(WITH_PostgreSQL OFF CACHE BOOL "PostgreSQL off" FORCE)
-set(WITH_LibXml2 OFF CACHE BOOL "LibXml2 off" FORCE)
+#set(WITH_SQLite3 OFF CACHE BOOL "SQLite3 off" FORCE)
+#set(WITH_JPEG12 OFF CACHE BOOL "JPEG12 off" FORCE)
+#set(WITH_LibLZMA OFF CACHE BOOL "LibLZMA off" FORCE)
+#set(WITH_PostgreSQL OFF CACHE BOOL "PostgreSQL off" FORCE)
+#set(WITH_LibXml2 OFF CACHE BOOL "LibXml2 off" FORCE)
 
 find_anyproject(GDAL REQUIRED CMAKE_ARGS 
 
@@ -129,7 +129,7 @@ find_anyproject(GDAL REQUIRED CMAKE_ARGS
                     -DENABLE_CARTODB=OFF
                     -DENABLE_CLOUDANT=OFF
                     -DENABLE_COUCHDB=OFF
-                    -DENABLE_CSV=OFF
+                    #    -DENABLE_CSV=OFF
                     -DENABLE_CSW=OFF
                     -DENABLE_DGN=OFF
                     -DENABLE_DXF=OFF
@@ -160,7 +160,7 @@ find_anyproject(GDAL REQUIRED CMAKE_ARGS
                     -DENABLE_SEGUKOOA=OFF
                     -DENABLE_SEGY=OFF
                     -DENABLE_SELAFIN=OFF
-                #    -DENABLE_SHAPE=OFF
+                    #    -DENABLE_SHAPE=OFF
                     -DENABLE_SQLITE_GPKG=OFF
                     -DENABLE_SUA=OFF
                     -DENABLE_SVG=OFF

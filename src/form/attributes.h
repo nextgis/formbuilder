@@ -39,7 +39,7 @@
 #include "form_core.h"
 #include "ngw.h"
 
-#define FB_ATTRLIMIT_LISTVALUES_MAXCOUNT 65535
+#define FB_ATTRLIMIT_LISTVALUES_MAXCOUNT 1024
 #define FB_ATTRLIMIT_LISTVALUE_MAXLENGTH 255
 #define FB_ATTRLIMIT_STRDISPLAY_MAXSIZE 23
 
@@ -194,9 +194,6 @@ class FBDialogListvalues: public QDialog
     private slots:
      void onTableSelectionChanged ();
      void onCellChanged(int,int);
-     void onAddClicked ();
-     void onDeleteClicked ();
-     void onDefaultClicked ();
      void onClearAllClicked ();
      int onLoadNgwClicked ();
      void onLoadNgwSyncClicked ();
@@ -206,6 +203,10 @@ class FBDialogListvalues: public QDialog
      int onShowAlertBox (QString msg, QMessageBox::Icon icon);
      void onShowMsgBox (QString msg, QMessageBox::Icon icon);
      void keyPressEvent (QKeyEvent *event);
+    private slots:
+     void onAdd ();
+     void onDelete ();
+     void onDefault ();
     private:
      void appendRow ();
      void addEnterRow ();
@@ -214,15 +215,18 @@ class FBDialogListvalues: public QDialog
      void completeRow (int row);
      void unmarkDefaultRow ();
      void markDefaultRow (int row);
-     void updateDefaultButton (QTableWidgetItem *selectedItem);
-     void updateItemButtons (bool enable);
+//     void updateDefaultButton (QTableWidgetItem *selectedItem);
+//     void updateItemButtons (bool enable);
      void switchToEnterRow ();
+     void updateNgwLabel ();
+     void updateTableEnableness ();
      bool isRowVoid (int row);
      bool isOneInRowVoid (int row);
      bool isItemVoid (QTableWidgetItem *item);
-     void updateNgwLabel ();
-     void updateTableEnableness ();
-     static QString shortenStr (QString str);
+     bool isStringVoid (QString str);
+     //static QString shortenStr (QString str);
+     void formatString (QString &str);
+     void formatList (QList<QPair<QString,QString> > &values, int &valueDefault);
     private:
      bool hasUndefinedValue;
      int rowDefault;
@@ -230,11 +234,9 @@ class FBDialogListvalues: public QDialog
      QString ngwUrl; // "" means that ngw-lookup dialog can not be called
      QString ngwLogin;
      QString ngwPass;
+     QString lastCsvPath;
     private:
      FBTableDialoglistvalues *table;
-     QPushButton *butAdd;
-     QPushButton *butDelete;
-     QPushButton *butDefault;
      QToolButton *butClearAll;
      QToolButton *butLoadNgw;
      QToolButton *butLoadNgwSync;
@@ -255,6 +257,35 @@ class FBDialogLookupNgw: public FBDialogNgw
     protected:
      QList<QPair<QString,QString> > selectedLookup;
 };
+class FBDialogCsv: public QDialog
+{
+    Q_OBJECT
+    public:
+     FBDialogCsv (QWidget *parent, QString pathCsv);
+     ~FBDialogCsv () { }
+     bool loadValues (QString &errString);
+     bool getSelectedValues (QList<QPair<QString,QString> > &values,
+                             QString &errString);
+    private slots:
+     void onInnerClicked ();
+     void onDisplayedClicked ();
+     void onOkClicked () { this->accept(); }
+     void onCancelClicked () { this->reject(); }
+    private:
+     void anyButtonClick (bool isInner);
+    private:
+     QByteArray baPathCsv;
+     int iInner;
+     int iDisplayed;
+    private:
+     QListWidget *listMain;
+     QPushButton *butInner;
+     QPushButton *butDisplayed;
+     QLabel *labInner;
+     QLabel *labDisplayed;
+     QPushButton *butOk;
+};
+
 
 class FBAttrListvaluesStrict: public FBAttrListvalues
 {

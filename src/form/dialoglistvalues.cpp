@@ -36,6 +36,8 @@ FBDialogListvalues::FBDialogListvalues (QWidget *parent, bool addUndefinedValue)
     ngwLogin = "";
     ngwPass = "";
 
+    lastCsvPath = "";
+
     this->setWindowModality(Qt::ApplicationModal);
     this->setWindowTitle(tr("Define values of the element"));
     this->resize(320,400);
@@ -89,34 +91,30 @@ FBDialogListvalues::FBDialogListvalues (QWidget *parent, bool addUndefinedValue)
             this,SLOT(onTableSelectionChanged()));
     QObject::connect(table, SIGNAL(cellChanged(int,int)),
             this,SLOT(onCellChanged(int,int)));
-    table->setStyleSheet(
-                         "QTableWidget{"
+    table->setStyleSheet("QTableWidget{"
                          "selection-background-color: rgb(230,230,230);"
-                         "selection-color: black;}"
-    //                     "QTableWidget::itrm:selected{"
-    //                     "border: 1px solid red;}"
-                         );
+                         "selection-color: black;}");
 
-    butAdd = new QPushButton(this);
-    butAdd->setText(tr("Add"));
-    butAdd->setIcon(QIcon(":/img/add_item.png"));
-    butAdd->setToolTip(tr("Add new void value"));
-    QObject::connect(butAdd, SIGNAL(clicked()),
-                     this, SLOT(onAddClicked()));
-    butAdd->setEnabled(true);
+//    butAdd = new QPushButton(this);
+//    butAdd->setText(tr("Add"));
+//    butAdd->setIcon(QIcon(":/img/add_item.png"));
+//    butAdd->setToolTip(tr("Add new void value"));
+//    QObject::connect(butAdd, SIGNAL(clicked()),
+//                     this, SLOT(onAddClicked()));
+//    butAdd->setEnabled(true);
 
-    butDelete = new QPushButton(this);
-    butDelete->setText(tr("Delete"));
-    butDelete->setIcon(QIcon(":/img/delete_item.png"));
-    butDelete->setToolTip(tr("Delete selected value"));
-    QObject::connect(butDelete, SIGNAL(clicked()),
-                     this, SLOT(onDeleteClicked()));
-    butDelete->setEnabled(false);
+//    butDelete = new QPushButton(this);
+//    butDelete->setText(tr("Delete"));
+//    butDelete->setIcon(QIcon(":/img/delete_item.png"));
+//    butDelete->setToolTip(tr("Delete selected value"));
+//    QObject::connect(butDelete, SIGNAL(clicked()),
+//                     this, SLOT(onDeleteClicked()));
+//    butDelete->setEnabled(false);
 
-    butDefault = new QPushButton(this);
-    QObject::connect(butDefault, SIGNAL(clicked()),
-                     this, SLOT(onDefaultClicked()));
-    this->updateDefaultButton(NULL);
+//    butDefault = new QPushButton(this);
+//    QObject::connect(butDefault, SIGNAL(clicked()),
+//                     this, SLOT(onDefaultClicked()));
+//    this->updateDefaultButton(NULL);
 
     butOk = new QPushButton(this);
     butOk->setText(tr("OK"));
@@ -135,9 +133,9 @@ FBDialogListvalues::FBDialogListvalues (QWidget *parent, bool addUndefinedValue)
     QHBoxLayout *hlMiddle = new QHBoxLayout();
     hlMiddle->setSpacing(4);
     hlMiddle->setContentsMargins(0,0,0,0);
-    hlMiddle->addWidget(butAdd);
-    hlMiddle->addWidget(butDelete);
-    hlMiddle->addWidget(butDefault);
+//    hlMiddle->addWidget(butAdd);
+//    hlMiddle->addWidget(butDelete);
+//    hlMiddle->addWidget(butDefault);
     QVBoxLayout *v = new QVBoxLayout(this);
     v->addLayout(hlTop);
     v->addWidget(labNgw);
@@ -145,12 +143,15 @@ FBDialogListvalues::FBDialogListvalues (QWidget *parent, bool addUndefinedValue)
     v->addLayout(hlMiddle);
     v->addWidget(butOk);
 
-    // TEMPORARY:
-    butLoadCsv->hide();
-
     // For radiogroup:
     // TODO: pass the name of the element/attribute to the constructor and use it
     // to define such conditions.
+    // TODO: make the following buttons working for the radio-group element! For that
+    // fix these issues:
+    // 1) the assignement of default row to -1 in formatList
+    // 2) make correct clearness of the list so it can be fully cleared
+    // ...
+    // Many other small issues!
     if (!hasUndefinedValue)
     {
         butLoadNgw->hide();
@@ -159,31 +160,27 @@ FBDialogListvalues::FBDialogListvalues (QWidget *parent, bool addUndefinedValue)
     }
 
     // For no-button interface:
-    butAdd->hide();
-    butDelete->hide();
-    butDefault->hide();
     QObject::connect(table, SIGNAL(keyLastEnterPressed()),
-                     this, SLOT(onAddClicked()));
+                     this, SLOT(onAdd()));
     QObject::connect(table, SIGNAL(keyNotLastDeletePressed()),
-                     this, SLOT(onDeleteClicked()));
+                     this, SLOT(onDelete()));
     QObject::connect(table, SIGNAL(keyNotLastEnterPressed()),
-                     this, SLOT(onDefaultClicked()));
+                     this, SLOT(onDefault()));
 }
 
 
 // Load values to the dialog.
 // Call only after the proper initializing of the VOID table (with enter row):
 // 1) after initializing the dialog;
-// 2) after NGW lookup table loading.
+// 2) after NGW lookup table loading;
+// 3) after work of CSV dialog.
 void FBDialogListvalues::putValues (QList<QPair<QString,QString> > values,
                                     int valueDefault)
 {
+    this->formatList(values,valueDefault); // checks for correctness of the passed values
     table->blockSignals(true); // so not to trigger cellChanged() signal
     for (int i=0; i<values.size(); i++)
     {
-        // TODO: here we must check the length of added items (could be changed
-        // manually outside) and the count of items. See according slots of the
-        // dialog where it is done for added-via-dialog values.
         table->insertRow(table->rowCount()-1);
         table->setItem(table->rowCount()-2,0,new QTableWidgetItem(values[i].first));
         table->setItem(table->rowCount()-2,1,new QTableWidgetItem(values[i].second));
@@ -218,7 +215,6 @@ void FBDialogListvalues::putNgwParams (QString url, QString login, QString pass,
     ngwLogin = login;
     ngwPass = pass;
     ngwLookupId = id;
-    this->updateItemButtons(false);
     this->updateNgwLabel();
     this->updateTableEnableness();
     // Note: if there is a synchronisation with NextGIS Web lookup table - the
@@ -236,118 +232,24 @@ void FBDialogListvalues::getNgwParams (int &id)
 
 /*****************************************************************************/
 /*                                                                           */
-/*                                 SLOTS                                     */
+/*                               GUI SLOTS                                   */
 /*                                                                           */
 /*****************************************************************************/
 
 void FBDialogListvalues::onTableSelectionChanged ()
 {
-    this->updateItemButtons(true);
+//    this->updateItemButtons(true);
 }
 
 void FBDialogListvalues::onCellChanged (int row, int col)
 {
     // Check the length of an item's string and modify string if needed.
     QString itemText = table->item(row,col)->text();
-    if (itemText.size() > FB_ATTRLIMIT_LISTVALUE_MAXLENGTH)
-    {
-        itemText.chop(itemText.size() - FB_ATTRLIMIT_LISTVALUE_MAXLENGTH);
-        table->item(row,col)->setText(itemText);
-    }
+    this->formatString(itemText);
+    table->item(row,col)->setText(itemText);
 
     // Remove void items.
     this->completeRow(row); // will work also when table looses focus
-}
-
-
-void FBDialogListvalues::onAddClicked ()
-{
-    if (ngwLookupId != -1) // do nt allow if NGW syncing is On
-        return;
-    QTableWidgetItem *selectedItem = table->currentItem();
-    if (selectedItem == NULL)
-        return;
-    int selectedRow = selectedItem->row();
-    if (selectedRow != table->rowCount()-1)
-        return;
-
-    if (table->rowCount() == FB_ATTRLIMIT_LISTVALUES_MAXCOUNT)
-    {
-        this->onShowMsgBox(tr("Unable to add new value. There is already a maximum"
-                              " number of items in the list"),
-                           QMessageBox::Warning);
-        return;
-    }
-
-    if (this->isOneInRowVoid(table->rowCount()-1))
-        return;
-
-    this->appendRow();
-}
-
-
-void FBDialogListvalues::onDeleteClicked ()
-{
-    if (ngwLookupId != -1) // do nt allow if NGW syncing is On
-        return;
-    QTableWidgetItem *selectedItem = table->currentItem();
-    if (selectedItem == NULL)
-        return;
-    int selectedRow = selectedItem->row();
-    if (selectedRow == table->rowCount()-1)
-        return;
-    if (!hasUndefinedValue && table->rowCount() <= 2+1)
-        return;
-
-    table->removeRow(selectedRow);
-    if (rowDefault == selectedRow)
-    {
-        if (!hasUndefinedValue)
-        {
-            rowDefault = 0;
-            this->markDefaultRow(0);
-        }
-        else
-        {
-            rowDefault = -1;
-        }
-    }
-    else if (selectedRow < rowDefault)
-    {
-        rowDefault--;
-    }
-
-    table->setFocus();
-}
-
-
-void FBDialogListvalues::onDefaultClicked ()
-{
-    // Note: here we allow selection of default value even if NGW syncing is On.
-
-    QTableWidgetItem *selectedItem = table->currentItem();
-    if (selectedItem == NULL)
-        return;
-    int selectedRow = selectedItem->row();
-    if (selectedRow == table->rowCount()-1)
-        return;
-
-    if (rowDefault == selectedRow)
-    {
-        if (hasUndefinedValue)
-        {
-            this->unmarkDefaultRow();
-            rowDefault = -1;
-        }
-    }
-    else
-    {
-        this->unmarkDefaultRow();
-        rowDefault = selectedRow;
-        this->markDefaultRow(rowDefault);
-    }
-
-    table->setFocus();
 }
 
 
@@ -397,7 +299,6 @@ void FBDialogListvalues::onClearAllClicked ()
     this->clearAllRows(); // will also reset ngw lookup id
 
     this->switchToEnterRow();
-    this->updateItemButtons(false);
     this->updateNgwLabel();
     this->updateTableEnableness();
 }
@@ -451,11 +352,14 @@ int FBDialogListvalues::onLoadNgwClicked ()
             return -1;
         }
 
+        int initialDefault = 0;
+
+        this->formatList(list,initialDefault);
+
         this->clearAllRows(); // will also reset ngw lookup id
-        this->putValues(list,0); // rowDefault will be set inside
+        this->putValues(list,initialDefault); // rowDefault will be set inside
 
         this->switchToEnterRow();
-        this->updateItemButtons(false);
         this->updateNgwLabel();
         this->updateTableEnableness();
     }
@@ -467,10 +371,16 @@ void FBDialogListvalues::onLoadNgwSyncClicked ()
 {
     ngwLookupId = this->onLoadNgwClicked();
 
+    // Note: the list was modified in onLoadNgwClicked() if some values exceed
+    // constraints. Further behavior on the mobile device:
+    // 1) If user has internet connection: the list will be overwritten to those
+    // on the NGW server.
+    // 2) If user has no internet connection: the list will stay modified.
+    // TODO: think about issues which can arise.
+
     if (ngwLookupId == -1) // no lookup table was selected
         return;
 
-    this->updateItemButtons(false);
     this->updateNgwLabel();
     this->updateTableEnableness();
 }
@@ -478,7 +388,79 @@ void FBDialogListvalues::onLoadNgwSyncClicked ()
 
 void FBDialogListvalues::onLoadCsvClicked ()
 {
+    int ret = QMessageBox::Ok;
 
+    if (ngwLookupId != -1)
+    {
+        ret = this->onShowAlertBox(tr("Do you want to reset the list of values?"
+                                      " Current synchronisation with the NextGIS Web"
+                                      " lookup table will be removed"),
+                               QMessageBox::Warning);
+    }
+
+    else if (table->rowCount() > 0+1) // +1 for enter row
+    {
+       ret = this->onShowAlertBox(tr("If you load a list of values from CSV file -"
+                  " all current items in the list will be removed. Continue?"),
+                                       QMessageBox::Warning);
+    }
+
+    if (ret != QMessageBox::Ok)
+        return;
+
+    QFileDialog dialog(this);
+    dialog.setAcceptMode(QFileDialog::AcceptOpen);
+    dialog.setFileMode(QFileDialog::ExistingFile);
+    dialog.setViewMode(QFileDialog::List);
+    dialog.setDefaultSuffix("csv");
+    dialog.setNameFilter("*.csv");
+    dialog.setWindowTitle(tr("Select CSV file ..."));
+    dialog.setDirectory(QDir()); // current directory
+    QString lastPath = lastCsvPath;
+    if (lastPath != "")
+    {
+        QFileInfo fileInfo(lastPath);
+        dialog.setDirectory(fileInfo.absoluteDir());
+    }
+    if (dialog.exec())
+    {
+        QStringList sPaths = dialog.selectedFiles();
+        QString pathCsv = sPaths[0];
+        lastCsvPath = pathCsv;
+
+        QString errString = "";
+        FBDialogCsv dialogCsv(this,pathCsv);
+        if (!dialogCsv.loadValues(errString))
+        {
+            this->onShowMsgBox(tr("Error while processing selected CSV dataset: ")
+                               + errString, QMessageBox::Critical);
+            return;
+        }
+
+        if (dialogCsv.exec())
+        {
+            QList<QPair<QString,QString> > list;
+            QString errStr = "";
+
+            if (!dialogCsv.getSelectedValues(list,errStr))
+            {
+                this->onShowMsgBox(tr("Error while processing selected CSV dataset: ")
+                                   + errStr, QMessageBox::Critical);
+                return;
+            }
+
+            int initialDefault = 0;
+
+            this->formatList(list,initialDefault);
+
+            this->clearAllRows(); // will also reset ngw lookup id
+            this->putValues(list,initialDefault); // rowDefault will be set inside
+
+            this->switchToEnterRow();
+            this->updateNgwLabel();
+            this->updateTableEnableness();
+        }
+    }
 }
 
 
@@ -510,7 +492,104 @@ void FBDialogListvalues::keyPressEvent (QKeyEvent *event)
 
 /*****************************************************************************/
 /*                                                                           */
-/*                                METHODS                                    */
+/*                                SLOTS                                      */
+/*                                                                           */
+/*****************************************************************************/
+
+void FBDialogListvalues::onAdd ()
+{
+    if (ngwLookupId != -1) // do nt allow if NGW syncing is On
+        return;
+    QTableWidgetItem *selectedItem = table->currentItem();
+    if (selectedItem == NULL)
+        return;
+    int selectedRow = selectedItem->row();
+    if (selectedRow != table->rowCount()-1)
+        return;
+
+    if (table->rowCount() == FB_ATTRLIMIT_LISTVALUES_MAXCOUNT)
+    {
+        this->onShowMsgBox(tr("Unable to add new value. There is already a maximum"
+                              " number of items in the list"),
+                           QMessageBox::Warning);
+        return;
+    }
+
+    if (this->isOneInRowVoid(table->rowCount()-1))
+        return;
+
+    this->appendRow();
+}
+
+
+void FBDialogListvalues::onDelete ()
+{
+    if (ngwLookupId != -1) // do nt allow if NGW syncing is On
+        return;
+    QTableWidgetItem *selectedItem = table->currentItem();
+    if (selectedItem == NULL)
+        return;
+    int selectedRow = selectedItem->row();
+    if (selectedRow == table->rowCount()-1)
+        return;
+    if (!hasUndefinedValue && table->rowCount() <= 2+1)
+        return;
+
+    table->removeRow(selectedRow);
+    if (rowDefault == selectedRow)
+    {
+        if (!hasUndefinedValue)
+        {
+            rowDefault = 0;
+            this->markDefaultRow(0);
+        }
+        else
+        {
+            rowDefault = -1;
+        }
+    }
+    else if (selectedRow < rowDefault)
+    {
+        rowDefault--;
+    }
+
+    table->setFocus();
+}
+
+
+void FBDialogListvalues::onDefault ()
+{
+    // Note: here we allow selection of default value even if NGW syncing is On.
+
+    QTableWidgetItem *selectedItem = table->currentItem();
+    if (selectedItem == NULL)
+        return;
+    int selectedRow = selectedItem->row();
+    if (selectedRow == table->rowCount()-1)
+        return;
+
+    if (rowDefault == selectedRow)
+    {
+        if (hasUndefinedValue)
+        {
+            this->unmarkDefaultRow();
+            rowDefault = -1;
+        }
+    }
+    else
+    {
+        this->unmarkDefaultRow();
+        rowDefault = selectedRow;
+        this->markDefaultRow(rowDefault);
+    }
+
+    table->setFocus();
+}
+
+
+/*****************************************************************************/
+/*                                                                           */
+/*                               FUNCTIONS                                   */
 /*                                                                           */
 /*****************************************************************************/
 
@@ -592,64 +671,6 @@ void FBDialogListvalues::markDefaultRow (int row)
 }
 
 
-void FBDialogListvalues::updateDefaultButton (QTableWidgetItem *selectedItem)
-{
-    if (selectedItem == NULL || selectedItem->row() == table->rowCount()-1)
-        butDefault->setEnabled(false);
-    else
-        butDefault->setEnabled(true);
-    if (selectedItem != NULL
-            && selectedItem->row() == rowDefault
-            && hasUndefinedValue)
-    {
-        butDefault->setText(tr("Default Off"));
-        butDefault->setIcon(QIcon(":/img/default_item_off.png"));
-        butDefault->setToolTip(tr("Unmark default selected value"));
-    }
-    else
-    {
-        butDefault->setText(tr("Default On"));
-        butDefault->setIcon(QIcon(":/img/default_item_on.png"));
-        butDefault->setToolTip(tr("Mark selected value as default"));
-    }
-}
-
-void FBDialogListvalues::updateItemButtons (bool enable)
-{
-    if (enable)
-    {
-        QTableWidgetItem *selectedItem = table->currentItem();
-
-        if (selectedItem != NULL && selectedItem->row() == table->rowCount()-1)
-        {
-            butAdd->setEnabled(true);
-        }
-        else
-        {
-            butAdd->setEnabled(false);
-        }
-
-        if (selectedItem == NULL || selectedItem->row() == table->rowCount()-1)
-        {
-            butDelete->setEnabled(false);
-        }
-        else
-        {
-            butDelete->setEnabled(true);
-        }
-
-        this->updateDefaultButton(selectedItem);
-    }
-
-    else
-    {
-        butAdd->setEnabled(false);
-        butDelete->setEnabled(false);
-        butDefault->setEnabled(true);
-    }
-}
-
-
 void FBDialogListvalues::completeRow (int row)
 {
     if (this->isItemVoid(table->item(row,0)))
@@ -716,24 +737,72 @@ bool FBDialogListvalues::isOneInRowVoid (int row)
 
 bool FBDialogListvalues::isItemVoid (QTableWidgetItem *item)
 {
-    QString text = item->text();
-    if (text == "")
+    return this->isStringVoid(item->text());
+}
+
+bool FBDialogListvalues::isStringVoid (QString str)
+{
+    if (str == "")
         return true;
-    for (int i=0; i<text.size(); i++)
-        if (text[i] != ' ')
+    for (int i=0; i<str.size(); i++)
+        if (str[i] != ' ')
             return false;
     return true;
 }
 
-
-QString FBDialogListvalues::shortenStr (QString str) // STATIC
+void FBDialogListvalues::formatString (QString &str)
 {
-    if (str.size() > FB_ATTRLIMIT_STRDISPLAY_MAXSIZE)
+    if (str.size() > FB_ATTRLIMIT_LISTVALUE_MAXLENGTH)
+        str.chop(str.size() - FB_ATTRLIMIT_LISTVALUE_MAXLENGTH);
+}
+
+// Important function which brings the list of values to the appropriate
+// for the dialog and for the program state.
+// Note: if there are only incorrect values in the passed list - it will be cleared and
+// returned void!
+void FBDialogListvalues::formatList (QList<QPair<QString,QString> > &values,
+                                     int &valueDefault)
+{
+    if (values.isEmpty())
+        return;
+
+    // 1. Reduses the length of the list if it exceeds the limit.
+    if (values.size() > FB_ATTRLIMIT_LISTVALUES_MAXCOUNT)
     {
-        str.remove(0, str.size() - FB_ATTRLIMIT_STRDISPLAY_MAXSIZE);
-        str.append("...");
+        while (values.size() > FB_ATTRLIMIT_LISTVALUES_MAXCOUNT)
+            values.removeLast();
+        if (valueDefault >= FB_ATTRLIMIT_LISTVALUES_MAXCOUNT)
+            valueDefault = -1;
     }
-    return str;
+
+    // 2. Complete rows if there are partly void values or delete fully void.
+    // 3. Check and reduce length of the loaded values if needed.
+    QList<int> indexesToDel;
+    for (int i=0; i<values.size(); i++)
+    {
+        if (this->isStringVoid(values[i].first)
+                && this->isStringVoid(values[i].second))
+        {
+            indexesToDel.append(i);
+            continue;
+        }
+        else if (this->isStringVoid(values[i].first))
+        {
+            values[i].first = values[i].second;
+        }
+        else if (this->isStringVoid(values[i].second))
+        {
+            values[i].second = values[i].first;
+        }
+        this->formatString(values[i].first);
+        this->formatString(values[i].second);
+    }
+    for (int k=indexesToDel.size()-1; k>=0; k--)
+    {
+        values.removeAt(indexesToDel[k]);
+        if (indexesToDel[k] == valueDefault)
+             valueDefault = -1;
+    }
 }
 
 
