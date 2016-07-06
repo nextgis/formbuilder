@@ -24,9 +24,9 @@
 #if(WIN32)
 #  add_definitions(-D_WIN32_WINNT=0x0501)
 #endif(WIN32)
-if(CMAKE_GENERATOR_TOOLSET MATCHES "v([0-9]+)_xp")
-     add_definitions(-D_WIN32_WINNT=0x0501)
-endif()
+#if(CMAKE_GENERATOR_TOOLSET MATCHES "v([0-9]+)_xp")
+#     add_definitions(-D_WIN32_WINNT=0x0501)
+#endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -76,7 +76,7 @@ endif()
 target_link_extlibraries(${APP_NAME}) 
 
 install(TARGETS ${APP_NAME} 
-        RUNTIME DESTINATION ${INSTALL_BIN_DIR} 
+        RUNTIME DESTINATION ${INSTALL_BIN_DIR}
         ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
         LIBRARY DESTINATION ${INSTALL_LIB_DIR})
 if(WIN32)
@@ -102,4 +102,76 @@ elseif(UNIX)
     # Install program's QM file.
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/fb_ru_RU.qm DESTINATION ${INSTALL_SHARE_DIR}/translations)
 endif()
+
+################################### Packaging: ##############################################
+
+set(FB_VERSION "2.1") # TODO: get FB version from sources.
+
+set(FB_CPACK_PACKAGE_SETUPNAME "formbuilder")
+set(FB_CPACK_PACKAGE_NAME "NextGIS Formbuilder")
+set(FB_CPACK_PACKAGE_SHORTNAME "Formbuilder")
+set(FB_CPACK_VENDOR "NextGIS")
+
+set(CPACK_PACKAGE_FILE_NAME "${FB_CPACK_PACKAGE_SETUPNAME}-${FB_VERSION}-setup")
+set(CPACK_PACKAGE_NAME "${FB_CPACK_PACKAGE_NAME}")
+set(CPACK_PACKAGE_VENDOR "${FB_CPACK_VENDOR}")
+set(CPACK_PACKAGE_VERSION "${FB_VERSION}")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${FB_CPACK_PACKAGE_NAME} Installation")
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "${FB_CPACK_VENDOR}/${FB_CPACK_PACKAGE_SHORTNAME}")
+#set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "${}-${}-${}")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
+set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
+set(CPACK_PACKAGE_RELOCATABLE TRUE)
+#set(CPACK_PACKAGE_ICON ) # http://stackoverflow.com/a/28768495
+
+if(WIN32)
+    set(CPACK_GENERATOR "NSIS") #set(CPACK_GENERATOR "NSIS;ZIP")
+    set(CPACK_MONOLITHIC_INSTALL ON)
+    set(CPACK_NSIS_DISPLAY_NAME "${FB_CPACK_PACKAGE_NAME}")
+    #set(CPACK_NSIS_COMPONENT_INSTALL ON)
+    #set(CPACK_NSIS_CONTACT "${}")
+    set(CPACK_NSIS_PACKAGE_NAME "${FB_CPACK_PACKAGE_NAME}")
+    set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
+    string(REPLACE "/" "\\\\" NSIS_INSTALL_SHARE_DIR "${INSTALL_SHARE_DIR}")
+    string(REPLACE "/" "\\\\" NSIS_INSTALL_BIN_DIR "${INSTALL_BIN_DIR}")
+    set(CPACK_PACKAGE_INSTALL_DIRECTORY "${FB_CPACK_VENDOR}\\\\${FB_CPACK_PACKAGE_SHORTNAME}") # to replace '/' with '\'
+
+    # Create shortcuts.
+    # Need SetOutPath - otherwise no translations loaded when run the shortcut
+    # because working directory is set incorrectly.
+    set(CPACK_PACKAGE_EXECUTABLES "${APP_NAME};${FB_CPACK_PACKAGE_NAME}")   
+    set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
+            SetOutPath \\\"$INSTDIR\\\\bin\\\"
+            CreateShortCut \\\"$DESKTOP\\\\${FB_CPACK_PACKAGE_NAME}.lnk\\\" \\\"$INSTDIR\\\\bin\\\\${APP_NAME}.exe\\\"
+        ")
+    set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
+            Delete \\\"$DESKTOP\\\\${FB_CPACK_PACKAGE_NAME}.lnk\\\"
+        ")
+
+#else ()
+#    set (CPACK_PROJECT_CONFIG_FILE ${CMAKE_SOURCE_DIR}/cmake/CPackConfig.cmake)
+#    set (CPACK_GENERATOR "DEB;RPM;TGZ;ZIP")
+#    set (CPACK_COMPONENTS_ALL applications libraries headers documents)
+#    set (CPACK_COMPONENTS_ALL_IN_ONE_PACKAGE ON)
+#    set (CPACK_DEBIAN_COMPONENT_INSTALL ON)
+#    set (CPACK_DEBIAN_PACKAGE_SECTION "Libraries")
+#    set (CPACK_DEBIAN_PACKAGE_MAINTAINER "${PACKAGE_BUGREPORT}")
+#    set (CPACK_DEBIAN_PRE_INSTALL_SCRIPT_FILE "/sbin/ldconfig")
+#    set (CPACK_DEBIAN_PRE_UNINSTALL_SCRIPT_FILE "/sbin/ldconfig")
+#    set (CPACK_DEBIAN_POST_INSTALL_SCRIPT_FILE "/sbin/ldconfig")
+#    set (CPACK_DEBIAN_POST_UNINSTALL_SCRIPT_FILE "/sbin/ldconfig")
+#    set (CPACK_DEBIAN_PACKAGE_DEPENDS "zlib1g, libjpeg, libgeos, libcurl4-gnutls | libcurl-ssl, libexpat1, libproj, libxml2, liblzma, libarmadillo, libtiff5, libgeotiff, libjson-c, libsqlite3, python2.7, python-numpy, libpcre3, libspatialite, libpq")
+#    set (CPACK_RPM_COMPONENT_INSTALL ON)
+#    set (CPACK_RPM_PACKAGE_GROUP "Development/Tools")
+#    set (CPACK_RPM_PACKAGE_LICENSE "X/MIT")
+#    set (CPACK_RPM_PACKAGE_URL "${PACKAGE_URL}")
+#    set (CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "/sbin/ldconfig")
+#    set (CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "/sbin/ldconfig")
+#    set (CPACK_RPM_POST_INSTALL_SCRIPT_FILE "/sbin/ldconfig")
+#    set (CPACK_RPM_POST_UNINSTALL_SCRIPT_FILE "/sbin/ldconfig")
+endif ()
+
 include(InstallRequiredSystemLibraries)
+
+include(CPack)

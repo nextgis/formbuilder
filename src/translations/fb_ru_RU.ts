@@ -401,6 +401,10 @@ in program</source>
         <source>QGIS screen</source>
         <translation>Экран QGIS</translation>
     </message>
+    <message>
+        <source>UNSAVED</source>
+        <translation>Не сохранено</translation>
+    </message>
 </context>
 <context>
     <name>FBAttrDialog</name>
