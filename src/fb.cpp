@@ -1747,8 +1747,9 @@ void FB::updateEnableness ()
     }
 
     // TEMPORARY:
-    //toolbScreenWeb->setEnabled(false);
-    //toolbScreenQgis->setEnabled(false);
+    toolbScreenIos->setEnabled(false);
+    toolbScreenWeb->setEnabled(false);
+    toolbScreenQgis->setEnabled(false);
     toolbUndo->setEnabled(false);
     toolbRedo->setEnabled(false);
 }
