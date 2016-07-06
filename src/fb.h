@@ -1,633 +1,426 @@
 /******************************************************************************
- *
- * Name:     fb.h
- * Project:  NextGIS Form Builder
- * Purpose:  Main widget (application window) class declaration.
- * Author:   NextGIS
- *
+ * Project:  NextGIS Formbuilder
+ * Purpose:  main app+gui definitions
+ * Author:   Mikhail Gusev, gusevmihs@gmail.com
  ******************************************************************************
- * Copyright (c) 2014, 2015 NextGIS
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
- * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
+*   Copyright (C) 2014-2016 NextGIS
+*
+*    This program is free software: you can redistribute it and/or modify
+*    it under the terms of the GNU General Public License as published by
+*    the Free Software Foundation, either version 2 of the License, or
+*    (at your option) any later version.
+*
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU General Public License for more details.
+*
+*    You should have received a copy of the GNU General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
 #ifndef FB_H
 #define FB_H
 
 #include <QWidget>
-#include <QLabel>
-#include <QLineEdit>
-#include <QTextEdit>
-#include <QToolButton>
-#include <QPushButton>
-#include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QComboBox>
+#include <QPushButton>
+#include <QTabWidget>
 #include <QTreeWidget>
 #include <QTableWidget>
-#include <QHeaderView>
 #include <QScrollArea>
-#include <QScrollBar>
-#include <QMouseEvent>
-#include <QMessageBox>
-#include <QFileDialog>
-#include <QDateTimeEdit>
+#include <QToolButton>
 #include <QProgressBar>
-#include <QTemporaryDir>
-//#include <QTemporaryFile>
-#include <QFile>
-#include <QTextStream>
-#include <QProgressDialog>
-#include <QThread>
+#include <QLineEdit>
+#include <QTextEdit>
+#include <QCheckBox>
+#include <QDialog>
+#include <QFileDialog>
+#include <QMessageBox>
 #include <QUrl>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
-//#include <QAuthenticator>
+#include <QFileInfo>
+#include <QThread>
 #include <QSettings>
 
-//#include "gdal/ogrsf_frmts.h"
-#include "ogrsf_frmts.h"
-#include "json/json.h"
+#include "project/project_core.h"
+#include "form/form_core.h"
+#include "screen/screen_core.h"
 
-#define FB_VERSION 2.0
+#include "ngw.h"
 
-// Для всей программы: не использовать GDAL < 2.0.1, т.к. только после этой версии
-// исправлен GDAL-баг с кэшированием при работе с ИД через /vcizip/, что приводило
-// к невозможности повторного сохранения проекта в тот же файл-архив.
-// См. https://trac.osgeo.org/gdal/ticket/6005
+#include "project/projects.h"
+#include "screen/screens.h"
 
-//#define FB_GDAL_DEBUG "D:/nextgis/formbuilder-2.0/gdal_log.txt" // Куда сохранять лог.
-#define FB_NGW_API_VERS 1 // Какую версию NextGIS Web API использовать. TODO: реализовать по-настоящему.
+#define FB_PATH_TRANSLATIONS "../share/nextgis/fb/translations"
 
-#define FB_STR_NOT_SELECTED "-"
-#define FB_PROJECT_EXTENSION "ngfp"
-#define FB_PROJECT_FORM_FILENAME "form.json"
-#define FB_PROJECT_DATA_FILENAME "data.geojson"
-#define FB_PROJECT_META_FILENAME "meta.json"
-#define FB_INIT_ATTR_MAXSTRINGS 1
-#define FB_INIT_PROJECT_NAMEBASE "form" //"форма"
-#define FB_NGW_ITEM_TYPE_UNDEFINED 0
-#define FB_NGW_ITEM_TYPE_RESOURCEGROUP 1
-#define FB_NGW_ITEM_TYPE_VECTORLAYER 2
-#define FB_NGW_ITEM_TYPE_POSTGISLAYER 3
-#define FB_NEXTGIS_RU_URL "http://nextgis.ru/nextgis-formbuilder"
-#define FB_NEXTGIS_EN_URL "http://nextgis.ru/en/nextgis-formbuilder"
-#define FB_INDICATE_MEMORY_DATASET "%memory%"
-#define FB_DISPLAY_FORMAT_DATE "yyyy.MM.dd"
-#define FB_DISPLAY_FORMAT_TIME "HH:mm:ss"
-#define FB_DISPLAY_FORMAT_DATETIME "yyyy.MM.dd  HH:mm:ss"
+// GUI constants.
+#define FB_GUI_FONTTYPE "Candara"
+#define FB_GUI_FONTTYPE_2 "Segoe UI"
+#define FB_GUI_FONTSIZE_NORMAL 11
+#define FB_GUI_FONTSIZE_SMALL 9
+#define FB_GUI_SIZE_MENUTOP_MIN 100
+#define FB_GUI_SIZE_MENUTOP_MAX 120
+#define FB_GUI_SIZE_TOPBUT_ICON 60
+#define FB_GUI_SIZE_TOPBUT_BIG 65
+#define FB_GUI_SIZE_TOPBUT_SMALL 35
+#define FB_GUI_SIZE_TOPBUT_CAPTION 43
+#define FB_GUI_SIZE_TOPSPACE 10
+#define FB_GUI_SIZE_TOPSPLITT 1
+#define FB_GUI_FONTSIZE_TOPLABEL 18
+#define FB_GUI_SIZE_TREELEFTSMALL 35
+#define FB_GUI_SIZE_TREEICON 20
+#define FB_GUI_SIZE_TREEITEM_HEIGHT 20
+#define FB_GUI_SIZE_TREEITEM_PADD 5
+#define FB_GUI_SIZE_MENULEFT_FULL 240
+#define FB_GUI_SIZE_MENULEFT_SMALL 70
+#define FB_GUI_SIZE_MENURIGHT_FULL 300
+#define FB_GUI_SIZE_MENURIGHT_SMALL 40
+#define FB_COLOR_LIGHTGREY "rgb(238,238,238)"
+#define FB_COLOR_LIGHTMEDIUMGREY "rgb(210,210,210)"
+#define FB_COLOR_MEDIUMGREY "rgb(170,170,170)"
+#define FB_COLOR_DARKGREY "rgb(100,100,100)"
+#define FB_COLOR_VERYDARKGREY "rgb(46,46,46)"
+#define FB_COLOR_LIGHTBLUE "rgb(139,183,224)"
+#define FB_COLOR_DARKBLUE "rgb(23,111,193)"
 
-// Ограничения:
-#define FB_LIMIT_BOTTOM_STRING_LEN_SHORT 40
-#define FB_LIMIT_BOTTOM_STRING_LEN_LONG 70
-#define FB_LIMIT_COMBOBOX_ELEMS 65535
-#define FB_LIMIT_RADIOGROUP_ELEMS 15
+#define FB_MENURIGHT_TABLES_MAX 5
+#define FB_BOTTOMSTRING_LEN_MAX 60
 
-// Ключи для json-файла метаданных:
-#define FB_JSON_META_VERSION "version"
-#define FB_JSON_META_FIELDS "fields"
-#define FB_JSON_META_KEYNAME "keyname"
-#define FB_JSON_META_DATATYPE "datatype"
-#define FB_JSON_META_DISPLAY_NAME "display_name"
-#define FB_JSON_META_GEOMETRY_TYPE "geometry_type"
-#define FB_JSON_META_NGW_CONNECTION "ngw_connection"
-#define FB_JSON_META_SRS "srs"
-#define FB_JSON_META_ID "id"
-#define FB_JSON_META_LOGIN "login"
-#define FB_JSON_META_PASSWORD "password"
-#define FB_JSON_META_URL "url"
-
-// Ключи для json-файла формы:
-// - общие ключевые слова:
-#define FB_JSON_ATTRIBUTES "attributes"
-#define FB_JSON_TYPE "type"
-#define FB_JSON_ELEMENTS "elements" // Для составных элементов (например вкладок).
-// - названия элементов:
-#define FB_JSON_TEXT_LABEL "text_label"
-#define FB_JSON_IMAGE "image"
-#define FB_JSON_TEXT_EDIT "text_edit"
-#define FB_JSON_BUTTON "button"
-#define FB_JSON_COMBOBOX "combobox"
-#define FB_JSON_CHECKBOX "checkbox"
-#define FB_JSON_RADIOGROUP "radio_group"
-#define FB_JSON_COMPASS "compass"
-#define FB_JSON_DATE_TIME "date_time"
-#define FB_JSON_DOUBLE_COMBOBOX "double_combobox"
-#define FB_JSON_PHOTO "photo"
-#define FB_JSON_SIGNATURE "signature"
-#define FB_JSON_SPACE "space"
-#define FB_JSON_TABS "tabs"
-#define FB_JSON_GROUP "group"
-//#define FB_JSON_GROUP_START "group_start"
-//#define FB_JSON_GROUP_END "group_end"
-#define FB_JSON_VERTICAL_LAYOUT "ver_layout"
-#define FB_JSON_HORIZONTAL_LAYOUT "hor_layout"
-// - названия атрибутов:
-// --- для связи со слоем:
-#define FB_JSON_FIELD "field" // если добавятся новые field_... атрибуты, то добавить их
-#define FB_JSON_FIELD_LEVEL1 "field_level1" // в метод "импорт контролов" и "менеджер полей"
-#define FB_JSON_FIELD_LEVEL2 "field_level2"
-// --- для способа ввода:
-#define FB_JSON_IS_DIALOG "is_dialog"
-#define FB_JSON_IS_DIALOG_LEVEL1 "big_list_level1"
-#define FB_JSON_IS_DIALOG_LEVEL2 "big_list_level2"
-// --- остальное:
-#define FB_JSON_VALUE "value"
-#define FB_JSON_VALUES "values"
-#define FB_JSON_INIT_VALUE "init_value"
-#define FB_JSON_TEXT "text"
-#define FB_JSON_ONLY_FIGURES "only_figures"
-#define FB_JSON_MAX_STRING_COUNT "max_string_count"
-#define FB_JSON_LAST "last"
-#define FB_JSON_INITIAL_DATETIME "datetime"
-#define FB_JSON_DATE_TYPE "date_type"
-#define FB_JSON_REQUIRED "required"
-#define FB_JSON_INPUT_SEARCH "input_search"
-#define FB_JSON_ALLOW_ADDING_VALUES "allow_adding_values"
-#define FB_JSON_GALLERY_SIZE "gallery_size"
-// - ещё для атрибутов:
-#define FB_JSON_ALIAS "alias"
-#define FB_JSON_NAME "name"
-#define FB_JSON_DEFAULT "default"
-#define FB_JSONVALUE_NONAME "-1"
-#define FB_JSONVALUE_NOALIAS "--"
-
-
-#include "factories.h"
+#define FB_SCREEN_SIZEFACTOR 130.0 // used for actual screen scale
 
 namespace Ui
 {
     class FB;
 }
 
-class FBProgressDialog;
-class FB;
-
-
-// Один проект = вся текущая информация о единственной открытой форме: метаданные и т.д., кроме
-// самих элементов формы.
-// TODO: сделать наследники от абстрактного класса FBProject для трёх (как минимум) разных
-// тпиов проектов со своими init() функциями - для пустого, шейпа и нгв.
-class FBProject: public QObject
-{
-    Q_OBJECT
-
-    public:
-     FBProject (FB *fbPtr);
-     ~FBProject ();
-     QString getFullPath ();
-     static void getPathComponents (QString strFullPath, QString &strPath, QString &strNameBase);
-     bool init (char *datasetName);
-     bool initFromNgw (char *datasetName, QString strUrl, QString strLogin, QString strPass,
-                       QString strId, Json::Value jsonMeta);
-     void initVoid (QString strGeomType);//, QString strSrs);
-     bool open (QString strFullPath, Json::Value &retForm);
-     // Для вызова методов в отдельном потоке. Все следующие методы считаются долгими, т.к. может
-     // идти работа с большими объёмами данных через GDAL.
-     bool saveAs (QString strFullPath);
-
-     bool readNgfpJsonMeta (QString strNgfpFullPath, Json::Value &retValue);
-     bool readNgfpJsonForm (QString strNgfpFullPath, Json::Value &retValue);
-
-    private:
-     FB *fbPtr; // там указатель на раскладку из которой брать элементы при сохранении.
-
-     // TODO: сделать хранение метаданных в собственном формате, а не в json. В json
-     // переводить только при сохранении проекта.
-     Json::Value jsonMeta; // метаданные проекта
-
-     QString strPath; // каталог, где расположен файл проекта
-     QString strNameBase; // имя файла проекта (без пути)
-     QString strFirstTimeDataset; // путь к ИД, но только при создании нового проекта. В остальных случая строка пустая.
-     //QStringList strsNewImgsToSave; // аналогично для изображений.
-     //QStringList strsNewImgsToDelete;
-     QSet<QString> fieldsDeleted; // поля, удалённые в менеджере полей. При сохранении проекта обнуляются. Добавленные хранить не надо, т.к. имена полей уникальны
-     //QSet<QString> fieldsChanged;
-    public:
-     QString getStrPath () { return strPath; }
-     Json::Value getJsonMeta () { return jsonMeta; }
-     void resetSrcDatasetPath (QString strPath) { strFirstTimeDataset = strPath; }
-     void resetJsonMetaFields (Json::Value newJsonFields);
-     void updateDeletedFields (QSet<QString> newFieldsDeleted);
-
-    private:
-     bool addFileToZip (const CPLString &szFilePathName, const CPLString &szFileName,
-                       void* hZIP, GByte **pabyBuffer, size_t nBufferSize);
-     bool reprojectToInnerSrs(OGRLayer *layerTemp, OGRSpatialReference *srsOld,
-                                               OGRSpatialReference *srsNew);
-     QString getVersionString();
-     Json::Value getSrsJson (QString strJson);
-     OGRwkbGeometryType getWkbGeomFromNgwString (QString strGeom);
-
-    signals:
-     void sendMsg (QString msg);
-     void changeProgress (int value);
-};
-
-
-// Класс потока для выполнения одного долгого действия: Сохранить Как.
-class FBSaveAsThread: public QThread
-{
-    friend class FBProject; // для вызова соответствующего метода по сохранению.
-    Q_OBJECT
-     void run () Q_DECL_OVERRIDE;
-    signals:
-     void resultReady (bool result);
-    private:
-     QString strFullPath;
-    public:
-     FBSaveAsThread(QObject *parent, QString strFullPath);
-};
-
-// class FBOpenThread: public QThread
-
-
-// Виджет для вставки элементов интерфеса (сам не является элементом).
-// При отпускании кнопки на этом виджете, новый элемент интерфейса
-// добавляется на экран вместо него.
-class FBInsertWidget: public QWidget // NOTE: в коде есть проверки по имени этого класса.
-{
-    Q_OBJECT  // Q_OBJECT здесь требуется ещё и для определения типа виджета взятого из общей раскладки экрана
-
-    public:
-     FBInsertWidget(QWidget* parent);
-     //~FBInsertWidget();
-     virtual void paintEvent(QPaintEvent *pe);
-     void setShowStyle();
-     void setHideStyle();
-
-    public:
-     static FBInsertWidget* SHOWED;
-};
-
-
-// Окно приложения. Главный класс интерфейса пользователя.
-// Содержит в себе все виджеты GUI, а так же саму редактируемую форму с её элементами.
-class FB: public QWidget
-{
-    Q_OBJECT
-
-    public:
-     explicit FB (QWidget *parent = 0);
-     ~FB();
-     Json::Value formToJson ();
-     QMap<int,FBElem*> getFormElems ();
-     static QString shortenStringForOutput (QString inStr);
-
-    public:
-     static FBProject *CUR_PROJECT; // Текущий проект - переменная доступна всем извне.
-
-    public slots:
-     void showMsgBox (QString msg);
-     int showAlertBox (QString msg);
-
-    private:
-
-     Ui::FB *ui;
-
-     QToolButton *butNewVoid;
-     QToolButton *butNewShp;
-     QToolButton *butNewNgw;
-     QToolButton *butOpen;
-     QToolButton *butSave;
-     QToolButton *butSaveAs;
-     QToolButton *butAndrAll;
-     QToolButton *butPhoneAndrVer;
-     QToolButton *butPhoneAndrHor;
-     QToolButton *butTabletAndrVer;
-     QToolButton *butTabletAndrHor;
-     QToolButton *butWeb;
-     QToolButton *butQgis;
-     QToolButton *butClearScreen;
-     QToolButton *butDeleteElem;
-     QToolButton *butImportControls;
-     QToolButton *butUpdateData;
-     QToolButton *butFieldManager;
-     QToolButton *butAboutGraphics;
-     QComboBox* comboLang;
-
-     // Для интерфейса рабочей области приложения:
-     QPushButton* leftArrow;
-     QPushButton* rightArrow;
-     QTreeWidget* treeWidget; // Расширенный (основной).
-     QTreeWidget* treeWidget2; // Минималистичный (дополнительный).
-     QTableWidget* tableWidget;
-     QLabel *labTableCaption;
-
-     // Основные виджеты для работы с контролами на экране:
-     //QWidget *ui::centerWidget; // иерархически первый для всего экрана
-     QVBoxLayout *layCenter;
-     QScrollArea *wScrollArea;
-     QWidget *widScreen;
-     QVBoxLayout *layScreen; // потребуется доступ извне, чтобы читать элементы формы
-
-     FBProgressDialog *dlgProgress;
-
-     // Ставится в true только чтобы при добавлении нового элемента в конец - экран
-     // проскроллился на него. При удалении (и во всех других случаях изменения формы)
-     // скроллить не нужно - и эта переменная = false.
-     bool canScrollToEnd;
-
-     // Эти пути читаются и пишутся через QSettings. Запоминаем именно полный абсолютный
-     // путь до файлов.
-     QString strLastNewShapeFile;
-     QString strLastOpenFile;
-     QString strLastSaveAsFile;
-     QString strLastLangSelected; // так же для сохранения выбранного языка
-
-    public:
-     QVBoxLayout *getLayScreenPtr () { return layScreen; }
-     QString strLastNgwUrl;
-     QString strLastNgwLogin;
-
-    protected:
-     void keyPressEvent (QKeyEvent *);
-
-    private:
-     void recreateFactories ();
-     void clearScreen ();
-     void recreateAndroidScreen ();
-     void clearAndroidScreen ();
-     void clearElemSelection ();
-     void clearAttrTable ();
-     QToolButton *createMainMenuButton (QWidget *parent, QLayout *layout,
-                                  QString imgPath, QString text);
-     void setRightWidgetCaption (bool isElemSelected);
-     void setLeftWidgetVisible (bool isVisible);
-     void setRightWidgetVisible (bool isVisible);
-     void setBottomProjectString (QString datasetPath);
-     void onNewAnyClick (int newProjectType);
-     QList<FBElem*> fillForm (Json::Value jsonForm);
-     void writeSettings ();
-     void readSettings ();
-
-    private slots:
-     void onLeftArrowClicked ();
-     void onRightArrowClicked ();
-     void onNewVoidClick ();
-     void onNewShpClick ();
-     void onNewNgwClick ();
-     void onOpenClick ();
-     void onSaveClick ();
-     void onSaveAsClick ();
-     void onAndrAllClick ();
-     void onAndrPhoneVerClick ();
-     void onAndrPhoneHorClick ();
-     void onAndrTabletVerClick ();
-     void onAndrTabletHorClick ();
-     void onClearScreenClick ();
-     void onDeleteElemClick ();
-     void onImportControls ();
-     void onUpdateData ();
-     void onFieldManager ();
-     void onAboutGraphicsClick ();
-     FBElem *onTreeItemClicked (QTreeWidgetItem* item, int column);
-     void onAddElem (FBElem *elem);
-     void onMoveElem (FBElem *elem, FBInsertWidget *insWidget);
-     void onPressElem ();
-     void onSaveAsEnded (bool result);
-     void moveScrollBarToBottom (int min, int max);
-     void onLanguageSelected (int index);
-};
-
-
-// Диалог для подключения к NextGIS Web.
-// Цель диалога - выбрать источник данных (слой) для создания формы.
-class FBNgwDialog: public QDialog
-{
-    Q_OBJECT
-
-    public:
-
-     FBNgwDialog(FB *parent);
-     QString selectedNgwResource (QString &strUrl, QString &strLogin,
-                                  QString &strPass, QString &strId, Json::Value &jsonMeta);
-
-    private:
-
-     // Текущие выбранные параметры:
-     QString strUrl;
-     QString strLogin;
-     QString strPass;
-     QString strId;
-     Json::Value jsonMeta;
-
-     QLineEdit *wEditUrl;
-     QLineEdit *wEditLogin;
-     QLineEdit *wEditPass;
-     QPushButton *wButConnect;
-     // Временно не показываем кнопку отмены соединения, т.к. всё асинхронно и всегда
-     // можно закрыть диалог или заного нажать кнопку "соединить".
-     // TODO: сделать нормальную кнопку "отменить".
-     //QPushButton *wButCancel;
-     QPushButton *wButSelect;
-     QTreeWidget *wTree;
-     QProgressBar *wProgBar;
-     QLabel *wLabelStatus;
-
-     QNetworkAccessManager httpManager;
-     QNetworkReply *httpAuthReply;
-     QNetworkReply *httpReply;
-     QNetworkReply *httpResourceReply;
-     QNetworkReply *httpSelectedReply;
-     std::string receivedJson;
-     QTreeWidgetItem *itemToExpand;
-     std::map<int,int> itemTypes; // <item_id, item_type>
-
-    private:
-
-     QList<QTreeWidgetItem*> parseJsonReply (QNetworkReply *reply);
-
-    private slots:
-
-     void onConnectClicked ();
-     void onSelectClicked ();
-
-     void httpOnItemExpended (QTreeWidgetItem *treeItem);
-     void httpOnItemCollapsed (QTreeWidgetItem *treeItem);
-     void httpOnItemClicked (QTreeWidgetItem *treeItem, int treeItemColumn);
-
-     void httpReadyAuthRead ();
-     void httpReadyRead ();
-     void httpReadyResourceRead ();
-     void httpReadySelectedRead ();
-
-     void httpAuthFinished ();
-     void httpFinished ();
-     void httpResourceFinished ();
-     void httpSelectedFinished ();
-
-};
-
-
-// Диалог для редактирования значений списка: комбобокса, радиогруппы и т.д.
-class FBListValuesDialog: public QDialog
-{
-    Q_OBJECT
-
-    public:
-     FBListValuesDialog (QString elemName);
-
-    public: // следующие виджеты - public для чтения извне (при сохраннеии в атрибут)
-     QListWidget *listL;
-     QToolButton *butAddL; // +
-     QToolButton *butRemoveL; // -
-     QToolButton *butChangeL; // #
-     QLineEdit *editInnerL;
-     QLineEdit *editOuterL;
-     QComboBox *comboL;
-     QPushButton *butOk;
-
-    public slots:
-     void onOkClicked ();
-     void onCancelClicked ();
-     void onLeftClicked (QListWidgetItem *item);
-     void onLeftAddClicked ();
-     void onLeftRemoveClicked ();
-     void onLeftChangeClicked ();
-
-    private:
-     QString elemName;
-};
-
-
-// Диалог для ввода значений сдвоенного списка.
-class FBDoubleListValueDialog: public QDialog
-{
-    Q_OBJECT
-
-    public:
-     FBDoubleListValueDialog ();
-
-    public:
-     QTableWidget *table1;
-     QComboBox *combo1;
-     QLabel *label2;
-     QList<QTableWidget*> tables2;
-     QList<QComboBox*> combos2;
-     QPushButton *butOk;
-
-    public slots:
-     void onOkClicked ();
-     void onTable1SelectionChanged ();
-     void onTable2SelectionChanged ();
-     void onCell1Changed (int row, int col);
-     void onCell2Changed (int row, int col);
-
-    private:
-     void addTable2();
-     void removeTable2 (int row);
-     void showTable2 (int row);
-     void showMsgBox (QString msg);
-     QString getTable2String (QString srcStr);
-
-    private:
-     QVBoxLayout *vlTable2;
-     QHBoxLayout *hlCombo2;
-     QTableWidget *curTable2Ptr;
-     QComboBox *curCombo2Ptr;
-};
-
-
-// Специальный диалог для показа процесса некотрого действия без возможности его отменить
-// - например Сохранение. Для действия открытия проекта использовать QProgressDialog.
-class FBProgressDialog: public QDialog
+/**
+ * New project's dialog.
+ * Used to select geometry type of newly created project.
+ */
+class FBDialogProjectNew: public QDialog
 {
     Q_OBJECT
     public:
-     FBProgressDialog(QWidget *parent);
-     ~FBProgressDialog();
-    public: // public - для задания полей извне
-     QProgressBar *bar;
-    public slots:
-     void onChangeProgress (int value) {bar->setValue(value);}
-};
-
-
-class FBAboutDialog: public QDialog
-{
-    // Если не поставить здесь, и в других местах Q_OBJECT, то при переводе на другой язык
-    // через tr() - строки не будут переведены.
-    Q_OBJECT
-    public:
-     FBAboutDialog(QWidget *parent);
-     ~FBAboutDialog();
-};
-
-
-class FBNewVoidDialog: public QDialog
-{
-    Q_OBJECT
-    public:
-     FBNewVoidDialog(QWidget *parent);
-     ~FBNewVoidDialog();
+     FBDialogProjectNew (QWidget *parent);
+     ~FBDialogProjectNew ();
+     QString getSelectedGeom();
+    private:
      QComboBox *comboGeom;
-//     QComboBox *comboSrs;
 };
 
-
-class FBFieldManagerDialog: public QDialog
+/**
+ * NextGIS Web new project's dialog.
+ * Used to select resource on NGW server (finally received as GeoJSON dataset).
+ * See NextGIS Web API how to get json data from NGW server in the methods
+ * of this dialogue.
+ */
+class FBDialogProjectNgw: public FBDialogNgw
 {
     Q_OBJECT
-
     public:
+     FBDialogProjectNgw (QWidget *parent, QString lastNgwUrl, QString lastNgwLogin);
+     virtual ~FBDialogProjectNgw () { }
+     QString getSelectedNgwResource (QString &strUrl, QString &strUrlName,
+         QString &strLogin, QString &strPass, int &strId, Json::Value &jsonLayerMeta);
+    protected slots:
+     virtual void httpSelectedFinished ();
+};
 
-     FBFieldManagerDialog (QWidget *parent);
-     ~FBFieldManagerDialog () { }
-
+/**
+ * Fields manager dialog.
+ * Used to work with fields of the current project.
+ */
+class FBDialogFieldsManager: public QDialog
+{
+    Q_OBJECT
+    public:
+     FBDialogFieldsManager (QWidget *parent);
+     ~FBDialogFieldsManager ();
+     void loadFields (QMap<QString,FBField> fields);
+     QMap<QString,FBField> getFields ();
+     QSet<QString> getDeletedFields () { return fieldsDeleted; }
+    private slots:
+     void onAddClick ();
+     void onRemoveClick ();
+     void onItemClick (QTreeWidgetItem *item, int itemCol);
+     int onShowAlertBox (QString msg, QMessageBox::Icon icon);
+     void onShowMsgBox (QString msg, QMessageBox::Icon icon);
+    private:
      QTreeWidget *tree;
      QLineEdit *editName;
      QComboBox *comboType;
      QToolButton *butAdd;
      QToolButton *butRemove;
-     QToolButton *butChange;
      QPushButton *butOk;
      QPushButton *butCancel;
-
-     QSet<QString> fieldsDeleted;
-     //QSet<QString> fieldsChanged;
-
-    private slots:
-
-     void onAddClicked ();
-     void onRemoveClicked ();
-     void onChangeClicked ();
-
-     void onItemClicked (QTreeWidgetItem *item, int itemCol);
-
-     int showAlertBox (QString msg, QMessageBox::Icon icon);
-     void showMsgBox (QString msg, QMessageBox::Icon icon);
+    private:
+     FBProject *project;
+     QSet<QString> fieldsDeleted; // keynames of fields are stored
 };
 
-
-class FBDateTimeDialog: public QDialog
+/**
+ * Progress dialog.
+ * Shows progress bar.
+ */
+class FBDialogProgress: public QDialog
 {
     Q_OBJECT
     public:
-     FBDateTimeDialog();
-     ~FBDateTimeDialog();
-     QDateTimeEdit *wDateTime; // видно извне для чтения виджетов
-     QCheckBox *chbCurrent;
-    private slots:
-     void onCheckboxClicked (bool isChecked);
+     FBDialogProgress (QWidget *parent);
+     ~FBDialogProgress() { }
+    public slots:
+     void onChangeProgress (int value) { bar->setValue(value); }
+    private:
+     QProgressBar *bar;
 };
 
+/**
+ * About dialog.
+ * Shows about information.
+ */
+class FBDialogAbout: public QDialog
+{
+    Q_OBJECT
+    public:
+     FBDialogAbout(QWidget *parent);
+     ~FBDialogAbout();
+};
 
+/**
+ * Thread class for executing one action - "Save As".
+ */
+class FBThreadSaveAs: public QThread
+{
+    //friend class FBProject;
+    Q_OBJECT
+    public:
+     FBThreadSaveAs (QObject *parent, QString strFullPath, FBProject *project,
+                     Json::Value jsonForm);
+    signals:
+     void resultReady (FBErr err);
+    private:
+     void run ();// Q_DECL_OVERRIDE;
+    private:
+     QString strFullPath;
+     FBProject *project;
+     Json::Value jsonForm;
+};
 
+/**
+ * App's main window class.
+ * Aggregates all GUI of the app, except specific dialogues. Contains the working area
+ * to which the screen with its form is rendered.
+ */
+class FB: public QWidget
+{
+    Q_OBJECT
 
-#endif // FB_H
+    public:
+    
+     explicit FB (QWidget *parent = 0);
+     ~FB();
+     void initGui ();
+     void setFbStyle ();
+
+     void registerElements ();
+     void deregisterElements ();
+
+    private slots: // main gui slots ~ button slots
+
+     void onAddElemPress (QTreeWidgetItem* item, int column);
+     void onElemSelect ();
+     void onNewVoidClick ();
+     void onNewShapeClick ();
+     void onNewNgwClick ();
+     void onOpenClick ();
+     void onSaveClick ();
+     void onSaveAsClick ();
+     void onScreenAndroidPick ();
+     void onScreenIosPick ();
+     void onScreenWebPick ();
+     void onScreenQgisPick ();
+     void onScreenDeviceSelect (int index);
+     void onScreenStatePick ();
+     void onUndoClick ();
+     void onRedoClick ();
+     void onClearScreenClick ();
+     void onDeleteElemClick ();
+     void onFieldsManagerClick ();
+     void onImportControlsClick ();
+     void onUpdateDataClick ();
+     void onLeftArrowClick ();
+     void onRightArrowClick ();
+     void onLanguageSelect (int index);
+     void onAboutGraphicsClick ();
+
+     void keyPressEvent (QKeyEvent *);
+
+    private slots: // other slots
+
+     int onShowBox (QString msg, QString caption);
+     void onShowInfo (QString msg);
+     int onShowWarning (QString msg);
+     void onShowError (QString msg);
+     int onShowErrorFull (QString msgMain, FBErr err);
+     bool onAskToLeaveUnsafeProject ();
+     void onProjDialogFinished (int code);
+     void onSaveAnyEnded (FBErr err);
+
+    private: // methods
+
+     // settings
+     void writeSettings ();
+     void readSettings ();
+
+     // conversions
+     QString getErrStr (FBErr err);
+     QString getGroupStr (FBElemtype type);
+
+     // gui top menu
+     QToolButton *addTopMenuButton (QWidget *parentTab, QString imgPath, QString name,
+                                    QString description, bool isSmall=false,
+                                    bool withCaption=false, bool atTheEnd=false);
+     void addTopMenuSplitter (QWidget *parentTab);
+     void addTopMenuSpacer (QWidget *parentTab);
+     QComboBox *addTopMenuCombo (QWidget *parentTab, QString caption,
+                     QStringList values);
+     QLabel *addTopMenuLabel (QWidget *parentTab, QString text, QString caption);
+
+     // gui
+     FBForm *createForm();
+     void flipLeftMenu (bool isFull);
+     void flipRightMenu (bool isFull);
+     QTableWidget* addRightMenuTable ();
+     void updateEnableness ();
+     void updateLeftTrees ();
+     void updateRightMenu ();
+     void setBottomString (QString strToShorten, QString strToPrepend = "");
+     void updateProjectString ();
+     void updateDevices ();
+     void updateStates ();
+     void updateDeviceInfo ();
+     void afterPickScreen (QToolButton *toolbDown);
+     void updateAppTitle ();
+
+     // screen
+     void pickDefaultScreen ();
+     void pickVoidScreen ();
+     void recreateScreen (FBScreen *newScreen, bool destroyForm);
+
+     // project
+     bool newProjectCommonActions (FBProject *proj, QString path);
+     void saveProjectCommonActions (QString ngfpFullPath);
+
+     // other
+     bool isSaveRequired ();
+
+     // events
+     void closeEvent (QCloseEvent *event);
+
+    private: // fields
+
+     bool isInited;
+
+     // Settings.
+     struct FBSetting
+     {
+         QString key;
+         QString value;
+         QString defaultValue;
+     };
+     FBSetting settLastShapeFullPath;
+     FBSetting settLastNgfpFullPath;
+     FBSetting settLastLanguageSelected;
+     FBSetting settLastNgwUrl;
+     FBSetting settLastNgwLogin;
+
+     // Supported languages in program.
+     struct FBLangInfo
+     {
+         QString name;
+         QString code;
+         QString imgFlagPath;
+         QString imgNextgisPath;
+         QString offLink;
+     };
+     QList<FBLangInfo> languages; // the order is important
+     int indexLang; // index in this list, default is 0 = English
+
+     // Current project of the app.
+     // TODO: For future here can be an array of projects - but that requires changes
+     // in FB behaviour and appearance.
+     FBProject *project;
+
+     // registrar
+     QList<QPair<FBFctelem*,QString> > fctsElems; // first = factory, second = image path
+     //QList<QPair<FBFctscreen*,QString> > fctsScreen;
+
+     // main gui
+     Ui::FB *ui;
+     QVBoxLayout *lvAll;
+     QHBoxLayout *lhMiddle;
+    
+     // top menu
+     QTabWidget *tabMenuTop;
+     QWidget *wProject;
+     QWidget *wView;
+     QWidget *wTools;
+     QWidget *wSettings;
+     QWidget *wAbout;
+     QToolButton *toolbNewVoid;
+     QToolButton *toolbNewShape;
+     QToolButton *toolbNewNgw;
+     QToolButton *toolbOpen;
+     QToolButton *toolbSave;
+     QToolButton *toolbSaveAs;
+     QHBoxLayout *lhView;
+     QToolButton *toolbScreenAndroid;
+     QToolButton *toolbScreenIos;
+     QToolButton *toolbScreenWeb;
+     QToolButton *toolbScreenQgis;
+     QComboBox *comboScreenDevice;
+     QList<QToolButton*> toolbsScreenState;
+     QWidget *wScreenInfo;
+      QLabel *labScreenInfo1;
+      QLabel *labScreenInfo2;
+      QLabel *labScreenInfo3;
+     QToolButton *toolbUndo;
+     QToolButton *toolbRedo;
+     QToolButton *toolbClearScreen;
+     QToolButton *toolbDeleteElem;
+     QToolButton *toolbImportControls;
+     QToolButton *toolbUpdateData;
+     QToolButton *toolbFieldManager;
+     QComboBox *comboLang;
+     QToolButton *toolbAboutGraphics;
+     
+     // left menu
+     QWidget *wMenuLeft;
+     QPushButton *butArrowLeft;
+     QTreeWidget *treeLeftFull;
+     QTreeWidget *treeLeftShort;
+     
+     // right menu
+     QWidget *wMenuRight;
+     QPushButton *butArrowRight;
+     QVBoxLayout *lvRight; // for attr tables adding
+     QList<QTableWidget*> tablesRight;
+     QLabel *labRight;
+     
+     // working area
+     QScrollArea *wWorkingArea;
+
+     // screen
+     FBScreen *wScreen;
+          
+     // other gui
+     QLabel *labBottom;
+     FBDialogProgress *dlgProgress;
+};
+
+#endif //FB_H

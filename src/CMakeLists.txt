@@ -1,202 +1,177 @@
-#***************************************************************************
-# Project:  NextGIS Form Builder
+#*************************************************************************** 
+# Project:  NextGIS Formbuilder
 # Purpose:  cmake script
+# Author:  Mikhail Gusev, gusevmihs@gmail.com
 #***************************************************************************
-# Copyright (c) 2014, 2015, 2016 NextGIS
+#   Copyright (C) 2014-2016 NextGIS
 #
-# Permission is hereby granted, free of charge, to any person obtaining a
-# copy of this software and associated documentation files (the "Software"),
-# to deal in the Software without restriction, including without limitation
-# the rights to use, copy, modify, merge, publish, distribute, sublicense,
-# and/or sell copies of the Software, and to permit persons to whom the
-# Software is furnished to do so, subject to the following conditions:
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 2 of the License, or
+#    (at your option) any later version.
 #
-# The above copyright notice and this permission notice shall be included
-# in all copies or substantial portions of the Software.
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
 #
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-# OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-# DEALINGS IN THE SOFTWARE.
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #***************************************************************************
 
-#Note that setting the minimum required CMake version to 2.8.11 
-#is required for automatic linking to the qtmain.lib library on Windows.
-cmake_minimum_required(VERSION 2.8.11)
-project(fb)
-
-# Settings for nextgis-extra
-# set path to additional CMake modules
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
-
-#if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-# path example: <qt core dir>/qtbase
-if(WIN32)
-    set(QT_DIR_PREFIX_PATH "C:/Qt" CACHE PATH "This path will be set to CMAKE_PREFIX_PATH variable")
-    set(CMAKE_PREFIX_PATH ${QT_DIR_PREFIX_PATH})
-endif(WIN32)
-
-# Tell CMake to run moc when necessary:
-set(CMAKE_AUTOMOC ON)
-# As moc files are generated in the binary dir, tell CMake
-# to always look for includes there:
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-# To correctly build for Win XP
-#set(CMAKE_EXE_LINKER_FLAGS "/SUBSYSTEM:WINDOWS,5.01")
-if(WIN32)
-  add_definitions(-D_WIN32_WINNT=0x0501)
-endif(WIN32)
-
-
-###############################################################################
-## includes & find ############################################################
-###############################################################################
+# To correctly build for Win XP?
+###set(CMAKE_EXE_LINKER_FLAGS "/SUBSYSTEM:WINDOWS,5.01")
+#if(WIN32)
+#  add_definitions(-D_WIN32_WINNT=0x0501)
+#endif(WIN32)
+#if(CMAKE_GENERATOR_TOOLSET MATCHES "v([0-9]+)_xp")
+#     add_definitions(-D_WIN32_WINNT=0x0501)
+#endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/json)
 
-include(FindAnyProject)
-
-# path example: <qt core dir>/qtbase/lib/cmake/Qt5Core
-find_package(Qt5Widgets REQUIRED) # finds its own dependencies (QtGui and QtCore)
-find_package(Qt5Network REQUIRED)
-find_package(Qt5LinguistTools) # TODO: do we need it here?
-
-include_directories(${Qt5Widgets_INCLUDES}) # also includes QtCore and QtGui
-include_directories(${Qt5Network_INCLUDES})
-include_directories(${Qt5LinguistTools_INCLUDES})
-
-#find_package(GDAL REQUIRED)
-find_anyproject(GDAL REQUIRED)# VERSION 2.1)
-
-if(GDAL_FOUND)
-    include_directories(${GDAL_INCLUDE_DIR})
-    FOREACH(FILE_PATH ${GDAL_INCLUDE_DIR})
-        include_directories(${FILE_PATH}/ogr)
-        include_directories(${FILE_PATH}/ogr/ogrsf_frmts)
-        include_directories(${FILE_PATH}/port)
-        include_directories(${FILE_PATH}/gcore)
-        include_directories(${FILE_PATH}/alg)
-        include_directories(${FILE_PATH}/frmts/vrt)
-    ENDFOREACH()
-endif(GDAL_FOUND)
-
-
-###############################################################################
-## target definitions #########################################################
-###############################################################################
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/form)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/project)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/screen)
 
 set(APP_NAME fb)
 
-set(PROJECT_SOURCES
+set(APP_SOURCES
 jsoncpp.cpp
-main.cpp
+ngw.cpp
+dialognewvoid.cpp
+dialogngwproject.cpp
+dialogfieldmanager.cpp
+appicon.rc
+registrar.cpp
 fb.cpp
-attributes.cpp
-elements.cpp
-factories.cpp
-project.cpp
-insertwidget.cpp
-ngwdialog.cpp
-listvaluesdialog.cpp
-dlistvaluesdialog.cpp
-progressdialog.cpp
-aboutdialog.cpp
-newvoiddialog.cpp
-fieldmanagerdialog.cpp
-datetimedialog.cpp
-forappicon.rc)
+main.cpp
+)
 
 qt5_wrap_ui(fb_ui fb.ui)
-set(UIS_HDRS ${fb_ui})
+set(UI_HDRS ${fb_ui})
 
 qt5_add_resources(fb_res res.qrc)
 set(RESOURCES ${fb_res})
 
-if(WIN32)
-    add_executable(${APP_NAME} WIN32 ${PROJECT_SOURCES} ${RESOURCES} ${UIS_HDRS} ${QM_FILES})
-else(WIN32)
-    add_executable(${APP_NAME} ${PROJECT_SOURCES} ${RESOURCES} ${UIS_HDRS} ${QM_FILES})
-endif(WIN32)
-
-# TODO: make automatic updating *.ts files via qt5_create_translation()
+# TODO: make automatic updating of *.ts files via qt5_create_translation()
 # Use lupdate utility directly for now.
-set(TS_FILES translations/fb_en_GB.ts) # manually written .ts files
-qt5_add_translation(QM_FILES ${TS_FILES}) # no lupdate calling.
-
-
-###############################################################################
-## dependencies ###############################################################
-###############################################################################
-
-qt5_use_modules(${APP_NAME} Widgets Network LinguistTools)
-
-message(STATUS "TARGET_LINK_LIB ${TARGET_LINK_LIB}")
-
-#target_link_libraries(${APP_NAME} ${GDAL_LIBRARIES})
-target_link_extlibraries(${APP_NAME} ${GDAL_LIBRARIES})
-
-
-###############################################################################
-## installation ###############################################################
-###############################################################################
+if(Qt5LinguistTools_FOUND)
+    set(TS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/translations/fb_ru_RU.ts)
+    qt5_add_translation(QM_FILES ${TS_FILES}) # no lupdate calling.
+else()
+    message(WARNING "No Qt5LinguistTools found. All languages except english will be inavailable!")
+endif()
 
 if(WIN32)
-    install(TARGETS ${APP_NAME} RUNTIME DESTINATION ./)
-else(WIN32)
-    install(TARGETS ${APP_NAME}
-        RUNTIME DESTINATION bin
-        )
-endif(WIN32)
+    add_executable(${APP_NAME} WIN32 ${APP_SOURCES} ${FB_TARGET_OBJECTS} ${RESOURCES} ${UI_HDRS} ${QM_FILES})
+else()
+    add_executable(${APP_NAME} ${APP_SOURCES} ${FB_TARGET_OBJECTS} ${RESOURCES} ${UI_HDRS} ${QM_FILES})
+endif()
 
-# TODO: find Qt macros for install release stuff (Qt dlls, /platforms dir, etc)
+target_link_libraries(${APP_NAME} Qt5::Widgets Qt5::Network)# Qt5::LinguistTools)
+if(UNIX)
+    target_link_libraries(${APP_NAME} ${EXTRA_LIBS})
+endif()
+target_link_extlibraries(${APP_NAME}) 
+
+install(TARGETS ${APP_NAME} 
+        RUNTIME DESTINATION ${INSTALL_BIN_DIR}
+        ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
+        LIBRARY DESTINATION ${INSTALL_LIB_DIR})
 if(WIN32)
-    install(FILES ${QT_DIR_PREFIX_PATH}/lib/Qt5Core.dll DESTINATION ./)
-    install(FILES ${QT_DIR_PREFIX_PATH}/lib/Qt5Gui.dll DESTINATION ./)
-    install(FILES ${QT_DIR_PREFIX_PATH}/lib/Qt5Widgets.dll DESTINATION ./)
-    install(FILES ${QT_DIR_PREFIX_PATH}/lib/Qt5Network.dll DESTINATION ./)
-    install(FILES ${QT_DIR_PREFIX_PATH}/plugins/platforms/qwindows.dll DESTINATION platforms)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/gdal201.dll DESTINATION ./)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libcurl.dll DESTINATION ./)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libeay32.dll DESTINATION ./)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libiconv.dll DESTINATION ./)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/msvcp110.dll DESTINATION ./)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/msvcr110.dll DESTINATION ./)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/proj.dll DESTINATION ./)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/ssleay32.dll DESTINATION ./)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zlib.dll DESTINATION ./)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/fb_en_GB.qm DESTINATION ./)
-endif(WIN32)
+    # Install Qt dlls (do it anyway because Qt is yet not supported in external build system).
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        install(FILES ${QT_DIR_PREFIX_PATH}/bin/Qt5Cored.dll DESTINATION ${INSTALL_BIN_DIR})
+        install(FILES ${QT_DIR_PREFIX_PATH}/bin/Qt5Guid.dll DESTINATION ${INSTALL_BIN_DIR})
+        install(FILES ${QT_DIR_PREFIX_PATH}/bin/Qt5Widgetsd.dll DESTINATION ${INSTALL_BIN_DIR})
+        install(FILES ${QT_DIR_PREFIX_PATH}/bin/Qt5Networkd.dll DESTINATION ${INSTALL_BIN_DIR})
+        install(FILES ${QT_DIR_PREFIX_PATH}/plugins/platforms/qwindowsd.dll DESTINATION ${INSTALL_BIN_DIR}/platforms)
+    else()
+        install(FILES ${QT_DIR_PREFIX_PATH}/bin/Qt5Core.dll DESTINATION ${INSTALL_BIN_DIR})
+        install(FILES ${QT_DIR_PREFIX_PATH}/bin/Qt5Gui.dll DESTINATION ${INSTALL_BIN_DIR})
+        install(FILES ${QT_DIR_PREFIX_PATH}/bin/Qt5Widgets.dll DESTINATION ${INSTALL_BIN_DIR})
+        install(FILES ${QT_DIR_PREFIX_PATH}/bin/Qt5Network.dll DESTINATION ${INSTALL_BIN_DIR})
+        install(FILES ${QT_DIR_PREFIX_PATH}/plugins/platforms/qwindows.dll DESTINATION ${INSTALL_BIN_DIR}/platforms)
+    endif()
+    # Install QM files.
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/fb_ru_RU.qm DESTINATION ${INSTALL_SHARE_DIR}/translations)
+    install(FILES ${QT_DIR_PREFIX_PATH}/translations/qt_ru.qm DESTINATION ${INSTALL_SHARE_DIR}/translations)
+    # Note: we regard that gdal is correctly installed if there is an internal windows build - so here is no gdal data and dlls copying.
+elseif(UNIX)
+    # Install program's QM file.
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/fb_ru_RU.qm DESTINATION ${INSTALL_SHARE_DIR}/translations)
+endif()
 
+################################### Packaging: ##############################################
 
-###############################################################################
-## packaging ##################################################################
-###############################################################################
+set(FB_VERSION "2.1") # TODO: get FB version from sources.
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CPackOptions.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/CPackOptions.cmake @ONLY)
+set(FB_CPACK_PACKAGE_SETUPNAME "formbuilder")
+set(FB_CPACK_PACKAGE_NAME "NextGIS Formbuilder")
+set(FB_CPACK_PACKAGE_SHORTNAME "Formbuilder")
+set(FB_CPACK_VENDOR "NextGIS")
 
-#INCLUDE(InstallRequiredSystemLibraries)
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "NextGIS Form Builder")
-set(CPACK_PACKAGE_VENDOR "NextGIS")
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "nextgis/form-builder")
-set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "ngfb")
-set(CPACK_PROJECT_CONFIG_FILE ${CMAKE_BINARY_DIR}/CPackOptions.cmake)
-if(WIN32 AND NOT UNIX)
-        set(CPACK_BINARY_NSIS ON)
-        set(CPACK_BINARY_ZIP ON)
-        set(CPACK_NSIS_MODIFY_PATH ON)
-        set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
-else(WIN32 AND NOT UNIX)
-  #set(CPACK_STRIP_FILES "bin/wxgiscat")
-  #set(CPACK_SOURCE_STRIP_FILES "")
-endif(WIN32 AND NOT UNIX)
-set(CPACK_PACKAGE_EXECUTABLES "ngfb" "NextGIS Form Builder")
+set(CPACK_PACKAGE_FILE_NAME "${FB_CPACK_PACKAGE_SETUPNAME}-${FB_VERSION}-setup")
+set(CPACK_PACKAGE_NAME "${FB_CPACK_PACKAGE_NAME}")
+set(CPACK_PACKAGE_VENDOR "${FB_CPACK_VENDOR}")
+set(CPACK_PACKAGE_VERSION "${FB_VERSION}")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${FB_CPACK_PACKAGE_NAME} Installation")
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "${FB_CPACK_VENDOR}/${FB_CPACK_PACKAGE_SHORTNAME}")
+#set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "${}-${}-${}")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
+set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
+set(CPACK_PACKAGE_RELOCATABLE TRUE)
+#set(CPACK_PACKAGE_ICON ) # http://stackoverflow.com/a/28768495
+
+if(WIN32)
+    set(CPACK_GENERATOR "NSIS") #set(CPACK_GENERATOR "NSIS;ZIP")
+    set(CPACK_MONOLITHIC_INSTALL ON)
+    set(CPACK_NSIS_DISPLAY_NAME "${FB_CPACK_PACKAGE_NAME}")
+    #set(CPACK_NSIS_COMPONENT_INSTALL ON)
+    #set(CPACK_NSIS_CONTACT "${}")
+    set(CPACK_NSIS_PACKAGE_NAME "${FB_CPACK_PACKAGE_NAME}")
+    set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
+    string(REPLACE "/" "\\\\" NSIS_INSTALL_SHARE_DIR "${INSTALL_SHARE_DIR}")
+    string(REPLACE "/" "\\\\" NSIS_INSTALL_BIN_DIR "${INSTALL_BIN_DIR}")
+    set(CPACK_PACKAGE_INSTALL_DIRECTORY "${FB_CPACK_VENDOR}\\\\${FB_CPACK_PACKAGE_SHORTNAME}") # to replace '/' with '\'
+
+    # Create shortcuts.
+    # Need SetOutPath - otherwise no translations loaded when run the shortcut
+    # because working directory is set incorrectly.
+    set(CPACK_PACKAGE_EXECUTABLES "${APP_NAME};${FB_CPACK_PACKAGE_NAME}")   
+    set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
+            SetOutPath \\\"$INSTDIR\\\\bin\\\"
+            CreateShortCut \\\"$DESKTOP\\\\${FB_CPACK_PACKAGE_NAME}.lnk\\\" \\\"$INSTDIR\\\\bin\\\\${APP_NAME}.exe\\\"
+        ")
+    set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
+            Delete \\\"$DESKTOP\\\\${FB_CPACK_PACKAGE_NAME}.lnk\\\"
+        ")
+
+#else ()
+#    set (CPACK_PROJECT_CONFIG_FILE ${CMAKE_SOURCE_DIR}/cmake/CPackConfig.cmake)
+#    set (CPACK_GENERATOR "DEB;RPM;TGZ;ZIP")
+#    set (CPACK_COMPONENTS_ALL applications libraries headers documents)
+#    set (CPACK_COMPONENTS_ALL_IN_ONE_PACKAGE ON)
+#    set (CPACK_DEBIAN_COMPONENT_INSTALL ON)
+#    set (CPACK_DEBIAN_PACKAGE_SECTION "Libraries")
+#    set (CPACK_DEBIAN_PACKAGE_MAINTAINER "${PACKAGE_BUGREPORT}")
+#    set (CPACK_DEBIAN_PRE_INSTALL_SCRIPT_FILE "/sbin/ldconfig")
+#    set (CPACK_DEBIAN_PRE_UNINSTALL_SCRIPT_FILE "/sbin/ldconfig")
+#    set (CPACK_DEBIAN_POST_INSTALL_SCRIPT_FILE "/sbin/ldconfig")
+#    set (CPACK_DEBIAN_POST_UNINSTALL_SCRIPT_FILE "/sbin/ldconfig")
+#    set (CPACK_DEBIAN_PACKAGE_DEPENDS "zlib1g, libjpeg, libgeos, libcurl4-gnutls | libcurl-ssl, libexpat1, libproj, libxml2, liblzma, libarmadillo, libtiff5, libgeotiff, libjson-c, libsqlite3, python2.7, python-numpy, libpcre3, libspatialite, libpq")
+#    set (CPACK_RPM_COMPONENT_INSTALL ON)
+#    set (CPACK_RPM_PACKAGE_GROUP "Development/Tools")
+#    set (CPACK_RPM_PACKAGE_LICENSE "X/MIT")
+#    set (CPACK_RPM_PACKAGE_URL "${PACKAGE_URL}")
+#    set (CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "/sbin/ldconfig")
+#    set (CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "/sbin/ldconfig")
+#    set (CPACK_RPM_POST_INSTALL_SCRIPT_FILE "/sbin/ldconfig")
+#    set (CPACK_RPM_POST_UNINSTALL_SCRIPT_FILE "/sbin/ldconfig")
+endif ()
+
+include(InstallRequiredSystemLibraries)
 
 include(CPack)
-
-
-
