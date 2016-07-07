@@ -19,24 +19,54 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #***************************************************************************
 
-# To correctly build for Win XP?
-###set(CMAKE_EXE_LINKER_FLAGS "/SUBSYSTEM:WINDOWS,5.01")
-#if(WIN32)
-#  add_definitions(-D_WIN32_WINNT=0x0501)
-#endif(WIN32)
-#if(CMAKE_GENERATOR_TOOLSET MATCHES "v([0-9]+)_xp")
-#     add_definitions(-D_WIN32_WINNT=0x0501)
-#endif()
+set(APP_NAME fb)
+
+# Note: to correctly build for Win XP pass flags to the command line.
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/form)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/project)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/screen)
+# TODO: make 3 separate libraries in future: forms, projects and screens.
 
-set(APP_NAME fb)
+set(APP_HEADERS
+
+form/form_core.h
+form/attributes.h
+form/elements.h
+form/factories.h
+
+project/project_core.h
+project/projects.h
+
+screen/screen_core.h
+screen/screens.h
+screen/devices.h
+)
 
 set(APP_SOURCES
+
+form/dialogcsv.cpp
+form/dialoglistvalues.cpp
+form/dialogngwlookup.cpp
+form/dialogdlistvalues.cpp
+form/dialogdatetime.cpp
+form/form_core.cpp
+form/attributes.cpp
+form/elements.cpp
+
+project/project_core.cpp
+project/projectvoid.cpp
+project/projectgdal.cpp
+project/projectshp.cpp
+project/projectngw.cpp
+
+screen/screen_core.cpp
+screen/screencommon.cpp
+screen/screenmobile.cpp
+screen/screenandroid.cpp
+screen/screenios.cpp
+screen/screenweb.cpp
+screen/screenqgis.cpp
+
 jsoncpp.cpp
 ngw.cpp
 dialognewvoid.cpp
@@ -64,9 +94,9 @@ else()
 endif()
 
 if(WIN32)
-    add_executable(${APP_NAME} WIN32 ${APP_SOURCES} ${FB_TARGET_OBJECTS} ${RESOURCES} ${UI_HDRS} ${QM_FILES})
+    add_executable(${APP_NAME} WIN32 ${APP_SOURCES} ${APP_HEADERS} ${FB_TARGET_OBJECTS} ${RESOURCES} ${UI_HDRS} ${QM_FILES})
 else()
-    add_executable(${APP_NAME} ${APP_SOURCES} ${FB_TARGET_OBJECTS} ${RESOURCES} ${UI_HDRS} ${QM_FILES})
+    add_executable(${APP_NAME} ${APP_SOURCES} ${APP_HEADERS} ${FB_TARGET_OBJECTS} ${RESOURCES} ${UI_HDRS} ${QM_FILES})
 endif()
 
 target_link_libraries(${APP_NAME} Qt5::Widgets Qt5::Network)# Qt5::LinguistTools)
