@@ -165,15 +165,19 @@ if(WIN32)
     set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
     string(REPLACE "/" "\\\\" NSIS_INSTALL_SHARE_DIR "${INSTALL_SHARE_DIR}")
     string(REPLACE "/" "\\\\" NSIS_INSTALL_BIN_DIR "${INSTALL_BIN_DIR}")
-    set(CPACK_PACKAGE_INSTALL_DIRECTORY "${FB_CPACK_VENDOR}\\\\${FB_CPACK_PACKAGE_SHORTNAME}") # to replace '/' with '\'
+    
+    # In order to replace '/' with '\' we do it separately:
+    set(CPACK_PACKAGE_INSTALL_DIRECTORY "${FB_CPACK_VENDOR}\\\\${FB_CPACK_PACKAGE_SHORTNAME}") 
 
     # Create shortcuts.
-    # Need SetOutPath - otherwise no translations loaded when run the shortcut
-    # because working directory is set incorrectly.
+    # Need SetOutPath - otherwise no translations/gdal_data loaded when run app via this shortcut because of incorrect 
+    # working directory.
+    # For $SMPROGRAMS we replace automatically created shortcut - so no deletion of this.
     set(CPACK_PACKAGE_EXECUTABLES "${APP_NAME};${FB_CPACK_PACKAGE_NAME}")   
     set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
             SetOutPath \\\"$INSTDIR\\\\bin\\\"
             CreateShortCut \\\"$DESKTOP\\\\${FB_CPACK_PACKAGE_NAME}.lnk\\\" \\\"$INSTDIR\\\\bin\\\\${APP_NAME}.exe\\\"
+            CreateShortCut \\\"$SMPROGRAMS\\\\${FB_CPACK_PACKAGE_NAME}\\\\${FB_CPACK_PACKAGE_NAME}.lnk\\\" \\\"$INSTDIR\\\\bin\\\\${APP_NAME}.exe\\\"
         ")
     set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
             Delete \\\"$DESKTOP\\\\${FB_CPACK_PACKAGE_NAME}.lnk\\\"
