@@ -125,12 +125,16 @@ if(WIN32)
         install(FILES ${QT_DIR_PREFIX_PATH}/plugins/platforms/qwindows.dll DESTINATION ${INSTALL_BIN_DIR}/platforms)
     endif()
     # Install QM files.
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/fb_ru_RU.qm DESTINATION ${INSTALL_SHARE_DIR}/translations)
-    install(FILES ${QT_DIR_PREFIX_PATH}/translations/qt_ru.qm DESTINATION ${INSTALL_SHARE_DIR}/translations)
+    if(Qt5LinguistTools_FOUND)
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/fb_ru_RU.qm DESTINATION ${INSTALL_SHARE_DIR}/translations)
+        install(FILES ${QT_DIR_PREFIX_PATH}/translations/qt_ru.qm DESTINATION ${INSTALL_SHARE_DIR}/translations)
+    endif()
     # Note: we regard that gdal is correctly installed if there is an internal windows build - so here is no gdal data and dlls copying.
 elseif(UNIX)
     # Install program's QM file.
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/fb_ru_RU.qm DESTINATION ${INSTALL_SHARE_DIR}/translations)
+    if(Qt5LinguistTools_FOUND)
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/fb_ru_RU.qm DESTINATION ${INSTALL_SHARE_DIR}/translations)
+    endif()
 endif()
 
 ################################### Packaging: ##############################################
@@ -184,6 +188,7 @@ if(WIN32)
         ")
 
 #else ()
+
 #    set (CPACK_PROJECT_CONFIG_FILE ${CMAKE_SOURCE_DIR}/cmake/CPackConfig.cmake)
 #    set (CPACK_GENERATOR "DEB;RPM;TGZ;ZIP")
 #    set (CPACK_COMPONENTS_ALL applications libraries headers documents)
@@ -204,6 +209,7 @@ if(WIN32)
 #    set (CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "/sbin/ldconfig")
 #    set (CPACK_RPM_POST_INSTALL_SCRIPT_FILE "/sbin/ldconfig")
 #    set (CPACK_RPM_POST_UNINSTALL_SCRIPT_FILE "/sbin/ldconfig")
+
 endif ()
 
 include(InstallRequiredSystemLibraries)
