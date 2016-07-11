@@ -137,6 +137,7 @@ elseif(UNIX)
     if(Qt5LinguistTools_FOUND)
         install(FILES ${CMAKE_CURRENT_BINARY_DIR}/fb_ru_RU.qm DESTINATION ${INSTALL_SHARE_DIR}/translations)
     endif()
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/inst/debian/share/ DESTINATION share) # for adding into debian applications list
 endif()
 
 ################################### Packaging: ##############################################

@@ -210,13 +210,16 @@ FBErr FBProject::read (QString ngfpFullPath)
 
     // Compare version of this program and .ngfp file version.
     QString versFile = QString::fromUtf8(jsonMeta[FB_JSON_META_VERSION]
-                                         .asString().data());
+                                             .asString().data());
     QString versProg = FBProject::getProgVersionStr();
-    if (versFile != versProg)
+    float fVersFile = versFile.toFloat();
+    int nVersFileMain = fVersFile; // truncate fractional part
+    int nVersProgMain = FB_VERSION;
+    if (nVersFileMain < nVersProgMain)
     {
         FBProject::CUR_ERR_INFO = QObject::tr("Project file is of version ")
-                               + versFile + QObject::tr(", while the program is of "
-                               "version ") + versProg;
+                + versFile + QObject::tr(", while the program is of "
+                "version ") + versProg;
         return FBErrWrongVersion;
     }
 
@@ -276,6 +279,7 @@ Json::Value FBProject::readMeta (QString ngfpFullPath) // STATIC
     // - must be only one fixed SRS
     // type - so they can be translated to correct data for project, i.e. using
     // Json::Value::asInt() or as array of json values, etc.
+    // - version - must be convertable to float value
     // ...
 
     return jsonRet;

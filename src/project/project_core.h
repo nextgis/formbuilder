@@ -35,7 +35,7 @@
 //#define FB_PATH_GDALDATA "../share/nextgis/fb/gdal"
 #define FB_PATH_GDALDATA "../share/gdal"
 
-// The only version constant of all Formbuilder project.
+// The only float version constant of all Formbuilder project.
 #define FB_VERSION 2.1
 
 // Names.

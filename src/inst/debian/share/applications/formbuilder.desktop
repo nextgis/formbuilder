@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=2.1
+Type=Application
+Name=NextGIS Formbuilder
+Comment=Forms editor for NextGIS Mobile
+Exec=fb
+Icon=formbuilder.png
+Terminal=false
+X-MultipleArgs=false
+Categories=GIS;Science;
+StartupNotify=true
+MimeType=application/x-formbuilder;
