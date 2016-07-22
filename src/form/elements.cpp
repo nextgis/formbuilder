@@ -149,7 +149,7 @@ FBElemTextedit::FBElemTextedit ():
     FBElemInputVariate()
 {
     // ATTRIBUTE
-    FBAttrString *attrTextPtr = new FBAttrString(this, FB_ATTRNAME_TEXT,
+    attrTextPtr = new FBAttrString(this, FB_ATTRNAME_TEXT,
         tr("Initial text"),
         tr("Initial text"),
         FBNoRole,
@@ -173,6 +173,28 @@ FBElemTextedit::FBElemTextedit ():
         FBNoRole,
         false);
     attrs.insert(attrOnlyNumbers->getKeyName(),attrOnlyNumbers);
+
+    // ATTRIBUTE
+    attrNgwLogin = new FBAttrBoolean(this, FB_ATTRNAME_NGWLOGIN,
+        tr("NextGIS Web login"),
+        tr("The value in this element will be replaced with \n"
+           "user's login if the connection with NextGIS Web \n"
+           "exists for the form"),
+        FBNoRole,
+        false);
+    QObject::connect(attrNgwLogin, SIGNAL(changeOtherAttr(FBAttr*)),
+                     this, SLOT(onChangeAttrValue(FBAttr*)));
+    QObject::connect(attrNgwLogin, SIGNAL(changeAppearance(FBAttr*)),
+                     this, SLOT(onChangeAppearance(FBAttr*)));
+    attrs.insert(attrNgwLogin->getKeyName(),attrNgwLogin);
+}
+
+void FBElemTextedit::onChangeAttrValue (FBAttr* attr)
+{
+    // This is logic for the 'NGW login' attribute: we do not allow to save string
+    // value if the NGW login attr was set to true. Also we change elem's look
+    // accordingly.
+    attrTextPtr->setIgnoreValue(attrNgwLogin->getValue().toBool());
 }
 
 
@@ -341,8 +363,8 @@ FBElemDatetime::FBElemDatetime (QWidget *appWidget):
        tr("The type of value"),
        FBOtherAttrChange,
        strs, 0);
-    QObject::connect(attrTypePtr, SIGNAL(changeOtherAttr()),
-                     this, SLOT(onChangeAttrValue()));
+    QObject::connect(attrTypePtr, SIGNAL(changeOtherAttr(FBAttr*)),
+                     this, SLOT(onChangeAttrValue(FBAttr*)));
     QObject::connect(attrTypePtr, SIGNAL(changeAppearance(FBAttr*)),
                      this, SLOT(onChangeAppearance(FBAttr*)));
     attrs.insert(attrTypePtr->getKeyName(),attrTypePtr);
@@ -358,7 +380,7 @@ FBElemDatetime::FBElemDatetime (QWidget *appWidget):
     attrs.insert(attrDatetimePtr->getKeyName(),attrDatetimePtr);
 }
 
-void FBElemDatetime::onChangeAttrValue ()
+void FBElemDatetime::onChangeAttrValue (FBAttr *attr)
 {
     attrDatetimePtr->changeFormat(
                 FBForm::DATETIME_FORMATS[attrTypePtr->getValue().toInt()]);

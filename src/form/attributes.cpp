@@ -144,11 +144,16 @@ FBAttrString::FBAttrString (FBElem *parentElem, QString keyName, QString display
     FBAttr(parentElem ,keyName, displayName, descr, role)
 {
     value = initValue;
+    ignoreValue = false;
 }
 
 Json::Value FBAttrString::toJson ()
 {
     Json::Value jsonRet;
+    if (ignoreValue)
+    {
+        return jsonRet; // null will be returned
+    }
     QByteArray ba = value.toUtf8();
     jsonRet = ba.data();
     return jsonRet;
@@ -156,8 +161,13 @@ Json::Value FBAttrString::toJson ()
 
 bool FBAttrString::fromJson (Json::Value jsonVal)
 {
-    if (jsonVal.isNull() || !jsonVal.isString())
-        return false; // TODO: how else to check for correct string conversion?
+    if (!jsonVal.isNull() && !jsonVal.isString())
+        return false;
+    if (jsonVal.isNull())
+    {
+        ignoreValue = true; // value will stay default (set in constructor)
+        return true;
+    }
     QByteArray ba = jsonVal.asString().data();
     value = QString::fromUtf8(ba);
     return true;
@@ -170,6 +180,13 @@ QWidget *FBAttrString::getWidget ()
     QObject::connect(widget, SIGNAL(textChanged(QString)),
                      this, SLOT(onEditEnd(QString)));
     return widget;
+}
+
+QVariant FBAttrString::getValue ()
+{
+    if (ignoreValue)
+        return QString("...");
+    return value;
 }
 
 void FBAttrString::onEditEnd (QString lineEditText)
@@ -253,6 +270,7 @@ bool FBAttrBoolean::fromJson (Json::Value jsonVal)
     if (jsonVal.isNull() || !(jsonVal.isBool()))
         return false;
     value = jsonVal.asBool();
+    emit changeOtherAttr(this);
     return true;
 }
 
@@ -271,6 +289,7 @@ void FBAttrBoolean::onEditEnd (int checkBoxValue)
         value = false;
     else
         value = true;
+    emit changeOtherAttr(this);
     emit changeAppearance(this);
 }
 
@@ -633,7 +652,7 @@ bool FBAttrSelect::fromJson (Json::Value jsonVal)
     if (jsonVal.isNull() || !jsonVal.isInt()) // TODO: .asInt64()?
         return false;
     value = jsonVal.asInt();
-    emit changeOtherAttr();
+    emit changeOtherAttr(this);
     return true;
 }
 
@@ -653,7 +672,7 @@ QWidget *FBAttrSelect::getWidget ()
 void FBAttrSelect::onEditEnd (int indexSelected)
 {
     value = indexSelected;
-    emit changeOtherAttr();
+    emit changeOtherAttr(this);
     emit changeAppearance(this);
 }
 

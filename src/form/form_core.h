@@ -94,6 +94,7 @@
 #define FB_ATTRNAME_ALLOWADDING "allow_adding_values"
 #define FB_ATTRNAME_GALLERYSIZE "gallery_size"
 #define FB_ATTRNAME_NGW_ID "ngw_id"
+#define FB_ATTRNAME_NGWLOGIN "ngw_login"
 
 enum FBElemtype
 {
@@ -185,8 +186,8 @@ class FBAttr: public QObject
 
     signals:
 
-     void changeOtherAttr (); // in order to signalize to some other attrs of this element
-                              // that they should be changed
+     void changeOtherAttr (FBAttr* thisAttr); // in order to signalize to some other
+                                 //attrs of this element that they should be changed
      void changeAppearance (FBAttr* thisAttr); // indicates that changing this attr
                                                // changes elem's appearance
     protected:
@@ -295,7 +296,7 @@ class FBElem: public QWidget
 
     protected slots:
 
-     virtual void onChangeAttrValue ();
+     virtual void onChangeAttrValue (FBAttr *attr);
      virtual void onChangeAppearance (FBAttr *attr);
 
     protected: // methods

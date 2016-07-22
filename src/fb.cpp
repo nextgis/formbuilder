@@ -2167,6 +2167,7 @@ void FB::saveProjectCommonActions (QString ngfpFullPath)
                      this, SLOT(onSaveAnyEnded(FBErr)));
     QObject::connect(thread,SIGNAL(finished()),
                      thread, SLOT(deleteLater()));
+
     thread->start();
     dlgProgress->exec();
 

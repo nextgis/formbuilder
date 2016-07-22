@@ -92,11 +92,13 @@ class FBAttrString: public FBAttr
      Json::Value toJson ();
      bool fromJson (Json::Value jsonVal);
      QWidget *getWidget ();
-     QVariant getValue () { return value; }
+     QVariant getValue ();
+     void setIgnoreValue (bool yes) { ignoreValue = yes; }
     protected slots:
      void onEditEnd (QString lineEditText);
     private:
      QString value;
+     bool ignoreValue; // see FBAttrDatetime
 };
 
 class FBAttrNumber: public FBAttr

@@ -190,7 +190,7 @@ FBAttr* FBElem::getAttr (QString attrKeyName)
 }
 
 
-void FBElem::onChangeAttrValue ()
+void FBElem::onChangeAttrValue (FBAttr *attr)
 {
     return;
 }

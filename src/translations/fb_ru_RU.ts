@@ -1277,6 +1277,18 @@ the selection of only one value</source>
         <translation>Элемент, позволяющий редактировать простую
 строку текста</translation>
     </message>
+    <message>
+        <source>NextGIS Web login</source>
+        <translation>Логин NextGIS Web </translation>
+    </message>
+    <message>
+        <source>The value in this element will be replaced with 
+user&apos;s login if the connection with NextGIS Web 
+exists for the form</source>
+        <translation>Значение этого элемента будет заменено на 
+пользовательский логин из соединения с NextGIS Web 
+если оно существует для данного проекта</translation>
+    </message>
 </context>
 <context>
     <name>FBProject</name>

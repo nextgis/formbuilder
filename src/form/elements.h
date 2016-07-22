@@ -106,6 +106,11 @@ class FBElemTextedit: public FBElemInputVariate
      virtual QString getDisplayName () { return tr("Text edit"); }
      virtual QString getDescription () { return tr("Element for editing simple text"); }
      virtual FBElemtype getType () { return FBInput; }
+    protected slots:
+     void onChangeAttrValue (FBAttr *attr); // see FBElemDatetime
+    protected:
+     FBAttrString *attrTextPtr;
+     FBAttrBoolean *attrNgwLogin;
 };
 
 class FBElemCombobox: public FBElemInputVariate
@@ -174,7 +179,7 @@ class FBElemDatetime: public FBElemInputVariate
      virtual QString getDescription () { return tr("Date, time or date+time picker"); }
      virtual FBElemtype getType () { return FBInput; }
     protected slots:
-     void onChangeAttrValue ();
+     void onChangeAttrValue (FBAttr *attr);
     protected:
      // TODO: unite two attributes into one: the value of the date and its type (format),
      // because for now some strange dependancies between these two attributes are used.
