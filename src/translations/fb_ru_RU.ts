@@ -331,7 +331,7 @@ in program</source>
     </message>
     <message>
         <source>Reading project file error</source>
-        <translation>Ошибка чтения временного файла</translation>
+        <translation>Ошибка чтения файла проекта</translation>
     </message>
     <message>
         <source>Different file structures</source>

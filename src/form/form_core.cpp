@@ -741,8 +741,13 @@ bool FBForm::parseJson (Json::Value jsonVal, QList<FBElem*> &retList) // STATIC
             baKn = (*it2)->getKeyName().toUtf8();
             if (!((*it2)->fromJson(jsonAttrsSet[baKn.data()])))
             {
-                ok = false;
-                break;
+                // We can reach this only if there is an attribute in the elem's structure
+                // which does not exist at all in the passed json (json is correct because
+                // we checked this in the readForm method). Such situiation is possible
+                // only if we read the file of earlier version than the program's one.
+
+                //ok = false;
+                //break;
             }
             ++it2;
         }
