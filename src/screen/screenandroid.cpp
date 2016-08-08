@@ -665,6 +665,40 @@ void FBDecAndrSignature::redecor (FBElem* elem)
 }
 
 
+void FBDecAndrCounter::redecor (FBElem* elem)
+{
+    if (elem == NULL) return;
+    this->clearWithDefaults(elem);
+    QLabel *labText = new QLabel(elem);
+    labText->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+    labText->setFont(QFont(FB_ANDR_FONTTYPE,
+                           FB_ANDR_FONTSIZE_NORMAL));
+    labText->setStyleSheet("QLabel"
+                           "{color: "+QString(FB_ANDR_COLOR_DARKGREY)+";"
+                               "border-top: none;"
+                               "border-left: none;"
+                               "border-right: none;"
+                               "border-bottom: none;}");
+    elem->addAsDecor(labText,FB_NAMEDDECOR_TEXT);
+}
+void FBDecAndrCounter::update (FBElem* elem)
+{
+    // Appearance depends on format and initial  value.
+    if (elem == NULL) return;
+    FBAttr *attrIv = elem->getAttr(FB_ATTRNAME_INITVALUE);
+    FBAttr *attrPr = elem->getAttr(FB_ATTRNAME_PREFIX);
+    FBAttr *attrSu = elem->getAttr(FB_ATTRNAME_SUFFIX);
+    if (attrIv == NULL || attrPr == NULL || attrSu == NULL) return;
+    QString strIv = QString::number(attrIv->getValue().toInt());
+    QString strPr = attrPr->getValue().toString();
+    QString strSu = attrSu->getValue().toString();
+    QLabel *labText = (QLabel*)elem->findAsDecor(FB_NAMEDDECOR_TEXT);
+    if (labText == NULL) return;
+    labText->setText(" " + strPr + strIv + strSu);
+}
+
+
+// REGISTRAR:
 void FBScreenAndroid::registerDecorators ()
 {
     this->registerDecorator(FB_ELEMNAME_TEXT_LABEL, new FBDecAndrText());
@@ -678,4 +712,5 @@ void FBScreenAndroid::registerDecorators ()
     this->registerDecorator(FB_ELEMNAME_BUTTON, new FBDecAndrButton());
     this->registerDecorator(FB_ELEMNAME_PHOTO, new FBDecAndrPhoto());
     this->registerDecorator(FB_ELEMNAME_SIGNATURE, new FBDecAndrSignature());
+    this->registerDecorator(FB_ELEMNAME_COUNTER, new FBDecAndrCounter());
 }

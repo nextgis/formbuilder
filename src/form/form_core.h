@@ -70,6 +70,7 @@
 #define FB_ELEMNAME_PHOTO "photo"
 #define FB_ELEMNAME_SIGNATURE "signature"
 #define FB_ELEMNAME_SPACE "space"
+#define FB_ELEMNAME_COUNTER "counter"
 //#define FB_ELEMNAME_TABS "tabs"
 //#define FB_ELEMNAME_GROUP "group"
 //#define FB_ELEMNAME_VERTICAL_LAYOUT "ver_layout"
@@ -95,6 +96,10 @@
 #define FB_ATTRNAME_GALLERYSIZE "gallery_size"
 #define FB_ATTRNAME_NGW_ID "ngw_id"
 #define FB_ATTRNAME_NGWLOGIN "ngw_login"
+#define FB_ATTRNAME_PREFIX "prefix"
+#define FB_ATTRNAME_SUFFIX "suffix"
+#define FB_ATTRNAME_INCREMENT "increment"
+
 
 enum FBElemtype
 {

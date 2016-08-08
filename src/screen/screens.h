@@ -268,6 +268,14 @@ class FBDecAndrSignature: public FBDecoratorAndroid
     protected:
     QPixmap pixSign;
 };
+class FBDecAndrCounter: public FBDecoratorAndroid
+{
+    public:
+    FBDecAndrCounter (): FBDecoratorAndroid() { }
+    ~FBDecAndrCounter () { }
+    virtual void redecor (FBElem *elem);
+    virtual void update (FBElem *elem);
+};
 
 
 /**

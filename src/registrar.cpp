@@ -49,6 +49,7 @@ void FB::registerElements ()
     fctsElems.append(QPair<FBFctelem*,QString>(new FBFctelemButton(),":/img/button.png"));
     fctsElems.append(QPair<FBFctelem*,QString>(new FBFctelemPhoto(),":/img/photo.png"));
     fctsElems.append(QPair<FBFctelem*,QString>(new FBFctelemSignature(),":/img/signature.png"));
+    fctsElems.append(QPair<FBFctelem*,QString>(new FBFctelemCounter(),":/img/counter.png"));
 
     // FOR DEVELOPERS: add factories here:
     // ...

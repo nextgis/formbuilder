@@ -76,5 +76,6 @@
         <file>img/load_ngw.png</file>
         <file>img/clear_all.png</file>
         <file>img/load_ngw_sync.png</file>
+        <file>img/counter.png</file>
     </qresource>
 </RCC>

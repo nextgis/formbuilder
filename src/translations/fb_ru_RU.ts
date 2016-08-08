@@ -1041,6 +1041,53 @@ list during the typing</source>
     </message>
 </context>
 <context>
+    <name>FBElemCounter</name>
+    <message>
+        <source>Prefix</source>
+        <translation>Префикс</translation>
+    </message>
+    <message>
+        <source>Text to add before value (can be void)</source>
+        <translation>Текст, добавляемый перед значением</translation>
+    </message>
+    <message>
+        <source>Suffix</source>
+        <translation>Суффикс</translation>
+    </message>
+    <message>
+        <source>Text to add after value (can be void)</source>
+        <translation>Текст, добавляемый после значения</translation>
+    </message>
+    <message>
+        <source>Initial value</source>
+        <translation>Начальное значение</translation>
+    </message>
+    <message>
+        <source>Initial value from which incrementing starts</source>
+        <translation>Начальное значение, с чего начинается инкремент</translation>
+    </message>
+    <message>
+        <source>Increment</source>
+        <translation>Инкремент</translation>
+    </message>
+    <message>
+        <source>Which value is added to the current value
+each time user collects data</source>
+        <translation>Значение, прибавляемое к текущему значению контрола
+каждый раз, когда пользователь вводит данные об объекте</translation>
+    </message>
+    <message>
+        <source>Counter</source>
+        <translation>Счётчик</translation>
+    </message>
+    <message>
+        <source>Incrementally adds values based
+on predefined format</source>
+        <translation>Записывает автоматически инкрементируемое
+значение в заранее заданном формате</translation>
+    </message>
+</context>
+<context>
     <name>FBElemDatetime</name>
     <message>
         <source>Type</source>

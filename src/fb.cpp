@@ -756,6 +756,7 @@ void FB::onOpenClick ()
         this->updateRightMenu();
         this->updateEnableness();
         this->updateProjectString();
+        this->openSideMenus();
         this->updateAppTitle();
 
         settLastNgfpFullPath.value = strFullPath;
@@ -1621,7 +1622,6 @@ void FB::flipLeftMenu (bool isFull)
     else
         wMenuLeft->setFixedWidth(FB_GUI_SIZE_MENULEFT_SMALL);
 
-
     treeLeftFull->setVisible(isFull);
     treeLeftShort->setVisible(!isFull);
     if (!isFull)
@@ -1648,6 +1648,11 @@ void FB::flipRightMenu (bool isFull)
         butArrowRight->setIcon(QIcon(":/img/arrow_left.png"));
     else
         butArrowRight->setIcon(QIcon(":/img/arrow_right.png"));
+}
+void FB::openSideMenus ()
+{
+    this->flipLeftMenu(true);
+    this->flipRightMenu(true);
 }
 
 
@@ -2140,6 +2145,7 @@ bool FB::newProjectCommonActions (FBProject *proj, QString path)
     this->updateRightMenu();
     this->updateEnableness();
     this->updateProjectString();
+    this->openSideMenus();
     this->updateAppTitle();
     return true;
 }

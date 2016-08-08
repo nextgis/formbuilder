@@ -112,5 +112,13 @@ class FBFctelemSignature: public FBFctelem
      FBElem *create () { return new FBElemSignature(); }
 };
 
+class FBFctelemCounter: public FBFctelem
+{
+    public:
+     FBFctelemCounter (): FBFctelem () { }
+     ~FBFctelemCounter () { }
+     FBElem *create () { return new FBElemCounter(); }
+};
+
 #endif // FACTORIES_H
 

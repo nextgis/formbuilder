@@ -450,5 +450,53 @@ FBElemSignature::FBElemSignature ():
 }
 
 
+/*****************************************************************************/
+/*                                                                           */
+/*                            FBElemCounter                                  */
+/*                                                                           */
+/*****************************************************************************/
+
+FBElemCounter::FBElemCounter ():
+    FBElemInput()
+{
+    // ATTRIBUTE
+    attrPrefixPtr = new FBAttrString(this, FB_ATTRNAME_PREFIX,
+        tr("Prefix"),
+        tr("Text to add before value (can be void)"),
+        FBNoRole,
+        tr(""));
+    QObject::connect(attrPrefixPtr, SIGNAL(changeAppearance(FBAttr*)),
+                     this, SLOT(onChangeAppearance(FBAttr*)));
+    attrs.insert(attrPrefixPtr->getKeyName(),attrPrefixPtr);
+
+    // ATTRIBUTE
+    attrSuffixPtr = new FBAttrString(this, FB_ATTRNAME_SUFFIX,
+        tr("Suffix"),
+        tr("Text to add after value (can be void)"),
+        FBNoRole,
+        tr(""));
+    QObject::connect(attrSuffixPtr, SIGNAL(changeAppearance(FBAttr*)),
+                     this, SLOT(onChangeAppearance(FBAttr*)));
+    attrs.insert(attrSuffixPtr->getKeyName(),attrSuffixPtr);
+
+    // ATTRIBUTE
+    attrInitValuePtr = new FBAttrNumber(this, FB_ATTRNAME_INITVALUE,
+        tr("Initial value"),
+        tr("Initial value from which incrementing starts"),
+        FBNoRole,
+        0, 0, 65535);
+    QObject::connect(attrInitValuePtr, SIGNAL(changeAppearance(FBAttr*)),
+                     this, SLOT(onChangeAppearance(FBAttr*)));
+    attrs.insert(attrInitValuePtr->getKeyName(),attrInitValuePtr);
+
+    // ATTRIBUTE
+    FBAttrNumber *attrIncrementPtr = new FBAttrNumber(this, FB_ATTRNAME_INCREMENT,
+        tr("Increment"),
+        tr("Which value is added to the current value\n"
+           "each time user collects data"),
+        FBNoRole,
+        1, 1, 65535);
+    attrs.insert(attrIncrementPtr->getKeyName(),attrIncrementPtr);
+}
 
 

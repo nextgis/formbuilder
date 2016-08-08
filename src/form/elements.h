@@ -225,6 +225,23 @@ class FBElemSignature: public FBElem
      virtual FBElemtype getType () { return FBInput; }
 };
 
+class FBElemCounter: public FBElemInput
+{
+    Q_OBJECT
+    public:
+     FBElemCounter ();
+     virtual ~FBElemCounter () { }
+     virtual QString getKeyName () { return FB_ELEMNAME_COUNTER; }
+     virtual QString getDisplayName () { return tr("Counter"); }
+     virtual QString getDescription () { return tr("Incrementally adds values based\n"
+                                                   "on predefined format"); }
+     virtual FBElemtype getType () { return FBInput; }
+    protected:
+     FBAttrString *attrSuffixPtr;
+     FBAttrString *attrPrefixPtr;
+     FBAttrNumber *attrInitValuePtr;
+};
+
 
 #endif //ELEMENTS_H
 

@@ -292,7 +292,7 @@ void FBDecoratorButton::update (FBElem* elem)
 }
 
 
-// Register decorators.
+// REGISTRAR:
 // The screen will know which decorators it can use for decoring elems of its form.
 void FBScreen::registerDecorators()
 {

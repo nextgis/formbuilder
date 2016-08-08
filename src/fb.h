@@ -295,6 +295,7 @@ class FB: public QWidget
      FBForm *createForm();
      void flipLeftMenu (bool isFull);
      void flipRightMenu (bool isFull);
+     void openSideMenus ();
      QTableWidget* addRightMenuTable ();
      void updateEnableness ();
      void updateLeftTrees ();
