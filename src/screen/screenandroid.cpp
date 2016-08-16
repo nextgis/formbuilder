@@ -669,6 +669,13 @@ void FBDecAndrCounter::redecor (FBElem* elem)
 {
     if (elem == NULL) return;
     this->clearWithDefaults(elem);
+    QLabel *labImg = new QLabel(elem);
+    labImg->setStyleSheet("QLabel{border: none;}");
+    labImg->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Expanding);
+    labImg->setFixedWidth(pix.width()); // sizes of pixmaps are equal
+    labImg->setAlignment(Qt::AlignCenter);
+    labImg->setContentsMargins(0,0,0,0);
+    labImg->setPixmap(pix);
     QLabel *labText = new QLabel(elem);
     labText->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
     labText->setFont(QFont(FB_ANDR_FONTTYPE,
@@ -679,7 +686,13 @@ void FBDecAndrCounter::redecor (FBElem* elem)
                                "border-left: none;"
                                "border-right: none;"
                                "border-bottom: none;}");
-    elem->addAsDecor(labText,FB_NAMEDDECOR_TEXT);
+    elem->registerAsDecor(labText,FB_NAMEDDECOR_TEXT);
+    QHBoxLayout *hlayAll = new QHBoxLayout();
+    hlayAll->setContentsMargins(2,2,2,2);
+    hlayAll->setSpacing(0);
+    hlayAll->addWidget(labImg);
+    hlayAll->addWidget(labText);
+    elem->addAsDecor(hlayAll);
 }
 void FBDecAndrCounter::update (FBElem* elem)
 {
@@ -698,6 +711,41 @@ void FBDecAndrCounter::update (FBElem* elem)
 }
 
 
+void FBDecAndrCoordinates::redecor (FBElem* elem)
+{
+    if (elem == NULL) return;
+    this->clearWithDefaults(elem);
+    QLabel *labImg = new QLabel(elem);
+    labImg->setStyleSheet("QLabel{border: none;}");
+    labImg->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Expanding);
+    labImg->setFixedWidth(pix.width()); // sizes of pixmaps are equal
+    labImg->setAlignment(Qt::AlignCenter);
+    labImg->setContentsMargins(0,0,0,0);
+    labImg->setPixmap(pix);
+    QLabel *labText = new QLabel(elem);
+    labText->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+    labText->setFont(QFont(FB_ANDR_FONTTYPE,
+                           FB_ANDR_FONTSIZE_NORMAL));
+    labText->setStyleSheet("QLabel"
+                           "{color: "+QString(FB_ANDR_COLOR_DARKGREY)+";"
+                               "border-top: none;"
+                               "border-left: none;"
+                               "border-right: none;"
+                               "border-bottom: none;}");
+    labText->setText(" 0.000000  0.000000");
+    QHBoxLayout *hlayAll = new QHBoxLayout();
+    hlayAll->setContentsMargins(2,2,2,2);
+    hlayAll->setSpacing(0);
+    hlayAll->addWidget(labImg);
+    hlayAll->addWidget(labText);
+    elem->addAsDecor(hlayAll);
+}
+void FBDecAndrCoordinates::update (FBElem* elem)
+{
+    return;
+}
+
+
 // REGISTRAR:
 void FBScreenAndroid::registerDecorators ()
 {
@@ -713,4 +761,5 @@ void FBScreenAndroid::registerDecorators ()
     this->registerDecorator(FB_ELEMNAME_PHOTO, new FBDecAndrPhoto());
     this->registerDecorator(FB_ELEMNAME_SIGNATURE, new FBDecAndrSignature());
     this->registerDecorator(FB_ELEMNAME_COUNTER, new FBDecAndrCounter());
+    this->registerDecorator(FB_ELEMNAME_COORDINATES, new FBDecAndrCoordinates());
 }

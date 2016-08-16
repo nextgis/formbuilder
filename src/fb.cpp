@@ -1454,6 +1454,8 @@ QString FB::getGroupStr (FBElemtype type)
         case FBInput: str = tr("Input"); break;
         case FBGrouping: str = tr("Grouping"); break;
         case FBLayout: str = tr("Layout"); break;
+        case FBMetric: str = tr("Metric"); break;
+        case FBSpecific: str = tr("Specific"); break;
     }
     return str;
 }
@@ -2318,6 +2320,7 @@ FBDialogAbout::FBDialogAbout (QWidget *parent):
     edit->append("Christopher Holm-Hansen");
     edit->append("trasnik");
     edit->append("mantisshrimpdesign");
+    edit->append("Sumana Chamrunworakiat");
 
     QLabel *lab2 = new QLabel(this);
     QString strCc = "http://creativecommons.org/licenses/by/3.0/us/legalcode";

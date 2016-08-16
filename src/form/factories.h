@@ -120,5 +120,13 @@ class FBFctelemCounter: public FBFctelem
      FBElem *create () { return new FBElemCounter(); }
 };
 
+class FBFctelemCoordinates: public FBFctelem
+{
+    public:
+     FBFctelemCoordinates (): FBFctelem () { }
+     ~FBFctelemCoordinates () { }
+     FBElem *create () { return new FBElemCoordinates(); }
+};
+
 #endif // FACTORIES_H
 

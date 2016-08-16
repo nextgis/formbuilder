@@ -500,3 +500,42 @@ FBElemCounter::FBElemCounter ():
 }
 
 
+/*****************************************************************************/
+/*                                                                           */
+/*                          FBElemCoordinates                                */
+/*                                                                           */
+/*****************************************************************************/
+
+FBElemCoordinates::FBElemCoordinates ():
+    FBElemInput()
+{
+    // ATTRIBUTE
+    QStringList strs1;
+    strs1.append("EPSG:4326");
+    FBAttrSelect *attrCrsPtr = new FBAttrSelect(this, FB_ATTRNAME_CRS,
+       tr("CRS"),
+       tr("Coordinate Reference System"),
+       FBNoRole,
+       strs1, 0);
+    attrs.insert(attrCrsPtr->getKeyName(),attrCrsPtr);
+
+    // ATTRIBUTE
+    QStringList strs2;
+    strs2.append("dd.dddddd");
+    FBAttrSelect *attrFormatPtr = new FBAttrSelect(this, FB_ATTRNAME_FORMAT,
+       tr("Format"),
+       tr("Coordinates will be written as a string in this format"),
+       FBNoRole,
+       strs2, 0);
+    attrs.insert(attrFormatPtr->getKeyName(),attrFormatPtr);
+
+    // ATTRIBUTE
+    FBAttrBoolean *attrHiddenPtr = new FBAttrBoolean(this, FB_ATTRNAME_HIDDEN,
+        tr("Hidden"),
+        tr("Do not show this element on the form"),
+        FBNoRole,
+        false);
+    attrs.insert(attrHiddenPtr->getKeyName(),attrHiddenPtr);
+}
+
+

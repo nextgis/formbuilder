@@ -271,10 +271,28 @@ class FBDecAndrSignature: public FBDecoratorAndroid
 class FBDecAndrCounter: public FBDecoratorAndroid
 {
     public:
-    FBDecAndrCounter (): FBDecoratorAndroid() { }
+    FBDecAndrCounter (): FBDecoratorAndroid()
+    {
+        //pix = QPixmap(":screen/img/android/for_counter.png");
+    }
     ~FBDecAndrCounter () { }
     virtual void redecor (FBElem *elem);
     virtual void update (FBElem *elem);
+    protected:
+    QPixmap pix;
+};
+class FBDecAndrCoordinates: public FBDecoratorAndroid
+{
+    public:
+    FBDecAndrCoordinates (): FBDecoratorAndroid()
+    {
+        pix = QPixmap(":screen/img/android/for_coordinates.png");
+    }
+    ~FBDecAndrCoordinates () { }
+    virtual void redecor (FBElem *elem);
+    virtual void update (FBElem *elem);
+    protected:
+    QPixmap pix;
 };
 
 

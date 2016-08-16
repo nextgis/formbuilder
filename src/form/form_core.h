@@ -71,6 +71,7 @@
 #define FB_ELEMNAME_SIGNATURE "signature"
 #define FB_ELEMNAME_SPACE "space"
 #define FB_ELEMNAME_COUNTER "counter"
+#define FB_ELEMNAME_COORDINATES "coordinates"
 //#define FB_ELEMNAME_TABS "tabs"
 //#define FB_ELEMNAME_GROUP "group"
 //#define FB_ELEMNAME_VERTICAL_LAYOUT "ver_layout"
@@ -99,11 +100,14 @@
 #define FB_ATTRNAME_PREFIX "prefix"
 #define FB_ATTRNAME_SUFFIX "suffix"
 #define FB_ATTRNAME_INCREMENT "increment"
+#define FB_ATTRNAME_CRS "crs"
+#define FB_ATTRNAME_FORMAT "format"
+#define FB_ATTRNAME_HIDDEN "hidden"
 
 
 enum FBElemtype
 {
-    FBDecoration, FBInput, FBGrouping, FBLayout
+    FBDecoration, FBInput, FBGrouping, FBLayout, FBMetric, FBSpecific
 };
 
 enum FBAttrrole

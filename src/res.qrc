@@ -77,5 +77,8 @@
         <file>img/clear_all.png</file>
         <file>img/load_ngw_sync.png</file>
         <file>img/counter.png</file>
+        <file>img/coordinates.png</file>
+        <file>screen/img/android/for_coordinates.png</file>
+        <file>screen/img/android/for_counter.png</file>
     </qresource>
 </RCC>
