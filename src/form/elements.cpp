@@ -260,9 +260,10 @@ FBElemDoublecombobox::FBElemDoublecombobox (QWidget *appWidget):
     // REMOVE ATTRIBUTE
     attrs.remove(attrFieldPtr->getKeyName()); // double combo has two field attrs
     delete attrFieldPtr;                       // instead
+    attrFieldPtr = NULL;
 
     // ATTRIBUTE
-    FBAttrField *attrField1Ptr = new FBAttrField(this, FB_ATTRNAME_FIELD_dcmb_1,
+    attrField1Ptr = new FBAttrField(this, FB_ATTRNAME_FIELD_dcmb_1,
         tr("Layer's field for 1"),
         tr("The field of the underlying layer into which\nthe first (main)"
         " combo will put its value"),
@@ -270,7 +271,7 @@ FBElemDoublecombobox::FBElemDoublecombobox (QWidget *appWidget):
     attrs.insert(attrField1Ptr->getKeyName(),attrField1Ptr);
 
     // ATTRIBUTE
-    FBAttrField *attrField2Ptr = new FBAttrField(this, FB_ATTRNAME_FIELD_dcmb_2,
+    attrField2Ptr = new FBAttrField(this, FB_ATTRNAME_FIELD_dcmb_2,
         tr("Layer's field for 2"),
         tr("The field of the underlying layer into which\nthe second (dependant)"
         " combo will put its value"),
@@ -287,6 +288,27 @@ FBElemDoublecombobox::FBElemDoublecombobox (QWidget *appWidget):
     QObject::connect(attrListvalsPtr, SIGNAL(changeAppearance(FBAttr*)),
                      this, SLOT(onChangeAppearance(FBAttr*)));
     attrs.insert(attrListvalsPtr->getKeyName(),attrListvalsPtr);
+}
+
+void FBElemDoublecombobox::resetSelectedField (QString keyname)
+{
+    if (attrField1Ptr->getKeyName() == keyname)
+        attrField1Ptr->resetValue();
+    if (attrField2Ptr->getKeyName() == keyname)
+        attrField2Ptr->resetValue();
+}
+
+QStringList FBElemDoublecombobox::getSelectedFields ()
+{
+    QStringList list;
+    QString selectedField;
+    selectedField = attrField1Ptr->getValue().toString();
+    if (selectedField != FB_DEFVALUE_NOTSELECTED)
+        list.append(selectedField);
+    selectedField = attrField2Ptr->getValue().toString();
+    if (selectedField != FB_DEFVALUE_NOTSELECTED)
+        list.append(selectedField);
+    return list;
 }
 
 
@@ -509,6 +531,27 @@ FBElemCounter::FBElemCounter ():
 FBElemCoordinates::FBElemCoordinates ():
     FBElemInput()
 {
+    // REMOVE ATTRIBUTE
+    attrs.remove(attrFieldPtr->getKeyName()); // double combo has two field attrs
+    delete attrFieldPtr;                      // instead
+    attrFieldPtr = NULL;
+
+    // ATTRIBUTE
+    attrFieldLatPtr = new FBAttrField(this, FB_ATTRNAME_FIELD_lat,
+        tr("Layer's field for lat"),
+        tr("The field of the underlying layer into which\n"
+           "latitude will be written"),
+        FBImportant);
+    attrs.insert(attrFieldLatPtr->getKeyName(),attrFieldLatPtr);
+
+    // ATTRIBUTE
+    attrFieldLongPtr = new FBAttrField(this, FB_ATTRNAME_FIELD_long,
+        tr("Layer's field for long"),
+        tr("The field of the underlying layer into which\n"
+           "longitude will be written"),
+        FBImportant);
+    attrs.insert(attrFieldLongPtr->getKeyName(),attrFieldLongPtr);
+
     // ATTRIBUTE
     QStringList strs1;
     strs1.append("EPSG:4326");
@@ -536,6 +579,27 @@ FBElemCoordinates::FBElemCoordinates ():
         FBNoRole,
         false);
     attrs.insert(attrHiddenPtr->getKeyName(),attrHiddenPtr);
+}
+
+void FBElemCoordinates::resetSelectedField (QString keyname)
+{
+    if (attrFieldLatPtr->getKeyName() == keyname)
+        attrFieldLatPtr->resetValue();
+    if (attrFieldLongPtr->getKeyName() == keyname)
+        attrFieldLongPtr->resetValue();
+}
+
+QStringList FBElemCoordinates::getSelectedFields ()
+{
+    QStringList list;
+    QString selectedField;
+    selectedField = attrFieldLatPtr->getValue().toString();
+    if (selectedField != FB_DEFVALUE_NOTSELECTED)
+        list.append(selectedField);
+    selectedField = attrFieldLongPtr->getValue().toString();
+    if (selectedField != FB_DEFVALUE_NOTSELECTED)
+        list.append(selectedField);
+    return list;
 }
 
 

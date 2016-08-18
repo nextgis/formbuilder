@@ -1052,7 +1052,7 @@ list during the typing</source>
     <name>FBElemCoordinates</name>
     <message>
         <source>CRS</source>
-        <translation>СК</translation>
+        <translation>Система координат</translation>
     </message>
     <message>
         <source>Coordinate Reference System</source>
@@ -1084,6 +1084,24 @@ target device to the selected text
 field</source>
         <translation>Сохраняет в текстовое поле координаты
 полученные целевым устройством</translation>
+    </message>
+    <message>
+        <source>Layer&apos;s field for lat</source>
+        <translation>Поле слоя для широты</translation>
+    </message>
+    <message>
+        <source>The field of the underlying layer into which
+latitude will be written</source>
+        <translation>Поле слоя, в которое будет записываться широта</translation>
+    </message>
+    <message>
+        <source>Layer&apos;s field for long</source>
+        <translation>Поле слоя для долготы</translation>
+    </message>
+    <message>
+        <source>The field of the underlying layer into which
+longitude will be written</source>
+        <translation>Поле слоя, в которое будет записываться долгота</translation>
     </message>
 </context>
 <context>

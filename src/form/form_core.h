@@ -79,6 +79,8 @@
 #define FB_ATTRNAME_FIELD "field"
 #define FB_ATTRNAME_FIELD_dcmb_1 "field_level1"
 #define FB_ATTRNAME_FIELD_dcmb_2 "field_level2"
+#define FB_ATTRNAME_FIELD_lat "field_lat"
+#define FB_ATTRNAME_FIELD_long "field_long"
 #define FB_ATTRNAME_VALUE "value"
 #define FB_ATTRNAME_VALUE_mult "values"
 #define FB_ATTRNAME_TEXT "text"

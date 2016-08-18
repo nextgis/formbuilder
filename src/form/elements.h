@@ -140,6 +140,12 @@ class FBElemDoublecombobox: public FBElemInputVariate
      virtual QString getDescription () { return tr("Pair of drop-down lists with predefined"
                                                    " values"); }
      virtual FBElemtype getType () { return FBInput; }
+    protected:
+     virtual void resetSelectedField (QString keyname);
+     virtual QStringList getSelectedFields ();
+    protected:
+     FBAttrField *attrField1Ptr;
+     FBAttrField *attrField2Ptr;
 };
 
 class FBElemCheckbox: public FBElemInputVariate
@@ -254,6 +260,12 @@ class FBElemCoordinates: public FBElemInput
                                                    "target device to the selected text\n"
                                                    "field"); }
      virtual FBElemtype getType () { return FBMetric; }
+    protected:
+     virtual void resetSelectedField (QString keyname);
+     virtual QStringList getSelectedFields ();
+    protected:
+     FBAttrField *attrFieldLatPtr;
+     FBAttrField *attrFieldLongPtr;
 };
 
 

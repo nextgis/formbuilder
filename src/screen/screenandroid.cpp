@@ -732,7 +732,7 @@ void FBDecAndrCoordinates::redecor (FBElem* elem)
                                "border-left: none;"
                                "border-right: none;"
                                "border-bottom: none;}");
-    labText->setText(" 0.000000  0.000000");
+    labText->setText("  0.000000  0.000000");
     QHBoxLayout *hlayAll = new QHBoxLayout();
     hlayAll->setContentsMargins(2,2,2,2);
     hlayAll->setSpacing(0);
