@@ -89,8 +89,8 @@ FBDialogFieldsManager::FBDialogFieldsManager(QWidget *parent):
     vlgb->addLayout(h1);
     vlgb->addLayout(h2);
     QHBoxLayout *hl1 = new QHBoxLayout();
-    hl1->addLayout(vl1);
     hl1->addWidget(groupBox);
+    hl1->addLayout(vl1);
     QHBoxLayout *hlbuts = new QHBoxLayout();
     hlbuts->addWidget(butOk);
     hlbuts->addWidget(butCancel);

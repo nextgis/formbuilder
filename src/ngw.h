@@ -101,6 +101,7 @@ class FBDialogNgw: public QDialog
      QNetworkReply *httpResourceReply;
      QNetworkReply *httpSelectedReply;
      // gui
+     QVBoxLayout *lMain;
      QLineEdit *wEditUrl;
      QLineEdit *wEditLogin;
      QLineEdit *wEditPass;
@@ -109,7 +110,7 @@ class FBDialogNgw: public QDialog
      QTreeWidget *wTree;
      QProgressBar *wProgBar;
      QLabel *wLabelStatus;
-//QCheckBox *chbGuest;
+     //QCheckBox *chbGuest;
      // other
      QStringList availResTypes;
 };

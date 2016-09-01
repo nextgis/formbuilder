@@ -71,6 +71,7 @@ jsoncpp.cpp
 ngw.cpp
 dialognewvoid.cpp
 dialogngwproject.cpp
+dialogngwlayer.cpp
 dialogfieldmanager.cpp
 appicon.rc
 registrar.cpp

@@ -72,6 +72,7 @@ void FBDialogProjectNgw::httpSelectedFinished ()
                         = json_root["vector_layer"]["srs"];
 
                 wLabelStatus->setText(tr("Connection successful"));
+
                 httpSelectedReply->deleteLater();
 
                 this->accept();

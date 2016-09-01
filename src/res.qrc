@@ -80,5 +80,6 @@
         <file>img/coordinates.png</file>
         <file>screen/img/android/for_coordinates.png</file>
         <file>screen/img/android/for_counter.png</file>
+        <file>img/upload.png</file>
     </qresource>
 </RCC>

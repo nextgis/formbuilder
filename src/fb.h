@@ -132,6 +132,31 @@ class FBDialogProjectNgw: public FBDialogNgw
 };
 
 /**
+ * NextGIS Web dialog for creating layer.
+ */
+class FBDialogLayerNgw: public FBDialogNgw
+{
+    Q_OBJECT
+    public:
+     FBDialogLayerNgw (QWidget *parent, QString lastNgwUrl, QString lastNgwLogin,
+                       QMap<QString,FBField> fields, FbGeomType *geomType);
+     virtual ~FBDialogLayerNgw () { }
+     QString getSelectedNgwResource (QString &strUrl, QString &strUrlName,
+         QString &strLogin, QString &strPass, int &strId, Json::Value &jsonLayerMeta);
+    protected slots:
+     void httpFinished ();
+     void httpOnItemClicked(QTreeWidgetItem *treeItem, int treeItemColumn);
+     void onSelectClicked ();
+     virtual void httpSelectedFinished ();
+     void showMsg (QString msg);
+    protected:
+     QLineEdit *leditName;
+     QMap<QString,FBField> fields;
+     FbGeomType *geomType;
+     int groupId;
+};
+
+/**
  * Fields manager dialog.
  * Used to work with fields of the current project.
  */
@@ -240,6 +265,7 @@ class FB: public QWidget
      void onOpenClick ();
      void onSaveClick ();
      void onSaveAsClick ();
+     void onUploadClick ();
      void onScreenAndroidPick ();
      void onScreenIosPick ();
      void onScreenWebPick ();
@@ -266,6 +292,7 @@ class FB: public QWidget
      void onShowInfo (QString msg);
      int onShowWarning (QString msg);
      void onShowError (QString msg);
+     int onShowQuestion (QString msg);
      int onShowErrorFull (QString msgMain, FBErr err);
      bool onAskToLeaveUnsafeProject ();
      void onProjDialogFinished (int code);
@@ -369,8 +396,10 @@ class FB: public QWidget
      // top menu
      QTabWidget *tabMenuTop;
      QWidget *wProject;
+     QWidget *wData;
+     QWidget *wForm;
      QWidget *wView;
-     QWidget *wTools;
+     //QWidget *wTools;
      QWidget *wSettings;
      QWidget *wAbout;
      QToolButton *toolbNewVoid;
@@ -379,6 +408,7 @@ class FB: public QWidget
      QToolButton *toolbOpen;
      QToolButton *toolbSave;
      QToolButton *toolbSaveAs;
+     QToolButton *toolbUpload;
      QHBoxLayout *lhView;
      QToolButton *toolbScreenAndroid;
      QToolButton *toolbScreenIos;
@@ -390,8 +420,8 @@ class FB: public QWidget
       QLabel *labScreenInfo1;
       QLabel *labScreenInfo2;
       QLabel *labScreenInfo3;
-     QToolButton *toolbUndo;
-     QToolButton *toolbRedo;
+//     QToolButton *toolbUndo;
+//     QToolButton *toolbRedo;
      QToolButton *toolbClearScreen;
      QToolButton *toolbDeleteElem;
      QToolButton *toolbImportControls;

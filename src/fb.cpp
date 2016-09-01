@@ -116,18 +116,32 @@ void FB::initGui ()
     layProject->setSpacing(2);
     layProject->addStretch();
 
+    wData = new QWidget();
+    tabMenuTop->addTab(wData, tr("  Data  "));
+    QHBoxLayout *lhData = new QHBoxLayout(wData);
+    lhData->setContentsMargins(4,4,4,4);
+    lhData->setSpacing(2);
+    lhData->addStretch();
+
+    wForm = new QWidget();
+    tabMenuTop->addTab(wForm, tr("  Form  "));
+    QHBoxLayout *lhForm = new QHBoxLayout(wForm);
+    lhForm->setContentsMargins(4,4,4,4);
+    lhForm->setSpacing(2);
+    lhForm->addStretch();
+
     wView = new QWidget();
     tabMenuTop->addTab(wView, tr("  View  "));
     lhView = new QHBoxLayout(wView);
     lhView->setContentsMargins(4,4,4,4);
     lhView->addStretch();
 
-    wTools = new QWidget();
-    tabMenuTop->addTab(wTools, tr("  Tools  "));
-    QHBoxLayout *layTools = new QHBoxLayout(wTools);
-    layTools->setContentsMargins(4,4,4,4);
-    layTools->setSpacing(2);
-    layTools->addStretch();
+//    wTools = new QWidget();
+//    tabMenuTop->addTab(wTools, tr("  Tools  "));
+//    QHBoxLayout *layTools = new QHBoxLayout(wTools);
+//    layTools->setContentsMargins(4,4,4,4);
+//    layTools->setSpacing(2);
+//    layTools->addStretch();
 
     wSettings = new QWidget();
     tabMenuTop->addTab(wSettings, tr("  Settings  "));
@@ -209,36 +223,40 @@ void FB::initGui ()
     this->updateDevices(); // just for first appearance: for initial default screen
     this->updateStates();
 
-    // Tools.
-    toolbUndo = this->addTopMenuButton(wTools,":/img/undo.png",
-                tr("Undo"),tr("Cancel last form \noperation"),false,true);
-    toolbRedo = this->addTopMenuButton(wTools,":/img/redo.png",
-                tr("Redo"),tr("Return last canceld\nform operation"),false,true);
-    // TEMPORARY:
-    toolbUndo->hide();
-    toolbRedo->hide();
-    //this->addTopMenuSplitter(wTools);
-    toolbClearScreen = this->addTopMenuButton(wTools,":/img/clear_screen.png",
-                tr("Clear"),tr("Clear all screen\nelements"),false,true);
-    QObject::connect(toolbClearScreen, SIGNAL(clicked()),
-                     this, SLOT(onClearScreenClick()));
-    toolbDeleteElem = this->addTopMenuButton(wTools,":/img/delete_elem.png",
+    // Data.
+    toolbFieldManager = this->addTopMenuButton(wData,":/img/fields.png",
+      tr("Fields"),tr("Modify fields of the\nunderlying layer"),false,true);
+    QObject::connect(toolbFieldManager, SIGNAL(clicked()),
+                     this, SLOT(onFieldsManagerClick()));
+    toolbUpdateData = this->addTopMenuButton(wData,":/img/update_data.png",
+      tr("Update"),tr("Update underlying layer with data\nfrom the other Shapefile"),
+                                             false,true);
+    QObject::connect(toolbUpdateData, SIGNAL(clicked()),
+                     this, SLOT(onUpdateDataClick()));
+    toolbUpload = this->addTopMenuButton(wData,":/img/upload.png",
+      tr("To Web"),tr("Create underlying layer as new void\nlayer on NextGIS Web"),
+                                         false,true);
+    QObject::connect(toolbUpload, SIGNAL(clicked()),
+                     this, SLOT(onUploadClick()));
+
+    // Form.
+//    toolbUndo = this->addTopMenuButton(wForm,":/img/undo.png",
+//                tr("Undo"),tr("Cancel last form \noperation"),false,true);
+//    toolbRedo = this->addTopMenuButton(wForm,":/img/redo.png",
+//                tr("Redo"),tr("Return last canceld\nform operation"),false,true);
+    toolbDeleteElem = this->addTopMenuButton(wForm,":/img/delete_elem.png",
                  tr("Delete"),tr("Delete selected\nelement"),false,true);
     QObject::connect(toolbDeleteElem, SIGNAL(clicked()),
                      this, SLOT(onDeleteElemClick()));
-    this->addTopMenuSplitter(wTools);
-    toolbFieldManager = this->addTopMenuButton(wTools,":/img/fields.png",
-      tr("Fields"),tr("Modify fields\nof the project"),false,true);
-    QObject::connect(toolbFieldManager, SIGNAL(clicked()),
-                     this, SLOT(onFieldsManagerClick()));
-    toolbImportControls = this->addTopMenuButton(wTools,":/img/import_controls.png",
+    toolbClearScreen = this->addTopMenuButton(wForm,":/img/clear_screen.png",
+                tr("Clear"),tr("Clear all screen\nelements"),false,true);
+    QObject::connect(toolbClearScreen, SIGNAL(clicked()),
+                     this, SLOT(onClearScreenClick()));
+    toolbImportControls = this->addTopMenuButton(wForm,":/img/import_controls.png",
       tr("Import"),tr("Import elements\nfrom another project"),false,true);
     QObject::connect(toolbImportControls, SIGNAL(clicked()),
                      this, SLOT(onImportControlsClick()));
-    toolbUpdateData = this->addTopMenuButton(wTools,":/img/update_data.png",
-      tr("Update"),tr("Update layer with data\nfrom other Shapefile"),false,true);
-    QObject::connect(toolbUpdateData, SIGNAL(clicked()),
-                     this, SLOT(onUpdateDataClick()));
+
     // Settings.
     this->addTopMenuSpacer(wSettings);
     QStringList strsLangs;
@@ -661,7 +679,7 @@ void FB::onNewNgwClick ()
         int nId;
         Json::Value jsonLayerMeta;
         pathNgwUrl = dialog.getSelectedNgwResource(strUrl, strUrlName,
-                                             strLogin, strPass, nId, jsonLayerMeta);
+                     strLogin, strPass, nId, jsonLayerMeta);
         FBProjectNgw *projNgw = new FBProjectNgw(
                     strUrl, strLogin, strPass, nId, jsonLayerMeta);
         QObject::connect(projNgw, SIGNAL(changeProgress(int)),
@@ -818,6 +836,71 @@ void FB::onSaveAsClick ()
 
         this->saveProjectCommonActions(ngfpFullPath);
     }
+}
+
+
+// UPLOAD BUTTON CLICK
+void FB::onUploadClick ()
+{
+    toolbUpload->setDown(true);
+
+    QString lastUrl = settLastNgwUrl.value;
+    QString lastLogin = settLastNgwLogin.value;
+    FBDialogLayerNgw dialog(this,lastUrl,lastLogin,
+                            project->getFields(),project->getGeomType());
+
+    if (dialog.exec())
+    {
+        QString pathNgwUrl;
+        QString strUrl, strUrlName, strLogin, strPass;
+        int nId;
+        Json::Value jsonLayerMeta;
+        pathNgwUrl = dialog.getSelectedNgwResource(strUrl, strUrlName,
+                     strLogin, strPass, nId, jsonLayerMeta);
+
+        if (this->onShowQuestion(tr("Void layer is created on the Web GIS successfully."
+                                    "\nDo you want to create new project based on this"
+                                    " layer with copying the current form?"))
+                == QMessageBox::Ok)
+        {
+            // Save current form to json.
+            // TODO: when adding images it will be necessery to save them separetely.
+            FBForm* form = wScreen->getFormPtr();
+            Json::Value jForm;
+            if (form != NULL)
+            {
+                jForm = form->toJson();
+            }
+
+            // Create fully new NextGIS Web project.
+            FBProjectNgw *projNgw = new FBProjectNgw(strUrl, strLogin,
+                                                     strPass, nId, jsonLayerMeta);
+            QObject::connect(projNgw, SIGNAL(changeProgress(int)),
+                    dlgProgress, SLOT(onChangeProgress(int)));
+            bool ok = this->newProjectCommonActions(projNgw, pathNgwUrl);
+
+            // Import elements from the copied form to it.
+            // NOTE: we do not need to change elements' bindings because the fields
+            // structure is the same.
+            if (ok)
+            {
+                if (!form->fromJson(jForm))
+                {
+                    this->onShowWarning(tr("Unable to copy form to the new project"));
+                }
+
+                wScreen->redecorateForm();
+
+                this->updateRightMenu();
+            }
+        }
+
+        // Save last ngw params.
+        settLastNgwUrl.value = strUrl;
+        settLastNgwLogin.value = strLogin;
+    }
+
+    toolbUpload->setDown(false);
 }
 
 
@@ -1093,7 +1176,6 @@ void FB::onImportControlsClick()
             // add manual looking for equal keynames in a loop with case-insensitive
             // check.
         }
-
         // Finally reset all field bindings except the equal fields.
         QSet<QString> fieldsReseted;
         QList<FBElem*> elems = form->getAllElems();
@@ -1326,6 +1408,17 @@ int FB::onShowErrorFull (QString msgMain, FBErr err)
         msgBox.setDetailedText(FBProject::CUR_ERR_INFO);
     }
     FBProject::CUR_ERR_INFO = "";
+    return msgBox.exec();
+}
+
+int FB::onShowQuestion (QString msg)
+{
+    QMessageBox msgBox(this);
+    msgBox.setText(msg);
+    msgBox.setWindowTitle(tr("Question"));
+    QMessageBox::Icon icon = QMessageBox::Question;
+    msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+    msgBox.setIcon(icon);
     return msgBox.exec();
 }
 
@@ -1705,6 +1798,7 @@ void FB::updateEnableness ()
         wMenuRight->setEnabled(false);
         toolbSave->setEnabled(false);
         toolbSaveAs->setEnabled(false);
+        toolbUpload->setEnabled(false);
         toolbScreenAndroid->setEnabled(false);
         toolbScreenIos->setEnabled(false);
         toolbScreenWeb->setEnabled(false);
@@ -1714,8 +1808,8 @@ void FB::updateEnableness ()
         {
             toolbsScreenState[i]->setEnabled(false);
         }
-        toolbUndo->setEnabled(false);
-        toolbRedo->setEnabled(false);
+//        toolbUndo->setEnabled(false);
+//        toolbRedo->setEnabled(false);
         toolbClearScreen->setEnabled(false);
         toolbDeleteElem->setEnabled(false);
         toolbImportControls->setEnabled(false);
@@ -1735,8 +1829,9 @@ void FB::updateEnableness ()
             toolbSave->setEnabled(false);
         }
         toolbSaveAs->setEnabled(true);
-        toolbUndo->setEnabled(true);
-        toolbRedo->setEnabled(true);
+        toolbUpload->setEnabled(true);
+//        toolbUndo->setEnabled(true);
+//        toolbRedo->setEnabled(true);
         toolbClearScreen->setEnabled(true);
         toolbDeleteElem->setEnabled(true);
         toolbScreenAndroid->setEnabled(true);
@@ -1757,8 +1852,8 @@ void FB::updateEnableness ()
     toolbScreenIos->setEnabled(false);
     toolbScreenWeb->setEnabled(false);
     toolbScreenQgis->setEnabled(false);
-    toolbUndo->setEnabled(false);
-    toolbRedo->setEnabled(false);
+//    toolbUndo->setEnabled(false);
+//    toolbRedo->setEnabled(false);
 }
 
 
@@ -2321,6 +2416,7 @@ FBDialogAbout::FBDialogAbout (QWidget *parent):
     edit->append("trasnik");
     edit->append("mantisshrimpdesign");
     edit->append("Sumana Chamrunworakiat");
+    edit->append("Kevin");
 
     QLabel *lab2 = new QLabel(this);
     QString strCc = "http://creativecommons.org/licenses/by/3.0/us/legalcode";

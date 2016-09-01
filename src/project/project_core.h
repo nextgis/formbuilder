@@ -250,6 +250,7 @@ class FBProject: public QObject
      QString getCurrentFilePath () { return strNgfpPath; }
      virtual QString getDatasetPath () { return ""; }
      QMap<QString,FBField> getFields () { return fields; }
+     FbGeomType *getGeomType () { return geometry_type; }
      FBNgwConnection getNgwConnection () { return ngw_connection; }
 
     protected:

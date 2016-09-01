@@ -39,8 +39,8 @@ FBDialogNgw::FBDialogNgw (QWidget *parent):
 
     QLabel* label;
 
-    QVBoxLayout *lvL = new QVBoxLayout(this);
-    lvL->setSpacing(4);
+    lMain = new QVBoxLayout(this);
+    lMain->setSpacing(4);
 
     QGridLayout *lgLayout = new QGridLayout();
     lgLayout->setAlignment(Qt::AlignLeft);
@@ -78,13 +78,13 @@ FBDialogNgw::FBDialogNgw (QWidget *parent):
     wEditPass->setEchoMode(QLineEdit::Password);
     lgLayout->addWidget(wEditPass,3,1);
 
-    lvL->addLayout(lgLayout);
+    lMain->addLayout(lgLayout);
 
 //this->onCheckboxClick(true);
 
     wButConnect = new QPushButton(this);
     wButConnect->setText(tr("Connect"));
-    lvL->addWidget(wButConnect);
+    lMain->addWidget(wButConnect);
     QObject::connect(wButConnect, SIGNAL(clicked()),
             this, SLOT(onConnectClicked()));
 
@@ -122,9 +122,9 @@ FBDialogNgw::FBDialogNgw (QWidget *parent):
     // connections are asynchronous.
     //wButCancel = new QPushButton(this);
 
-    lvL->addLayout(cancelLayout);
-    lvL->addWidget(wTree);
-    lvL->addWidget(wButSelect);
+    lMain->addLayout(cancelLayout);
+    lMain->addWidget(wTree);
+    lMain->addWidget(wButSelect);
 }
 
 
@@ -212,12 +212,6 @@ void FBDialogNgw::httpOnItemExpended (QTreeWidgetItem *treeItem)
 }
 
 
-void FBDialogNgw::httpOnItemCollapsed(QTreeWidgetItem *treeItem)
-{
-    wButSelect->setEnabled(false);
-}
-
-
 void FBDialogNgw::httpOnItemClicked(QTreeWidgetItem *treeItem, int treeItemColumn)
 {
     QVariant var = treeItem->data(0,Qt::UserRole);
@@ -231,6 +225,11 @@ void FBDialogNgw::httpOnItemClicked(QTreeWidgetItem *treeItem, int treeItemColum
     {
         wButSelect->setEnabled(true);
     }
+}
+
+void FBDialogNgw::httpOnItemCollapsed(QTreeWidgetItem *treeItem)
+{
+    wButSelect->setEnabled(false);
 }
 
 
@@ -313,6 +312,7 @@ void FBDialogNgw::httpAuthFinished ()
     {
         wLabelStatus->setText(tr("Connection error"));
         wProgBar->setValue(0);
+        wButSelect->setEnabled(false);
     }
     wButConnect->setEnabled(true);
     wTree->setEnabled(true);
@@ -330,6 +330,7 @@ void FBDialogNgw::httpFinished ()
     }
     else
     {
+        // TODO: move checks of http errors here because these lines override them!
         wLabelStatus->setText("");
         wProgBar->setValue(0);
     }
@@ -350,6 +351,7 @@ void FBDialogNgw::httpResourceFinished ()
     }
     else
     {
+        // TODO: move checks of http errors here because these lines override them!
         wLabelStatus->setText("");
         wProgBar->setValue(0);
     }
@@ -362,6 +364,8 @@ void FBDialogNgw::httpResourceFinished ()
 
 QList<QTreeWidgetItem*> FBDialogNgw::parseJsonReply (QNetworkReply *reply)
 {
+    // TODO: remove http error checks from this method!
+
     QList<QTreeWidgetItem*> newItems;
 
     if (reply->error() == QNetworkReply::NoError)
