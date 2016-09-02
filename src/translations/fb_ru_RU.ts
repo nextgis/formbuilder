@@ -21,7 +21,7 @@
     </message>
     <message>
         <source>  Tools  </source>
-        <translation>  Инструменты  </translation>
+        <translation type="vanished">  Инструменты  </translation>
     </message>
     <message>
         <source>  Settings  </source>
@@ -121,21 +121,21 @@ settings</source>
     </message>
     <message>
         <source>Undo</source>
-        <translation>Отменить</translation>
+        <translation type="vanished">Отменить</translation>
     </message>
     <message>
         <source>Cancel last form 
 operation</source>
-        <translation>Отменить последнюю операцию на форме</translation>
+        <translation type="vanished">Отменить последнюю операцию на форме</translation>
     </message>
     <message>
         <source>Redo</source>
-        <translation>Вернуть</translation>
+        <translation type="vanished">Вернуть</translation>
     </message>
     <message>
         <source>Return last canceld
 form operation</source>
-        <translation>Вернуть последнюю операцию на форме</translation>
+        <translation type="vanished">Вернуть последнюю операцию на форме</translation>
     </message>
     <message>
         <source>Clear</source>
@@ -162,7 +162,7 @@ element</source>
     <message>
         <source>Modify fields
 of the project</source>
-        <translation>Изменить поля в проекте</translation>
+        <translation type="vanished">Изменить поля в проекте</translation>
     </message>
     <message>
         <source>Import</source>
@@ -180,7 +180,7 @@ from another project</source>
     <message>
         <source>Update layer with data
 from other Shapefile</source>
-        <translation>Обновить слой проекта данными из выбранного Shapefile</translation>
+        <translation type="vanished">Обновить слой проекта данными из выбранного Shapefile</translation>
     </message>
     <message>
         <source>Language</source>
@@ -413,6 +413,46 @@ in program</source>
         <source>Specific</source>
         <translation>Особые</translation>
     </message>
+    <message>
+        <source>  Data  </source>
+        <translation type="unfinished">  Данные  </translation>
+    </message>
+    <message>
+        <source>  Form  </source>
+        <translation>  Форма  </translation>
+    </message>
+    <message>
+        <source>Modify fields of the
+underlying layer</source>
+        <translation>Изменить поля в слое</translation>
+    </message>
+    <message>
+        <source>Update underlying layer with data
+from the other Shapefile</source>
+        <translation>Обновить слой данными из другого Shapefile-а </translation>
+    </message>
+    <message>
+        <source>To Web</source>
+        <translation>Web</translation>
+    </message>
+    <message>
+        <source>Create underlying layer as new void
+layer on NextGIS Web</source>
+        <translation>Создать слой со сформированной структурой в NextGIS Web </translation>
+    </message>
+    <message>
+        <source>Void layer is created on the Web GIS successfully.
+Do you want to create new project based on this layer with copying the current form?</source>
+        <translation>Пустой слой был успешно создан в Web GIS. Вы хотите создать новый проект с использованием текущей формы?</translation>
+    </message>
+    <message>
+        <source>Unable to copy form to the new project</source>
+        <translation>Невозможно скопировать форму в новый проект</translation>
+    </message>
+    <message>
+        <source>Question</source>
+        <translation>Вопрос</translation>
+    </message>
 </context>
 <context>
     <name>FBAttrDialog</name>
@@ -615,6 +655,37 @@ List of authors:</source>
     <message>
         <source>Warning</source>
         <translation>Предупреждение</translation>
+    </message>
+</context>
+<context>
+    <name>FBDialogLayerNgw</name>
+    <message>
+        <source>Select resource group (optionally):</source>
+        <translation>Выберите группу ресурсов (опционально):</translation>
+    </message>
+    <message>
+        <source>Layer name: </source>
+        <translation>Имя слоя:</translation>
+    </message>
+    <message>
+        <source>Create layer</source>
+        <translation>Создать слой</translation>
+    </message>
+    <message>
+        <source>Unable to create layer! Reason: </source>
+        <translation>Не удалось создать слой. Причина:</translation>
+    </message>
+    <message>
+        <source>underlying layer contains field(s) with restricted name: &quot;id&quot;</source>
+        <translation>текущий слой содержит поле (поля) с неподдерживаемым именем &quot;id&quot;</translation>
+    </message>
+    <message>
+        <source>unable to get id of newly created layer</source>
+        <translation>невозможно получить идентификатор созданного слоя</translation>
+    </message>
+    <message>
+        <source>Info</source>
+        <translation>Информация</translation>
     </message>
 </context>
 <context>
@@ -1082,7 +1153,7 @@ list during the typing</source>
         <source>Saves coordinates generated by the
 target device to the selected text
 field</source>
-        <translation>Сохраняет в текстовое поле координаты
+        <translation type="vanished">Сохраняет в текстовое поле координаты
 полученные целевым устройством</translation>
     </message>
     <message>
@@ -1102,6 +1173,13 @@ latitude will be written</source>
         <source>The field of the underlying layer into which
 longitude will be written</source>
         <translation>Поле слоя, в которое будет записываться долгота</translation>
+    </message>
+    <message>
+        <source>Element which saves coordinates generated
+by the target device to the selected text
+field</source>
+        <translation>Элемент, который сохраняет в текстовое поле координаты,
+полученные целевым устройством</translation>
     </message>
 </context>
 <context>
@@ -1147,7 +1225,13 @@ each time user collects data</source>
     <message>
         <source>Incrementally adds values based
 on predefined format</source>
-        <translation>Записывает автоматически инкрементируемое
+        <translation type="vanished">Записывает автоматически инкрементируемое
+значение в заранее заданном формате</translation>
+    </message>
+    <message>
+        <source>Element which incrementally adds values
+based on predefined format</source>
+        <translation>Элемент, который записывает автоматически инкрементируемое
 значение в заранее заданном формате</translation>
     </message>
 </context>
@@ -1267,7 +1351,13 @@ the last input session</source>
     <message>
         <source>Allows to make and add photos with
 embedded camera</source>
-        <translation>Элемент для создания и добавления фотографий
+        <translation type="vanished">Элемент для создания и добавления фотографий
+при помощи встроенной камеры</translation>
+    </message>
+    <message>
+        <source>Element which allows to make and
+add photos with embedded camera</source>
+        <translation>Элемент, который позволяет создавать и добавлять фотографии
 при помощи встроенной камеры</translation>
     </message>
 </context>
@@ -1308,7 +1398,12 @@ the selection of only one value</source>
     </message>
     <message>
         <source>Allows to add &quot;official signature&quot;</source>
-        <translation>Элемент для добавления &quot;официальной подписи&quot;</translation>
+        <translation type="vanished">Элемент для добавления &quot;официальной подписи&quot;</translation>
+    </message>
+    <message>
+        <source>Element which allows to put an &quot;official
+signature&quot;</source>
+        <translation>Элемент, который позволяет добавлять &quot;официальную подпись&quot;</translation>
     </message>
 </context>
 <context>
