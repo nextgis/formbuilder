@@ -69,7 +69,7 @@ FBDialogCsv::FBDialogCsv (QWidget *parent, QString pathCsv):
 // Initializing of CSV dataset with according common checks.
 GDALDataset *getDataset (QString &errString, QByteArray baPathCsv)
 {
-    GDALAllRegister(); // Note: gdal was most likely initialized in the app class
+    //GDALAllRegister(); // Note: gdal was most likely initialized in the app class
 
     char **allowedDrivers = NULL;
     allowedDrivers = CSLAddString(allowedDrivers,"CSV");
