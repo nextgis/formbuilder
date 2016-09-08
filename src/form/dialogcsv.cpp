@@ -73,19 +73,23 @@ GDALDataset *getDataset (QString &errString, QByteArray baPathCsv)
 
     char **allowedDrivers = NULL;
     allowedDrivers = CSLAddString(allowedDrivers,"CSV");
+    //CPLErrorReset();
     GDALDataset *poDS = (GDALDataset*)GDALOpenEx(baPathCsv.data(),
                       GDAL_OF_VECTOR | GDAL_OF_READONLY, allowedDrivers, NULL, NULL );
     CSLDestroy(allowedDrivers);
     if(poDS == NULL)
     {
         errString = QObject::tr("Unable to open CSV dataset via GDAL");
+//                + QString(CPLGetLastErrorMsg());
         return NULL;
     }
 
+    //CPLErrorReset();
     OGRLayer *poLayer = poDS->GetLayer(0);
     if (poLayer == NULL)
     {
         errString = QObject::tr("Unable to read the layer in CSV dataset via GDAL");
+//                    + QString(CPLGetLastErrorMsg());
         GDALClose(poDS);
         return NULL;
     }
