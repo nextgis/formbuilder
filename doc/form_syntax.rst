@@ -3,7 +3,7 @@
 General
 =======
 
-This page describes the syntax of "form.json" file, which is a part of NextGIS Formbuilder project file (with ".ngfp" extension). The file uses the JSON specification rules and is encoded in UTF-8.
+This page describes the syntax of "form.json" file which is a part of NextGIS Formbuilder project file (with ".ngfp" extension). The file uses the JSON specification rules and is encoded in UTF-8.
 
 Syntax
 ======
@@ -111,7 +111,7 @@ Attributes
     :<json string field: The name of the layer's field to which this element saves its value. Note: can be *null* if there was no field selected.
     :<json bool input_search: Whether to show all corresponding items from this combobox at the time when user types some text. 
     :<json bool last: Whether to keep value for further sessions of data collection.
-    :<json int ngw_id: The NGW resource identifier for the NGW lookup table or -1 if this combobox has no such connection.
+    :<json int ngw_id: The NGW resource identifier for the NGW lookup table or -1 if this combobox has no such connection. Note: all other NextGIS Web connection parameters are stored in "meta.json" file.
     :<json array values: The list of items for this combobox. An array of JSON objects where each one has two (or three) pairs of name-values. See below.
     
     :<json string alias: Alias (displayed value) for the item. Can not be void string.
@@ -166,6 +166,7 @@ Attributes
 Example
 
 .. sourcecode:: json
+
     {
       "attributes" : {
          "crs" : 0,
@@ -176,6 +177,36 @@ Example
       },
       "type" : "coordinates"
     } 
+
+Counter
+-------
+
+Keyname 
+
+    **counter**
+
+Attributes
+
+    :<json string field: The name of the layer's field to which this element saves its value. Note: can be *null* if there was no field selected.
+    :<json int increment: The value which is added to the current value each session of data collection. Range: from 1 to 65535.
+    :<json int init_value: Initial value from which incrementing starts. Range: from 0 to 65535.
+    :<json string prefix: Text string to add before the current counter's number. Can be void string.
+    :<json string suffix: Text string to add after the current counter's number. Can be void string.
+
+Example
+
+.. sourcecode:: json    
+    
+    {
+      "attributes" : {
+         "field" : "id_collector",
+         "increment" : 1,
+         "init_value" : 0,
+         "prefix" : "XX",
+         "suffix" : "NV"
+      },
+      "type" : "counter"
+    }
     
 Date and Time
 -------------
@@ -203,7 +234,191 @@ Example
          "last" : false
       },
       "type" : "date_time"
-    }   
+    }  
+
+Double combobox
+---------------
+
+Keyname 
+
+    **double_combobox**
+
+Attributes
+
+    :<json string field_level1: The name of the layer's field to which the first (main) combobox saves its value. Note: can be *null* if there was no field selected.
+    :<json string field_level2: The name of the layer's field to which the second (dependant) combobox saves its value. Note: can be *null* if there was no field selected.    
+    :<json bool last: Whether to keep values for further sessions of data collection.
+    :<json array values: The list of items for the first (main) combobox. An array of JSON objects where each one has three (or four) pairs of name-values. See below. Note: if user had not defined any items for the first (main) combobox - the stub item is pasted with "alias":"--" and "name":"-1".
+    
+    :<json string alias: Alias (displayed value) for the item. 
+    :<json string name: Name (inner value) for the item. 
+    :<json bool default: Whether this item is showed as default one before user enters the first (main) combobox. The value is always true.
+    :<json array values: The list of items for the second (dependant) combobox. An array of JSON objects where each one has two (or three) pairs of name-values. See below.
+    
+    :<json string alias: Alias (displayed value) for the item. 
+    :<json string name: Name (inner value) for the item. 
+    :<json bool default: Whether this item is showed as default one before user enters the second (dependant) combobox. The value is always true.    
+
+Example
+
+.. sourcecode:: json   
+   
+    {
+      "attributes" : {
+         "field_level1" : "state",
+         "field_level2" : "city",
+         "last" : true,
+         "values" : [
+            {
+               "alias" : "California",
+               "name" : "CA",
+               "values" : [
+                  {
+                     "alias" : "Los Angeles",
+                     "name" : "1"
+                  },
+                  {
+                     "alias" : "San Francisco",
+                     "name" : "2"
+                  },
+                  {
+                     "alias" : "Sacramento",
+                     "default" : true,
+                     "name" : "3"
+                  }
+               ]
+            },
+            {
+               "alias" : "New York",
+               "name" : "NY",
+               "values" : [
+                  {
+                     "alias" : "Albany",
+                     "default" : true,
+                     "name" : "4"
+                  },
+                  {
+                     "alias" : "New York",
+                     "name" : "5"
+                  }
+               ]
+            },
+            {
+               "alias" : "Oregon",
+               "name" : "OR",
+               "values" : [
+                  {
+                     "alias" : "--",
+                     "name" : "-1"
+                  }
+               ]
+            }
+         ]
+      },
+      "type" : "double_combobox"
+    }
+    
+Photo
+-----
+
+Keyname 
+
+    **photo**
+
+Attributes
+
+    :<json int gallery_size: The maximum amount of photos user can make. Range: from 1 to 5.
+    
+Example
+
+.. sourcecode:: json    
+    
+    {
+      "attributes" : {
+         "gallery_size" : 1
+      },
+      "type" : "photo"
+    }      
+
+Radiogroup
+----------
+
+Keyname 
+
+    **radio_group**
+
+Attributes
+
+    :<json string field: The name of the layer's field to which this element saves its value. Note: can be *null* if there was no field selected.
+    :<json bool last: Whether to keep value for further sessions of data collection.
+    :<json array values: The list of items for this combobox. An array of JSON objects where each one has two (or three) pairs of name-values. See below. Note: the array must have at least two items and one of them is always default.
+    
+    :<json string alias: Alias (displayed value) for the item. Can not be void string.
+    :<json string name: Name (inner value) for the item. Can not be void string.
+    :<json bool default: Whether this item is showed as default one before user enters this combobox. The value is always true.
+    
+Example
+
+.. sourcecode:: json
+   
+    {
+      "attributes" : {
+         "field" : "tree_type",
+         "last" : false,
+         "values" : [
+            {
+               "alias" : "Pine tree",
+               "default" : true,
+               "name" : "1"
+            },
+            {
+               "alias" : "Oak tree",
+               "name" : "2"
+            }
+         ]
+      },
+      "type" : "radio_group"
+    } 
+
+Signature
+---------
+
+Keyname 
+
+    **signature**
+
+Attributes
+
+    No attributes.
+    
+Example
+
+.. sourcecode:: json  
+    
+    {
+      "attributes" : null,
+      "type" : "signature"
+    }
+
+Space
+-----
+
+Keyname 
+
+    **space**
+
+Attributes
+
+    No attributes.
+    
+Example
+
+.. sourcecode:: json
+
+    {
+      "attributes" : null,
+      "type" : "space"
+    } 
     
 Text
 ----
@@ -258,23 +473,4 @@ Example
       },
       "type" : "text_edit"
     }
-
-Space
------
-
-Keyname 
-
-    **text_label**
-
-Attributes
-
-    No attributes.
-    
-Example
-
-.. sourcecode:: json
-
-    {
-      "attributes" : null,
-      "type" : "space"
-    }    
+   
