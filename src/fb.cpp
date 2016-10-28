@@ -2310,22 +2310,12 @@ bool FB::isSaveRequired ()
 // CLOSE EVENT
 void FB::closeEvent (QCloseEvent *event)
 {
-    /*
-    if (this->isSaveRequired())
-    {
-        int ret = this->onShowWarning(tr("Project hasn't been saved. Do you want"
-                                         " to close the application?"));
-        if (ret == QMessageBox::Ok)
-            event->accept();
-        else
-            event->ignore();
-    }
-    else
-    {
+    int ret = this->onShowQuestion(tr("Do you really want to close the "
+                                     "application?"));
+    if (ret == QMessageBox::Ok)
         event->accept();
-    }
-    */
-    QWidget::closeEvent(event);
+    else
+        event->ignore();
 }
 
 
