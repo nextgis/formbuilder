@@ -39,8 +39,8 @@ FBErr FBProjectVoid::readFirst (QString anyPath)
 
     // Create default field for future layer, because in project must be at least
     // one field. Also layers with no fields are incorrect for NextGIS Web.
-    FBField fd(DATA_TYPES[FB_TYPEINDEX_DATA_INTEGER],"ID");
-    fields.insert("ID",fd);
+    FBField fd(DATA_TYPES[FB_TYPEINDEX_DATA_INTEGER],"Field1");
+    fields.insert("Field1",fd);
     version = FBProject::getProgVersionStr();
     // Geometry type and srs are already set via constructor.
 

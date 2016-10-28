@@ -415,7 +415,7 @@ in program</source>
     </message>
     <message>
         <source>  Data  </source>
-        <translation type="unfinished">  Данные  </translation>
+        <translation>  Данные  </translation>
     </message>
     <message>
         <source>  Form  </source>
@@ -452,6 +452,10 @@ Do you want to create new project based on this layer with copying the current f
     <message>
         <source>Question</source>
         <translation>Вопрос</translation>
+    </message>
+    <message>
+        <source>Do you really want to close the application?</source>
+        <translation>Вы действительно хотите закрыть приложение?</translation>
     </message>
 </context>
 <context>
