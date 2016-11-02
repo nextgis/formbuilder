@@ -882,6 +882,7 @@ void FB::onUploadClick ()
             // Import elements from the copied form to it.
             // NOTE: we do not need to change elements' bindings because the fields
             // structure is the same.
+            form = wScreen->getFormPtr(); // get newly created form
             if (ok)
             {
                 if (!form->fromJson(jForm))
