@@ -433,7 +433,7 @@ FBElemButton::FBElemButton ():
         tr("Value"),
         tr("The single value which will be put\nto the field when pressing button"),
         FBNoRole,
-        false);
+        "");
     attrs.insert(attrValuePtr->getKeyName(),attrValuePtr);
 }
 
