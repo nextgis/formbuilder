@@ -18,3 +18,5 @@
 # Executables
 *.out
 *.app
+
+CMakeLists.txt.user
