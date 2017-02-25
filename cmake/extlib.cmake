@@ -120,7 +120,7 @@ find_anyproject(GDAL REQUIRED CMAKE_ARGS
                     -DENABLE_ARCGEN=OFF
                     -DENABLE_AVC=OFF
                     -DENABLE_BNA=OFF
-                    -DENABLE_CARTODB=OFF
+                    -DENABLE_CARTO=OFF
                     -DENABLE_CLOUDANT=OFF
                     -DENABLE_COUCHDB=OFF
                     #    -DENABLE_CSV=OFF
