@@ -747,6 +747,14 @@ void FB::onOpenClick ()
             return;
         }
 
+        // Update lists names for all Counter elems before actual creating of them.
+        QStringList listNames;
+        for (int i=0; i<projOpen->getLists().size(); i++)
+        {
+            listNames.append(projOpen->getLists()[i][0]);
+        }
+        FBAttrGlobalselect::updateValues(listNames);
+
         // Create and show new form, replacing old one. Fill it with elems from
         // project.
         FBForm *form = this->createForm();
@@ -923,7 +931,35 @@ void FB::onListsClick ()
 
     if (dialog.exec())
     {
-        project->updateLists(dialog.getLists(), dialog.getKeyList());
+        QList<QStringList> lists = dialog.getLists();
+        QString keyList = dialog.getKeyList();
+
+        project->updateLists(lists, keyList);
+
+        // Update values of counter elements' attributes.
+        QStringList listNames;
+        for (int i=0; i<lists.size(); i++)
+        {
+            listNames.append(lists[i][0]);
+        }
+        FBForm* form = wScreen->getFormPtr();
+        if (form != NULL)
+        {
+            QList<FBElem*> elems = form->getAllElems();
+            for (int i=0; i<elems.size(); i++)
+            {
+                FBElemCounter *e = qobject_cast<FBElemCounter*>(elems[i]);
+                if (e != NULL)
+                {
+                    // See comments of this method. We can't only reset indexes, we must shift them
+                    // in some cases.
+                    e->updateAllListValues(listNames);
+                }
+            }
+        }
+        FBAttrGlobalselect::updateValues(listNames);
+
+        this->updateRightMenu(); // in case there is a counter currently being selected
     }
 
     toolbLists->setDown(false);

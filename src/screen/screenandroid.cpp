@@ -696,18 +696,30 @@ void FBDecAndrCounter::redecor (FBElem* elem)
 }
 void FBDecAndrCounter::update (FBElem* elem)
 {
+    /*
     // Appearance depends on format and initial  value.
     if (elem == NULL) return;
     FBAttr *attrIv = elem->getAttr(FB_ATTRNAME_INITVALUE);
     FBAttr *attrPr = elem->getAttr(FB_ATTRNAME_PREFIX);
     FBAttr *attrSu = elem->getAttr(FB_ATTRNAME_SUFFIX);
-    if (attrIv == NULL || attrPr == NULL || attrSu == NULL) return;
+    FBAttr *attrPrList = elem->getAttr(FB_ATTRNAME_PREFIX_FROM_LIST);
+    FBAttr *attrSuList = elem->getAttr(FB_ATTRNAME_SUFFIX_FROM_LIST);
+    if (attrIv == NULL || attrPr == NULL || attrSu == NULL
+            || attrPrList == NULL || attrSuList == NULL) return;
     QString strIv = QString::number(attrIv->getValue().toInt());
     QString strPr = attrPr->getValue().toString();
     QString strSu = attrSu->getValue().toString();
+    QString strPrList = attrPrList->getValue().toInt();
+    QString strSuList = attrSuList->getValue().toInt();
     QLabel *labText = (QLabel*)elem->findAsDecor(FB_NAMEDDECOR_TEXT);
     if (labText == NULL) return;
     labText->setText(" " + strPr + strIv + strSu);
+    */
+
+    // TEMPORARY:
+    QLabel *labText = (QLabel*)elem->findAsDecor(FB_NAMEDDECOR_TEXT);
+    if (labText == NULL) return;
+    labText->setText(QObject::tr("Counter"));
 }
 
 

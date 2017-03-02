@@ -93,6 +93,7 @@ class FBAttrString: public FBAttr
      bool fromJson (Json::Value jsonVal);
      QWidget *getWidget ();
      QVariant getValue ();
+     void clear () { value = ""; }
      void setIgnoreValue (bool yes) { ignoreValue = yes; }
     protected slots:
      void onEditEnd (QString lineEditText);
@@ -375,26 +376,28 @@ class FBAttrSelect: public FBAttr
      int value;
 };
 
-/*
-class FBAttrSelectlist: public FBAttr
+
+class FBAttrGlobalselect: public FBAttr
 {
     Q_OBJECT
     public:
-     FBAttrSelectlist (FBElem *parentElem, QString keyName, QString displayName,
+     static void updateValues (QStringList newValuesRange);
+     FBAttrGlobalselect (FBElem *parentElem, QString keyName, QString displayName,
          QString descr, FBAttrrole role);
-     virtual ~FBAttrSelectlist () { }
+     virtual ~FBAttrGlobalselect () { }
      virtual Json::Value toJson ();
      virtual bool fromJson (Json::Value jsonVal);
      QWidget *getWidget ();
-     virtual QVariant getValue ();
-     static void updateValues (QStringList values);
+     virtual QVariant getValue () { return value; }
+     QString getValuesString ();
+     void changeValue (int newValue) { value = newValue; }
     protected slots:
      void onEditEnd (int indexSelected);
     protected:
-     static QStringList values;
-     int indexValue;
+     static QStringList valuesRange;
+     int value;
 };
-*/
+
 
 class FBAttrDatetime: public FBAttrDialog
 {

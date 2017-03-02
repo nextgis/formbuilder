@@ -200,6 +200,11 @@ void FBElem::onChangeAppearance (FBAttr *attr)
     this->updateSelf();
 }
 
+//void FBElem::onChangeGui (FBAttr *attr)
+//{
+//    return;
+//}
+
 
 void FBElem::setSelectStyle ()
 {

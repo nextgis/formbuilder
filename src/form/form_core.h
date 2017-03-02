@@ -200,9 +200,11 @@ class FBAttr: public QObject
     signals:
 
      void changeOtherAttr (FBAttr* thisAttr); // in order to signalize to some other
-                                 //attrs of this element that they should be changed
+                                              //attrs of this element that they should be changed
      void changeAppearance (FBAttr* thisAttr); // indicates that changing this attr
                                                // changes elem's appearance
+//     void changeGui (FBAttr* thisAttr);
+
     protected:
 
      FBElem *elemPtr; // "parent" elem
@@ -311,6 +313,7 @@ class FBElem: public QWidget
 
      virtual void onChangeAttrValue (FBAttr *attr);
      virtual void onChangeAppearance (FBAttr *attr);
+//     virtual void onChangeGui (FBAttr *attr);
 
     protected: // methods
 

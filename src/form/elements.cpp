@@ -487,8 +487,8 @@ FBElemCounter::FBElemCounter ():
         tr("Text to add before value (can be void)"),
         FBNoRole,
         tr(""));
-    QObject::connect(attrPrefixPtr, SIGNAL(changeAppearance(FBAttr*)),
-                     this, SLOT(onChangeAppearance(FBAttr*)));
+//    QObject::connect(attrPrefixPtr, SIGNAL(changeAppearance(FBAttr*)),
+//                     this, SLOT(onChangeAppearance(FBAttr*)));
     attrs.insert(attrPrefixPtr->getKeyName(),attrPrefixPtr);
 
     // ATTRIBUTE
@@ -497,8 +497,8 @@ FBElemCounter::FBElemCounter ():
         tr("Text to add after value (can be void)"),
         FBNoRole,
         tr(""));
-    QObject::connect(attrSuffixPtr, SIGNAL(changeAppearance(FBAttr*)),
-                     this, SLOT(onChangeAppearance(FBAttr*)));
+//    QObject::connect(attrSuffixPtr, SIGNAL(changeAppearance(FBAttr*)),
+//                     this, SLOT(onChangeAppearance(FBAttr*)));
     attrs.insert(attrSuffixPtr->getKeyName(),attrSuffixPtr);
 
     // ATTRIBUTE
@@ -507,8 +507,8 @@ FBElemCounter::FBElemCounter ():
         tr("Initial value from which incrementing starts"),
         FBNoRole,
         0, 0, 65535);
-    QObject::connect(attrInitValuePtr, SIGNAL(changeAppearance(FBAttr*)),
-                     this, SLOT(onChangeAppearance(FBAttr*)));
+//    QObject::connect(attrInitValuePtr, SIGNAL(changeAppearance(FBAttr*)),
+//                     this, SLOT(onChangeAppearance(FBAttr*)));
     attrs.insert(attrInitValuePtr->getKeyName(),attrInitValuePtr);
 
     // ATTRIBUTE
@@ -520,30 +520,50 @@ FBElemCounter::FBElemCounter ():
         1, 1, 65535);
     attrs.insert(attrIncrementPtr->getKeyName(),attrIncrementPtr);
 
-    /*
-    QStringList listNames;
-    listNames.append("-");
-    for (int i=0; i<FBElemCounter::lists; i++)
-    {
-
-    }
-
     // ATTRIBUTE
-    FBAttrSelect *attrSuffixFromList = new FBAttrSelect(this, FB_ATTRNAME_SUFFIX_FROM_LIST,
-       tr("Suffix from list"),
-       tr("Which list from list editor to use as the values range for suffix in this counter"),
-       FBNoRole,
-       strs1, 0);
-    attrs.insert(attrSuffixFromList->getKeyName(),attrSuffixFromList);
-
-    // ATTRIBUTE
-    FBAttrSelect *attrPrefixFromList = new FBAttrSelect(this, FB_ATTRNAME_PREFIX_FROM_LIST,
+    attrPrefixFromListPtr = new FBAttrGlobalselect(this, FB_ATTRNAME_PREFIX_FROM_LIST,
        tr("Prefix from list"),
-       tr("Which list from list editor to use as the values range for prefix in this counter"),
-       FBNoRole,
-       strs1, 0);
-    attrs.insert(attrPrefixFromList->getKeyName(),attrPrefixFromList);
-    */
+       tr("Which list from List editor to use as the values range for prefix in this counter"),
+       FBNoRole);
+    attrs.insert(attrPrefixFromListPtr->getKeyName(),attrPrefixFromListPtr);
+
+    // ATTRIBUTE
+    attrSuffixFromListPtr = new FBAttrGlobalselect(this, FB_ATTRNAME_SUFFIX_FROM_LIST,
+       tr("Suffix from list"),
+       tr("Which list from List editor to use as the values range for suffix in this counter"),
+       FBNoRole);
+    attrs.insert(attrSuffixFromListPtr->getKeyName(),attrSuffixFromListPtr);
+}
+
+
+// WARNING: don't forget to do FBAttrGlobalselect::updateValues() after all calls of this method.
+void FBElemCounter::updateAllListValues (QStringList newListNames)
+{
+    this->updateListValue(attrPrefixFromListPtr,newListNames);
+    this->updateListValue(attrSuffixFromListPtr,newListNames);
+}
+
+// Try to find currently selected list name in the array of new names. If we found -
+// replace with the new index because index can be shifted (if the deletion was before
+// the current index), otherwise - reset index.
+void FBElemCounter::updateListValue (FBAttrGlobalselect *attr, QStringList newListNames)
+{
+    if (attr->getValue().toInt() == 0)
+        return;
+    QString oldListName = attr->getValuesString();
+    bool foundOldName = false;
+    for (int i=0; i<newListNames.size(); i++)
+    {
+        if (newListNames[i] == oldListName)
+        {
+            attr->changeValue(i+1); // the numering in valuesRange starts from 1
+            foundOldName = true;
+        }
+    }
+    if (!foundOldName)
+    {
+        attr->changeValue(0);
+    }
 }
 
 

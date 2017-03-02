@@ -679,45 +679,47 @@ void FBAttrSelect::onEditEnd (int indexSelected)
 
 /******************************************************************************/
 /*                                                                            */
-/*                              FBAttrSelectlist                                  */
+/*                             FBAttrGlobalselect                             */
 /*                                                                            */
 /******************************************************************************/
 
-/*
-QStringList FBAttrSelectlist::values;
+QStringList FBAttrGlobalselect::valuesRange(FB_DEFVALUE_NOTSELECTED);
 
-void FBAttrSelectlist::updateValues (QStringList values) // STATIC
+void FBAttrGlobalselect::updateValues (QStringList newValuesRange) // STATIC
 {
-    FBAttrSelectlist::values.append(FB_DEFVALUE_NOTSELECTED); // always add "null" elem
-    for (int i=0; i<values.size(); i++)
+    valuesRange.clear();
+    valuesRange.append(FB_DEFVALUE_NOTSELECTED); // always add "unselected" elem
+    for (int i=0; i<newValuesRange.size(); i++)
     {
-        FBAttrSelectlist::values.append(values[i]);
+        valuesRange.append(newValuesRange[i]);
     }
 }
 
-FBAttrSelectlist::FBAttrSelectlist (FBElem *parentElem, QString keyName, QString displayName,
+FBAttrGlobalselect::FBAttrGlobalselect (FBElem *parentElem, QString keyName, QString displayName,
     QString descr, FBAttrrole role):
     FBAttr(parentElem,keyName,displayName,descr,role)
 {
-    indexValue = 0; // unselected by defualt
+    value = 0; // unselected by defualt
 }
 
-Json::Value FBAttrSelectlist::toJson ()
+Json::Value FBAttrGlobalselect::toJson ()
 {
     Json::Value jsonRet;
-    if (indexValue == 0)
+    if (value == 0)
         return jsonRet; // return null
     QByteArray ba;
-    ba = FBAttrSelectlist::values[indexValue].toUtf8();
+    ba = FBAttrGlobalselect::valuesRange[value].toUtf8();
     jsonRet = ba.data();
     return jsonRet; // return string
 }
 
-bool FBAttrSelectlist::fromJson (Json::Value jsonVal)
+bool FBAttrGlobalselect::fromJson (Json::Value jsonVal)
 {
+    // WARNING! valuesRange must be already correctly formed!
+
     if (jsonVal.isNull())
     {
-        indexValue = 0;
+        value = 0;
         emit changeOtherAttr(this);
         return true;
     }
@@ -725,11 +727,11 @@ bool FBAttrSelectlist::fromJson (Json::Value jsonVal)
     {
         QByteArray ba = jsonVal.asString().data();
         QString str = QString::fromUtf8(ba);
-        for (int i=1; i<FBAttrSelectlist::values.size(); i++) // start not from the zero "-" element
+        for (int i=1; i<FBAttrGlobalselect::valuesRange.size(); i++) // skip the zero "-" element
         {
-            if (FBAttrSelectlist::values[i] == str)
+            if (FBAttrGlobalselect::valuesRange[i] == str)
             {
-                indexValue = i;
+                value = i;
                 break;
             }
         }
@@ -739,11 +741,32 @@ bool FBAttrSelectlist::fromJson (Json::Value jsonVal)
     return false;
 }
 
-QVariant FBAttrSelectlist::getValue ()
+QWidget *FBAttrGlobalselect::getWidget ()
 {
-
+    QComboBox *widget = new QComboBox();
+    for (int i=0; i<FBAttrGlobalselect::valuesRange.size(); i++)
+    {
+        widget->addItem(FBAttrGlobalselect::valuesRange[i]);
+    }
+    widget->setCurrentIndex(value);
+    QObject::connect(widget, SIGNAL(currentIndexChanged(int)), this, SLOT(onEditEnd(int)));
+    return widget;
 }
-*/
+
+void FBAttrGlobalselect::onEditEnd (int indexSelected)
+{
+    value = indexSelected;
+    emit changeOtherAttr(this);
+    emit changeAppearance(this);
+}
+
+// If value == 0 the default symbol will be returned - this should be checked in other way outside,
+// e.g. with the help of getValue() == 0.
+QString FBAttrGlobalselect::getValuesString ()
+{
+    return FBAttrGlobalselect::valuesRange[value];
+}
+
 
 /******************************************************************************/
 /*                                                                            */

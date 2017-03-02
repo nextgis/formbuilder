@@ -457,6 +457,14 @@ Do you want to create new project based on this layer with copying the current f
         <source>Do you really want to close the application?</source>
         <translation>Вы действительно хотите закрыть приложение?</translation>
     </message>
+    <message>
+        <source>Lists</source>
+        <translation>Списки</translation>
+    </message>
+    <message>
+        <source>Manage lists of values</source>
+        <translation>Редактировать списки значений</translation>
+    </message>
 </context>
 <context>
     <name>FBAttrDialog</name>
@@ -491,6 +499,33 @@ List of authors:</source>
     <message>
         <source>Creative Commons license</source>
         <translation>Лицензия Creative Commons</translation>
+    </message>
+</context>
+<context>
+    <name>FBDialogAddColumn</name>
+    <message>
+        <source>Give a name to the new column</source>
+        <translation>Задайте имя новому столбцу</translation>
+    </message>
+    <message>
+        <source>List</source>
+        <translation>Список</translation>
+    </message>
+    <message>
+        <source>OK</source>
+        <translation>ОК</translation>
+    </message>
+    <message>
+        <source>The name contains unsupported symbols. Select another one</source>
+        <translation>Имя содержит неподдерживаемые символы. Задайте другое имя</translation>
+    </message>
+    <message>
+        <source>Warning</source>
+        <translation>Предупреждение</translation>
+    </message>
+    <message>
+        <source>There is already a column with this name. Select another one</source>
+        <translation>Столбец с таким именем уже сушствует. Задайте другое имя</translation>
     </message>
 </context>
 <context>
@@ -690,6 +725,49 @@ List of authors:</source>
     <message>
         <source>Info</source>
         <translation>Информация</translation>
+    </message>
+</context>
+<context>
+    <name>FBDialogLists</name>
+    <message>
+        <source>Lists editor</source>
+        <translation>Редактор списков</translation>
+    </message>
+    <message>
+        <source>Add new column</source>
+        <translation>Добавить новый столбец</translation>
+    </message>
+    <message>
+        <source>Remove selected column</source>
+        <translation>Удалить выбранный столбец</translation>
+    </message>
+    <message>
+        <source>Append row</source>
+        <translation>Добавить строку</translation>
+    </message>
+    <message>
+        <source>Remove selected row</source>
+        <translation>Удалить выбранную строку</translation>
+    </message>
+    <message>
+        <source>Mark selected column as a key column</source>
+        <translation>Сделать выбранный столбец ключевым</translation>
+    </message>
+    <message>
+        <source>OK</source>
+        <translation>ОК</translation>
+    </message>
+    <message>
+        <source>Do you really want to remove a column with the name &quot;</source>
+        <translation>Вы точно хотите удалить столбец с именем </translation>
+    </message>
+    <message>
+        <source>Warning</source>
+        <translation>Предупреждение</translation>
+    </message>
+    <message>
+        <source>Do you really want to remove the selected row?</source>
+        <translation>Вы точно хотите удалить выбранную строку?</translation>
     </message>
 </context>
 <context>
@@ -1238,6 +1316,22 @@ based on predefined format</source>
         <translation>Элемент, который записывает автоматически инкрементируемое
 значение в заранее заданном формате</translation>
     </message>
+    <message>
+        <source>Prefix from list</source>
+        <translation>Префикс из списка</translation>
+    </message>
+    <message>
+        <source>Which list from List editor to use as the values range for prefix in this counter</source>
+        <translation>Задайте имя списка для подстановки значений из него в данный элемент в качестве префикса</translation>
+    </message>
+    <message>
+        <source>Suffix from list</source>
+        <translation>Суффикс из списка</translation>
+    </message>
+    <message>
+        <source>Which list from List editor to use as the values range for suffix in this counter</source>
+        <translation>Задайте имя списка для подстановки значений из него в данный элемент в качестве суффикса</translation>
+    </message>
 </context>
 <context>
     <name>FBElemDatetime</name>
@@ -1777,6 +1871,10 @@ Try to select another saving directory</source>
     <message>
         <source>The amount of rows in the dataset can not be less than 2</source>
         <translation>Количество значений (строк) в источнике данных не может быть меньше двух</translation>
+    </message>
+    <message>
+        <source>Counter</source>
+        <translation>Счётчик</translation>
     </message>
 </context>
 </TS>

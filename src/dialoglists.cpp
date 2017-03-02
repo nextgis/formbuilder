@@ -38,7 +38,7 @@ FBDialogAddColumn::FBDialogAddColumn (QWidget *parent, QStringList existedNames)
 
     edit = new QLineEdit(this);
     edit->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
-    edit->setText(tr("List") + QString::number(existedNames.size()));
+    edit->setText("List" + QString::number(existedNames.size()));
     edit->setMaxLength(FB_LISTS_MAX_FIELDNAMELENGTH);
 
     butOk = new QPushButton(this);
