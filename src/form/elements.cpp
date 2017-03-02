@@ -519,6 +519,31 @@ FBElemCounter::FBElemCounter ():
         FBNoRole,
         1, 1, 65535);
     attrs.insert(attrIncrementPtr->getKeyName(),attrIncrementPtr);
+
+    /*
+    QStringList listNames;
+    listNames.append("-");
+    for (int i=0; i<FBElemCounter::lists; i++)
+    {
+
+    }
+
+    // ATTRIBUTE
+    FBAttrSelect *attrSuffixFromList = new FBAttrSelect(this, FB_ATTRNAME_SUFFIX_FROM_LIST,
+       tr("Suffix from list"),
+       tr("Which list from list editor to use as the values range for suffix in this counter"),
+       FBNoRole,
+       strs1, 0);
+    attrs.insert(attrSuffixFromList->getKeyName(),attrSuffixFromList);
+
+    // ATTRIBUTE
+    FBAttrSelect *attrPrefixFromList = new FBAttrSelect(this, FB_ATTRNAME_PREFIX_FROM_LIST,
+       tr("Prefix from list"),
+       tr("Which list from list editor to use as the values range for prefix in this counter"),
+       FBNoRole,
+       strs1, 0);
+    attrs.insert(attrPrefixFromList->getKeyName(),attrPrefixFromList);
+    */
 }
 
 

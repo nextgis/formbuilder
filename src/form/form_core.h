@@ -105,6 +105,8 @@
 #define FB_ATTRNAME_CRS "crs"
 #define FB_ATTRNAME_FORMAT "format"
 #define FB_ATTRNAME_HIDDEN "hidden"
+#define FB_ATTRNAME_SUFFIX_FROM_LIST "suffix_from_list"
+#define FB_ATTRNAME_PREFIX_FROM_LIST "prefix_from_list"
 
 
 enum FBElemtype

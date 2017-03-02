@@ -238,6 +238,10 @@ void FB::initGui ()
                                          false,true);
     QObject::connect(toolbUpload, SIGNAL(clicked()),
                      this, SLOT(onUploadClick()));
+    toolbLists = this->addTopMenuButton(wData,":/img/lists.png",
+      tr("Lists"),tr("Manage lists of values"), false, true);
+    QObject::connect(toolbLists, SIGNAL(clicked()),
+                     this, SLOT(onListsClick()));
 
     // Form.
 //    toolbUndo = this->addTopMenuButton(wForm,":/img/undo.png",
@@ -383,7 +387,7 @@ void FB::initGui ()
     lvRight1->addStretch();
     lhMenuRight->addLayout(lvRight1);
     lvRight->addWidget(labRight);
-    lvRight->addStretch();
+//    lvRight->addStretch();
     lhMenuRight->addLayout(lvRight);
 
     this->updateRightMenu(); // initial menu settings
@@ -902,6 +906,27 @@ void FB::onUploadClick ()
     }
 
     toolbUpload->setDown(false);
+}
+
+
+// LISTS BUTTON CLICKED
+void FB::onListsClick ()
+{
+    if (project == NULL) // we need a valid project for storing lists
+        return;
+
+    toolbLists->setDown(true);
+
+    FBDialogLists dialog(this);
+
+    dialog.loadLists(project->getLists(), project->getKeyList());
+
+    if (dialog.exec())
+    {
+        project->updateLists(dialog.getLists(), dialog.getKeyList());
+    }
+
+    toolbLists->setDown(false);
 }
 
 
@@ -1758,7 +1783,8 @@ QTableWidget* FB::addRightMenuTable ()
     QTableWidget *table = new QTableWidget(wMenuRight);
     table->setMinimumHeight(0);
     //table->setMaximumHeight(50);
-    table->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Minimum);
+//    table->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Minimum);
+    table->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Expanding);
     table->setFocusPolicy(Qt::NoFocus);
     table->setFont(QFont(FB_GUI_FONTTYPE,FB_GUI_FONTSIZE_NORMAL));
     table->verticalHeader()->hide();
@@ -1784,7 +1810,9 @@ QTableWidget* FB::addRightMenuTable ()
                          "{"
                             //"border: 2px solid red;"
                          "}");
-    lvRight->insertWidget(lvRight->count()-1,table); // before stretch item
+    table->adjustSize();
+//    lvRight->insertWidget(lvRight->count()-1,table); // before stretch item
+    lvRight->addWidget(table);
     tablesRight.append(table);
     return table;
 }
@@ -1816,6 +1844,7 @@ void FB::updateEnableness ()
         toolbImportControls->setEnabled(false);
         toolbUpdateData->setEnabled(false);
         toolbFieldManager->setEnabled(false);
+        toolbLists->setEnabled(false);
     }
     else
     {
@@ -1847,6 +1876,7 @@ void FB::updateEnableness ()
         toolbImportControls->setEnabled(true);
         toolbUpdateData->setEnabled(true);
         toolbFieldManager->setEnabled(true);
+        toolbLists->setEnabled(true);
     }
 
     // TEMPORARY:

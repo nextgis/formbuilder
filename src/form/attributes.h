@@ -363,17 +363,38 @@ class FBAttrSelect: public FBAttr
     public:
      FBAttrSelect (FBElem *parentElem, QString keyName, QString displayName,
          QString descr, FBAttrrole role, QStringList valuesRange, int initValue);
-     ~FBAttrSelect () { }
-     Json::Value toJson ();
-     bool fromJson (Json::Value jsonVal);
+     virtual ~FBAttrSelect () { }
+     virtual Json::Value toJson ();
+     virtual bool fromJson (Json::Value jsonVal);
      QWidget *getWidget ();
-     QVariant getValue () { return value; }
+     virtual QVariant getValue () { return value; }
     protected slots:
      void onEditEnd (int indexSelected);
     private:
      QStringList valuesRange;
      int value;
 };
+
+/*
+class FBAttrSelectlist: public FBAttr
+{
+    Q_OBJECT
+    public:
+     FBAttrSelectlist (FBElem *parentElem, QString keyName, QString displayName,
+         QString descr, FBAttrrole role);
+     virtual ~FBAttrSelectlist () { }
+     virtual Json::Value toJson ();
+     virtual bool fromJson (Json::Value jsonVal);
+     QWidget *getWidget ();
+     virtual QVariant getValue ();
+     static void updateValues (QStringList values);
+    protected slots:
+     void onEditEnd (int indexSelected);
+    protected:
+     static QStringList values;
+     int indexValue;
+};
+*/
 
 class FBAttrDatetime: public FBAttrDialog
 {

@@ -59,6 +59,8 @@
 #define FB_JSON_META_LOGIN "login"
 #define FB_JSON_META_PASSWORD "password"
 #define FB_JSON_META_URL "url"
+#define FB_JSON_META_LISTS "lists"
+#define FB_JSON_META_KEY_LIST "key_list"
 
 // Indexes for named items in the main array of types.
 #define FB_TYPEINDEX_DATA_STRING 0
@@ -238,6 +240,7 @@ class FBProject: public QObject
      // modify
      void modifyFields (QMap<QString,FBField> newSetOfFields,
                                 QSet<QString> fieldsWereDeleted);
+     void updateLists (QList<QStringList> newLists, QString newKeyList);
      // info
      static QString getProgVersionStr ();
      static void getPathComponents (QString strFullPath, QString &strPath,
@@ -252,6 +255,8 @@ class FBProject: public QObject
      QMap<QString,FBField> getFields () { return fields; }
      FbGeomType *getGeomType () { return geometry_type; }
      FBNgwConnection getNgwConnection () { return ngw_connection; }
+     QList<QStringList> getLists () { return lists; }
+     QString getKeyList () { return keyList; }
 
     protected:
 
@@ -280,8 +285,10 @@ class FBProject: public QObject
      FBNgwConnection ngw_connection; // it is here because of ngfp file syntax
      FbSrsType *srs;
      QString version;
+     QList<QStringList> lists;
+     QString keyList;
 
-     // temporary. Reseted after thhe call of according method
+     // temporary. Reseted after the call of according method
      bool fieldsModified;
      QSet<QString> fieldsDeleted; // stored keynames of fields
 

@@ -73,6 +73,7 @@ dialognewvoid.cpp
 dialogngwproject.cpp
 dialogngwlayer.cpp
 dialogfieldmanager.cpp
+dialoglists.cpp
 appicon.rc
 registrar.cpp
 fb.cpp
@@ -141,7 +142,7 @@ elseif(UNIX)
     install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/inst/debian/share/ DESTINATION share) # for adding into debian applications list
 endif()
 
-################################### Packaging: ##############################################
+################################### CPack packaging: ##############################################
 
 set(FB_VERSION "2.1.0") # TODO: get FB version from sources.
 

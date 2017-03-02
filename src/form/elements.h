@@ -243,10 +243,13 @@ class FBElemCounter: public FBElemInput
      virtual QString getDescription () { return tr("Element which incrementally adds values"
                                                    "\nbased on predefined format"); }
      virtual FBElemtype getType () { return FBMetric; }
+
     protected:
      FBAttrString *attrSuffixPtr;
      FBAttrString *attrPrefixPtr;
      FBAttrNumber *attrInitValuePtr;
+     //FBAttrSelect *attrSuffixFromList;
+     //FBAttrSelect *attrPrefixFromList;
 };
 
 class FBElemCoordinates: public FBElemInput

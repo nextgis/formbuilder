@@ -81,5 +81,11 @@
         <file>screen/img/android/for_coordinates.png</file>
         <file>screen/img/android/for_counter.png</file>
         <file>img/upload.png</file>
+        <file>img/add_col.png</file>
+        <file>img/add_row.png</file>
+        <file>img/rem_col.png</file>
+        <file>img/rem_row.png</file>
+        <file>img/lists.png</file>
+        <file>img/make_key.png</file>
     </qresource>
 </RCC>

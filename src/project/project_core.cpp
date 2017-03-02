@@ -257,6 +257,29 @@ FBErr FBProject::read (QString ngfpFullPath)
                                 //.asString().data()).toInt();
     version = versProg;
 
+    if (jsonMeta[FB_JSON_META_LISTS].isNull())
+    {
+        lists.clear();
+        keyList = "";
+    }
+    else
+    {
+        lists.clear();
+        std::vector<std::string> jsonNames = jsonMeta[FB_JSON_META_LISTS].getMemberNames();
+        for (int i=0; i<jsonNames.size(); i++)
+        {
+            QStringList list;
+            list.append(QString::fromUtf8(jsonNames[i].data()));
+            Json::Value jsonList = jsonMeta[FB_JSON_META_LISTS][jsonNames[i].data()];
+            for (int k=0; k<jsonList.size(); ++k)
+            {
+                list.append(QString::fromUtf8(jsonList[k].asString().data()));
+            }
+            lists.append(list);
+        }
+        keyList = QString::fromUtf8(jsonMeta[FB_JSON_META_KEY_LIST].asString().data());
+    }
+
     strNgfpPath = ngfpFullPath;
 
     isInited = true;
@@ -613,6 +636,14 @@ void FBProject::modifyFields (QMap<QString,FBField> newSetOfFields,
 }
 
 
+// Fully replace lists.
+void FBProject::updateLists (QList<QStringList> newLists, QString newKeyList)
+{
+    lists = newLists;
+    keyList = newKeyList;
+}
+
+
 /****************************************************************************/
 /*                                                                          */
 /*                             Info methods                                 */
@@ -629,6 +660,8 @@ Json::Value FBProject::getJsonMetadata ()
     Json::Value jsonNgw;
     Json::Value jsonSrs;
     Json::Value jsonVers;
+    Json::Value jsonLists;
+    Json::Value jsonKeyList;
 
     QMap<QString,FBField>::const_iterator it = fields.constBegin();
     while (it != fields.constEnd())
@@ -676,12 +709,37 @@ Json::Value FBProject::getJsonMetadata ()
     baVers = FBProject::getProgVersionStr().toUtf8();
     jsonVers = baVers.data();
 
+    if (!lists.isEmpty()) // overwise the json values will stay null
+    {
+        for (int i=0; i<lists.size(); i++)
+        {
+            QByteArray baName;
+            baName = lists[i][0].toUtf8(); // 0 item is list name
+
+            Json::Value jsonList;
+            for (int j=1; j<lists[i].size(); j++) // start not from 0 item
+            {
+                QByteArray baListItem;
+                baListItem = lists[i][j].toUtf8();
+                jsonList.append(baListItem.data());
+            }
+
+            jsonLists[baName.data()] = jsonList;
+        }
+
+        QByteArray baKeyList;
+        baKeyList = keyList.toUtf8();
+        jsonKeyList = baKeyList.data();
+    }
+
     // Final structure of the file:
     jsonRet[FB_JSON_META_FIELDS] = jsonFields;
     jsonRet[FB_JSON_META_GEOMETRY_TYPE] = jsonGeom;
     jsonRet[FB_JSON_META_NGW_CONNECTION] = jsonNgw;
     jsonRet[FB_JSON_META_SRS] = jsonSrs;
     jsonRet[FB_JSON_META_VERSION] = jsonVers;
+    jsonRet[FB_JSON_META_LISTS] = jsonLists;
+    jsonRet[FB_JSON_META_KEY_LIST] = jsonKeyList;
 
     return jsonRet;
 }

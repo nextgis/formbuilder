@@ -188,6 +188,56 @@ class FBDialogFieldsManager: public QDialog
      QSet<QString> fieldsDeleted; // keynames of fields are stored
 };
 
+
+/**
+ * Lists dialog.
+ *
+ */
+class FBDialogLists: public QDialog
+{
+    Q_OBJECT
+    public:
+     FBDialogLists (QWidget *parent);
+     ~FBDialogLists() { }
+     void loadLists (QList<QStringList> lists, QString keyList);
+     QList<QStringList> getLists ();
+     QString getKeyList ();
+    protected slots:
+     void onAddColumnClick ();
+     void onRemoveColumnClick ();
+     void onAddRowClick ();
+     void onRemoveRowClick ();
+     void onMakeKeyClick ();
+    protected:
+     void colorColumn (int index, QColor color);
+    protected:
+     QTableWidget *table;
+     QToolButton *butAddCol;
+     QToolButton *butRemoveCol;
+     QToolButton *butAddRow;
+     QToolButton *butRemoveRow;
+     QToolButton *butMakeKey;
+     QPushButton *butOk;
+     int indexKeyList;
+};
+class FBDialogAddColumn: public QDialog
+{
+    Q_OBJECT
+    public:
+     FBDialogAddColumn (QWidget *parent, QStringList existedNames);
+     ~FBDialogAddColumn() { }
+     QString getName ();
+    protected slots:
+     void onOkClick ();
+    protected:
+     bool isNameCorrect (QString string);
+     QLineEdit *edit;
+     QPushButton *butOk;
+     QStringList existedNames;
+     QString badSymbols;
+};
+
+
 /**
  * Progress dialog.
  * Shows progress bar.
@@ -266,6 +316,7 @@ class FB: public QWidget
      void onSaveClick ();
      void onSaveAsClick ();
      void onUploadClick ();
+     void onListsClick ();
      void onScreenAndroidPick ();
      void onScreenIosPick ();
      void onScreenWebPick ();
@@ -409,6 +460,7 @@ class FB: public QWidget
      QToolButton *toolbSave;
      QToolButton *toolbSaveAs;
      QToolButton *toolbUpload;
+     QToolButton *toolbLists;
      QHBoxLayout *lhView;
      QToolButton *toolbScreenAndroid;
      QToolButton *toolbScreenIos;

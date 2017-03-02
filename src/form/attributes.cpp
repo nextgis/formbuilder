@@ -115,7 +115,7 @@ QWidget *FBAttrField::getWidget ()
     // list, currentIndex is set to the corresponding index."
     widget->setCurrentText(keyNameSelected);
     QStyledItemDelegate *itDel = new QStyledItemDelegate(); // some magic in order style
-    widget->setItemDelegate(itDel);                    // sheets work properly for Linux
+    widget->setItemDelegate(itDel);                         // sheets work properly for Linux
     //widget->setStyleSheet("QComboBox QAbstractItemView {color: black}");
     QObject::connect(widget, SIGNAL(currentIndexChanged(QString)),
                      this, SLOT(onEditEnd(QString)));
@@ -676,6 +676,74 @@ void FBAttrSelect::onEditEnd (int indexSelected)
     emit changeAppearance(this);
 }
 
+
+/******************************************************************************/
+/*                                                                            */
+/*                              FBAttrSelectlist                                  */
+/*                                                                            */
+/******************************************************************************/
+
+/*
+QStringList FBAttrSelectlist::values;
+
+void FBAttrSelectlist::updateValues (QStringList values) // STATIC
+{
+    FBAttrSelectlist::values.append(FB_DEFVALUE_NOTSELECTED); // always add "null" elem
+    for (int i=0; i<values.size(); i++)
+    {
+        FBAttrSelectlist::values.append(values[i]);
+    }
+}
+
+FBAttrSelectlist::FBAttrSelectlist (FBElem *parentElem, QString keyName, QString displayName,
+    QString descr, FBAttrrole role):
+    FBAttr(parentElem,keyName,displayName,descr,role)
+{
+    indexValue = 0; // unselected by defualt
+}
+
+Json::Value FBAttrSelectlist::toJson ()
+{
+    Json::Value jsonRet;
+    if (indexValue == 0)
+        return jsonRet; // return null
+    QByteArray ba;
+    ba = FBAttrSelectlist::values[indexValue].toUtf8();
+    jsonRet = ba.data();
+    return jsonRet; // return string
+}
+
+bool FBAttrSelectlist::fromJson (Json::Value jsonVal)
+{
+    if (jsonVal.isNull())
+    {
+        indexValue = 0;
+        emit changeOtherAttr(this);
+        return true;
+    }
+    if (jsonVal.isString())
+    {
+        QByteArray ba = jsonVal.asString().data();
+        QString str = QString::fromUtf8(ba);
+        for (int i=1; i<FBAttrSelectlist::values.size(); i++) // start not from the zero "-" element
+        {
+            if (FBAttrSelectlist::values[i] == str)
+            {
+                indexValue = i;
+                break;
+            }
+        }
+        emit changeOtherAttr(this);
+        return true;
+    }
+    return false;
+}
+
+QVariant FBAttrSelectlist::getValue ()
+{
+
+}
+*/
 
 /******************************************************************************/
 /*                                                                            */
