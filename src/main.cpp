@@ -22,18 +22,17 @@ int main (int argc, char *argv[])
     QString langSetSys = langSet;
     langSetSys.chop(3);
 
-    // It seems that it is ok to pass this filename+path in order to load system
-    // translations in Windows from the current dir and in Linux from the system dir.
-    // TODO: check this.
-    QString sysTransName = "qt_" + langSetSys;
-    QString sysTransPath = "";
-    #ifdef FB_SYSTRANSLATIONS_IN_SHARE
-    sysTransPath = FB_PATH_TRANSLATIONS + QString("/");
-    #endif
+    // TODO: maybe we need to load more files with system translations? See e.g.
+    // C:\Qt\5.8\msvc2013\translations for Windows.
+    QString sysTransName = "qtbase_" + langSetSys;
+//    QString sysTransPath = "";
+//    #ifdef FB_SYSTRANSLATIONS_IN_SHARE
+//    sysTransPath = FB_PATH_TRANSLATIONS + QString("/");
+//    #endif
     QTranslator translatorSys;
-    if (!translatorSys.load(sysTransName,sysTransPath))
+//    if (!translatorSys.load(sysTransName,sysTransPath))
         translatorSys.load(sysTransName,QLibraryInfo::location(QLibraryInfo::TranslationsPath));
-    a.installTranslator(&translatorSys);
+    a.installTranslator(&translatorSys); // will use qt.conf for file paths if it exists
 
     // For program translations we always have the same path for Linux and for Windows
     // if the program installed correctly.

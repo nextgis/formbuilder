@@ -131,7 +131,7 @@ if(WIN32)
     # Install QM files.
     if(Qt5LinguistTools_FOUND)
         install(FILES ${CMAKE_CURRENT_BINARY_DIR}/fb_ru_RU.qm DESTINATION ${INSTALL_SHARE_DIR}/translations)
-        install(FILES ${QT_DIR_PREFIX_PATH}/translations/qt_ru.qm DESTINATION ${INSTALL_SHARE_DIR}/translations)
+        install(FILES ${QT_DIR_PREFIX_PATH}/translations/qtbase_ru.qm DESTINATION ${INSTALL_SHARE_DIR}/translations)
     endif()
     # Note: we regard that gdal is correctly installed if there is an internal windows build - so here is no gdal data and dlls copying.
 elseif(UNIX)
