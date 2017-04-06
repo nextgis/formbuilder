@@ -242,6 +242,7 @@ void FB::initGui ()
       tr("Lists"),tr("Manage lists of values"), false, true);
     QObject::connect(toolbLists, SIGNAL(clicked()),
                      this, SLOT(onListsClick()));
+    toolbLists->hide(); // TEMP
 
     // Form.
 //    toolbUndo = this->addTopMenuButton(wForm,":/img/undo.png",
