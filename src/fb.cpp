@@ -190,14 +190,17 @@ void FB::initGui ()
                ":/img/ios.png", tr("iOS"), tr("iOS screen"),false);
     QObject::connect(toolbScreenIos,SIGNAL(clicked()),
                          this,SLOT(onScreenIosPick()));
+    toolbScreenIos->hide(); // TEMP
     toolbScreenWeb = this->addTopMenuButton(wView,
                ":/img/web.png", tr("Web"), tr("Web screen"),false);
     QObject::connect(toolbScreenWeb,SIGNAL(clicked()),
                          this,SLOT(onScreenWebPick()));
+    toolbScreenWeb->hide(); // TEMP
     toolbScreenQgis = this->addTopMenuButton(wView,
                ":/img/qgis.png", tr("QGIS"), tr("QGIS screen"),false);
     QObject::connect(toolbScreenQgis,SIGNAL(clicked()),
                          this,SLOT(onScreenQgisPick()));
+    toolbScreenQgis->hide(); // TEMP
     this->addTopMenuSplitter(wView);
     QStringList stubList;
     comboScreenDevice = this->addTopMenuCombo(wView,tr("Device\nsettings"),stubList);
