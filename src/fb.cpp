@@ -1443,7 +1443,7 @@ void FB::startCheckingUpdates ()
     if (prUpdatesCheck != NULL)
         return;
 
-    QString path = FB_PATH_MAINTAINER_WIN32;
+    QString path = QDir::currentPath() + FB_PATH_MAINTAINER_WIN32;
     if (!QFile::exists(path))
         return;
 
@@ -1476,7 +1476,7 @@ void FB::endCheckingUpdates (int exitCode, QProcess::ExitStatus exitStatus)
 void FB::onUpdatesClick ()
 {
     #ifdef Q_OS_WIN32
-    QString path = FB_PATH_MAINTAINER_WIN32;
+    QString path = QDir::currentPath() + FB_PATH_MAINTAINER_WIN32;
     if (!QFile::exists(path))
     {
         this->onShowError(tr("Can not find nextgisupdater.exe. The program may"
@@ -1495,8 +1495,9 @@ void FB::onUpdatesClick ()
 // END OF NEXTGISUPDATER.EXE WORK
 void FB::endMaintainerWork(int exitCode, QProcess::ExitStatus exitStatus)
 {
-    if (exitStatus == QProcess::NormalExit && exitCode == 0) //0 == EXIT_SUCCESS, see qtifw project
+    if (exitCode == 0 && exitStatus == QProcess::NormalExit) //0 == EXIT_SUCCESS, see qtifw project
     {
+        toolbUpdates->hide();
         this->onShowInfo(tr("Please restart the application to apply updates"));
     }
 }

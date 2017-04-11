@@ -465,6 +465,18 @@ Do you want to create new project based on this layer with copying the current f
         <source>Manage lists of values</source>
         <translation>Редактировать списки значений</translation>
     </message>
+    <message>
+        <source>Updates available!</source>
+        <translation>Доступно обновление!</translation>
+    </message>
+    <message>
+        <source>Can not find nextgisupdater.exe. The program may be installed incorrectly</source>
+        <translation>Не удаётся найти nextgisupdater.exe. Возможно данная программа установлена неправльно</translation>
+    </message>
+    <message>
+        <source>Please restart the application to apply updates</source>
+        <translation>Пожалуйста, перезапустите приложение чтобы обновления вступили в силу</translation>
+    </message>
 </context>
 <context>
     <name>FBAttrDialog</name>
@@ -509,7 +521,7 @@ List of authors:</source>
     </message>
     <message>
         <source>List</source>
-        <translation>Список</translation>
+        <translation type="vanished">Список</translation>
     </message>
     <message>
         <source>OK</source>

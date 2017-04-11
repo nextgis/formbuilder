@@ -58,8 +58,7 @@
 #include "screen/screens.h"
 
 #define FB_PATH_TRANSLATIONS "../share/nextgis/fb/translations"
-//#define FB_PATH_MAINTAINER_WIN32 QDir::currentPath() + "..\\nextgisupdater.exe"
-#define FB_PATH_MAINTAINER_WIN32 "C:\\Program Files (x86)\\NextGIS-xxx\\nextgisupdater.exe"
+#define FB_PATH_MAINTAINER_WIN32 "\\..\\nextgisupdater.exe"
 
 // GUI constants.
 #define FB_GUI_FONTTYPE "Candara"
