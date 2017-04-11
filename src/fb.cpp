@@ -24,6 +24,9 @@
 #include "form/elements.h"
 #include "ngw.h"
 
+#include <QProcess>
+
+
 FB::~FB()
 {
     this->writeSettings();
@@ -70,6 +73,9 @@ FB::FB(QWidget *parent):
     }
 
     project = NULL;
+
+    prUpdatesCheck = NULL;
+    prMaintainer = NULL;
 
     this->setObjectName("FB"); // at least for style sheets
 
@@ -426,11 +432,38 @@ void FB::initGui ()
     lvAll->addWidget(labBottom);
 
     //----------------------------------------------------------------------
+    //                            Updates button
+    //----------------------------------------------------------------------
+
+    toolbUpdates = new QToolButton(this); // not included in any layout
+    QIcon iconUpdates(":/img/update_avail2.png");
+    toolbUpdates->setIcon(iconUpdates);
+    toolbUpdates->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    toolbUpdates->setCursor(Qt::PointingHandCursor);
+    toolbUpdates->setIconSize(QSize(32,32));
+    toolbUpdates->setFixedSize(32,32);
+    toolbUpdates->hide();
+    //toolbUpdates->setEnabled(false);
+    toolbUpdates->setToolTip(tr("Updates available!"));
+    QObject::connect(toolbUpdates, SIGNAL(clicked()), this, SLOT(onUpdatesClick()));
+
+    #ifdef Q_OS_WIN32
+    this->startCheckingUpdates(); // after that toolbUpdates may change its enableness
+    #endif
+
+    //----------------------------------------------------------------------
     //                         Common GUI settings
     //----------------------------------------------------------------------
 
     this->updateEnableness();
     this->updateAppTitle();
+}
+
+
+// WINDOW RESIZE EVENT
+void FB::resizeEvent (QResizeEvent *event)
+{
+    toolbUpdates->move(this->width() - toolbUpdates->width(), 0);
 }
 
 
@@ -555,6 +588,14 @@ void FB::setFbStyle ()
 
     labBottom->setStyleSheet("QLabel {color: "+QString(FB_COLOR_DARKGREY)+"; "
                              "background: white;}");
+
+    toolbUpdates->setStyleSheet("QToolButton"
+      "{border: none; color: "+QString(FB_COLOR_DARKGREY)+";}"
+      "QToolButton:hover"
+      "{background-color: "+FB_COLOR_DARKBLUE+"; color: white;}"
+      "QToolButton:pressed{"
+      "background-color: "+FB_COLOR_LIGHTBLUE+"; color: white;}"
+      "QToolButton:disabled{}");
 }
 
 
@@ -1389,6 +1430,75 @@ void FB::onAboutGraphicsClick ()
 {
     FBDialogAbout dialog(this);
     dialog.exec();
+}
+
+
+// START THE PROCESS WHICH CHECKS FOR UPDATES
+void FB::startCheckingUpdates ()
+{
+    // Check for updates.
+    // Do it only for Windows and only if the program is correctly installed via NextGIS
+    // installer.
+
+    if (prUpdatesCheck != NULL)
+        return;
+
+    QString path = FB_PATH_MAINTAINER_WIN32;
+    if (!QFile::exists(path))
+        return;
+
+    QStringList args;
+    args<<"-v"<<"--checkupdates";
+    prUpdatesCheck = new QProcess(this);
+    QObject::connect(prUpdatesCheck, SIGNAL(finished(int,QProcess::ExitStatus)),
+                     this, SLOT(endCheckingUpdates(int,QProcess::ExitStatus)));
+    prUpdatesCheck->start(path, args);
+}
+
+// END OF THE PROCESS WHICH CHECKS FOR UPDATES
+void FB::endCheckingUpdates (int exitCode, QProcess::ExitStatus exitStatus)
+{
+    if (prUpdatesCheck == NULL)
+        return;
+
+    bool hasUpdates = false;
+    QString output(prUpdatesCheck->readAllStandardOutput());
+    if (output.contains("<updates>"))
+    {
+        hasUpdates = true;
+    }
+
+    if (hasUpdates)
+        toolbUpdates->show();
+}
+
+// UPDATES BUTTON CLICK
+void FB::onUpdatesClick ()
+{
+    #ifdef Q_OS_WIN32
+    QString path = FB_PATH_MAINTAINER_WIN32;
+    if (!QFile::exists(path))
+    {
+        this->onShowError(tr("Can not find nextgisupdater.exe. The program may"
+                             " be installed incorrectly"));
+        return;
+    }
+    QStringList args;
+    args<<"--updater";
+    prMaintainer = new QProcess();//(this); // app will be closed by user
+    QObject::connect(prMaintainer, SIGNAL(finished(int,QProcess::ExitStatus)),
+                     this, SLOT(endMaintainerWork(int,QProcess::ExitStatus)));
+    prMaintainer->start(path, args);
+    #endif
+}
+
+// END OF NEXTGISUPDATER.EXE WORK
+void FB::endMaintainerWork(int exitCode, QProcess::ExitStatus exitStatus)
+{
+    if (exitStatus == QProcess::NormalExit && exitCode == 0) //0 == EXIT_SUCCESS, see qtifw project
+    {
+        this->onShowInfo(tr("Please restart the application to apply updates"));
+    }
 }
 
 

@@ -87,5 +87,7 @@
         <file>img/rem_row.png</file>
         <file>img/lists.png</file>
         <file>img/make_key.png</file>
+        <file>img/update_avail.png</file>
+        <file>img/update_avail2.png</file>
     </qresource>
 </RCC>

@@ -13,25 +13,18 @@ int main (int argc, char *argv[])
     //QString langSys = QLocale::system().name();
 
     // TODO: move this and reading of other settings somewhere else.
-    QSettings settings(QSettings::IniFormat, QSettings::UserScope,
-                          "NextGIS", "FormBuilder");
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope, "NextGIS", "FormBuilder");
     QString langSet;
     langSet = settings.value("language","en_GB").toString();
 
-    // TODO: how else to get qt translation file suffix?
-    QString langSetSys = langSet;
+    QString langSetSys = langSet; // get qt translation file suffix
     langSetSys.chop(3);
 
     // TODO: maybe we need to load more files with system translations? See e.g.
     // C:\Qt\5.8\msvc2013\translations for Windows.
     QString sysTransName = "qtbase_" + langSetSys;
-//    QString sysTransPath = "";
-//    #ifdef FB_SYSTRANSLATIONS_IN_SHARE
-//    sysTransPath = FB_PATH_TRANSLATIONS + QString("/");
-//    #endif
     QTranslator translatorSys;
-//    if (!translatorSys.load(sysTransName,sysTransPath))
-        translatorSys.load(sysTransName,QLibraryInfo::location(QLibraryInfo::TranslationsPath));
+    translatorSys.load(sysTransName,QLibraryInfo::location(QLibraryInfo::TranslationsPath));
     a.installTranslator(&translatorSys); // will use qt.conf for file paths if it exists
 
     // For program translations we always have the same path for Linux and for Windows
