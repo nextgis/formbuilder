@@ -96,7 +96,7 @@ if(GDAL_FOUND AND NOT WITH_GDAL_EXTERNAL)
     endif()   
 endif()
 
-if(WIN32 AND WITH_GDAL_EXTERNAL) # TODO: move this to app cmake file
+if(WIN32)# AND WITH_GDAL_EXTERNAL) # TODO: move this to app cmake file
     add_definitions(-DFB_GDALDATA_IN_SHARE)
     # Note: if we have GDAL installed for Linux it will definitely have gdal data dir.
 endif()

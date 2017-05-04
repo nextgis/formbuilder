@@ -544,7 +544,7 @@ List of authors:</source>
     <name>FBDialogCsv</name>
     <message>
         <source>Select only 2 columns in CSV dataset</source>
-        <translation>Выбирете только 2 колонки в источнике данных CSV</translation>
+        <translation>Выберите только 2 колонки в источнике данных CSV</translation>
     </message>
     <message>
         <source>For inner</source>
@@ -942,7 +942,7 @@ List of authors:</source>
     </message>
     <message>
         <source>Select CSV file ...</source>
-        <translation>Выбирете CSV файл ...</translation>
+        <translation>Выберите CSV файл ...</translation>
     </message>
     <message>
         <source>Error while processing selected CSV dataset: </source>
