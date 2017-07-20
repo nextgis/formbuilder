@@ -648,3 +648,16 @@ QStringList FBElemCoordinates::getSelectedFields ()
 }
 
 
+/******************************************************************************/
+/*                                                                            */
+/*                           FBElemSplitcombobox                              */
+/*                                                                            */
+/******************************************************************************/
+
+FBElemSplitcombobox::FBElemSplitcombobox (QWidget *appWidget):
+    FBElemInputVariate()
+{
+
+}
+
+

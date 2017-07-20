@@ -89,5 +89,6 @@
         <file>img/make_key.png</file>
         <file>img/update_avail.png</file>
         <file>img/update_avail2.png</file>
+        <file>img/split_combo.png</file>
     </qresource>
 </RCC>

@@ -128,5 +128,13 @@ class FBFctelemCoordinates: public FBFctelem
      FBElem *create () { return new FBElemCoordinates(); }
 };
 
+class FBFctelemSplitcombobox: public FBFctelemAppwidget
+{
+    public:
+     FBFctelemSplitcombobox (QWidget *appWidget): FBFctelemAppwidget (appWidget) { }
+     ~FBFctelemSplitcombobox () { }
+     FBElem *create () { return new FBElemSplitcombobox(appWidget); }
+};
+
 #endif // FACTORIES_H
 

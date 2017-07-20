@@ -136,9 +136,10 @@ class FBElemDoublecombobox: public FBElemInputVariate
      FBElemDoublecombobox (QWidget *appWidget);
      virtual ~FBElemDoublecombobox () { }
      virtual QString getKeyName () { return FB_ELEMNAME_DOUBLE_COMBOBOX; }
-     virtual QString getDisplayName () { return tr("Doubled combobox"); }
-     virtual QString getDescription () { return tr("Pair of drop-down lists with predefined"
-                                                   " values"); }
+     virtual QString getDisplayName () { return tr("Dependent combos"); }
+     virtual QString getDescription () { return tr("A pair of comboboxes. The values list"
+                                                   " of the slave combobox depends on the values"
+                                                   " of the master combobox"); }
      virtual FBElemtype getType () { return FBInput; }
     protected:
      virtual void resetSelectedField (QString keyname);
@@ -274,6 +275,22 @@ class FBElemCoordinates: public FBElemInput
     protected:
      FBAttrField *attrFieldLatPtr;
      FBAttrField *attrFieldLongPtr;
+};
+
+class FBElemSplitcombobox: public FBElemInputVariate
+{
+    Q_OBJECT
+    public:
+     FBElemSplitcombobox (QWidget *appWidget);
+     virtual ~FBElemSplitcombobox () { }
+     virtual QString getKeyName () { return FB_ELEMNAME_SPLIT_COMBOBOX; }
+     virtual QString getDisplayName () { return tr("Splitted combo"); }
+     virtual QString getDescription () { return tr("A pair of comboboxes with the different"
+                                                   " displayed values but with the common inner"
+                                                   " values"); }
+     virtual FBElemtype getType () { return FBInput; }
+    protected:
+     FBAttrField *attrFieldPtr;
 };
 
 

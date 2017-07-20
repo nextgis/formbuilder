@@ -1403,7 +1403,7 @@ default values</source>
     </message>
     <message>
         <source>Doubled combobox</source>
-        <translation>Сдвоенный список</translation>
+        <translation type="vanished">Сдвоенный список</translation>
     </message>
     <message>
         <source>...</source>
@@ -1411,9 +1411,20 @@ default values</source>
     </message>
     <message>
         <source>Pair of drop-down lists with predefined values</source>
-        <translation>Пара выпадающих списков, содержащих заданные
+        <translation type="vanished">Пара выпадающих списков, содержащих заданные
 заранее значения. Позволяют выбрать связанную пару
 значений</translation>
+    </message>
+    <message>
+        <source>Dependent combos</source>
+        <translation>Зависимые списки</translation>
+    </message>
+    <message>
+        <source>A pair of comboboxes. The values list of the slave combobox depends on the values of the master combobox</source>
+        <translation>Пара выпадающих списков, содержащих заданные
+заранее значения. Позволяют выбрать связанную пару
+значений. Значения из второго списка зависят от значений
+из первого списка</translation>
     </message>
 </context>
 <context>
@@ -1529,6 +1540,18 @@ signature&quot;</source>
     <message>
         <source>Void space for making indents</source>
         <translation>Пустой элемент для создания отступов</translation>
+    </message>
+</context>
+<context>
+    <name>FBElemSplitcombobox</name>
+    <message>
+        <source>Splitted combo</source>
+        <translation>Двойной список</translation>
+    </message>
+    <message>
+        <source>A pair of comboboxes with the different displayed values but with the common inner values</source>
+        <translation>Два выпадающих списка, которые имеют общие
+внутренние значения, но разные отображаемые</translation>
     </message>
 </context>
 <context>
