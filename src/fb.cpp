@@ -123,7 +123,7 @@ void FB::initGui ()
     layProject->addStretch();
 
     wData = new QWidget();
-    tabMenuTop->addTab(wData, tr("  Data  "));
+    tabMenuTop->addTab(wData, tr("  Layer  "));
     QHBoxLayout *lhData = new QHBoxLayout(wData);
     lhData->setContentsMargins(4,4,4,4);
     lhData->setSpacing(2);
@@ -242,9 +242,9 @@ void FB::initGui ()
                                              false,true);
     QObject::connect(toolbUpdateData, SIGNAL(clicked()),
                      this, SLOT(onUpdateDataClick()));
-    toolbUpload = this->addTopMenuButton(wData,":/img/upload.png",
-      tr("To Web"),tr("Create underlying layer as new void\nlayer on NextGIS Web"),
-                                         false,true);
+    toolbUpload = this->addTopMenuButton(wData,":/img/upload2.png",
+      tr("Create"),tr("Create a new layer on NextGIS Web with\nthe fields defined in "
+                      "this project"), false,true);
     QObject::connect(toolbUpload, SIGNAL(clicked()),
                      this, SLOT(onUploadClick()));
     toolbLists = this->addTopMenuButton(wData,":/img/lists.png",

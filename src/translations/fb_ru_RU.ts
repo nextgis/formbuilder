@@ -415,7 +415,7 @@ in program</source>
     </message>
     <message>
         <source>  Data  </source>
-        <translation>  Данные  </translation>
+        <translation type="vanished">  Данные  </translation>
     </message>
     <message>
         <source>  Form  </source>
@@ -433,12 +433,12 @@ from the other Shapefile</source>
     </message>
     <message>
         <source>To Web</source>
-        <translation>Web</translation>
+        <translation type="vanished">Web</translation>
     </message>
     <message>
         <source>Create underlying layer as new void
 layer on NextGIS Web</source>
-        <translation>Создать слой со сформированной структурой в NextGIS Web </translation>
+        <translation type="vanished">Создать слой со сформированной структурой в NextGIS Web </translation>
     </message>
     <message>
         <source>Void layer is created on the Web GIS successfully.
@@ -476,6 +476,20 @@ Do you want to create new project based on this layer with copying the current f
     <message>
         <source>Please restart the application to apply updates</source>
         <translation>Пожалуйста, перезапустите приложение чтобы обновления вступили в силу</translation>
+    </message>
+    <message>
+        <source>  Layer  </source>
+        <translation>  Слой  </translation>
+    </message>
+    <message>
+        <source>Create</source>
+        <translation>Создать</translation>
+    </message>
+    <message>
+        <source>Create a new layer on NextGIS Web with
+the fields defined in this project</source>
+        <translation>Создать новый слой в NextGIS Web,
+взяв список полей из данного проекта</translation>
     </message>
 </context>
 <context>
