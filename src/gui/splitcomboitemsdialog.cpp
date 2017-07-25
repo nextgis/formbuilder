@@ -33,6 +33,10 @@ FbSplitComboItemsDialog::FbSplitComboItemsDialog (QWidget *wParent):
     m_wTable->setColumnCount(3);
     m_wTable->setHorizontalHeaderLabels(hdrs);
     m_wTable->addEnterRow();
+    m_wTable->switchToEnterRow();
+    m_wTable->setFocus();
+
+//    this->resize(m_wTable->width() + 20, m_wTable->height() + 20);
 }
 
 

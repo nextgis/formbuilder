@@ -49,6 +49,7 @@ class FbItemsTableWidget: public QTableWidget
      FbItemsTableWidget (QWidget *wParent);
      virtual ~FbItemsTableWidget ();
      bool addEnterRow ();
+     void switchToEnterRow ();
     signals:
      void needShowMessage (QString, bool);
      void needShowQuestion (QString);
@@ -62,15 +63,13 @@ class FbItemsTableWidget: public QTableWidget
     protected:
      void keyPressEvent (QKeyEvent *pEvent);
     protected:
-     void switchToEnterRow ();
-     void completeRow (int nRow);
+     virtual void completeRow (int nRow);
      void unmarkDefaultRow ();
      void markDefaultRow (int nRow);
      bool isRowVoid (int nRow);
      bool isOneInRowVoid (int nRow);
-     static bool isItemVoid (QTableWidgetItem *pItem);
-     static bool isStringVoid (QString s);
-     static void reduceString (QString &s);
+     static bool s_isStringVoid (QString str);
+     static void s_reduceString (QString &str);
     protected:
      QAbstractItemView::EditTriggers m_eEditTrigs;
      int m_nMinRows;

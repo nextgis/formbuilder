@@ -68,18 +68,18 @@ bool FbItemsTableWidget::addEnterRow ()
     if (m_wasEnterRowAdded)
         return false;
 
-//    this->blockSignals(true); // so e.g. not to trigger cellChanged() signal?
+    this->blockSignals(true); // so e.g. not to trigger cellChanged() signal
 
     this->setRowCount(this->rowCount() + 1);
     this->setVerticalHeaderItem(this->rowCount() - 1, new QTableWidgetItem("*"));
-    for (int c = 0; c < this->columnCount(); c++)
+    for (int j = 0; j < this->columnCount(); j++)
     {
         QTableWidgetItem *it = new QTableWidgetItem("");
         it->setBackgroundColor(COLOR_ITEMSTABLE_LAST);
-        this->setItem(this->rowCount() - 1, c, it);
+        this->setItem(this->rowCount() - 1, j, it);
     }
 
-//    this->blockSignals(false);
+    this->blockSignals(false);
 
     m_wasEnterRowAdded = true;
     return true;
@@ -87,11 +87,23 @@ bool FbItemsTableWidget::addEnterRow ()
 
 
 /*!
-* @brief SLOT: ...
+* @brief Switchs focus to the Enter row of this table if it was created.
+*/
+void FbItemsTableWidget::switchToEnterRow ()
+{
+    if (!m_wasEnterRowAdded)
+        return;
+    this->setFocus();
+    this->setCurrentItem(this->item(this->rowCount() - 1, 0));
+}
+
+
+/*!
+* @brief [SLOT] ...
 */
 void FbItemsTableWidget::addRow ()
 {
-    if (!m_wasEnterRowAdded) // because we take the item values from the Enter row
+    if (!m_wasEnterRowAdded) // because we take the item values only from the Enter row
         return;
 
     if (this->rowCount() == m_nMaxRows)
@@ -101,17 +113,17 @@ void FbItemsTableWidget::addRow ()
         return;
     }
 
-//    if (this->isOneInRowVoid(table->rowCount()-1))
-//        return;
+    if (this->isRowVoid(this->rowCount() - 1))
+        return;
 
     this->blockSignals(true); // so at least not to trigger cellChanged() signal
     int nLastRow = this->rowCount() - 1;
     this->insertRow(nLastRow);
-    for (int c = 0; c < this->columnCount(); c++)
+    for (int j = 0; j < this->columnCount(); j++)
     {
-        QString s = this->item(nLastRow + 1, c)->text();
-        this->setItem(nLastRow, c, new QTableWidgetItem(s));
-        this->item(nLastRow + 1, c)->setText("");
+        QString str = this->item(nLastRow + 1, j)->text();
+        this->setItem(nLastRow, j, new QTableWidgetItem(str));
+        this->item(nLastRow + 1, j)->setText("");
     }
     this->blockSignals(false);
 
@@ -124,7 +136,7 @@ void FbItemsTableWidget::addRow ()
 
 
 /*!
-* @brief SLOT: ...
+* @brief [SLOT] ...
 */
 void FbItemsTableWidget::deleteRow ()
 {
@@ -133,7 +145,7 @@ void FbItemsTableWidget::deleteRow ()
 
 
 /*!
-* @brief SLOT: ...
+* @brief [SLOT] ...
 */
 void FbItemsTableWidget::makeDefaultRow ()
 {
@@ -142,24 +154,23 @@ void FbItemsTableWidget::makeDefaultRow ()
 
 
 /*!
-* @brief SLOT: ...
+* @brief [SLOT] ...
 */
 void FbItemsTableWidget::onSelectionChanged ()
 {
     // QUESTION. Maybe we need to add smth for gui buttons here ...
-    // this->updateItemButtons(true);
 }
 
 
 /*!
-* @brief SLOT: some common actions for all rows when the current cell is changed.
+* @brief [SLOT] Some common actions for all rows when the current cell is changed.
 */
 void FbItemsTableWidget::onCellChanged (int nRow, int nCol)
 {
     // a) Check if the string is too long and modify it if needed.
-    QString s = this->item(nRow, nCol)->text();
-    FbItemsTableWidget::reduceString(s);
-    this->item(nRow, nCol)->setText(s);
+    QString str = this->item(nRow, nCol)->text();
+    s_reduceString(str);
+    this->item(nRow, nCol)->setText(str);
 
     // b) The rule: we cannot have void strings for the items.
     // NOTE: this will work also when table looses focus.
@@ -168,7 +179,7 @@ void FbItemsTableWidget::onCellChanged (int nRow, int nCol)
 
 
 /*!
-* @brief Key press event. Catch some keybord buttons and add required behavior for them.
+* @brief [EVENT] Catch some keybord buttons and add required behavior for them.
 */
 void FbItemsTableWidget::keyPressEvent (QKeyEvent *pEvent)
 {
@@ -178,14 +189,10 @@ void FbItemsTableWidget::keyPressEvent (QKeyEvent *pEvent)
     {
         if (pEvent->key() == Qt::Key_Return) // "Enter" key
         {
-            // Emit signals for Enter key only if there is no persistant editor for the cell. Anyway
-            // close persistant editor with saving data in the cell.
-            bool wasEditor = this->u_commitAndClosePersistentEditor(this->currentItem());
-
-            // NOTE: just remove the following check for the last line if users will ask for the
-            // single-press of Enter key for addition:
-            if (!wasEditor)
-            {
+            // Anyway close persistant editor with saving data in the cell.
+            bool wasEditor = this->u_commitAndClosePersistentEditor(pItemSelected);
+//            if (!wasEditor)
+//            {
                 if (this->currentRow() == this->rowCount() - 1)
                 {
                     this->addRow();
@@ -193,10 +200,10 @@ void FbItemsTableWidget::keyPressEvent (QKeyEvent *pEvent)
                 }
                 else
                 {
-                    this->makeDefaultRow();
-                    return;
+//                    this->makeDefaultRow();
+                    return; // we add return here so not to let the standard event to occur
                 }
-            }
+//            }
         }
         else if (pEvent->key() == Qt::Key_Delete && this->currentRow() != this->rowCount() - 1)
         {
@@ -213,18 +220,27 @@ void FbItemsTableWidget::keyPressEvent (QKeyEvent *pEvent)
 }
 
 
-/// ...
-void FbItemsTableWidget::switchToEnterRow ()
-{
-    this->setFocus();
-    this->setCurrentItem(this->item(this->rowCount() - 1, 0));
-}
-
-
-/// ...
+/// Complete the row with the items copying the text from the most first occured not-void item. Can
+/// be reimplemented in subclasses to implement another "complete" strategy.
 void FbItemsTableWidget::completeRow (int nRow)
 {
-//    table->item(nRow,1)->setText(table->item(nRow,0)->text());
+    QString str = "";
+
+    // Search for the first not-void item.
+    for (int j = 0; j < this->columnCount(); j++)
+    {
+        if (s_isStringVoid(this->item(nRow, j)->text()))
+            continue;
+        str = this->item(nRow, j)->text();
+        break;
+    }
+
+    // Replace all void items.
+    for (int j = 0; j < this->columnCount(); j++)
+    {
+        if (s_isStringVoid(this->item(nRow, j)->text()))
+            this->item(nRow, j)->setText(str);
+    }
 }
 
 
@@ -252,9 +268,9 @@ void FbItemsTableWidget::markDefaultRow (int nRow)
 /// ...
 bool FbItemsTableWidget::isRowVoid (int nRow)
 {
-    for (int c = 0; c < this->columnCount(); c++)
+    for (int j = 0; j < this->columnCount(); j++)
     {
-        if (!this->isItemVoid(this->item(nRow, c)))
+        if (!s_isStringVoid(this->item(nRow, j)->text()))
             return false;
     }
     return true;
@@ -263,37 +279,31 @@ bool FbItemsTableWidget::isRowVoid (int nRow)
 /// ...
 bool FbItemsTableWidget::isOneInRowVoid (int nRow)
 {
-    for (int c = 0; c < this->columnCount(); c++)
+    for (int j = 0; j < this->columnCount(); j++)
     {
-        if (this->isItemVoid(this->item(nRow, c)))
+        if (s_isStringVoid(this->item(nRow, j)->text()))
             return true;
     }
     return false;
 }
 
-/// STATIC: ...
-bool FbItemsTableWidget::isItemVoid (QTableWidgetItem *pItem)
+/// ...
+bool FbItemsTableWidget::s_isStringVoid (QString str)
 {
-    return FbItemsTableWidget::isStringVoid(pItem->text());
-}
-
-/// STATIC: ...
-bool FbItemsTableWidget::isStringVoid (QString s)
-{
-    if (s == "")
+    if (str == "")
         return true;
-    for (int i=0; i<s.size(); i++)
-        if (s[i] != ' ')
+    for (int i = 0; i < str.size(); i++)
+        if (str[i] != ' ')
             return false;
     return true;
 }
 
 
-/// STATIC: ...
-void FbItemsTableWidget::reduceString (QString &s)
+/// ...
+void FbItemsTableWidget::s_reduceString (QString &str)
 {
-    if (s.size() > MAX_ITEMSTABLE_STRINGSIZE)
-        s.chop(s.size() - MAX_ITEMSTABLE_STRINGSIZE);
+    if (str.size() > MAX_ITEMSTABLE_STRINGSIZE)
+        str.chop(str.size() - MAX_ITEMSTABLE_STRINGSIZE);
 }
 
 
