@@ -61,7 +61,7 @@ FbItemsTableWidget::~FbItemsTableWidget ()
 
 /*!
 * @brief Adds "enter" row to this table. The row should be added if there is a need to enter new
-* items in this table.
+* items or delete existig ones in this table.
 */
 bool FbItemsTableWidget::addEnterRow ()
 {
@@ -87,7 +87,7 @@ bool FbItemsTableWidget::addEnterRow ()
 
 
 /*!
-* @brief Switchs focus to the Enter row of this table if it was created.
+* @brief Switchs focus to the Enter row (if the Enter row was created for this table).
 */
 void FbItemsTableWidget::switchToEnterRow ()
 {
@@ -108,8 +108,8 @@ void FbItemsTableWidget::addRow ()
 
     if (this->rowCount() == m_nMaxRows)
     {
-        emit needShowMessage(tr("Unable to add new item. There is already a maximum number of items"
-                                " in the table"), false);
+        emit needShowMessage(tr("Unable to add new items. There is already a maximum number of "
+                                "items in the table"), false);
         return;
     }
 
@@ -117,6 +117,11 @@ void FbItemsTableWidget::addRow ()
         return;
 
     this->blockSignals(true); // so at least not to trigger cellChanged() signal
+
+    // Insert new row at the end (but before the Enter row) and copy the items from the Enter row
+    // to the newly inserted one.
+    // NOTE: after this we do not need to change the default row because the new row is always added
+    // to the end.
     int nLastRow = this->rowCount() - 1;
     this->insertRow(nLastRow);
     for (int j = 0; j < this->columnCount(); j++)
@@ -125,12 +130,10 @@ void FbItemsTableWidget::addRow ()
         this->setItem(nLastRow, j, new QTableWidgetItem(str));
         this->item(nLastRow + 1, j)->setText("");
     }
+
     this->blockSignals(false);
 
     this->scrollToBottom();
-
-    // NOTE: no need to change default row because the new row has been added to the end.
-
     this->switchToEnterRow();
 }
 
@@ -140,7 +143,45 @@ void FbItemsTableWidget::addRow ()
 */
 void FbItemsTableWidget::deleteRow ()
 {
+    if (!m_wasEnterRowAdded) // some kind of "only for reading" mode if we have not got Enter row
+        return;
 
+    QTableWidgetItem *pCurrentItem = this->currentItem();
+    if (pCurrentItem == nullptr)
+        return;
+
+    int nCurrentRow = pCurrentItem->row();
+    if (nCurrentRow == this->rowCount() - 1) // we are in the Enter row
+        return;
+
+    if (this->rowCount() == m_nMinRows + 1) // + 1 because of Enter row
+    {
+        emit needShowMessage(tr("Unable to remove items. The table must have at least %1 items")
+                             .arg(m_nMinRows), false);
+        return;
+    }
+
+    // Remove the row.
+    this->removeRow(nCurrentRow);
+
+//    if (rowDefault == selectedRow)
+//    {
+//        if (!hasUndefinedValue)
+//        {
+//            rowDefault = 0;
+//            this->markDefaultRow(0);
+//        }
+//        else
+//        {
+//            rowDefault = -1;
+//        }
+//    }
+//    else if (selectedRow < rowDefault)
+//    {
+//        rowDefault--;
+//    }
+
+    this->setFocus();
 }
 
 
@@ -153,18 +194,14 @@ void FbItemsTableWidget::makeDefaultRow ()
 }
 
 
-/*!
-* @brief [SLOT] ...
-*/
+/// [SLOT] ...
 void FbItemsTableWidget::onSelectionChanged ()
 {
     // QUESTION. Maybe we need to add smth for gui buttons here ...
 }
 
 
-/*!
-* @brief [SLOT] Some common actions for all rows when the current cell is changed.
-*/
+/// [SLOT] Some common actions for all rows when the current cell is changed.
 void FbItemsTableWidget::onCellChanged (int nRow, int nCol)
 {
     // a) Check if the string is too long and modify it if needed.
@@ -178,9 +215,7 @@ void FbItemsTableWidget::onCellChanged (int nRow, int nCol)
 }
 
 
-/*!
-* @brief [EVENT] Catch some keybord buttons and add required behavior for them.
-*/
+/// [EVENT] Catch some keybord buttons and add required behavior for them.
 void FbItemsTableWidget::keyPressEvent (QKeyEvent *pEvent)
 {
     // Do smth only if there is an item selected.
@@ -247,25 +282,17 @@ void FbItemsTableWidget::completeRow (int nRow)
 /// ...
 void FbItemsTableWidget::unmarkDefaultRow ()
 {
-//    if (rowDefault == -1)
-//        return;
-//    table->item(rowDefault,0)->setBackgroundColor(QColor(255,255,255));
-//    table->item(rowDefault,1)->setBackgroundColor(QColor(255,255,255));
-//    table->clearSelection();
+
 }
 
 /// ...
 void FbItemsTableWidget::markDefaultRow (int nRow)
 {
-//    if (nRow == -1)
-//        return;
-//    table->item(nRow,0)->setBackgroundColor(QColor(139,183,224));
-//    table->item(nRow,1)->setBackgroundColor(QColor(139,183,224));
-//    table->clearSelection();
+
 }
 
 
-/// ...
+/// Returns true if all items in a row are void.
 bool FbItemsTableWidget::isRowVoid (int nRow)
 {
     for (int j = 0; j < this->columnCount(); j++)
@@ -276,7 +303,7 @@ bool FbItemsTableWidget::isRowVoid (int nRow)
     return true;
 }
 
-/// ...
+/// Returns true if at least one of the items in a row is void.
 bool FbItemsTableWidget::isOneInRowVoid (int nRow)
 {
     for (int j = 0; j < this->columnCount(); j++)
@@ -287,7 +314,8 @@ bool FbItemsTableWidget::isOneInRowVoid (int nRow)
     return false;
 }
 
-/// ...
+/// Returns true if the string is a void string (if all symols in a string are spaces we regard this
+/// string also as a void one).
 bool FbItemsTableWidget::s_isStringVoid (QString str)
 {
     if (str == "")
@@ -299,7 +327,7 @@ bool FbItemsTableWidget::s_isStringVoid (QString str)
 }
 
 
-/// ...
+/// Chop the string value if it is too long.
 void FbItemsTableWidget::s_reduceString (QString &str)
 {
     if (str.size() > MAX_ITEMSTABLE_STRINGSIZE)
