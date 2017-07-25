@@ -415,7 +415,7 @@ in program</source>
     </message>
     <message>
         <source>  Data  </source>
-        <translation type="vanished">  Данные  </translation>
+        <translation>  Данные  </translation>
     </message>
     <message>
         <source>  Form  </source>
@@ -479,7 +479,7 @@ Do you want to create new project based on this layer with copying the current f
     </message>
     <message>
         <source>  Layer  </source>
-        <translation>  Слой  </translation>
+        <translation type="vanished">  Слой  </translation>
     </message>
     <message>
         <source>Create</source>
@@ -1566,6 +1566,38 @@ signature&quot;</source>
         <source>A pair of comboboxes with the different displayed values but with the common inner values</source>
         <translation>Два выпадающих списка, которые имеют общие
 внутренние значения, но разные отображаемые</translation>
+    </message>
+    <message>
+        <source>Label 1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Label for combo 1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Combo 1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Label 2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Label for combo 2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Combo 2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Allow own values</source>
+        <translation type="unfinished">Свои значения</translation>
+    </message>
+    <message>
+        <source>User can add own values to the list</source>
+        <translation type="unfinished">Пользователь может добавлять свои значения в список</translation>
     </message>
 </context>
 <context>

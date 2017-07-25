@@ -432,6 +432,26 @@ class FBDialogDatetime: public QDialog
      QCheckBox *chbCurrent;
 };
 
+
+// For split combobox element: one inner and two displayed values.
+class FBAttrListvalues2: public FBAttrListvalues
+{
+    Q_OBJECT
+    public:
+     FBAttrListvalues2 (FBElem *parentElem, QString keyName, QString displayName,
+                QString descr, FBAttrrole role, QWidget *parentForDialog);
+     virtual ~FBAttrListvalues2 () { }
+     virtual Json::Value toJson (); // override
+     virtual bool fromJson (Json::Value jsonVal); // override
+     virtual QVariant getValue (); // override
+     QString getDefDispValue2 (); // for the additional "alias2" column
+     QStringList getDispValues2 (); // for the additional "alias2" column
+    protected slots:
+     virtual void onEditStart ();
+    protected:
+     QList<QString> values2; // an addition to the main list of values (here are items for "alias2")
+};
+
 #endif //ATTRIBUTES_H
 
 

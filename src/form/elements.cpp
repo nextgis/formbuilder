@@ -210,7 +210,7 @@ FBElemCombobox::FBElemCombobox (QWidget *appWidget):
     // ATTRIBUTE
     attrListvalsPtr = new FBAttrListvalues(this, FB_ATTRNAME_VALUE_mult,
         tr("Values"),
-        tr("List ov values and default selected value"),
+        tr("A list of values and a default selected value"),
         FBNoRole,
         appWidget);
     QObject::connect(attrListvalsPtr, SIGNAL(changeAppearance(FBAttr*)),
@@ -657,7 +657,43 @@ QStringList FBElemCoordinates::getSelectedFields ()
 FBElemSplitcombobox::FBElemSplitcombobox (QWidget *appWidget):
     FBElemInputVariate()
 {
+    // ATTRIBUTE
+    attrListvals2Ptr = new FBAttrListvalues2(this, FB_ATTRNAME_VALUE_mult,
+        tr("Values"),
+        tr("A list of values and a default selected value"),
+        FBNoRole,
+        appWidget);
+    QObject::connect(attrListvals2Ptr, SIGNAL(changeAppearance(FBAttr*)),
+                     this, SLOT(onChangeAppearance(FBAttr*)));
+    attrs.insert(attrListvals2Ptr->getKeyName(),attrListvals2Ptr);
 
+    // ATTRIBUTE
+    attrLabel1Ptr = new FBAttrString(this, FB_ATTRNAME_LABEL1,
+        tr("Label 1"),
+        tr("Label for combo 1"),
+        FBNoRole,
+        tr("Combo 1"));
+    QObject::connect(attrLabel1Ptr, SIGNAL(changeAppearance(FBAttr*)),
+                     this, SLOT(onChangeAppearance(FBAttr*)));
+    attrs.insert(attrLabel1Ptr->getKeyName(),attrLabel1Ptr);
+
+    // ATTRIBUTE
+    attrLabel2Ptr = new FBAttrString(this, FB_ATTRNAME_LABEL2,
+        tr("Label 2"),
+        tr("Label for combo 2"),
+        FBNoRole,
+        tr("Combo 2"));
+    QObject::connect(attrLabel2Ptr, SIGNAL(changeAppearance(FBAttr*)),
+                     this, SLOT(onChangeAppearance(FBAttr*)));
+    attrs.insert(attrLabel2Ptr->getKeyName(),attrLabel2Ptr);
+
+    // ATTRIBUTE
+    FBAttrBoolean *attrAllowVals = new FBAttrBoolean(this, FB_ATTRNAME_ALLOWADDING,
+        tr("Allow own values"),
+        tr("User can add own values to the list"),
+        FBNoRole,
+        false);
+    attrs.insert(attrAllowVals->getKeyName(),attrAllowVals);
 }
 
 

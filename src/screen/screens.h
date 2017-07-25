@@ -294,6 +294,14 @@ class FBDecAndrCoordinates: public FBDecoratorAndroid
     protected:
     QPixmap pix;
 };
+class FBDecAndrSplitCombobox: public FBDecAndrCombobox
+{
+    public:
+    FBDecAndrSplitCombobox (): FBDecAndrCombobox() { }
+    ~FBDecAndrSplitCombobox () { }
+    virtual void redecor (FBElem *elem);
+    virtual void update (FBElem *elem);
+};
 
 
 /**

@@ -25,9 +25,13 @@ set(APP_NAME fb)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-# TODO: make 3 separate libraries in future: forms, projects and screens.
-
 set(APP_HEADERS
+
+gui/gui_globals.h
+gui/itemstablewidget.h
+gui/itemsdialog.h
+gui/comboitemsdialog.h
+gui/splitcomboitemsdialog.h
 
 form/form_core.h
 form/attributes.h
@@ -43,6 +47,12 @@ screen/devices.h
 )
 
 set(APP_SOURCES
+
+gui/gui_globals.cpp
+gui/itemstablewidget.cpp
+gui/itemsdialog.cpp
+gui/comboitemsdialog.cpp
+gui/splitcomboitemsdialog.cpp
 
 form/dialogcsv.cpp
 form/dialoglistvalues.cpp

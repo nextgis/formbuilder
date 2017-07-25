@@ -290,7 +290,9 @@ class FBElemSplitcombobox: public FBElemInputVariate
                                                    " values"); }
      virtual FBElemtype getType () { return FBInput; }
     protected:
-     FBAttrField *attrFieldPtr;
+     FBAttrListvalues2 *attrListvals2Ptr;
+     FBAttrString *attrLabel1Ptr;
+     FBAttrString *attrLabel2Ptr;
 };
 
 

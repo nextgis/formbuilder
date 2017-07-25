@@ -758,6 +758,172 @@ void FBDecAndrCoordinates::update (FBElem* elem)
 }
 
 
+void FBDecAndrSplitCombobox::redecor (FBElem* elem)
+{
+    if (elem == NULL) return;
+
+    elem->clearContents();
+    elem->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Maximum);
+    elem->setFixedHeight(FB_ANDR_SIZE_STDHEIGHTX2);
+
+    QLabel *lab1 = new QLabel(elem);
+    lab1->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+    lab1->setFont(QFont(FB_ANDR_FONTTYPE,
+                           FB_ANDR_FONTSIZE_NORMAL));
+    lab1->setStyleSheet("QLabel"
+                           "{color: "+QString(FB_ANDR_COLOR_DARKGREY)+";"
+                               "border-top: none;"
+                               "border-left: none;"
+                               "border-right: none;"
+                               "border-bottom: none;}");
+    elem->registerAsDecor(lab1,"caption1");
+
+    QLabel *lab2 = new QLabel(elem);
+    lab2->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+    lab2->setFont(QFont(FB_ANDR_FONTTYPE,
+                           FB_ANDR_FONTSIZE_NORMAL));
+    lab2->setStyleSheet("QLabel"
+                           "{color: "+QString(FB_ANDR_COLOR_DARKGREY)+";"
+                               "border-top: none;"
+                               "border-left: none;"
+                               "border-right: none;"
+                               "border-bottom: none;}");
+    elem->registerAsDecor(lab2,"caption2");
+
+    QLabel *labText1 = new QLabel(elem);
+    elem->registerAsDecor(labText1,"combo1");
+    labText1->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+    labText1->setFont(QFont(FB_ANDR_FONTTYPE,
+                            FB_ANDR_FONTSIZE_NORMAL));
+    labText1->setStyleSheet("QLabel"
+                           "{color: "+QString(FB_ANDR_COLOR_VERYDARKGREY)+";"
+                           "border-top: none;"
+                           "border-left: none;"
+                           "border-right: none;"
+                           "border-bottom: none;}");
+
+    QLabel *labText2 = new QLabel(elem);
+    elem->registerAsDecor(labText2,"combo2");
+    labText2->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+    labText2->setFont(QFont(FB_ANDR_FONTTYPE,
+                            FB_ANDR_FONTSIZE_NORMAL));
+    labText2->setStyleSheet("QLabel"
+                           "{color: "+QString(FB_ANDR_COLOR_VERYDARKGREY)+";"
+                           "border-top: none;"
+                           "border-left: none;"
+                           "border-right: none;"
+                           "border-bottom: none;}");
+
+    QWidget *widDecor1 = new QWidget(elem);
+    widDecor1->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+    widDecor1->setMinimumHeight(7);
+    widDecor1->setStyleSheet("QWidget"
+                            "{border-top: none;"
+                            "border-left: none;"
+                            "border-right: none;"
+                            "border-bottom: 2px solid "
+                             +QString(FB_ANDR_COLOR_MEDIUMGREY)+";}");
+
+    QWidget *widDecor2 = new QWidget(elem);
+    widDecor2->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+    widDecor2->setMinimumHeight(7);
+    widDecor2->setStyleSheet("QWidget"
+                            "{border-top: none;"
+                            "border-left: none;"
+                            "border-right: none;"
+                            "border-bottom: 2px solid "
+                             +QString(FB_ANDR_COLOR_MEDIUMGREY)+";}");
+
+    QLabel *labImg1 = new QLabel(elem);
+    labImg1->setStyleSheet("QLabel{border: none;}");
+    labImg1->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Expanding);
+    labImg1->setFixedWidth(pixCombo.width());
+    labImg1->setAlignment(Qt::AlignBottom);
+    labImg1->setPixmap(pixCombo);
+    labImg1->setContentsMargins(0,0,0,0);
+
+    QLabel *labImg2 = new QLabel(elem);
+    labImg2->setStyleSheet("QLabel{border: none;}");
+    labImg2->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Expanding);
+    labImg2->setFixedWidth(pixCombo.width());
+    labImg2->setAlignment(Qt::AlignBottom);
+    labImg2->setPixmap(pixCombo);
+    labImg2->setContentsMargins(0,0,0,0);
+
+    QHBoxLayout *hlay1 = new QHBoxLayout();
+    hlay1->setContentsMargins(0,0,0,0);
+    hlay1->setSpacing(0);
+    QHBoxLayout *hlay2 = new QHBoxLayout();
+    hlay2->setContentsMargins(0,0,0,0);
+    hlay2->setSpacing(0);
+    QVBoxLayout *vlayText1 = new QVBoxLayout();
+    vlayText1->setContentsMargins(0,0,0,0);
+    vlayText1->setSpacing(0);
+    QVBoxLayout *vlayText2 = new QVBoxLayout();
+    vlayText2->setContentsMargins(0,0,0,0);
+    vlayText2->setSpacing(0);
+    QGridLayout *glayAll = new QGridLayout();
+    glayAll->setContentsMargins(0,0,0,0);
+    glayAll->setSpacing(8);
+
+    vlayText1->addWidget(labText1);
+    vlayText1->addWidget(widDecor1);
+    vlayText2->addWidget(labText2);
+    vlayText2->addWidget(widDecor2);
+    hlay1->addLayout(vlayText1);
+    hlay1->addWidget(labImg1);
+    hlay2->addLayout(vlayText2);
+    hlay2->addWidget(labImg2);
+    glayAll->addWidget(lab1,0,0);
+    glayAll->addWidget(lab2,0,1);
+    glayAll->addLayout(hlay1,1,0);
+    glayAll->addLayout(hlay2,1,1);
+
+    elem->addAsDecor(glayAll);
+}
+void FBDecAndrSplitCombobox::update (FBElem* elem)
+{
+    if (elem == NULL) return;
+
+    FBAttr *attrVals = elem->getAttr(FB_ATTRNAME_VALUE_mult);
+    if (attrVals == NULL) return;
+    QVariant varVals = attrVals->getValue();
+    FBListValue2 tupleVals = varVals.value<FBListValue2>();
+
+    FBAttr *attrCap1 = elem->getAttr(FB_ATTRNAME_LABEL1);
+    if (attrCap1 == NULL) return;
+    QVariant varCap1 = attrCap1->getValue();
+    QString strCap1 = varCap1.value<QString>();
+
+    FBAttr *attrCap2 = elem->getAttr(FB_ATTRNAME_LABEL2);
+    if (attrCap2 == NULL) return;
+    QVariant varCap2 = attrCap2->getValue();
+    QString strCap2 = varCap2.value<QString>();
+
+    QLabel *wCap1 = (QLabel*)elem->findAsDecor("caption1");
+    QLabel *wCap2 = (QLabel*)elem->findAsDecor("caption2");
+    QLabel *wCombo1 = (QLabel*)elem->findAsDecor("combo1");
+    QLabel *wCombo2 = (QLabel*)elem->findAsDecor("combo2");
+    if (wCap1 == NULL || wCap2 == NULL || wCombo1 == NULL || wCombo2 == NULL) return;
+
+    QString strVals1 = "";
+    QString strVals2 = "";
+    QList<QPair<QString,QString> > listVals1 = std::get<0>(tupleVals);
+    int nDefVal = std::get<1>(tupleVals);
+    QList<QString> listVals2 = std::get<2>(tupleVals);
+    if (nDefVal >= 0 && nDefVal < listVals1.size())
+    {
+        strVals1 = listVals1[nDefVal].second;
+        strVals2 = listVals2[nDefVal];
+    }
+
+    wCap1->setText(" " + strCap1);
+    wCap2->setText(" " + strCap2);
+    wCombo1->setText(" " + strVals1);
+    wCombo2->setText(" " + strVals2);
+}
+
+
 // REGISTRAR:
 void FBScreenAndroid::registerDecorators ()
 {
@@ -774,4 +940,5 @@ void FBScreenAndroid::registerDecorators ()
     this->registerDecorator(FB_ELEMNAME_SIGNATURE, new FBDecAndrSignature());
     this->registerDecorator(FB_ELEMNAME_COUNTER, new FBDecAndrCounter());
     this->registerDecorator(FB_ELEMNAME_COORDINATES, new FBDecAndrCoordinates());
+    this->registerDecorator(FB_ELEMNAME_SPLIT_COMBOBOX, new FBDecAndrSplitCombobox());
 }

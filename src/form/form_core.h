@@ -108,7 +108,8 @@
 #define FB_ATTRNAME_HIDDEN "hidden"
 #define FB_ATTRNAME_SUFFIX_FROM_LIST "suffix_from_list"
 #define FB_ATTRNAME_PREFIX_FROM_LIST "prefix_from_list"
-
+#define FB_ATTRNAME_LABEL1 "label1"
+#define FB_ATTRNAME_LABEL2 "label2"
 
 enum FBElemtype
 {
@@ -138,6 +139,7 @@ struct FBDatetimeFormat
     ~FBDatetimeFormat () { }
 };
 
+// For returning tuples in a one value:
 typedef QPair<QList<QPair<QString,QString> >, int> FBListValue;
 Q_DECLARE_METATYPE(FBListValue);
 typedef QPair<QList<QList<QPair<QString,QString> > >, QList<int> > FBListsValues;
@@ -146,6 +148,8 @@ typedef QPair<FBListValue,FBListsValues> FBDoublelistValue;
 Q_DECLARE_METATYPE(FBDoublelistValue);
 //typedef QPair<QDateTime,bool> FBDatetimeValue;
 //Q_DECLARE_METATYPE(FBDatetimeValue);
+typedef std::tuple<QList<QPair<QString,QString> >, int, QList<QString> > FBListValue2;
+Q_DECLARE_METATYPE(FBListValue2);
 
 class FBForm;
 class FBElem;

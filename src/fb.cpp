@@ -123,7 +123,7 @@ void FB::initGui ()
     layProject->addStretch();
 
     wData = new QWidget();
-    tabMenuTop->addTab(wData, tr("  Layer  "));
+    tabMenuTop->addTab(wData, tr("  Data  "));
     QHBoxLayout *lhData = new QHBoxLayout(wData);
     lhData->setContentsMargins(4,4,4,4);
     lhData->setSpacing(2);
@@ -251,7 +251,7 @@ void FB::initGui ()
       tr("Lists"),tr("Manage lists of values"), false, true);
     QObject::connect(toolbLists, SIGNAL(clicked()),
                      this, SLOT(onListsClick()));
-    toolbLists->hide(); // TEMP
+    //toolbLists->hide(); // TEMP
 
     // Form.
 //    toolbUndo = this->addTopMenuButton(wForm,":/img/undo.png",

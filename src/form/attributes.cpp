@@ -23,6 +23,8 @@
 
 #include "attributes.h"
 
+#include "gui/splitcomboitemsdialog.h"
+
 /*****************************************************************************/
 /*                                                                           */
 /*                            FBAttrDialog                                   */
@@ -860,5 +862,74 @@ void FBAttrDatetime::onEditStart ()
 }
 
 
+
+/******************************************************************************/
+/*                                                                            */
+/*                          FBAttrListvaluesSplit                             */
+/*                                                                            */
+/******************************************************************************/
+
+FBAttrListvalues2::FBAttrListvalues2 (FBElem *parentElem, QString keyName,
+    QString displayName, QString descr, FBAttrrole role, QWidget *parentForDialog):
+    FBAttrListvalues(parentElem,keyName,displayName,descr,role,parentForDialog)
+{
+}
+
+Json::Value FBAttrListvalues2::toJson ()
+{
+    Json::Value ret = FBAttrListvalues::toJson();
+
+    //...
+
+    return ret;
+}
+
+bool FBAttrListvalues2::fromJson (Json::Value jsonVal)
+{
+    bool ret = FBAttrListvalues::fromJson(jsonVal);
+    if (!ret)
+        return false;
+
+    //...
+
+    return true;
+}
+
+QVariant FBAttrListvalues2::getValue ()
+{
+    FBListValue2 ret;
+    ret = std::make_tuple(values, valueDefault, values2);
+    QVariant var = QVariant::fromValue(ret);
+    return var;
+}
+
+QString FBAttrListvalues2::getDefDispValue2 ()
+{
+    if (valueDefault == -1)
+        return QString(FB_DEFVALUE_NOTSELECTED);
+    return values2[valueDefault];
+}
+
+QStringList FBAttrListvalues2::getDispValues2 ()
+{
+    return values2;
+}
+
+
+void FBAttrListvalues2::onEditStart ()
+{
+    Fb::Gui::FbSplitComboItemsDialog *dialog;
+    dialog = new Fb::Gui::FbSplitComboItemsDialog(parentForDialog);
+//    dialog->putValues(values,valueDefault);
+//    dialog->putNgwParams(FBAttrListvalues::curNgwUrl,FBAttrListvalues::curNgwLogin,
+//                         FBAttrListvalues::curNgwPass,ngwLookupId);
+    if (dialog->exec())
+    {
+//        dialog->getValues(values,valueDefault);
+//        dialog->getNgwParams(ngwLookupId);
+        emit changeAppearance(this);
+    }
+    delete dialog;
+}
 
 
