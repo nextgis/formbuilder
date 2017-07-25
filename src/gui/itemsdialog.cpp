@@ -74,34 +74,41 @@ FbItemsDialog::~FbItemsDialog ()
 }
 
 
-/// SLOT: button "Clear" pressed.
+/// [SLOT] button "Clear" pressed.
 void FbItemsDialog::onButClearClicked ()
 {
+    int ret = g_showQuestionBox(this, tr("Do you want to delete all items from the list? This "
+                                         "action can not be undone"));
+    if (ret != QMessageBox::Ok)
+        return;
 
+    m_wTable->removeAllItems();
+
+    m_wTable->switchToEnterRow();
 }
 
 
-/// SLOT: button "Load from CSV" pressed.
+/// [SLOT] button "Load from CSV" pressed.
 void FbItemsDialog::onButCsvClicked ()
 {
 
 }
 
 
-/// SLOT: button "OK" pressed.
+/// [SLOT] button "OK" pressed.
 void FbItemsDialog::onButOkClicked ()
 {
     this->accept();
 }
 
 
-/// SLOT: ...
+/// [SLOT] ...
 void FbItemsDialog::showMessage (QString sText, bool isCritical)
 {
     g_showMsgBox(this, sText, isCritical);
 }
 
-/// SLOT: ...
+/// [SLOT] ...
 void FbItemsDialog::showQuestion (QString sText)
 {
     g_showQuestionBox(this, sText);

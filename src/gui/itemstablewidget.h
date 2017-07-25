@@ -50,6 +50,7 @@ class FbItemsTableWidget: public QTableWidget
      virtual ~FbItemsTableWidget ();
      bool addEnterRow ();
      void switchToEnterRow ();
+     void removeAllItems ();
     signals:
      void needShowMessage (QString, bool);
      void needShowQuestion (QString);

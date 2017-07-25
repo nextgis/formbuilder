@@ -27,12 +27,7 @@ using namespace Fb::Gui;
 FbComboItemsDialog::FbComboItemsDialog (QWidget *wParent):
     FbItemsDialog(wParent)
 {
-    QStringList hdrs;
-    hdrs<<tr("Inner")<<tr("Displayed");
 
-    m_wTable->setColumnCount(2);
-    m_wTable->setHorizontalHeaderLabels(hdrs);
-    m_wTable->addEnterRow();
 }
 
 

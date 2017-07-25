@@ -60,7 +60,7 @@ FbItemsTableWidget::~FbItemsTableWidget ()
 
 
 /*!
-* @brief Adds "enter" row to this table. The row should be added if there is a need to enter new
+* @brief Add "enter" row to this table. The row should be added if there is a need to enter new
 * items or delete existig ones in this table.
 */
 bool FbItemsTableWidget::addEnterRow ()
@@ -87,7 +87,7 @@ bool FbItemsTableWidget::addEnterRow ()
 
 
 /*!
-* @brief Switchs focus to the Enter row (if the Enter row was created for this table).
+* @brief Switch focus to the Enter row (if the Enter row was created for this table).
 */
 void FbItemsTableWidget::switchToEnterRow ()
 {
@@ -95,6 +95,33 @@ void FbItemsTableWidget::switchToEnterRow ()
         return;
     this->setFocus();
     this->setCurrentItem(this->item(this->rowCount() - 1, 0));
+}
+
+
+/*!
+* @brief Clear the table. Leave the enter row if it was created for this table.
+*/
+void FbItemsTableWidget::removeAllItems ()
+{
+    int n = m_nMinRows;
+
+    while (this->rowCount() > n + 1) // +1 because of Enter row
+    {
+        this->removeRow(this->rowCount() - 2); // -2 because of Enter row
+    }
+
+//    if (!hasUndefinedValue)
+//    {
+//        if (rowDefault > 1)
+//        {
+//            rowDefault = 0;
+//            this->markDefaultRow(rowDefault);
+//        }
+//    }
+//    else
+//    {
+//        rowDefault = -1;
+//    }
 }
 
 
@@ -292,7 +319,7 @@ void FbItemsTableWidget::markDefaultRow (int nRow)
 }
 
 
-/// Returns true if all items in a row are void.
+/// Return true if all items in a row are void.
 bool FbItemsTableWidget::isRowVoid (int nRow)
 {
     for (int j = 0; j < this->columnCount(); j++)
@@ -303,7 +330,7 @@ bool FbItemsTableWidget::isRowVoid (int nRow)
     return true;
 }
 
-/// Returns true if at least one of the items in a row is void.
+/// Return true if at least one of the items in a row is void.
 bool FbItemsTableWidget::isOneInRowVoid (int nRow)
 {
     for (int j = 0; j < this->columnCount(); j++)
@@ -314,7 +341,7 @@ bool FbItemsTableWidget::isOneInRowVoid (int nRow)
     return false;
 }
 
-/// Returns true if the string is a void string (if all symols in a string are spaces we regard this
+/// Return true if the string is a void string (if all symols in a string are spaces we regard this
 /// string also as a void one).
 bool FbItemsTableWidget::s_isStringVoid (QString str)
 {
