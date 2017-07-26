@@ -20,19 +20,21 @@
 
 #include "itemsdialog.h"
 #include "gui_globals.h"
+#include "csvcolumnsdialog.h"
 
 #include <QVBoxLayout>
+#include <QHeaderView>
+#include <QFileDialog>
 
 using namespace Fb::Gui;
 
 
 /// Constructor.
-FbItemsDialog::FbItemsDialog (QWidget *wParent):
+FbItemsDialog::FbItemsDialog (QWidget *wParent, const QStringList &listColumns):
     QDialog(wParent)
 {
     this->setWindowModality(Qt::ApplicationModal);
     this->setWindowTitle(tr("Enter the items"));
-//    this->resize(320, 400);
 
     m_wLabCaption = new QLabel(this);
     m_wLabCaption->setText(tr("Items:"));
@@ -51,9 +53,8 @@ FbItemsDialog::FbItemsDialog (QWidget *wParent):
     m_wButOk->setText(tr("OK"));
     connect(m_wButOk, &QPushButton::clicked, this, &FbItemsDialog::onButOkClicked);
 
-    m_wTable = new FbItemsTableWidget(this);
-    connect(m_wTable, &FbItemsTableWidget::needShowMessage, this, &FbItemsDialog::showMessage);
-    connect(m_wTable, &FbItemsTableWidget::needShowQuestion, this, &FbItemsDialog::showQuestion);
+    m_wTable = new FbInputTableWidget(this, listColumns, 0);
+    m_wTable->setFocus();
 
     QHBoxLayout *lhTop = new QHBoxLayout();
     lhTop->setSpacing(4);
@@ -66,6 +67,9 @@ FbItemsDialog::FbItemsDialog (QWidget *wParent):
     lvAll->addLayout(lhTop);
     lvAll->addWidget(m_wTable);
     lvAll->addWidget(m_wButOk);
+
+    // FIXME: remove any numbers for GUI! But how else to increase the size of this dialog here?
+    this->resize(400, 500);
 }
 
 /// Destructor.
@@ -74,23 +78,69 @@ FbItemsDialog::~FbItemsDialog ()
 }
 
 
+/// [SLOT] ...
+void FbItemsDialog::showMessage (QString sText, bool bIsCritical)
+{
+    g_showMsgBox(this, sText, bIsCritical);
+}
+
+/// [SLOT] ...
+void FbItemsDialog::showQuestion (QString sText)
+{
+    g_showQuestionBox(this, sText);
+}
+
+
 /// [SLOT] button "Clear" pressed.
 void FbItemsDialog::onButClearClicked ()
 {
+    if (m_wTable->rowCount() <= 1) // 1 for "input" row
+        return;
+
     int ret = g_showQuestionBox(this, tr("Do you want to delete all items from the list? This "
                                          "action can not be undone"));
     if (ret != QMessageBox::Ok)
         return;
 
-    m_wTable->removeAllItems();
-
-    m_wTable->switchToEnterRow();
+    m_wTable->deleteItems();
 }
 
 
 /// [SLOT] button "Load from CSV" pressed.
 void FbItemsDialog::onButCsvClicked ()
 {
+    if (m_wTable->rowCount() > 1) // 1 for "input" row
+    {
+        int ret = g_showQuestionBox(this, tr("If you load a items from a CSV file all current"
+                                             "items in the table will be removed. Continue?"));
+        if (ret != QMessageBox::Ok)
+            return;
+    }
+
+    QFileDialog oFileDialog(this);
+    oFileDialog.setAcceptMode(QFileDialog::AcceptOpen);
+    oFileDialog.setFileMode(QFileDialog::ExistingFile);
+    oFileDialog.setViewMode(QFileDialog::List);
+    oFileDialog.setDefaultSuffix("csv");
+    oFileDialog.setNameFilter("*.csv");
+    oFileDialog.setWindowTitle(tr("Select a CSV file"));
+
+    // Get the last CSV file path from settings.
+    // ...
+    oFileDialog.setDirectory(QDir());
+
+    if (!oFileDialog.exec())
+        return;
+
+    QString sFile;
+    sFile = oFileDialog.selectedFiles()[0];
+
+    QStringList hdrs = this->m_wTable->getHorizontalHeaderItems();
+
+    FbCsvColumnsDialog oCsvColsDialog(this, sFile, hdrs);
+    if (!oCsvColsDialog.exec())
+        return;
+
 
 }
 
@@ -101,17 +151,5 @@ void FbItemsDialog::onButOkClicked ()
     this->accept();
 }
 
-
-/// [SLOT] ...
-void FbItemsDialog::showMessage (QString sText, bool isCritical)
-{
-    g_showMsgBox(this, sText, isCritical);
-}
-
-/// [SLOT] ...
-void FbItemsDialog::showQuestion (QString sText)
-{
-    g_showQuestionBox(this, sText);
-}
 
 

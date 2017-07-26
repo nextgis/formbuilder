@@ -28,10 +28,9 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 set(APP_HEADERS
 
 gui/gui_globals.h
-gui/itemstablewidget.h
+gui/inputtablewidget.h
+gui/csvcolumnsdialog.h
 gui/itemsdialog.h
-gui/comboitemsdialog.h
-gui/splitcomboitemsdialog.h
 
 form/form_core.h
 form/attributes.h
@@ -49,10 +48,9 @@ screen/devices.h
 set(APP_SOURCES
 
 gui/gui_globals.cpp
-gui/itemstablewidget.cpp
+gui/inputtablewidget.cpp
+gui/csvcolumnsdialog.cpp
 gui/itemsdialog.cpp
-gui/comboitemsdialog.cpp
-gui/splitcomboitemsdialog.cpp
 
 form/dialogcsv.cpp
 form/dialoglistvalues.cpp

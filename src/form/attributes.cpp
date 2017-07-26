@@ -23,7 +23,7 @@
 
 #include "attributes.h"
 
-#include "gui/splitcomboitemsdialog.h"
+#include "gui/itemsdialog.h"
 
 /*****************************************************************************/
 /*                                                                           */
@@ -918,17 +918,50 @@ QStringList FBAttrListvalues2::getDispValues2 ()
 
 void FBAttrListvalues2::onEditStart ()
 {
-    Fb::Gui::FbSplitComboItemsDialog *dialog;
-    dialog = new Fb::Gui::FbSplitComboItemsDialog(parentForDialog);
-//    dialog->putValues(values,valueDefault);
-//    dialog->putNgwParams(FBAttrListvalues::curNgwUrl,FBAttrListvalues::curNgwLogin,
-//                         FBAttrListvalues::curNgwPass,ngwLookupId);
+    QStringList hdrs;
+    hdrs<<tr("Inner")<<tr("Displayed 1")<<tr("Displayed 2");
+
+    Fb::Gui::FbItemsDialog *dialog;
+    dialog = new Fb::Gui::FbItemsDialog(parentForDialog, hdrs);
+
+    // Firstly transform the lists of items.
+    // TODO: modify this attribute in future so to store lists in the appropriate format at once.
+    QList<QStringList> listItems;
+    listItems.append(QStringList());
+    listItems.append(QStringList());
+    listItems.append(QStringList());
+    for (int i=0; i<values.size(); i++)
+    {
+        listItems[0].append(values[i].first);
+        listItems[1].append(values[i].second);
+        listItems[2].append(values2[i]);
+    }
+
+    // Put items to the dialog.
+    dialog->loadItems(listItems);
+//    dialog->selectDefaultItem();
+
     if (dialog->exec())
     {
-//        dialog->getValues(values,valueDefault);
-//        dialog->getNgwParams(ngwLookupId);
+        // Get items from the dialog.
+        dialog->getItems(listItems);
+//        dialog->getDefaultItemIndex();
+
+        // Transform back the lists of items.
+        values.clear();
+        values2.clear();
+        for (int i=0; i<listItems[0].size(); i++)
+        {
+            QPair<QString,QString> pair;
+            pair.first = listItems[0][i];
+            pair.second = listItems[1][i];
+            values.append(pair);
+            values2.append(listItems[2][i]);
+        }
+
         emit changeAppearance(this);
     }
+
     delete dialog;
 }
 

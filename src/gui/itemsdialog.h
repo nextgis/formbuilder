@@ -21,7 +21,7 @@
 #ifndef ITEMSDIALOG_H
 #define ITEMSDIALOG_H
 
-#include "itemstablewidget.h"
+#include "inputtablewidget.h"
 
 #include <QDialog>
 #include <QLabel>
@@ -35,24 +35,26 @@ namespace Gui
 
 
 /*!
- * @brief An abstract class for the dialogs which aim to enter lists of items.
+ * @brief A common dialog which aim to enter lists of items.
  */
 class FbItemsDialog: public QDialog
 {
     Q_OBJECT
 
     public:
-     FbItemsDialog (QWidget *wParent);
+     FbItemsDialog (QWidget *wParent, const QStringList &listColumns);
      virtual ~FbItemsDialog ();
+     bool loadItems(const QList<QStringList> &listItems) { return m_wTable->loadItems(listItems); }
+     void getItems (QList<QStringList> &listItems) { m_wTable->getItems(listItems, true); }
 
     protected slots:
+     void showMessage (QString sText, bool bIsCritical);
+     void showQuestion (QString sText);
      void onButClearClicked ();
      void onButCsvClicked ();
      void onButOkClicked ();
-     void showMessage (QString sText, bool isCritical);
-     void showQuestion (QString sText);
     protected:
-     FbItemsTableWidget *m_wTable;
+     FbInputTableWidget *m_wTable;
      QLabel *m_wLabCaption;
      QToolButton *m_wButClear;
      QToolButton *m_wButCsv;

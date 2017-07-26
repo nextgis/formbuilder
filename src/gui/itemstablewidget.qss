@@ -1,5 +1,0 @@
-QTableWidget
-{
-    selection-background-color: rgb(230,230,230);
-    selection-color: black;
-}

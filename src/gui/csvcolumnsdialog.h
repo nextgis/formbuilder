@@ -17,32 +17,48 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  **************************************************************************************************/
- 
-#include "splitcomboitemsdialog.h"
 
-using namespace Fb::Gui;
+#ifndef CSVCOLUMNSDIALOG_H
+#define CSVCOLUMNSDIALOG_H
 
+#include <QDialog>
+#include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QToolButton>
+#include <QComboBox>
+#include <QGridLayout>
 
-/// Constructor.
-FbSplitComboItemsDialog::FbSplitComboItemsDialog (QWidget *wParent):
-    FbItemsDialog(wParent)
+namespace Fb
 {
-    QStringList hdrs;
-    hdrs<<tr("Inner")<<tr("Displayed 1")<<tr("Displayed 2");
+namespace Gui
+{
 
-    m_wTable->setColumnCount(3);
-    m_wTable->setHorizontalHeaderLabels(hdrs);
-    m_wTable->addEnterRow();
-    m_wTable->switchToEnterRow();
 
-//    this->resize(m_wTable->width() + 20, m_wTable->height() + 20);
+/*!
+ * @brief A dialog which aim to select the columns for the items table from a csv file.
+ */
+class FbCsvColumnsDialog: public QDialog
+{
+    Q_OBJECT
+
+    public:
+     FbCsvColumnsDialog (QWidget *wParent, QString sFile, const QStringList &listColumns);
+     virtual ~FbCsvColumnsDialog ();
+
+    protected slots:
+     void onButOkClicked ();
+    protected:
+     QLabel *m_wLabFile;
+     QGridLayout *m_lgGrid;
+     QPushButton *m_wButOk;
+};
+
+
+}
 }
 
-
-/// Destructor.
-FbSplitComboItemsDialog ::~FbSplitComboItemsDialog ()
-{
-}
+#endif //CSVCOLUMNSDIALOG_H
 
 
 
