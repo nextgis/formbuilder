@@ -25,6 +25,7 @@
 #include <QVBoxLayout>
 #include <QHeaderView>
 #include <QFileDialog>
+#include <QDebug>
 
 using namespace Fb::Gui;
 
@@ -111,8 +112,8 @@ void FbItemsDialog::onButCsvClicked ()
 {
     if (m_wTable->rowCount() > 1) // 1 for "input" row
     {
-        int ret = g_showQuestionBox(this, tr("If you load a items from a CSV file all current"
-                                             "items in the table will be removed. Continue?"));
+        int ret = g_showQuestionBox(this, tr("If you load items from a CSV file all current items "
+                                             "in the table will be removed. Continue?"));
         if (ret != QMessageBox::Ok)
             return;
     }
@@ -124,24 +125,62 @@ void FbItemsDialog::onButCsvClicked ()
     oFileDialog.setDefaultSuffix("csv");
     oFileDialog.setNameFilter("*.csv");
     oFileDialog.setWindowTitle(tr("Select a CSV file"));
-
-    // Get the last CSV file path from settings.
-    // ...
     oFileDialog.setDirectory(QDir());
+
+    // TODO: get the last CSV file path from settings.
+    // ...
 
     if (!oFileDialog.exec())
         return;
 
-    QString sFile;
-    sFile = oFileDialog.selectedFiles()[0];
+    QString sFile = oFileDialog.selectedFiles()[0];
 
-    QStringList hdrs = this->m_wTable->getHorizontalHeaderItems();
+    QStringList listTableColumns = this->m_wTable->getHorizontalHeaderItems();
 
-    FbCsvColumnsDialog oCsvColsDialog(this, sFile, hdrs);
-    if (!oCsvColsDialog.exec())
+    // TODO: rewrite here all the work with GDAL. At least create some smart pointer so not to call
+    // GDALClose each time.
+
+    GDALDataset *pDataset = temp_getGdalDataset(sFile, listTableColumns.size());
+    if (pDataset == NULL)
+    {
+        g_showMsgBox(this, tr("Unable to open CSV file. GDAL error."), true);
         return;
+    }
 
+    QStringList listCsvColumns = temp_getCsvColumns(pDataset);
+    if (listCsvColumns.empty())
+    {
+        GDALClose(pDataset);
+        g_showMsgBox(this, tr("Unable to read columns in the CSV file."), true);
+        return;
+    }
 
+    FbCsvColumnsDialog oCsvColsDialog(this, sFile, listTableColumns, listCsvColumns);
+    if (!oCsvColsDialog.exec())
+    {
+        GDALClose(pDataset);
+        return;
+    }
+
+    QList<int> listCsvFieldIndexes = oCsvColsDialog.getCsvFieldIndexes();
+    if (!this->u_areCsvFieldIndexesSet(listCsvFieldIndexes))
+    {
+        GDALClose(pDataset);
+        g_showMsgBox(this, tr("No CSV columns were selected. No data will be imported."), false);
+        return;
+    }
+
+    QList<QStringList> listCsvData = temp_getCsvData(pDataset, listCsvFieldIndexes);
+    if (listCsvData.empty())
+    {
+        GDALClose(pDataset);
+        g_showMsgBox(this, tr("Unable to read data from the CSV file."), true);
+        return;
+    }
+
+    GDALClose(pDataset);
+
+    this->putItems(listCsvData);
 }
 
 
@@ -149,6 +188,142 @@ void FbItemsDialog::onButCsvClicked ()
 void FbItemsDialog::onButOkClicked ()
 {
     this->accept();
+}
+
+
+/// ...
+bool FbItemsDialog::u_areCsvFieldIndexesSet (QList<int> listCsvFieldIndexes) const
+{
+    // At least one index should be set.
+    for (int j = 0; j < listCsvFieldIndexes.size(); j++)
+    {
+        if (listCsvFieldIndexes[j] >= 0)
+            return true;
+    }
+    return false;
+}
+
+
+
+
+
+
+
+/// [TEMP] ...
+GDALDataset *FbItemsDialog::temp_getGdalDataset (QString sPath, int nTableColumnCount)
+{
+    QByteArray baPath;
+    baPath = sPath.toUtf8();
+
+    // Note: all-register function had been already called outside.
+
+    char **papszAllowedDrivers = NULL;
+    papszAllowedDrivers = CSLAddString(papszAllowedDrivers, "CSV");
+
+//    CPLErrorReset();
+    GDALDataset *poDS = (GDALDataset*) GDALOpenEx(baPath.data(), GDAL_OF_VECTOR | GDAL_OF_READONLY,
+        papszAllowedDrivers, NULL, NULL);
+    CSLDestroy(papszAllowedDrivers);
+    if (poDS == NULL)
+    {
+        qDebug() << "[GDAL] Unable to open CSV dataset.";
+        return NULL;
+    }
+
+//    CPLErrorReset();
+    OGRLayer *poLayer = poDS->GetLayer(0);
+    if (poLayer == NULL)
+    {
+        qDebug() << "[GDAL] Unable to read the layer in a CSV dataset.";
+        GDALClose(poDS);
+        return NULL;
+    }
+
+    OGRFeatureDefn *poFDefn = poLayer->GetLayerDefn();
+    int fieldCount = poFDefn->GetFieldCount();
+//    if (fieldCount < nTableColumnCount)
+//    {
+//        qDebug() << "[GDAL] The amount of columns in the CSV file can not be less than ...";
+//        GDALClose(poDS);
+//        return NULL;
+//    }
+
+    int countFeat = poLayer->GetFeatureCount();
+//    if (countFeat < 2) // QUESTION: one for headers and one for data ???
+//    {
+//        qDebug() << "[GDAL] The amount of rows in the CSV file can not be less than 2.";
+//        GDALClose(poDS);
+//        return NULL;
+//    }
+
+    return poDS;
+}
+
+/// [TEMP] ...
+QStringList FbItemsDialog::temp_getCsvColumns (GDALDataset *poDS)
+{
+    QStringList listCsvColumns;
+
+    if (poDS == NULL)
+        return listCsvColumns;
+
+    OGRLayer *poLayer = poDS->GetLayer(0);
+    // TODO: check for NULL
+
+    OGRFeatureDefn *poFDefn = poLayer->GetLayerDefn();
+    int fieldCount = poFDefn->GetFieldCount();
+
+    for (int i=0; i<fieldCount; i++)
+    {
+        QString sLayerName(poFDefn->GetFieldDefn(i)->GetNameRef());
+        listCsvColumns.append(sLayerName);
+    }
+
+    return listCsvColumns;
+}
+
+/// [TEMP] ...
+QList<QStringList> FbItemsDialog::temp_getCsvData (GDALDataset *poDS, QList<int> listFieldIndexes)
+{
+    QList<QStringList> listCsvData;
+
+    if (poDS == NULL)
+        return listCsvData;
+
+    OGRLayer *poLayer = poDS->GetLayer(0);
+    // TODO: check for NULL
+
+    for (int l = 0; l < listFieldIndexes.size(); l++)
+    {
+        listCsvData.append(QStringList());
+    }
+
+    int nChoppedStrings = 0;
+    OGRFeature *poFeature;
+    poLayer->ResetReading();
+    while((poFeature = poLayer->GetNextFeature()) != NULL)
+    {
+        for (int l = 0; l < listFieldIndexes.size(); l++)
+        {
+            int i = listFieldIndexes[l];
+            if (i < 0)
+            {
+                listCsvData[l].append("");
+            }
+            else
+            {
+                QString s = QString::fromUtf8(poFeature->GetFieldAsString(i));
+                if (FbInputTableWidget::s_chopString(s))
+                    nChoppedStrings++;
+                listCsvData[l].append(s);
+            }
+        }
+        OGRFeature::DestroyFeature(poFeature);
+    }
+
+//    qDebug() << "%1 strings were reduced";
+
+    return listCsvData;
 }
 
 

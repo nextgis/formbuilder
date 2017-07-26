@@ -43,8 +43,10 @@ class FbCsvColumnsDialog: public QDialog
     Q_OBJECT
 
     public:
-     FbCsvColumnsDialog (QWidget *wParent, QString sFile, const QStringList &listColumns);
+     FbCsvColumnsDialog (QWidget *wParent, QString sFile, const QStringList &listTableColumns,
+                         const QStringList &listCsvColumns);
      virtual ~FbCsvColumnsDialog ();
+     QList<int> getCsvFieldIndexes() const;
 
     protected slots:
      void onButOkClicked ();
@@ -52,6 +54,7 @@ class FbCsvColumnsDialog: public QDialog
      QLabel *m_wLabFile;
      QGridLayout *m_lgGrid;
      QPushButton *m_wButOk;
+     QList<QComboBox*> m_listComboPtrs;
 };
 
 

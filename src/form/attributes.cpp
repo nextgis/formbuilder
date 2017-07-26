@@ -938,7 +938,7 @@ void FBAttrListvalues2::onEditStart ()
     }
 
     // Put items to the dialog.
-    dialog->loadItems(listItems);
+    dialog->putItems(listItems);
 //    dialog->selectDefaultItem();
 
     if (dialog->exec())

@@ -27,10 +27,10 @@ using namespace Fb::Gui;
 
 /// Constructor.
 FbCsvColumnsDialog::FbCsvColumnsDialog (QWidget *wParent, QString sFile,
-    const QStringList &listColumns): QDialog(wParent)
+    const QStringList &listTableColumns, const QStringList &listCsvColumns): QDialog(wParent)
 {
     this->setWindowModality(Qt::ApplicationModal);
-    this->setWindowTitle(tr("Select the columns from the CSV file"));
+    this->setWindowTitle(tr("Select columns from the CSV file"));
 
     m_wLabFile = new QLabel(this);
     m_wLabFile->setText(sFile);
@@ -40,23 +40,31 @@ FbCsvColumnsDialog::FbCsvColumnsDialog (QWidget *wParent, QString sFile,
     connect(m_wButOk, &QPushButton::clicked, this, &FbCsvColumnsDialog::onButOkClicked);
 
     m_lgGrid = new QGridLayout();
-    for (int i = 0; i < listColumns.size(); i++)
+    for (int j = 0; j < listTableColumns.size(); j++)
     {
         QLabel *lab = new QLabel(this);
-        lab->setText(listColumns[i]);
+        lab->setText(listTableColumns[j]);
 
         QComboBox *cmb = new QComboBox(this);
         cmb->addItem("-");
+        for (int k = 0; k < listCsvColumns.size(); k++)
+        {
+            cmb->addItem(listCsvColumns[k]);
+        }
 
-        m_lgGrid->addWidget(lab, i, 0);
-        m_lgGrid->addWidget(cmb, i, 1);
+        m_listComboPtrs.append(cmb);
+
+        m_lgGrid->addWidget(lab, j, 0);
+        m_lgGrid->addWidget(cmb, j, 1);
     }
 
-    QVBoxLayout *lvAll= new QVBoxLayout(this);
+    QHBoxLayout *lhBottom = new QHBoxLayout();
+    lhBottom->addWidget(m_wButOk);
+    QVBoxLayout *lvAll = new QVBoxLayout(this);
     lvAll->addWidget(m_wLabFile);
     lvAll->addLayout(m_lgGrid);
     lvAll->addStretch();
-    lvAll->addWidget(m_wButOk);
+    lvAll->addLayout(lhBottom);
 
     // FIXME: remove any numbers for GUI! But how else to increase the size of this dialog here?
     this->resize(300, 100);
@@ -68,10 +76,26 @@ FbCsvColumnsDialog::~FbCsvColumnsDialog ()
 }
 
 
+/*!
+ * @brief ...
+ */
+QList<int> FbCsvColumnsDialog::getCsvFieldIndexes () const
+{
+    QList<int> list;
+
+    for (int j = 0; j < m_listComboPtrs.size(); j++)
+    {
+        list.append(m_listComboPtrs[j]->currentIndex() - 1); // - 1 for "-" first item
+    }
+
+    return list;
+}
+
+
 /// [SLOT] ...
 void FbCsvColumnsDialog::onButOkClicked ()
 {
-
+    this->accept();
 }
 
 

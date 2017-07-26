@@ -43,7 +43,11 @@ FbInputTableWidget::FbInputTableWidget (QWidget *wParent, const QStringList &lis
     this->setHorizontalHeaderLabels(listColumns);
     this->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
 
+    // TODO: load the style from the array of styles which was read from the qss file.
 //    this->setStyleSheet(FbStyles->getStyle(FbItemsTableWidget::staticMetaObject.className()));
+
+    // TEMP:
+    this->setStyleSheet("QTableWidget{selection-background-color: rgb(230,230,230);selection-color: black;}");
 
     connect(this, &QTableWidget::cellChanged, this, &FbInputTableWidget::onCellChanged);
 
@@ -62,12 +66,12 @@ FbInputTableWidget::~FbInputTableWidget ()
 
 
 /*!
-* @brief Load the lists of items in a "bulk" mode.
+* @brief Put the lists of items to the table in a "bulk" mode.
 *
 * @param listItems The size of the passed QList equals to the amount of lists which should be loaded
 * to the columns of the table.
 */
-bool FbInputTableWidget::loadItems (const QList<QStringList> &listItems)
+bool FbInputTableWidget::putItems (const QList<QStringList> &listItems)
 {
     // Check if the amount of lists is not equal to the amount of columns of this table.
     if (listItems.size() != this->columnCount())
@@ -179,6 +183,31 @@ QStringList FbInputTableWidget::getHorizontalHeaderItems () const
         list.append(this->horizontalHeaderItem(i)->text());
     }
     return list;
+}
+
+
+/// Return true if the string is a void string (if all symols in a string are spaces we regard this
+/// string also as a void one).
+bool FbInputTableWidget::s_isStringVoid (QString str)
+{
+    if (str == "")
+        return true;
+    for (int i = 0; i < str.size(); i++)
+        if (str[i] != ' ')
+            return false;
+    return true;
+}
+
+
+/// Chop the string value if it is too long.
+bool FbInputTableWidget::s_chopString (QString &str)
+{
+    if (str.size() > MAX_INPUTTABLE_STRINGSIZE)
+    {
+        str.chop(str.size() - MAX_INPUTTABLE_STRINGSIZE);
+        return true;
+    }
+    return false;
 }
 
 
@@ -358,26 +387,6 @@ bool FbInputTableWidget::isOneInRowVoid (int nRow) const
             return true;
     }
     return false;
-}
-
-/// Return true if the string is a void string (if all symols in a string are spaces we regard this
-/// string also as a void one).
-bool FbInputTableWidget::s_isStringVoid (QString str)
-{
-    if (str == "")
-        return true;
-    for (int i = 0; i < str.size(); i++)
-        if (str[i] != ' ')
-            return false;
-    return true;
-}
-
-
-/// Chop the string value if it is too long.
-void FbInputTableWidget::s_chopString (QString &str)
-{
-    if (str.size() > MAX_INPUTTABLE_STRINGSIZE)
-        str.chop(str.size() - MAX_INPUTTABLE_STRINGSIZE);
 }
 
 

@@ -23,6 +23,8 @@
 
 #include "inputtablewidget.h"
 
+    #include "ogrsf_frmts.h" // TEMP
+
 #include <QDialog>
 #include <QLabel>
 #include <QPushButton>
@@ -44,7 +46,7 @@ class FbItemsDialog: public QDialog
     public:
      FbItemsDialog (QWidget *wParent, const QStringList &listColumns);
      virtual ~FbItemsDialog ();
-     bool loadItems(const QList<QStringList> &listItems) { return m_wTable->loadItems(listItems); }
+     bool putItems(const QList<QStringList> &listItems) { return m_wTable->putItems(listItems); }
      void getItems (QList<QStringList> &listItems) { m_wTable->getItems(listItems, true); }
 
     protected slots:
@@ -59,6 +61,15 @@ class FbItemsDialog: public QDialog
      QToolButton *m_wButClear;
      QToolButton *m_wButCsv;
      QPushButton *m_wButOk;
+
+    private:
+     bool u_areCsvFieldIndexesSet (QList<int> listCsvFieldIndexes) const;
+    private:
+     // TODO: maybe move some common work with GDAL to the specific file/module. Anyway rewrite
+     // these methods in future during refactoring.
+     GDALDataset *temp_getGdalDataset (QString sPath, int nTableColumnCount);
+     QStringList temp_getCsvColumns (GDALDataset *poDS);
+     QList<QStringList> temp_getCsvData (GDALDataset *poDS, QList<int> listFieldIndexes);
 };
 
 
