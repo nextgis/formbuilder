@@ -23,6 +23,12 @@
 
 #include <QString>
 #include <QMessageBox>
+#include <QDebug>
+
+
+// TODO: move this macro to another file after refactoring.
+#define FB_DEBUG(s) qDebug() << QString("[") + this->staticMetaObject.className() + "] " + s
+
 
 namespace Fb
 {

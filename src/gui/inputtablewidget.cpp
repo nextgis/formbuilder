@@ -19,22 +19,20 @@
  **************************************************************************************************/
 
 #include "inputtablewidget.h"
+#include "gui_globals.h"
 
 #include <QHeaderView>
 #include <QKeyEvent>
-#include <QDebug>
 
 using namespace Fb::Gui;
 
 
 /// Constructor.
-FbInputTableWidget::FbInputTableWidget (QWidget *wParent, const QStringList &listColumns,
-    int nMinRowCount): QTableWidget(wParent)
+FbInputTableWidget::FbInputTableWidget (QWidget *wParent, const QStringList &listColumns):
+    QTableWidget(wParent)
 {
-    m_nMinRowCount = nMinRowCount;
-
     this->setColumnCount(listColumns.size());
-    this->setRowCount(m_nMinRowCount);
+    this->setRowCount(0);
     this->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     this->horizontalHeader()->setStretchLastSection(true);
     this->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
@@ -42,10 +40,8 @@ FbInputTableWidget::FbInputTableWidget (QWidget *wParent, const QStringList &lis
     this->setSelectionBehavior(QAbstractItemView::SelectRows);
     this->setHorizontalHeaderLabels(listColumns);
     this->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
-
     // TODO: load the style from the array of styles which was read from the qss file.
 //    this->setStyleSheet(FbStyles->getStyle(FbItemsTableWidget::staticMetaObject.className()));
-
     // TEMP:
     this->setStyleSheet("QTableWidget{selection-background-color: rgb(230,230,230);selection-color: black;}");
 
@@ -55,7 +51,9 @@ FbInputTableWidget::FbInputTableWidget (QWidget *wParent, const QStringList &lis
     // the Qt docs:
     m_eEditTrigs = this->editTriggers();
 
-    m_hasInputRow = false;
+    m_nDefaultRow = -1;
+
+    m_bHasInputRow = false;
     this->addInputRow();
 }
 
@@ -67,11 +65,10 @@ FbInputTableWidget::~FbInputTableWidget ()
 
 /*!
 * @brief Put the lists of items to the table in a "bulk" mode.
-*
 * @param listItems The size of the passed QList equals to the amount of lists which should be loaded
 * to the columns of the table.
 */
-bool FbInputTableWidget::putItems (const QList<QStringList> &listItems)
+bool FbInputTableWidget::putItems (const QList<QStringList> &listItems, int nDefaultRow)
 {
     // Check if the amount of lists is not equal to the amount of columns of this table.
     if (listItems.size() != this->columnCount())
@@ -82,7 +79,7 @@ bool FbInputTableWidget::putItems (const QList<QStringList> &listItems)
     // ...
 
     // We do not care about the "input" row. Just firstly remove all rows and after that recreate
-    // the "input row".
+    // the "input row". As well for the default row.
     this->setRowCount(0);
     this->blockSignals(true); // so e.g. not to trigger cellChanged() signal
     for (int j = 0; j < listItems.size(); j++)
@@ -98,17 +95,28 @@ bool FbInputTableWidget::putItems (const QList<QStringList> &listItems)
     }
     this->blockSignals(false);
 
-    m_hasInputRow = false;
+    m_bHasInputRow = false;
     this->addInputRow();
+
+    if (nDefaultRow <= -1 || nDefaultRow >= this->rowCount() - 1) // - 1 for "input" row
+    {
+        m_nDefaultRow = -1;
+    }
+    else
+    {
+        m_nDefaultRow = nDefaultRow;
+        this->colorRow(m_nDefaultRow, COLOR_INPUTTABLE_DEF);
+    }
+
     return true;
 }
 
 /*!
 * @brief Return the lists of items in the parameter.
-*
 * @param getFromInputRow If true the items from the "input" row will be also added to the lists.
 */
-void FbInputTableWidget::getItems (QList<QStringList> &listItems, bool bGetFromInputRow)
+void FbInputTableWidget::getItems (QList<QStringList> &listItems, int &nDefaultRow,
+                                   bool bGetFromInputRow)
 {
     listItems.clear();
 
@@ -135,34 +143,53 @@ void FbInputTableWidget::getItems (QList<QStringList> &listItems, bool bGetFromI
 
         listItems.append(list);
     }
+
+    nDefaultRow = m_nDefaultRow;
 }
 
 
 /*!
 * @brief Clear the table, but leave the "input" row.
 */
-void FbInputTableWidget::deleteItems ()
+void FbInputTableWidget::clearItems ()
 {
-    while (this->rowCount() > m_nMinRowCount + 1) // 1 because of "input" row
+    while (this->rowCount() > 1) // 1 because of "input" row
     {
         this->removeRow(this->rowCount() - 2); // -2 because of "input" row
     }
 
-//    if (!hasUndefinedValue)
-//    {
-//        if (rowDefault > 1)
-//        {
-//            rowDefault = 0;
-//            this->markDefaultRow(rowDefault);
-//        }
-//    }
-//    else
-//    {
-//        rowDefault = -1;
-//    }
+    m_nDefaultRow = -1;
 
     this->switchToInputRow();
 }
+
+
+/*!
+* @brief ...
+*/
+void FbInputTableWidget::makeCurrentRowDefault ()
+{
+    QTableWidgetItem *pCurrentItem = this->currentItem();
+    if (pCurrentItem == nullptr)
+        return;
+
+    int nCurrentRow = pCurrentItem->row();
+    if (nCurrentRow == this->rowCount() - 1) // we are in the "input" row
+        return;
+
+    if (m_nDefaultRow == nCurrentRow) // remove the default mark from the row
+    {
+        this->colorRow(m_nDefaultRow, COLOR_INPUTTABLE_NOTSEL);
+        m_nDefaultRow = -1;
+    }
+    else // mark this row as a new default row
+    {
+        this->colorRow(m_nDefaultRow, COLOR_INPUTTABLE_NOTSEL);
+        this->colorRow(nCurrentRow, COLOR_INPUTTABLE_DEF);
+        m_nDefaultRow = nCurrentRow;
+    }
+}
+
 
 /// ...
 int FbInputTableWidget::getHorizontalHeaderWidth () const
@@ -216,7 +243,7 @@ bool FbInputTableWidget::s_chopString (QString &str)
 */
 bool FbInputTableWidget::addInputRow ()
 {
-    if (m_hasInputRow)
+    if (m_bHasInputRow)
         return false;
 
     this->blockSignals(true); // so e.g. not to trigger cellChanged() signal
@@ -232,7 +259,7 @@ bool FbInputTableWidget::addInputRow ()
 
     this->blockSignals(false);
 
-    m_hasInputRow = true;
+    m_bHasInputRow = true;
     return true;
 }
 
@@ -242,7 +269,7 @@ bool FbInputTableWidget::addInputRow ()
 */
 void FbInputTableWidget::switchToInputRow ()
 {
-    if (!m_hasInputRow)
+    if (!m_bHasInputRow)
         return;
     this->setFocus();
     this->setCurrentItem(this->item(this->rowCount() - 1, 0));
@@ -254,12 +281,12 @@ void FbInputTableWidget::switchToInputRow ()
 */
 void FbInputTableWidget::addItemsFromInputRow ()
 {
-    if (!m_hasInputRow)
+    if (!m_bHasInputRow)
         return;
 
     if (this->rowCount() == MAX_INPUTTABLE_ROWS) // some restrictions
     {
-        qDebug() << "A maximum number of items in the table. The row was not added";
+        FB_DEBUG("A maximum number of items in the table. The row was not added");
         return;
     }
 
@@ -293,7 +320,7 @@ void FbInputTableWidget::addItemsFromInputRow ()
 */
 void FbInputTableWidget::deleteCurrentRow ()
 {
-    if (!m_hasInputRow) // some kind of "only for reading" mode if we have not got "input" row
+    if (!m_bHasInputRow) // some kind of "only for reading" mode if we have not got "input" row
         return;
 
     QTableWidgetItem *pCurrentItem = this->currentItem();
@@ -304,49 +331,24 @@ void FbInputTableWidget::deleteCurrentRow ()
     if (nCurrentRow == this->rowCount() - 1) // we are in the "input" row
         return;
 
-    if (this->rowCount() == m_nMinRowCount + 1) // + 1 for "input" row
-    {
-        qDebug() << "There should be some minimum amount of items in the table. The row was not "
-                    "removed.";
-        return;
-    }
-
     // Remove the row.
     this->removeRow(nCurrentRow);
 
-//    if (rowDefault == selectedRow)
-//    {
-//        if (!hasUndefinedValue)
-//        {
-//            rowDefault = 0;
-//            this->markDefaultRow(0);
-//        }
-//        else
-//        {
-//            rowDefault = -1;
-//        }
-//    }
-//    else if (selectedRow < rowDefault)
-//    {
-//        rowDefault--;
-//    }
+    if (m_nDefaultRow == nCurrentRow) // if it was the default row
+        m_nDefaultRow = -1;
+    else if (nCurrentRow < m_nDefaultRow) // if the current row was upper than the default one
+        m_nDefaultRow--;
 
-    this->setFocus();
-}
-
-
-/*!
-* @brief ...
-*/
-void FbInputTableWidget::makeCurrentRowDefault ()
-{
-
+//    this->setFocus();
 }
 
 
 /// Complete the row with the items copying the text from the most first occured not-void item.
 void FbInputTableWidget::completeRow (int nRow)
 {
+    if (nRow < 0 || nRow >= this->rowCount())
+        return;
+
     QString str = "";
 
     // Search for the first not-void item.
@@ -370,6 +372,9 @@ void FbInputTableWidget::completeRow (int nRow)
 /// Return true if all items in a row are void.
 bool FbInputTableWidget::isRowVoid (int nRow) const
 {
+    // TODO: check nRow and rise exception if it is incorrect.
+    // QUESTION: which exception to rise? Or better just to return true/false here?
+
     for (int j = 0; j < this->columnCount(); j++)
     {
         if (!s_isStringVoid(this->item(nRow, j)->text()))
@@ -381,6 +386,8 @@ bool FbInputTableWidget::isRowVoid (int nRow) const
 /// Return true if at least one of the items in a row is void.
 bool FbInputTableWidget::isOneInRowVoid (int nRow) const
 {
+    // TODO: check passed indexes.
+
     for (int j = 0; j < this->columnCount(); j++)
     {
         if (s_isStringVoid(this->item(nRow, j)->text()))
@@ -410,7 +417,6 @@ void FbInputTableWidget::keyPressEvent (QKeyEvent *pEvent)
                 }
                 else
                 {
-//                    this->makeDefaultRow();
                     return; // we add return here so not to let the standard event to occur
                 }
 //            }
@@ -445,15 +451,15 @@ void FbInputTableWidget::onCellChanged (int nRow, int nCol)
 
 
 /// ...
-void FbInputTableWidget::unmarkDefaultRow ()
+void FbInputTableWidget::colorRow (int nRow, QColor oColor)
 {
+    if (nRow < 0 || nRow >= this->rowCount())
+        return;
 
-}
+    for (int j = 0; j < this->columnCount(); j++)
+        this->item(nRow, j)->setBackgroundColor(oColor);
 
-/// ...
-void FbInputTableWidget::markDefaultRow (int nRow)
-{
-
+    this->clearSelection();
 }
 
 
@@ -479,3 +485,6 @@ bool FbInputTableWidget::u_commitAndClosePersistentEditor (QTableWidgetItem* pIt
     this->closePersistentEditor(pItem);
     return true;
 }
+
+
+

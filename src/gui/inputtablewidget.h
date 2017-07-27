@@ -49,24 +49,24 @@ class FbInputTableWidget: public QTableWidget
     Q_OBJECT
 
     public:
-     FbInputTableWidget(QWidget *wParent, const QStringList &listColumns, int nMinRowCount = 0);
+     FbInputTableWidget (QWidget *wParent, const QStringList &listColumns);
      virtual ~FbInputTableWidget ();
-     bool putItems(const QList<QStringList> &listItems);
-     void getItems (QList<QStringList> &listItems, bool bGetFromInputRow = false);
-     void deleteItems ();
+    public:
+     bool putItems (const QList<QStringList> &listItems, int nDefaultRow = -1);
+     void getItems (QList<QStringList> &listItems, int &nDefaultRow, bool bGetFromInputRow = false);
+     void clearItems ();
+     void makeCurrentRowDefault ();
      int getHorizontalHeaderWidth () const;
      QStringList getHorizontalHeaderItems () const;
      static bool s_isStringVoid (QString str);
-     static bool s_chopString(QString &str);
+     static bool s_chopString (QString &str);
 
     protected:
      bool addInputRow ();
-     bool hasInputRow () const { return m_hasInputRow; }
+     bool hasInputRow () const { return m_bHasInputRow; }
      void switchToInputRow ();
-     int getMinRowCount () const { return m_nMinRowCount; }
      void addItemsFromInputRow ();
      void deleteCurrentRow ();
-     void makeCurrentRowDefault ();
      void completeRow (int nRow);
      bool isRowVoid (int nRow) const;
      bool isOneInRowVoid (int nRow) const;
@@ -76,13 +76,12 @@ class FbInputTableWidget: public QTableWidget
      void onCellChanged (int nRow, int nCol);
 
     private:
-     void markDefaultRow (int nRow);
-     void unmarkDefaultRow ();
+     void colorRow (int nRow, QColor oColor);
      void u_setDefaultEditTriggers ();
      bool u_commitAndClosePersistentEditor (QTableWidgetItem* pItem);
     private:
-     bool m_hasInputRow;
-     int m_nMinRowCount;
+     bool m_bHasInputRow;
+     int m_nDefaultRow;
      QAbstractItemView::EditTriggers m_eEditTrigs;
 };
 

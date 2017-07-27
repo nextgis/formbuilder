@@ -28,7 +28,6 @@ namespace Gui
 
 /*!
  * @brief Show a common message dialog with one "Ok" button.
- *
  * @param wParent Parent's window must be passed explicitly so the message box can be correctly
  * displayed as a modal dialog over it.
  */
@@ -53,7 +52,6 @@ void g_showMsgBox (QWidget *wParent, QString sText, bool isCritical)
 
 /*!
  * @brief Show a common message dialog with "Ok" and "Cancel" buttons.
- *
  * @param wParent Parent's window must be passed explicitly so the message box can be correctly
  * displayed as a modal dialog over it.
  */

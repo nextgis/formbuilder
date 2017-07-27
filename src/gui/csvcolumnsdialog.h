@@ -46,6 +46,7 @@ class FbCsvColumnsDialog: public QDialog
      FbCsvColumnsDialog (QWidget *wParent, QString sFile, const QStringList &listTableColumns,
                          const QStringList &listCsvColumns);
      virtual ~FbCsvColumnsDialog ();
+    public:
      QList<int> getCsvFieldIndexes() const;
 
     protected slots:

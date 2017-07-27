@@ -25,7 +25,6 @@
 #include <QVBoxLayout>
 #include <QHeaderView>
 #include <QFileDialog>
-#include <QDebug>
 
 using namespace Fb::Gui;
 
@@ -39,6 +38,11 @@ FbItemsDialog::FbItemsDialog (QWidget *wParent, const QStringList &listColumns):
 
     m_wLabCaption = new QLabel(this);
     m_wLabCaption->setText(tr("Items:"));
+
+    m_wButDefault = new QToolButton(this);
+    m_wButDefault->setIcon(QIcon(":/img/make_default.png"));
+    m_wButDefault->setToolTip(tr("Make selected row the default one"));
+    connect(m_wButDefault, &QToolButton::clicked, this, &FbItemsDialog::onButDefaultClicked);
 
     m_wButClear = new QToolButton(this);
     m_wButClear->setIcon(QIcon(":/img/clear_all.png"));
@@ -54,7 +58,7 @@ FbItemsDialog::FbItemsDialog (QWidget *wParent, const QStringList &listColumns):
     m_wButOk->setText(tr("OK"));
     connect(m_wButOk, &QPushButton::clicked, this, &FbItemsDialog::onButOkClicked);
 
-    m_wTable = new FbInputTableWidget(this, listColumns, 0);
+    m_wTable = new FbInputTableWidget(this, listColumns);
     m_wTable->setFocus();
 
     QHBoxLayout *lhTop = new QHBoxLayout();
@@ -62,6 +66,7 @@ FbItemsDialog::FbItemsDialog (QWidget *wParent, const QStringList &listColumns):
     lhTop->setContentsMargins(0,0,0,0);
     lhTop->addWidget(m_wLabCaption);
     lhTop->addStretch();
+    lhTop->addWidget(m_wButDefault);
     lhTop->addWidget(m_wButClear);
     lhTop->addWidget(m_wButCsv);
     QVBoxLayout *lvAll= new QVBoxLayout(this);
@@ -79,6 +84,19 @@ FbItemsDialog::~FbItemsDialog ()
 }
 
 
+/// ...
+bool FbItemsDialog::putItems(const QList<QStringList> &listItems, int nDefaultRow)
+{
+    return m_wTable->putItems(listItems, nDefaultRow);
+}
+
+/// ...
+void FbItemsDialog::getItems (QList<QStringList> &listItems, int &nDefaultRow)
+{
+    m_wTable->getItems(listItems, nDefaultRow, true);
+}
+
+
 /// [SLOT] ...
 void FbItemsDialog::showMessage (QString sText, bool bIsCritical)
 {
@@ -92,7 +110,14 @@ void FbItemsDialog::showQuestion (QString sText)
 }
 
 
-/// [SLOT] button "Clear" pressed.
+/// [SLOT] button "Make default" pressed.
+void FbItemsDialog::onButDefaultClicked ()
+{
+    m_wTable->makeCurrentRowDefault();
+}
+
+
+/// [SLOT] button "Clear table" pressed.
 void FbItemsDialog::onButClearClicked ()
 {
     if (m_wTable->rowCount() <= 1) // 1 for "input" row
@@ -103,7 +128,7 @@ void FbItemsDialog::onButClearClicked ()
     if (ret != QMessageBox::Ok)
         return;
 
-    m_wTable->deleteItems();
+    m_wTable->clearItems();
 }
 
 
@@ -180,7 +205,7 @@ void FbItemsDialog::onButCsvClicked ()
 
     GDALClose(pDataset);
 
-    this->putItems(listCsvData);
+    this->putItems(listCsvData, -1);
 }
 
 
@@ -226,7 +251,7 @@ GDALDataset *FbItemsDialog::temp_getGdalDataset (QString sPath, int nTableColumn
     CSLDestroy(papszAllowedDrivers);
     if (poDS == NULL)
     {
-        qDebug() << "[GDAL] Unable to open CSV dataset.";
+        FB_DEBUG("Unable to open CSV dataset via GDAL.");
         return NULL;
     }
 
@@ -234,7 +259,7 @@ GDALDataset *FbItemsDialog::temp_getGdalDataset (QString sPath, int nTableColumn
     OGRLayer *poLayer = poDS->GetLayer(0);
     if (poLayer == NULL)
     {
-        qDebug() << "[GDAL] Unable to read the layer in a CSV dataset.";
+        FB_DEBUG("Unable to read the layer in a CSV dataset via GDAL.");
         GDALClose(poDS);
         return NULL;
     }
@@ -321,7 +346,10 @@ QList<QStringList> FbItemsDialog::temp_getCsvData (GDALDataset *poDS, QList<int>
         OGRFeature::DestroyFeature(poFeature);
     }
 
-//    qDebug() << "%1 strings were reduced";
+    if (nChoppedStrings > 0)
+    {
+        FB_DEBUG(QString("%1 strings have been cut due to their length").arg(nChoppedStrings));
+    }
 
     return listCsvData;
 }

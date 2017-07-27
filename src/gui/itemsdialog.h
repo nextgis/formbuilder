@@ -46,18 +46,21 @@ class FbItemsDialog: public QDialog
     public:
      FbItemsDialog (QWidget *wParent, const QStringList &listColumns);
      virtual ~FbItemsDialog ();
-     bool putItems(const QList<QStringList> &listItems) { return m_wTable->putItems(listItems); }
-     void getItems (QList<QStringList> &listItems) { m_wTable->getItems(listItems, true); }
+    public:
+     bool putItems(const QList<QStringList> &listItems, int nDefaultRow);
+     void getItems (QList<QStringList> &listItems, int &nDefaultRow);
 
     protected slots:
      void showMessage (QString sText, bool bIsCritical);
      void showQuestion (QString sText);
+     void onButDefaultClicked ();
      void onButClearClicked ();
      void onButCsvClicked ();
      void onButOkClicked ();
     protected:
      FbInputTableWidget *m_wTable;
      QLabel *m_wLabCaption;
+     QToolButton *m_wButDefault;
      QToolButton *m_wButClear;
      QToolButton *m_wButCsv;
      QPushButton *m_wButOk;

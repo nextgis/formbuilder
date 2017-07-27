@@ -91,5 +91,6 @@
         <file>img/update_avail2.png</file>
         <file>img/split_combo.png</file>
         <file>img/upload2.png</file>
+        <file>img/make_default.png</file>
     </qresource>
 </RCC>

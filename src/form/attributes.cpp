@@ -877,10 +877,14 @@ FBAttrListvalues2::FBAttrListvalues2 (FBElem *parentElem, QString keyName,
 
 Json::Value FBAttrListvalues2::toJson ()
 {
+    // Append values to the original array:
     Json::Value ret = FBAttrListvalues::toJson();
-
-    //...
-
+    QByteArray ba;
+    for (int i=0; i<values2.size(); i++)
+    {
+        ba = values2[i].toUtf8();
+        ret[i][FB_JSONKEY_ATTRVAL_DISPNAME2] = ba.data();
+    }
     return ret;
 }
 
@@ -890,7 +894,12 @@ bool FBAttrListvalues2::fromJson (Json::Value jsonVal)
     if (!ret)
         return false;
 
-    //...
+    values2.clear();
+    for (int k=0; k<jsonVal.size(); ++k)
+    {
+        Json::Value json = jsonVal[k][FB_JSONKEY_ATTRVAL_DISPNAME2];
+        values2.append(QString::fromUtf8(json.asString().data()));
+    }
 
     return true;
 }
@@ -938,14 +947,12 @@ void FBAttrListvalues2::onEditStart ()
     }
 
     // Put items to the dialog.
-    dialog->putItems(listItems);
-//    dialog->selectDefaultItem();
+    dialog->putItems(listItems, valueDefault);
 
     if (dialog->exec())
     {
         // Get items from the dialog.
-        dialog->getItems(listItems);
-//        dialog->getDefaultItemIndex();
+        dialog->getItems(listItems, valueDefault);
 
         // Transform back the lists of items.
         values.clear();

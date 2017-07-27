@@ -2589,6 +2589,8 @@ FBDialogAbout::FBDialogAbout (QWidget *parent):
     edit->append("mantisshrimpdesign");
     edit->append("Sumana Chamrunworakiat");
     edit->append("Kevin");
+    edit->append("Landan Lloyd");
+    edit->append("jeff");
 
     QLabel *lab2 = new QLabel(this);
     QString strCc = "http://creativecommons.org/licenses/by/3.0/us/legalcode";
