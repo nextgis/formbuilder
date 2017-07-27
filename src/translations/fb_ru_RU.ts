@@ -500,6 +500,21 @@ the fields defined in this project</source>
     </message>
 </context>
 <context>
+    <name>FBAttrListvalues2</name>
+    <message>
+        <source>Inner</source>
+        <translation>Внутреннее</translation>
+    </message>
+    <message>
+        <source>Displayed 1</source>
+        <translation>Отображаемое 1</translation>
+    </message>
+    <message>
+        <source>Displayed 2</source>
+        <translation>Отображаемое 2</translation>
+    </message>
+</context>
+<context>
     <name>FBAttrListvaluesStrict</name>
     <message>
         <source>One</source>
@@ -1193,7 +1208,7 @@ when pressing on it</source>
     </message>
     <message>
         <source>List ov values and default selected value</source>
-        <translation>Список значений и значение по умолчанию</translation>
+        <translation type="vanished">Список значений и значение по умолчанию</translation>
     </message>
     <message>
         <source>Input with search</source>
@@ -1225,6 +1240,10 @@ list during the typing</source>
         <translation>Выпадающий список, содержащий заданные
 заранее значения и позволяющий выбрать
 только одно из них</translation>
+    </message>
+    <message>
+        <source>A list of values and a default selected value</source>
+        <translation>Список значений и значение по умолчанию</translation>
     </message>
 </context>
 <context>
@@ -1569,35 +1588,43 @@ signature&quot;</source>
     </message>
     <message>
         <source>Label 1</source>
-        <translation type="unfinished"></translation>
+        <translation>Заголовок 1</translation>
     </message>
     <message>
         <source>Label for combo 1</source>
-        <translation type="unfinished"></translation>
+        <translation>Заголовок для списка 1</translation>
     </message>
     <message>
         <source>Combo 1</source>
-        <translation type="unfinished"></translation>
+        <translation>Список 1</translation>
     </message>
     <message>
         <source>Label 2</source>
-        <translation type="unfinished"></translation>
+        <translation>Заголовок 2</translation>
     </message>
     <message>
         <source>Label for combo 2</source>
-        <translation type="unfinished"></translation>
+        <translation>Заголовок для списка 2</translation>
     </message>
     <message>
         <source>Combo 2</source>
-        <translation type="unfinished"></translation>
+        <translation>Список 2</translation>
     </message>
     <message>
         <source>Allow own values</source>
-        <translation type="unfinished">Свои значения</translation>
+        <translation>Свои значения</translation>
     </message>
     <message>
         <source>User can add own values to the list</source>
-        <translation type="unfinished">Пользователь может добавлять свои значения в список</translation>
+        <translation>Пользователь может добавлять свои значения в список</translation>
+    </message>
+    <message>
+        <source>Values</source>
+        <translation>Значения</translation>
+    </message>
+    <message>
+        <source>A list of values and a default selected value</source>
+        <translation>Список значений и значение по умолчанию</translation>
     </message>
 </context>
 <context>
@@ -1700,6 +1727,72 @@ exists for the form</source>
     <message>
         <source>Multipolygon</source>
         <translation>Мультиполигон</translation>
+    </message>
+</context>
+<context>
+    <name>Fb::Gui::FbCsvColumnsDialog</name>
+    <message>
+        <source>Select columns from the CSV file</source>
+        <translation>Выберите колонки в CSV файле</translation>
+    </message>
+    <message>
+        <source>OK</source>
+        <translation>ОК</translation>
+    </message>
+</context>
+<context>
+    <name>Fb::Gui::FbItemsDialog</name>
+    <message>
+        <source>Enter the items</source>
+        <translation>Введите значения списка</translation>
+    </message>
+    <message>
+        <source>Items:</source>
+        <translation>Значения:</translation>
+    </message>
+    <message>
+        <source>Make selected row the default one</source>
+        <translation>Сделать выбранную строку строкой по умолчанию</translation>
+    </message>
+    <message>
+        <source>Delete all items from the list</source>
+        <translation>Удалить все значения из списка</translation>
+    </message>
+    <message>
+        <source>Load items from a CSV file</source>
+        <translation>Загрузить значения из файла CSV</translation>
+    </message>
+    <message>
+        <source>OK</source>
+        <translation>ОК</translation>
+    </message>
+    <message>
+        <source>Do you want to delete all items from the list? This action can not be undone</source>
+        <translation>Вы точно хотите удалить все значения из списка? Это действие не может быть отменено</translation>
+    </message>
+    <message>
+        <source>If you load items from a CSV file all current items in the table will be removed. Continue?</source>
+        <translation>Если вы загрузите значения из файла все текущие значения будут потеряны. Продолжить?</translation>
+    </message>
+    <message>
+        <source>Select a CSV file</source>
+        <translation>Выберите файл CSV</translation>
+    </message>
+    <message>
+        <source>Unable to open CSV file. GDAL error.</source>
+        <translation>Не удаётся открыть файл CSV. Ошибка GDAL.</translation>
+    </message>
+    <message>
+        <source>Unable to read columns in the CSV file.</source>
+        <translation>Не удаётся считать названия колонок в файле CSV.</translation>
+    </message>
+    <message>
+        <source>No CSV columns were selected. No data will be imported.</source>
+        <translation>Колонки в файле CSV не были выбраны. Значения не будут импортированы в список.</translation>
+    </message>
+    <message>
+        <source>Unable to read data from the CSV file.</source>
+        <translation>Не удаётся считать данные из файла CSV.</translation>
     </message>
 </context>
 <context>
@@ -1956,6 +2049,18 @@ Try to select another saving directory</source>
     <message>
         <source>Counter</source>
         <translation>Счётчик</translation>
+    </message>
+    <message>
+        <source>Warning</source>
+        <translation>Предупреждение</translation>
+    </message>
+    <message>
+        <source>Error</source>
+        <translation>Ошибка</translation>
+    </message>
+    <message>
+        <source>Question</source>
+        <translation>Вопрос</translation>
     </message>
 </context>
 </TS>
