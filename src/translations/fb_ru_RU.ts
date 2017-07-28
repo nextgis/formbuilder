@@ -491,6 +491,10 @@ the fields defined in this project</source>
         <translation>Создать новый слой в NextGIS Web,
 взяв список полей из данного проекта</translation>
     </message>
+    <message>
+        <source>Sign in to NextGIS</source>
+        <translation>Авторизируйтесь в системе NextGIS</translation>
+    </message>
 </context>
 <context>
     <name>FBAttrDialog</name>

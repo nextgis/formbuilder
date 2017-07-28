@@ -342,6 +342,7 @@ class FB: public QWidget
      void onLanguageSelect (int index);
      void onAboutGraphicsClick ();
      void onUpdatesClick ();
+     void onAuthClick ();
 
      void endCheckingUpdates (int exitCode, QProcess::ExitStatus exitStatus);
      void endMaintainerWork (int exitCode, QProcess::ExitStatus exitStatus);
@@ -497,7 +498,9 @@ class FB: public QWidget
      QToolButton *toolbFieldManager;
      QComboBox *comboLang;
      QToolButton *toolbAboutGraphics;
+     QWidget *wPopup;
      QToolButton *toolbUpdates;
+     QToolButton *toolbAuth;
      
      // left menu
      QWidget *wMenuLeft;

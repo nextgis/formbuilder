@@ -432,10 +432,15 @@ void FB::initGui ()
     lvAll->addWidget(labBottom);
 
     //----------------------------------------------------------------------
-    //                            Updates button
+    //                            Popup widget
     //----------------------------------------------------------------------
 
-    toolbUpdates = new QToolButton(this); // not included in any layout
+    wPopup = new QWidget(this); // not included in any layout
+    wPopup->setAutoFillBackground(false);
+    wPopup->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    wPopup->setFixedSize(66, 32);
+
+    toolbUpdates = new QToolButton(wPopup);
     QIcon iconUpdates(":/img/update_avail2.png");
     toolbUpdates->setIcon(iconUpdates);
     toolbUpdates->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -443,9 +448,25 @@ void FB::initGui ()
     toolbUpdates->setIconSize(QSize(32,32));
     toolbUpdates->setFixedSize(32,32);
     toolbUpdates->hide();
-    //toolbUpdates->setEnabled(false);
     toolbUpdates->setToolTip(tr("Updates available!"));
     QObject::connect(toolbUpdates, SIGNAL(clicked()), this, SLOT(onUpdatesClick()));
+
+    toolbAuth = new QToolButton(wPopup);
+    toolbAuth->setIcon(QIcon(":/img/auth2.png"));
+    toolbAuth->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    toolbAuth->setCursor(Qt::PointingHandCursor);
+    toolbAuth->setIconSize(QSize(32,32));
+    toolbAuth->setFixedSize(32,32);
+    toolbAuth->setToolTip(tr("Sign in to NextGIS"));
+    QObject::connect(toolbAuth, SIGNAL(clicked()), this, SLOT(onAuthClick()));
+
+    QHBoxLayout *lhPopup = new QHBoxLayout(wPopup);
+    lhPopup->setContentsMargins(0,0,0,0);
+    lhPopup->setSpacing(2);
+    lhPopup->addStretch();
+    lhPopup->addWidget(toolbUpdates);
+    lhPopup->addWidget(toolbAuth);
+    wPopup->adjustSize();
 
     #ifdef Q_OS_WIN32
     this->startCheckingUpdates(); // after that toolbUpdates may change its enableness
@@ -463,7 +484,7 @@ void FB::initGui ()
 // WINDOW RESIZE EVENT
 void FB::resizeEvent (QResizeEvent *event)
 {
-    toolbUpdates->move(this->width() - toolbUpdates->width(), 0);
+    wPopup->move(this->width() - wPopup->width(), 0);
 }
 
 
@@ -590,6 +611,14 @@ void FB::setFbStyle ()
                              "background: white;}");
 
     toolbUpdates->setStyleSheet("QToolButton"
+      "{border: none; color: "+QString(FB_COLOR_DARKGREY)+";}"
+      "QToolButton:hover"
+      "{background-color: "+FB_COLOR_DARKBLUE+"; color: white;}"
+      "QToolButton:pressed{"
+      "background-color: "+FB_COLOR_LIGHTBLUE+"; color: white;}"
+      "QToolButton:disabled{}");
+
+    toolbAuth->setStyleSheet("QToolButton"
       "{border: none; color: "+QString(FB_COLOR_DARKGREY)+";}"
       "QToolButton:hover"
       "{background-color: "+FB_COLOR_DARKBLUE+"; color: white;}"
@@ -1500,6 +1529,13 @@ void FB::endMaintainerWork(int exitCode, QProcess::ExitStatus exitStatus)
         toolbUpdates->hide();
         this->onShowInfo(tr("Please restart the application to apply updates"));
     }
+}
+
+
+// AUTHENTICATION BUTTON CLICK
+void FB::onAuthClick ()
+{
+
 }
 
 
