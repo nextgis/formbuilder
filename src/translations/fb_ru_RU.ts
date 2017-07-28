@@ -1780,11 +1780,11 @@ exists for the form</source>
     </message>
     <message>
         <source>Unable to open CSV file. GDAL error.</source>
-        <translation>Не удаётся открыть файл CSV. Ошибка GDAL.</translation>
+        <translation type="vanished">Не удаётся открыть файл CSV. Ошибка GDAL.</translation>
     </message>
     <message>
         <source>Unable to read columns in the CSV file.</source>
-        <translation>Не удаётся считать названия колонок в файле CSV.</translation>
+        <translation type="vanished">Не удаётся считать названия колонок в файле CSV.</translation>
     </message>
     <message>
         <source>No CSV columns were selected. No data will be imported.</source>
@@ -1792,7 +1792,19 @@ exists for the form</source>
     </message>
     <message>
         <source>Unable to read data from the CSV file.</source>
-        <translation>Не удаётся считать данные из файла CSV.</translation>
+        <translation type="vanished">Не удаётся считать данные из файла CSV.</translation>
+    </message>
+    <message>
+        <source>Unable to open CSV file via GDAL.</source>
+        <translation>Не удаётся открыть файл CSV при помощи GDAL.</translation>
+    </message>
+    <message>
+        <source>Unable to read columns in the CSV file via GDAL.</source>
+        <translation>Не удаётся считать названия колонок в файле CSV при помощи GDAL.</translation>
+    </message>
+    <message>
+        <source>Unable to read data from the CSV file via GDAL.</source>
+        <translation>Не удаётся считать данные из файла CSV при помощи GDAL.</translation>
     </message>
 </context>
 <context>

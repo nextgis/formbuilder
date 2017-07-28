@@ -27,7 +27,10 @@
 using namespace Fb::Gui;
 
 
-/// Constructor.
+/**
+* @brief Constructor.
+* @param listColumns The amount and names of the columns which must be created for the table.
+*/
 FbInputTableWidget::FbInputTableWidget (QWidget *wParent, const QStringList &listColumns):
     QTableWidget(wParent)
 {
@@ -57,13 +60,15 @@ FbInputTableWidget::FbInputTableWidget (QWidget *wParent, const QStringList &lis
     this->addInputRow();
 }
 
-/// Destructor.
+/**
+* @brief Destructor.
+*/
 FbInputTableWidget::~FbInputTableWidget ()
 {
 }
 
 
-/*!
+/**
 * @brief Put the lists of items to the table in a "bulk" mode.
 * @param listItems The size of the passed QList equals to the amount of lists which should be loaded
 * to the columns of the table.
@@ -111,7 +116,7 @@ bool FbInputTableWidget::putItems (const QList<QStringList> &listItems, int nDef
     return true;
 }
 
-/*!
+/**
 * @brief Return the lists of items in the parameter.
 * @param getFromInputRow If true the items from the "input" row will be also added to the lists.
 */
@@ -148,7 +153,7 @@ void FbInputTableWidget::getItems (QList<QStringList> &listItems, int &nDefaultR
 }
 
 
-/*!
+/**
 * @brief Clear the table, but leave the "input" row.
 */
 void FbInputTableWidget::clearItems ()
@@ -164,8 +169,8 @@ void FbInputTableWidget::clearItems ()
 }
 
 
-/*!
-* @brief ...
+/**
+* @brief Set current row of this table as a default row and color it.
 */
 void FbInputTableWidget::makeCurrentRowDefault ()
 {
@@ -191,17 +196,9 @@ void FbInputTableWidget::makeCurrentRowDefault ()
 }
 
 
-/// ...
-int FbInputTableWidget::getHorizontalHeaderWidth () const
-{
-    QHeaderView* h = this->horizontalHeader();
-    if (h != nullptr)
-        return h->width();
-    return 0;
-}
-
-
-/// ...
+/**
+* @brief Get the list of column headers of this table.
+*/
 QStringList FbInputTableWidget::getHorizontalHeaderItems () const
 {
     QStringList list;
@@ -213,8 +210,10 @@ QStringList FbInputTableWidget::getHorizontalHeaderItems () const
 }
 
 
-/// Return true if the string is a void string (if all symols in a string are spaces we regard this
-/// string also as a void one).
+/**
+* @brief Return true if the string is a void string (if all symols in a string are spaces we regard
+* this string also as a void one).
+*/
 bool FbInputTableWidget::s_isStringVoid (QString str)
 {
     if (str == "")
@@ -226,7 +225,9 @@ bool FbInputTableWidget::s_isStringVoid (QString str)
 }
 
 
-/// Chop the string value if it is too long.
+/**
+* @brief Chop the string value if it is too long.
+*/
 bool FbInputTableWidget::s_chopString (QString &str)
 {
     if (str.size() > MAX_INPUTTABLE_STRINGSIZE)
@@ -238,9 +239,7 @@ bool FbInputTableWidget::s_chopString (QString &str)
 }
 
 
-/*!
-* @brief Add "input" row to this table.
-*/
+/// Add "input" row to this table.
 bool FbInputTableWidget::addInputRow ()
 {
     if (m_bHasInputRow)
@@ -264,9 +263,7 @@ bool FbInputTableWidget::addInputRow ()
 }
 
 
-/*!
-* @brief Switch focus to the "input" row.
-*/
+/// Switch focus to the "input" row.
 void FbInputTableWidget::switchToInputRow ()
 {
     if (!m_bHasInputRow)
@@ -276,9 +273,7 @@ void FbInputTableWidget::switchToInputRow ()
 }
 
 
-/*!
-* @brief Add items once from "input" row.
-*/
+/// Add items once from "input" row.
 void FbInputTableWidget::addItemsFromInputRow ()
 {
     if (!m_bHasInputRow)
@@ -315,9 +310,7 @@ void FbInputTableWidget::addItemsFromInputRow ()
 }
 
 
-/*!
-* @brief ...
-*/
+/// Delete current row of this table.
 void FbInputTableWidget::deleteCurrentRow ()
 {
     if (!m_bHasInputRow) // some kind of "only for reading" mode if we have not got "input" row
@@ -397,7 +390,7 @@ bool FbInputTableWidget::isOneInRowVoid (int nRow) const
 }
 
 
-/// [EVENT] Catch some keybord buttons and add required behavior for them.
+/// Reimplemented event. Catch some keybord buttons and add required behavior for them.
 void FbInputTableWidget::keyPressEvent (QKeyEvent *pEvent)
 {
     // Do smth only if there is an item selected.
@@ -436,7 +429,7 @@ void FbInputTableWidget::keyPressEvent (QKeyEvent *pEvent)
 }
 
 
-/// [SLOT] Some common actions for all rows when the current cell is changed.
+/// Slot. Some common actions for all rows when the current cell is changed.
 void FbInputTableWidget::onCellChanged (int nRow, int nCol)
 {
     // a) Check if the string is too long and modify it if needed.
@@ -450,7 +443,7 @@ void FbInputTableWidget::onCellChanged (int nRow, int nCol)
 }
 
 
-/// ...
+/// Change the color of all items in the row.
 void FbInputTableWidget::colorRow (int nRow, QColor oColor)
 {
     if (nRow < 0 || nRow >= this->rowCount())
@@ -463,14 +456,14 @@ void FbInputTableWidget::colorRow (int nRow, QColor oColor)
 }
 
 
-/// ...
+// ...
 void FbInputTableWidget::u_setDefaultEditTriggers ()
 {
     this->setEditTriggers(this->m_eEditTrigs);
 }
 
 
-/// ...
+// ...
 bool FbInputTableWidget::u_commitAndClosePersistentEditor (QTableWidgetItem* pItem)
 {
     if (pItem == nullptr)

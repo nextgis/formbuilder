@@ -56,7 +56,6 @@ class FbInputTableWidget: public QTableWidget
      void getItems (QList<QStringList> &listItems, int &nDefaultRow, bool bGetFromInputRow = false);
      void clearItems ();
      void makeCurrentRowDefault ();
-     int getHorizontalHeaderWidth () const;
      QStringList getHorizontalHeaderItems () const;
      static bool s_isStringVoid (QString str);
      static bool s_chopString (QString &str);
@@ -71,7 +70,7 @@ class FbInputTableWidget: public QTableWidget
      bool isRowVoid (int nRow) const;
      bool isOneInRowVoid (int nRow) const;
     protected: // events
-     void keyPressEvent (QKeyEvent *pEvent);
+     virtual void keyPressEvent (QKeyEvent *pEvent);
     protected slots:
      void onCellChanged (int nRow, int nCol);
 

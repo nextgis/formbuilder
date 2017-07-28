@@ -35,7 +35,7 @@ namespace Gui
 {
 
 
-/*!
+/**
  * @brief A dialog which aim to select the columns for the items table from a csv file.
  */
 class FbCsvColumnsDialog: public QDialog

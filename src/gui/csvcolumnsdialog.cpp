@@ -25,7 +25,9 @@
 using namespace Fb::Gui;
 
 
-/// Constructor.
+/**
+ * @brief Constructor.
+ */
 FbCsvColumnsDialog::FbCsvColumnsDialog (QWidget *wParent, QString sFile,
     const QStringList &listTableColumns, const QStringList &listCsvColumns): QDialog(wParent)
 {
@@ -70,14 +72,16 @@ FbCsvColumnsDialog::FbCsvColumnsDialog (QWidget *wParent, QString sFile,
     this->resize(300, 100);
 }
 
-/// Destructor.
+/**
+ * @brief Destructor.
+ */
 FbCsvColumnsDialog::~FbCsvColumnsDialog ()
 {
 }
 
 
-/*!
- * @brief ...
+/**
+ * @brief Get the list of selected fields (their indexes) via comboboxes in this dialog.
  */
 QList<int> FbCsvColumnsDialog::getCsvFieldIndexes () const
 {
@@ -92,7 +96,7 @@ QList<int> FbCsvColumnsDialog::getCsvFieldIndexes () const
 }
 
 
-/// [SLOT] ...
+/// Slot. Button "Ok" pressed.
 void FbCsvColumnsDialog::onButOkClicked ()
 {
     this->accept();

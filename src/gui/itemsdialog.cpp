@@ -29,7 +29,10 @@
 using namespace Fb::Gui;
 
 
-/// Constructor.
+/*!
+* @brief Constructor.
+* @see FbInputTableWidget::FbInputTableWidget
+*/
 FbItemsDialog::FbItemsDialog (QWidget *wParent, const QStringList &listColumns):
     QDialog(wParent)
 {
@@ -78,46 +81,54 @@ FbItemsDialog::FbItemsDialog (QWidget *wParent, const QStringList &listColumns):
     this->resize(400, 500);
 }
 
-/// Destructor.
+/*!
+* @brief Destructor.
+*/
 FbItemsDialog::~FbItemsDialog ()
 {
 }
 
 
-/// ...
+/*!
+* @brief Put items to the dialog.
+* @see FbInputTableWidget::putItems()
+*/
 bool FbItemsDialog::putItems(const QList<QStringList> &listItems, int nDefaultRow)
 {
     return m_wTable->putItems(listItems, nDefaultRow);
 }
 
-/// ...
+/*!
+* @brief Get items from the dialog.
+* @see FbInputTableWidget::getItems()
+*/
 void FbItemsDialog::getItems (QList<QStringList> &listItems, int &nDefaultRow)
 {
     m_wTable->getItems(listItems, nDefaultRow, true);
 }
 
 
-/// [SLOT] ...
+/// Slot. Show message box with text.
 void FbItemsDialog::showMessage (QString sText, bool bIsCritical)
 {
     g_showMsgBox(this, sText, bIsCritical);
 }
 
-/// [SLOT] ...
+/// Slot. Show message box with text and two buttons.
 void FbItemsDialog::showQuestion (QString sText)
 {
     g_showQuestionBox(this, sText);
 }
 
 
-/// [SLOT] button "Make default" pressed.
+/// Slot. Button "Make default" pressed.
 void FbItemsDialog::onButDefaultClicked ()
 {
     m_wTable->makeCurrentRowDefault();
 }
 
 
-/// [SLOT] button "Clear table" pressed.
+/// Slot. Button "Clear table" pressed.
 void FbItemsDialog::onButClearClicked ()
 {
     if (m_wTable->rowCount() <= 1) // 1 for "input" row
@@ -132,7 +143,7 @@ void FbItemsDialog::onButClearClicked ()
 }
 
 
-/// [SLOT] button "Load from CSV" pressed.
+/// Slot. Button "Load from CSV" pressed.
 void FbItemsDialog::onButCsvClicked ()
 {
     if (m_wTable->rowCount() > 1) // 1 for "input" row
@@ -168,7 +179,7 @@ void FbItemsDialog::onButCsvClicked ()
     GDALDataset *pDataset = temp_getGdalDataset(sFile, listTableColumns.size());
     if (pDataset == NULL)
     {
-        g_showMsgBox(this, tr("Unable to open CSV file. GDAL error."), true);
+        g_showMsgBox(this, tr("Unable to open CSV file via GDAL."), true);
         return;
     }
 
@@ -176,7 +187,7 @@ void FbItemsDialog::onButCsvClicked ()
     if (listCsvColumns.empty())
     {
         GDALClose(pDataset);
-        g_showMsgBox(this, tr("Unable to read columns in the CSV file."), true);
+        g_showMsgBox(this, tr("Unable to read columns in the CSV file via GDAL."), true);
         return;
     }
 
@@ -199,7 +210,7 @@ void FbItemsDialog::onButCsvClicked ()
     if (listCsvData.empty())
     {
         GDALClose(pDataset);
-        g_showMsgBox(this, tr("Unable to read data from the CSV file."), true);
+        g_showMsgBox(this, tr("Unable to read data from the CSV file via GDAL."), true);
         return;
     }
 
@@ -209,14 +220,14 @@ void FbItemsDialog::onButCsvClicked ()
 }
 
 
-/// [SLOT] button "OK" pressed.
+/// Slot. Button "OK" pressed.
 void FbItemsDialog::onButOkClicked ()
 {
     this->accept();
 }
 
 
-/// ...
+// ...
 bool FbItemsDialog::u_areCsvFieldIndexesSet (QList<int> listCsvFieldIndexes) const
 {
     // At least one index should be set.
@@ -229,12 +240,7 @@ bool FbItemsDialog::u_areCsvFieldIndexesSet (QList<int> listCsvFieldIndexes) con
 }
 
 
-
-
-
-
-
-/// [TEMP] ...
+// ...
 GDALDataset *FbItemsDialog::temp_getGdalDataset (QString sPath, int nTableColumnCount)
 {
     QByteArray baPath;
@@ -284,7 +290,7 @@ GDALDataset *FbItemsDialog::temp_getGdalDataset (QString sPath, int nTableColumn
     return poDS;
 }
 
-/// [TEMP] ...
+// ...
 QStringList FbItemsDialog::temp_getCsvColumns (GDALDataset *poDS)
 {
     QStringList listCsvColumns;
@@ -307,7 +313,7 @@ QStringList FbItemsDialog::temp_getCsvColumns (GDALDataset *poDS)
     return listCsvColumns;
 }
 
-/// [TEMP] ...
+// ...
 QList<QStringList> FbItemsDialog::temp_getCsvData (GDALDataset *poDS, QList<int> listFieldIndexes)
 {
     QList<QStringList> listCsvData;
