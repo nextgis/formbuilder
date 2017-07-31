@@ -56,6 +56,7 @@ FBDialogListvalues::FBDialogListvalues (QWidget *parent, bool addUndefinedValue)
     butLoadNgw->setToolTip(tr("Load NextGIS Web lookup table once ..."));
     QObject::connect(butLoadNgw, SIGNAL(clicked()),
             this, SLOT(onLoadNgwClicked()));
+    butLoadNgw->hide(); // TEMP
 
     butLoadNgwSync = new QToolButton(this);
     butLoadNgwSync->setIcon(QIcon(":/img/load_ngw_sync.png"));
@@ -63,6 +64,7 @@ FBDialogListvalues::FBDialogListvalues (QWidget *parent, bool addUndefinedValue)
                                   " Web lookup table ..."));
     QObject::connect(butLoadNgwSync, SIGNAL(clicked()),
             this, SLOT(onLoadNgwSyncClicked()));
+    butLoadNgwSync->hide(); // TEMP
 
     butLoadCsv = new QToolButton(this);
     butLoadCsv->setIcon(QIcon(":/img/load_csv.png"));

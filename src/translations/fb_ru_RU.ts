@@ -463,7 +463,7 @@ Do you want to create new project based on this layer with copying the current f
     </message>
     <message>
         <source>Manage lists of values</source>
-        <translation>Редактировать списки значений</translation>
+        <translation type="vanished">Редактировать списки значений</translation>
     </message>
     <message>
         <source>Updates available!</source>
@@ -494,6 +494,20 @@ the fields defined in this project</source>
     <message>
         <source>Sign in to NextGIS</source>
         <translation>Авторизируйтесь в системе NextGIS</translation>
+    </message>
+    <message>
+        <source>Manage the lists of values which you can use e.g. in a Counter element
+to create specific IDs for different collectors in your data-collecting
+project</source>
+        <translation>Редактировать списки значений. Пример использования: вы можете создать
+список сборщиков данных с уникальными идентификаторами и привязать его
+к элементу &quot;Счётчик&quot; для того чтобы вести учёт количества собранных
+данных определённым сборщиком</translation>
+    </message>
+    <message>
+        <source>Please sign in with the premium account if you want to use this feature</source>
+        <translation>Пожалуйста, авторизируйтесь как премиум-пользователь NextGIS
+для того чтобы получить доступ к данной функции програмы</translation>
     </message>
 </context>
 <context>
@@ -1587,7 +1601,7 @@ signature&quot;</source>
     </message>
     <message>
         <source>A pair of comboboxes with the different displayed values but with the common inner values</source>
-        <translation>Два выпадающих списка, которые имеют общие
+        <translation type="vanished">Два выпадающих списка, которые имеют общие
 внутренние значения, но разные отображаемые</translation>
     </message>
     <message>
@@ -1629,6 +1643,19 @@ signature&quot;</source>
     <message>
         <source>A list of values and a default selected value</source>
         <translation>Список значений и значение по умолчанию</translation>
+    </message>
+    <message>
+        <source>A pair of comboboxes with a single list of items.
+Each item has an inner value (which is finally saved
+during the data collection process) and a pair of
+displayed values. Thus for example the collector
+can see the same item but in different languages</source>
+        <translation type="unfinished">Два выпадающих списка с общей таблицей значений.
+Вы можете использовать этот элемент чтобы разбить
+значения на те, что будут отображаться сборщику данных
+и на те что будут сохраняться в зависимости от выбора.
+Две колонки нужны например для того, чтобы выбирать одно
+значение, записанное на двух разных языках</translation>
     </message>
 </context>
 <context>

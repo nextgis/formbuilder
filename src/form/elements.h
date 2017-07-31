@@ -284,10 +284,12 @@ class FBElemSplitcombobox: public FBElemInputVariate
      FBElemSplitcombobox (QWidget *appWidget);
      virtual ~FBElemSplitcombobox () { }
      virtual QString getKeyName () { return FB_ELEMNAME_SPLIT_COMBOBOX; }
-     virtual QString getDisplayName () { return tr("Splitted combo"); }
-     virtual QString getDescription () { return tr("A pair of comboboxes with the different"
-                                                   " displayed values but with the common inner"
-                                                   " values"); }
+     virtual QString getDisplayName (){ return tr("Splitted combo"); }
+     virtual QString getDescription () { return tr("A pair of comboboxes with a single list of items.\n"
+                                                   "Each item has an inner value (which is finally saved\n"
+                                                   "during the data collection process) and a pair of\n"
+                                                   "displayed values. Thus for example the collector\n"
+                                                   "can see the same item but in different languages"); }
      virtual FBElemtype getType () { return FBInput; }
     protected:
      FBAttrListvalues2 *attrListvals2Ptr;

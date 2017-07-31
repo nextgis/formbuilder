@@ -95,6 +95,8 @@
 
 #define FB_SCREEN_SIZEFACTOR 130.0 // used for actual screen scale
 
+#define FB_UTF8CHAR_LOCK "\xF0\x9F\x94\x92"
+
 namespace Ui
 {
     class FB;
@@ -524,6 +526,12 @@ class FB: public QWidget
      // other gui
      QLabel *labBottom;
      FBDialogProgress *dlgProgress;
+
+     // TEMPORARY: premium content.
+     QStringList listPremiumElems;
+     bool loggedAsPremium;
+     void showMsgForNonPremium ();
+     void updateGuiOnLogging ();
 };
 
 #endif //FB_H

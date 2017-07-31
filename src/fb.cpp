@@ -80,6 +80,10 @@ FB::FB(QWidget *parent):
     this->setObjectName("FB"); // at least for style sheets
 
     ui->setupUi(this);
+
+    // TEMPORARY: premium content.
+    listPremiumElems.append(FB_ELEMNAME_SPLIT_COMBOBOX);
+    loggedAsPremium = false;
 }
 
 void FB::initGui ()
@@ -248,7 +252,9 @@ void FB::initGui ()
     QObject::connect(toolbUpload, SIGNAL(clicked()),
                      this, SLOT(onUploadClick()));
     toolbLists = this->addTopMenuButton(wData,":/img/lists.png",
-      tr("Lists"),tr("Manage lists of values"), false, true);
+      tr("Lists"), tr("Manage the lists of values which you can use e.g. in a Counter element\n"
+                     "to create specific IDs for different collectors in your data-collecting\n"
+                     "project"), false, true);
     QObject::connect(toolbLists, SIGNAL(clicked()),
                      this, SLOT(onListsClick()));
     //toolbLists->hide(); // TEMP
@@ -478,6 +484,9 @@ void FB::initGui ()
 
     this->updateEnableness();
     this->updateAppTitle();
+
+    // TEMPORARY: premium content.
+    this->updateGuiOnLogging();
 }
 
 
@@ -645,6 +654,13 @@ void FB::onAddElemPress (QTreeWidgetItem* item, int column)
         return;
 
     QString keyName = item->data(0,Qt::UserRole).toString();
+
+    // TEMPORARY: premium content.
+    if (!loggedAsPremium && listPremiumElems.contains(keyName))
+    {
+        this->showMsgForNonPremium();
+        return;
+    }
 
     wScreen->requestScrollToBottom();
 
@@ -998,6 +1014,14 @@ void FB::onListsClick ()
         return;
 
     toolbLists->setDown(true);
+
+    // TEMPORARY: premium content.
+    if (!loggedAsPremium)
+    {
+        this->showMsgForNonPremium();
+        toolbLists->setDown(false);
+        return;
+    }
 
     FBDialogLists dialog(this);
 
@@ -1535,7 +1559,8 @@ void FB::endMaintainerWork(int exitCode, QProcess::ExitStatus exitStatus)
 // AUTHENTICATION BUTTON CLICK
 void FB::onAuthClick ()
 {
-
+    loggedAsPremium = !loggedAsPremium;
+    this->updateGuiOnLogging();
 }
 
 
@@ -2096,8 +2121,15 @@ void FB::updateLeftTrees ()
             treeLeftFull->addTopLevelItem(item);
         }
 
+        // TEMPORARY: premium content.
+        QString sElemDispName;
+        if (!loggedAsPremium && listPremiumElems.contains(testElem->getKeyName()))
+            sElemDispName = testElem->getDisplayName() + QString::fromUtf8(FB_UTF8CHAR_LOCK);
+        else
+            sElemDispName = testElem->getDisplayName();
+
         QTreeWidgetItem *item1 = new QTreeWidgetItem();
-        item1->setText(0,testElem->getDisplayName());
+        item1->setText(0,sElemDispName);
         item1->setData(0,Qt::UserRole,testElem->getKeyName());
         item1->setIcon(0,QIcon(fctsElems[i].second));
         item1->setToolTip(0,testElem->getDescription());
@@ -2106,7 +2138,7 @@ void FB::updateLeftTrees ()
         QTreeWidgetItem *item2 = new QTreeWidgetItem();
         item2->setData(0,Qt::UserRole,testElem->getKeyName());
         item2->setIcon(0,QIcon(fctsElems[i].second));
-        item2->setToolTip(0,testElem->getDisplayName());
+        item2->setToolTip(0,sElemDispName);
         treeLeftShort->addTopLevelItem(item2);
 
         // Don't forget to delete test element.
@@ -2645,4 +2677,28 @@ FBDialogAbout::FBDialogAbout (QWidget *parent):
     vlay->addWidget(edit);
     vlay->addWidget(lab2);
     vlay->addWidget(but);
+}
+
+
+/*****************************************************************************/
+/*                                                                           */
+/*                          Premium content                                  */
+/*                                                                           */
+/*****************************************************************************/
+
+// TEMPORARY.
+void FB::showMsgForNonPremium ()
+{
+    this->onShowInfo(tr("Please sign in with the premium account if you want to use this feature"));
+}
+
+// TEMPORARY.
+void FB::updateGuiOnLogging ()
+{
+    this->updateLeftTrees();
+
+    if (loggedAsPremium)
+        toolbLists->setText(tr("Lists"));
+    else
+        toolbLists->setText(tr("Lists") + QString::fromUtf8(FB_UTF8CHAR_LOCK));
 }
