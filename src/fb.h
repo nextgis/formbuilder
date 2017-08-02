@@ -54,6 +54,8 @@
 
 #include "ngw.h"
 
+#include "auth.h"
+
 #include "project/projects.h"
 #include "screen/screens.h"
 
@@ -300,21 +302,21 @@ class FB: public QWidget
 {
     Q_OBJECT
 
-    public:
-    
+public:
+
      explicit FB (QWidget *parent = 0);
      ~FB();
+
      void initGui ();
      void setFbStyle ();
-
      void registerElements ();
      void deregisterElements ();
 
-    protected:
+protected:
 
      void resizeEvent (QResizeEvent *event);
 
-    private slots:
+private slots:
 
      void onAddElemPress (QTreeWidgetItem* item, int column);
      void onElemSelect ();
@@ -345,12 +347,10 @@ class FB: public QWidget
      void onAboutGraphicsClick ();
      void onUpdatesClick ();
      void onAuthClick ();
-
+     void onAuthFinished ();
      void endCheckingUpdates (int exitCode, QProcess::ExitStatus exitStatus);
      void endMaintainerWork (int exitCode, QProcess::ExitStatus exitStatus);
-
      void keyPressEvent (QKeyEvent *);
-
      int onShowBox (QString msg, QString caption);
      void onShowInfo (QString msg);
      int onShowWarning (QString msg);
@@ -361,20 +361,13 @@ class FB: public QWidget
      void onProjDialogFinished (int code);
      void onSaveAnyEnded (FBErr err);
 
-    private: // methods
+private: // methods
 
-     // other processes
      void startCheckingUpdates ();
-
-     // settings
      void writeSettings ();
      void readSettings ();
-
-     // conversions
      QString getErrStr (FBErr err);
      QString getGroupStr (FBElemtype type);
-
-     // gui top menu
      QToolButton *addTopMenuButton (QWidget *parentTab, QString imgPath, QString name,
                                     QString description, bool isSmall=false,
                                     bool withCaption=false, bool atTheEnd=false);
@@ -383,8 +376,6 @@ class FB: public QWidget
      QComboBox *addTopMenuCombo (QWidget *parentTab, QString caption,
                      QStringList values);
      QLabel *addTopMenuLabel (QWidget *parentTab, QString text, QString caption);
-
-     // gui
      FBForm *createForm();
      void flipLeftMenu (bool isFull);
      void flipRightMenu (bool isFull);
@@ -400,70 +391,48 @@ class FB: public QWidget
      void updateDeviceInfo ();
      void afterPickScreen (QToolButton *toolbDown);
      void updateAppTitle ();
-
-     // screen
      void pickDefaultScreen ();
      void pickVoidScreen ();
      void recreateScreen (FBScreen *newScreen, bool destroyForm);
-
-     // project
      bool newProjectCommonActions (FBProject *proj, QString path);
      void saveProjectCommonActions (QString ngfpFullPath);
-
-     // other
      bool isSaveRequired ();
-
-     // events
      void closeEvent (QCloseEvent *event);
+     void showMsgForNonPremium ();
+     void updateGuiOnLogging ();
 
-    private: // fields
+private: // fields
 
      bool isInited;
-
-     // Settings.
-     struct FBSetting
-     {
-         QString key;
-         QString value;
-         QString defaultValue;
-     };
+         struct FBSetting // Settings.
+         {
+             QString key;
+             QString value;
+             QString defaultValue;
+         };
      FBSetting settLastShapeFullPath;
      FBSetting settLastNgfpFullPath;
      FBSetting settLastLanguageSelected;
      FBSetting settLastNgwUrl;
      FBSetting settLastNgwLogin;
-
-     // Supported languages in program.
-     struct FBLangInfo
-     {
-         QString name;
-         QString code;
-         QString imgFlagPath;
-         QString imgNextgisPath;
-         QString offLink;
-     };
+         struct FBLangInfo // Supported languages in program.
+         {
+             QString name;
+             QString code;
+             QString imgFlagPath;
+             QString imgNextgisPath;
+             QString offLink;
+         };
      QList<FBLangInfo> languages; // the order is important
      int indexLang; // index in this list, default is 0 = English
-
-     // Current project of the app.
-     // TODO: For future here can be an array of projects - but that requires changes
-     // in FB behaviour and appearance.
-     FBProject *project;
-
-     //...
+     FBProject *project; // Current project of the app.
      QProcess *prUpdatesCheck;
      QProcess *prMaintainer;
-
-     // registrar
-     QList<QPair<FBFctelem*,QString> > fctsElems; // first = factory, second = image path
+     QList<QPair<FBFctelem*,QString> > fctsElems; // registrar: first = factory, second = image path
      //QList<QPair<FBFctscreen*,QString> > fctsScreen;
-
-     // main gui
      Ui::FB *ui;
      QVBoxLayout *lvAll;
      QHBoxLayout *lhMiddle;
-    
-     // top menu
      QTabWidget *tabMenuTop;
      QWidget *wProject;
      QWidget *wData;
@@ -503,35 +472,23 @@ class FB: public QWidget
      QWidget *wPopup;
      QToolButton *toolbUpdates;
      QToolButton *toolbAuth;
-     
-     // left menu
+//     QLabel *labAuth;
      QWidget *wMenuLeft;
      QPushButton *butArrowLeft;
      QTreeWidget *treeLeftFull;
      QTreeWidget *treeLeftShort;
-     
-     // right menu
      QWidget *wMenuRight;
      QPushButton *butArrowRight;
      QVBoxLayout *lvRight; // for attr tables adding
      QList<QTableWidget*> tablesRight;
      QLabel *labRight;
-     
-     // working area
      QScrollArea *wWorkingArea;
-
-     // screen
      FBScreen *wScreen;
-          
-     // other gui
      QLabel *labBottom;
      FBDialogProgress *dlgProgress;
-
-     // TEMPORARY: premium content.
+     Nextgis::User oUser;
      QStringList listPremiumElems;
      bool loggedAsPremium;
-     void showMsgForNonPremium ();
-     void updateGuiOnLogging ();
 };
 
 #endif //FB_H

@@ -25,7 +25,17 @@ set(APP_NAME fb)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
+# OAuth2 client id for this apllication which should be defined outside:
+if (DEFINED FB_OAUTH2_CLIENT_ID)
+    add_definitions(-D_OAUTH2_CLIENT_ID=${FB_OAUTH2_CLIENT_ID})
+else()
+    #add_definitions(-D_OAUTH2_CLIENT_ID="")
+    message(FATAL_ERROR "OAuth2 client id (in the FB_OAUTH2_CLIENT_ID variable) should be defined in order to build the application")
+endif ()
+
 set(APP_HEADERS
+
+auth.h
 
 gui/gui_globals.h
 gui/inputtablewidget.h
@@ -46,6 +56,8 @@ screen/devices.h
 )
 
 set(APP_SOURCES
+
+auth.cpp
 
 gui/gui_globals.cpp
 gui/inputtablewidget.cpp
@@ -109,7 +121,7 @@ else()
     add_executable(${APP_NAME} ${APP_SOURCES} ${APP_HEADERS} ${FB_TARGET_OBJECTS} ${RESOURCES} ${UI_HDRS} ${QM_FILES})
 endif()
 
-target_link_libraries(${APP_NAME} Qt5::Widgets Qt5::Network)# Qt5::LinguistTools)
+target_link_libraries(${APP_NAME} Qt5::Widgets Qt5::Network Qt5::NetworkAuth)# Qt5::LinguistTools)
 if(UNIX)
     target_link_libraries(${APP_NAME} ${EXTRA_LIBS})
 endif()
@@ -126,6 +138,7 @@ if(WIN32)
         install(FILES ${QT_DIR_PREFIX_PATH}/bin/Qt5Guid.dll DESTINATION ${INSTALL_BIN_DIR})
         install(FILES ${QT_DIR_PREFIX_PATH}/bin/Qt5Widgetsd.dll DESTINATION ${INSTALL_BIN_DIR})
         install(FILES ${QT_DIR_PREFIX_PATH}/bin/Qt5Networkd.dll DESTINATION ${INSTALL_BIN_DIR})
+        install(FILES ${QT_DIR_PREFIX_PATH}/bin/Qt5NetworkAuthd.dll DESTINATION ${INSTALL_BIN_DIR})
         install(FILES ${QT_DIR_PREFIX_PATH}/plugins/platforms/qwindowsd.dll DESTINATION ${INSTALL_BIN_DIR}/platforms)
         install(FILES ${QT_DIR_PREFIX_PATH}/plugins/imageformats/qicod.dll DESTINATION ${INSTALL_BIN_DIR}/imageformats) # for app icon on win XP
     else()
@@ -133,6 +146,7 @@ if(WIN32)
         install(FILES ${QT_DIR_PREFIX_PATH}/bin/Qt5Gui.dll DESTINATION ${INSTALL_BIN_DIR})
         install(FILES ${QT_DIR_PREFIX_PATH}/bin/Qt5Widgets.dll DESTINATION ${INSTALL_BIN_DIR})
         install(FILES ${QT_DIR_PREFIX_PATH}/bin/Qt5Network.dll DESTINATION ${INSTALL_BIN_DIR})
+        install(FILES ${QT_DIR_PREFIX_PATH}/bin/Qt5NetworkAuth.dll DESTINATION ${INSTALL_BIN_DIR})
         install(FILES ${QT_DIR_PREFIX_PATH}/plugins/platforms/qwindows.dll DESTINATION ${INSTALL_BIN_DIR}/platforms)
         install(FILES ${QT_DIR_PREFIX_PATH}/plugins/imageformats/qico.dll DESTINATION ${INSTALL_BIN_DIR}/imageformats) # for app icon on win XP
     endif()

@@ -444,6 +444,7 @@ void FB::initGui ()
     wPopup = new QWidget(this); // not included in any layout
     wPopup->setAutoFillBackground(false);
     wPopup->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+//    wPopup->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
     wPopup->setFixedSize(66, 32);
 
     toolbUpdates = new QToolButton(wPopup);
@@ -466,10 +467,15 @@ void FB::initGui ()
     toolbAuth->setToolTip(tr("Sign in to NextGIS"));
     QObject::connect(toolbAuth, SIGNAL(clicked()), this, SLOT(onAuthClick()));
 
+//    labAuth = new QLabel(wPopup);
+//    labAuth->setText("");
+//    labAuth->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+
     QHBoxLayout *lhPopup = new QHBoxLayout(wPopup);
     lhPopup->setContentsMargins(0,0,0,0);
     lhPopup->setSpacing(2);
     lhPopup->addStretch();
+//    lhPopup->addWidget(labAuth);
     lhPopup->addWidget(toolbUpdates);
     lhPopup->addWidget(toolbAuth);
     wPopup->adjustSize();
@@ -1559,9 +1565,31 @@ void FB::endMaintainerWork(int exitCode, QProcess::ExitStatus exitStatus)
 // AUTHENTICATION BUTTON CLICK
 void FB::onAuthClick ()
 {
-    loggedAsPremium = !loggedAsPremium;
-    this->updateGuiOnLogging();
+    Nextgis::AccountType eAccountType = oUser.getAccountType();
+    if (eAccountType != Nextgis::AccountType::Undefined)
+        return;
+
+    connect(&oUser, &Nextgis::User::authFinished, this, &FB::onAuthFinished);
+    oUser.startAuthentication();
 }
+
+void FB::onAuthFinished ()
+{
+    Nextgis::AccountType eAccountType = oUser.getAccountType();
+    if (eAccountType == Nextgis::AccountType::Supported)
+    {
+        loggedAsPremium = true;
+        this->updateGuiOnLogging();
+        return;
+    }
+
+    loggedAsPremium = false;
+    this->updateGuiOnLogging();
+
+    if (eAccountType == Nextgis::AccountType::Undefined)
+        this->onShowInfo(tr("Sorry, but the type of your account is undefined"));
+}
+
 
 
 // KEY PRESS
@@ -2659,6 +2687,7 @@ FBDialogAbout::FBDialogAbout (QWidget *parent):
     edit->append("Kevin");
     edit->append("Landan Lloyd");
     edit->append("jeff");
+    edit->append("Roman Shvets");
 
     QLabel *lab2 = new QLabel(this);
     QString strCc = "http://creativecommons.org/licenses/by/3.0/us/legalcode";

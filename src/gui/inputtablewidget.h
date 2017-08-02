@@ -30,7 +30,7 @@ namespace Gui
 {
 
 
-const int MAX_INPUTTABLE_ROWS = 65535; // QUESTION: smth like sizeof(int)?
+const int MAX_INPUTTABLE_ROWS = 65535;
 const int MAX_INPUTTABLE_STRINGSIZE = 255;
 const QColor COLOR_INPUTTABLE_NOTSEL = QColor(255,255,255);
 const QColor COLOR_INPUTTABLE_DEF = QColor(139,183,224);

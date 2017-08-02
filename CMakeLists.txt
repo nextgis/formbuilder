@@ -3,7 +3,7 @@
 # Purpose:  main cmake script
 # Author:  Mikhail Gusev, gusevmihs@gmail.com
 #***************************************************************************
-#   Copyright (C) 2014-2016 NextGIS
+#   Copyright (C) 2014-2017 NextGIS
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -76,10 +76,12 @@ include(FindAnyProject)
 # path example: <qt core dir>/qtbase/lib/cmake/Qt5Core
 find_package(Qt5Widgets REQUIRED) # finds its own dependencies (QtGui and QtCore)
 find_package(Qt5Network REQUIRED)
+find_package(Qt5NetworkAuth REQUIRED)
 find_package(Qt5LinguistTools)
 
 include_directories(${Qt5Widgets_INCLUDE_DIRS})
 include_directories(${Qt5Network_INCLUDE_DIRS})
+include_directories(${Qt5NetworkAuth_INCLUDE_DIRS})
 include_directories(${Qt5LinguistTools_INCLUDE_DIRS})
 
 include(extlib) # Find GDAL (required)
@@ -93,7 +95,7 @@ if(GDAL_FOUND AND NOT WITH_GDAL_EXTERNAL)
     message("GDAL version: ${GDAL_VERSION}")
     if(${GDAL_VERSION} VERSION_LESS GDAL_REQUIRED_VERSION)
         message(FATAL_ERROR "GDAL must be of version " ${GDAL_REQUIRED_VERSION} " or higher!")
-    endif()   
+    endif()
 endif()
 
 if(WIN32)# AND WITH_GDAL_EXTERNAL) # TODO: move this to app cmake file

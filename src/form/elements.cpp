@@ -688,12 +688,12 @@ FBElemSplitcombobox::FBElemSplitcombobox (QWidget *appWidget):
     attrs.insert(attrLabel2Ptr->getKeyName(),attrLabel2Ptr);
 
     // ATTRIBUTE
-    FBAttrBoolean *attrAllowVals = new FBAttrBoolean(this, FB_ATTRNAME_ALLOWADDING,
-        tr("Allow own values"),
-        tr("User can add own values to the list"),
-        FBNoRole,
-        false);
-    attrs.insert(attrAllowVals->getKeyName(),attrAllowVals);
+//    FBAttrBoolean *attrAllowVals = new FBAttrBoolean(this, FB_ATTRNAME_ALLOWADDING,
+//        tr("Allow own values"),
+//        tr("User can add own values to the list"),
+//        FBNoRole,
+//        false);
+//    attrs.insert(attrAllowVals->getKeyName(),attrAllowVals);
 }
 
 
