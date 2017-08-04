@@ -93,6 +93,6 @@
         <file>img/upload2.png</file>
         <file>img/make_default.png</file>
         <file>img/auth.png</file>
-        <file>img/auth2.png</file>
+        <file>img/auth_out.png</file>
     </qresource>
 </RCC>

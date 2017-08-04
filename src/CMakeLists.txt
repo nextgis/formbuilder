@@ -35,7 +35,8 @@ endif ()
 
 set(APP_HEADERS
 
-auth.h
+my/apiwrapper.h
+my/user.h
 
 gui/gui_globals.h
 gui/inputtablewidget.h
@@ -57,7 +58,8 @@ screen/devices.h
 
 set(APP_SOURCES
 
-auth.cpp
+my/apiwrapper.cpp
+my/user.cpp
 
 gui/gui_globals.cpp
 gui/inputtablewidget.cpp

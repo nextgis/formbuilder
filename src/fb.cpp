@@ -60,6 +60,10 @@ FB::FB(QWidget *parent):
      settLastLanguageSelected.defaultValue = languages[0].code;
     settLastNgwUrl.key = "last_ngw_url";
     settLastNgwLogin.key = "last_ngw_login";
+
+    settLastUser.key = "last_my_nextgis_com_user";
+    settLastUser.defaultValue = "";
+
     this->readSettings();
 
     indexLang = 0;
@@ -81,9 +85,9 @@ FB::FB(QWidget *parent):
 
     ui->setupUi(this);
 
-    // TEMPORARY: premium content.
+    // TEMPORARY:
     listPremiumElems.append(FB_ELEMNAME_SPLIT_COMBOBOX);
-    loggedAsPremium = false;
+    pUser.reset();
 }
 
 void FB::initGui ()
@@ -438,14 +442,14 @@ void FB::initGui ()
     lvAll->addWidget(labBottom);
 
     //----------------------------------------------------------------------
-    //                            Popup widget
+    //                            Pop-up widget
     //----------------------------------------------------------------------
 
-    wPopup = new QWidget(this); // not included in any layout
+    wPopup = new QWidget(this);// FbAuthWidget(this); // not included in any layout
     wPopup->setAutoFillBackground(false);
-    wPopup->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-//    wPopup->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-    wPopup->setFixedSize(66, 32);
+//    wPopup->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    wPopup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+//    wPopup->setFixedSize(66, 32);
 
     toolbUpdates = new QToolButton(wPopup);
     QIcon iconUpdates(":/img/update_avail2.png");
@@ -459,26 +463,27 @@ void FB::initGui ()
     QObject::connect(toolbUpdates, SIGNAL(clicked()), this, SLOT(onUpdatesClick()));
 
     toolbAuth = new QToolButton(wPopup);
-    toolbAuth->setIcon(QIcon(":/img/auth2.png"));
+    toolbAuth->setIcon(QIcon(":/img/auth.png"));
     toolbAuth->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     toolbAuth->setCursor(Qt::PointingHandCursor);
     toolbAuth->setIconSize(QSize(32,32));
     toolbAuth->setFixedSize(32,32);
-    toolbAuth->setToolTip(tr("Sign in to NextGIS"));
     QObject::connect(toolbAuth, SIGNAL(clicked()), this, SLOT(onAuthClick()));
 
-//    labAuth = new QLabel(wPopup);
-//    labAuth->setText("");
-//    labAuth->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+    labAuth = new QLabel(wPopup);
+    labAuth->setText("");
+    labAuth->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+    labAuth->setFont(QFont(FB_GUI_FONTTYPE, FB_GUI_FONTSIZE_SMALL));
 
     QHBoxLayout *lhPopup = new QHBoxLayout(wPopup);
     lhPopup->setContentsMargins(0,0,0,0);
     lhPopup->setSpacing(2);
     lhPopup->addStretch();
-//    lhPopup->addWidget(labAuth);
-    lhPopup->addWidget(toolbUpdates);
+    lhPopup->addWidget(labAuth);
     lhPopup->addWidget(toolbAuth);
-    wPopup->adjustSize();
+    lhPopup->addWidget(toolbUpdates);
+
+    //wPopup->adjustSize();
 
     #ifdef Q_OS_WIN32
     this->startCheckingUpdates(); // after that toolbUpdates may change its enableness
@@ -491,7 +496,7 @@ void FB::initGui ()
     this->updateEnableness();
     this->updateAppTitle();
 
-    // TEMPORARY: premium content.
+    // TEMPORARY:
     this->updateGuiOnLogging();
 }
 
@@ -499,6 +504,10 @@ void FB::initGui ()
 // WINDOW RESIZE EVENT
 void FB::resizeEvent (QResizeEvent *event)
 {
+    //wPopup->move(0, 0);
+    //wPopup->resize(this->width(), wPopup->height());
+
+    //wPopup->resize(labAuth->width() + toolbAuth->width() + toolbUpdates->width(), wPopup->height());
     wPopup->move(this->width() - wPopup->width(), 0);
 }
 
@@ -661,10 +670,11 @@ void FB::onAddElemPress (QTreeWidgetItem* item, int column)
 
     QString keyName = item->data(0,Qt::UserRole).toString();
 
-    // TEMPORARY: premium content.
-    if (!loggedAsPremium && listPremiumElems.contains(keyName))
+    // TEMPORARY:
+    if ((pUser.isNull() || pUser.data()->getAccountType() != Nextgis::My::AccountType::Supported)
+            && listPremiumElems.contains(keyName))
     {
-        this->showMsgForNonPremium();
+        this->showMsgForNotSupported();
         return;
     }
 
@@ -1021,10 +1031,10 @@ void FB::onListsClick ()
 
     toolbLists->setDown(true);
 
-    // TEMPORARY: premium content.
-    if (!loggedAsPremium)
+    // TEMPORARY:
+    if (pUser.isNull() || pUser.data()->getAccountType() != Nextgis::My::AccountType::Supported)
     {
-        this->showMsgForNonPremium();
+        this->showMsgForNotSupported();
         toolbLists->setDown(false);
         return;
     }
@@ -1565,31 +1575,37 @@ void FB::endMaintainerWork(int exitCode, QProcess::ExitStatus exitStatus)
 // AUTHENTICATION BUTTON CLICK
 void FB::onAuthClick ()
 {
-    Nextgis::AccountType eAccountType = oUser.getAccountType();
-    if (eAccountType != Nextgis::AccountType::Undefined)
-        return;
-
-    connect(&oUser, &Nextgis::User::authFinished, this, &FB::onAuthFinished);
-    oUser.startAuthentication();
-}
-
-void FB::onAuthFinished ()
-{
-    Nextgis::AccountType eAccountType = oUser.getAccountType();
-    if (eAccountType == Nextgis::AccountType::Supported)
+    // Sign in.
+    if (pUser.isNull())
     {
-        loggedAsPremium = true;
-        this->updateGuiOnLogging();
-        return;
+        pUser.reset(new Nextgis::My::User());
+        connect(pUser.data(), &Nextgis::My::User::authenticationFinished, this, &FB::onSignInFinished);
+        pUser.data()->startAuthentication();
     }
 
-    loggedAsPremium = false;
-    this->updateGuiOnLogging();
-
-    if (eAccountType == Nextgis::AccountType::Undefined)
-        this->onShowInfo(tr("Sorry, but the type of your account is undefined"));
+    // Sign out.
+    else
+    {
+        pUser.reset(nullptr);
+        this->updateGuiOnLogging();
+    }
 }
 
+// Call this slot only in a connection with User::authenticationFinished.
+void FB::onSignInFinished ()
+{
+    if (!pUser.data()->isAuthenticated())
+    {
+        this->showFullMessage(tr("Unable to authorize"), pUser.data()->getLastError());
+        pUser.reset(nullptr);
+    }
+    else
+    {
+        settLastUser.value = pUser.data()->getLogin();
+    }
+
+    this->updateGuiOnLogging();
+}
 
 
 // KEY PRESS
@@ -1756,7 +1772,10 @@ void FB::writeSettings ()
     settings.setValue(settLastLanguageSelected.key,settLastLanguageSelected.value);
     settings.setValue(settLastNgwUrl.key,settLastNgwUrl.value);
     settings.setValue(settLastNgwLogin.key,settLastNgwLogin.value);
+
+    settings.setValue(settLastUser.key, settLastUser.value);
 }
+
 void FB::readSettings ()
 {
     QSettings settings(QSettings::IniFormat, QSettings::UserScope,
@@ -1771,6 +1790,9 @@ void FB::readSettings ()
                                    settLastNgwUrl.defaultValue).toString();
     settLastNgwLogin.value = settings.value(settLastNgwLogin.key,
                                    settLastNgwLogin.defaultValue).toString();
+
+    settLastUser.value = settings.value(settLastUser.key,
+                                  settLastUser.defaultValue).toString();
 }
 
 
@@ -2149,9 +2171,10 @@ void FB::updateLeftTrees ()
             treeLeftFull->addTopLevelItem(item);
         }
 
-        // TEMPORARY: premium content.
+        // TEMPORARY:
         QString sElemDispName;
-        if (!loggedAsPremium && listPremiumElems.contains(testElem->getKeyName()))
+        if ((pUser.isNull() || pUser.data()->getAccountType() != Nextgis::My::AccountType::Supported)
+            && listPremiumElems.contains(testElem->getKeyName()))
             sElemDispName = testElem->getDisplayName() + QString::fromUtf8(FB_UTF8CHAR_LOCK);
         else
             sElemDispName = testElem->getDisplayName();
@@ -2711,23 +2734,53 @@ FBDialogAbout::FBDialogAbout (QWidget *parent):
 
 /*****************************************************************************/
 /*                                                                           */
-/*                          Premium content                                  */
+/*                          Supported content                                */
 /*                                                                           */
 /*****************************************************************************/
 
-// TEMPORARY.
-void FB::showMsgForNonPremium ()
+void FB::showMsgForNotSupported ()
 {
-    this->onShowInfo(tr("Please sign in with the premium account if you want to use this feature"));
+    this->onShowInfo(tr("Please sign in with the supported account if you want to use this feature"));
 }
 
-// TEMPORARY.
 void FB::updateGuiOnLogging ()
-{
-    this->updateLeftTrees();
+{   
+    // Update user info in the About panel.
+    // ...
 
-    if (loggedAsPremium)
+    // Update user name for the pop-up widget.
+    if (!pUser.isNull() && pUser.data()->isAuthenticated())
+    {
+        labAuth->setText(pUser.data()->getLogin());
+        labAuth->show();
+        toolbAuth->setIcon(QIcon(":/img/auth_out.png"));
+        toolbAuth->setToolTip(tr("Sign out"));
+    }
+    else
+    {
+        labAuth->hide();
+        toolbAuth->setIcon(QIcon(":/img/auth.png"));
+        toolbAuth->setToolTip(tr("Sign in to NextGIS"));
+    }
+
+    // Remove lock signs:
+    // ... from the elements.
+    this->updateLeftTrees();
+    // ... from some menu buttons.
+    if (!pUser.isNull() && pUser.data()->getAccountType() == Nextgis::My::AccountType::Supported)
         toolbLists->setText(tr("Lists"));
     else
         toolbLists->setText(tr("Lists") + QString::fromUtf8(FB_UTF8CHAR_LOCK));
 }
+
+void FB::showFullMessage (QString sMainText, QString sDetailedText)
+{
+    QMessageBox wMsgBox(this);
+    wMsgBox.setText(sMainText);
+    wMsgBox.setDetailedText(sDetailedText);
+    wMsgBox.setStandardButtons(QMessageBox::Ok);
+    wMsgBox.setWindowTitle(tr("Information"));
+    wMsgBox.setIcon(QMessageBox::Information);
+    wMsgBox.exec();
+}
+

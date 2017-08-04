@@ -54,7 +54,7 @@
 
 #include "ngw.h"
 
-#include "auth.h"
+#include "my/user.h"
 
 #include "project/projects.h"
 #include "screen/screens.h"
@@ -293,6 +293,15 @@ class FBThreadSaveAs: public QThread
 };
 
 
+//class FbAuthWidget: public QWidget
+//{
+//    public:
+//        FbAuthWidget (QWidget* wParent): QWidget(wParent) { }
+//        virtual ~FbAuthWidget () { }
+//        void mousePressEvent (QMouseEvent *e) { e->ignore(); }
+//};
+
+
 /**
  * App's main window class.
  * Aggregates all GUI of the app, except specific dialogues. Contains the working area
@@ -347,7 +356,7 @@ private slots:
      void onAboutGraphicsClick ();
      void onUpdatesClick ();
      void onAuthClick ();
-     void onAuthFinished ();
+     void onSignInFinished ();
      void endCheckingUpdates (int exitCode, QProcess::ExitStatus exitStatus);
      void endMaintainerWork (int exitCode, QProcess::ExitStatus exitStatus);
      void keyPressEvent (QKeyEvent *);
@@ -398,39 +407,50 @@ private: // methods
      void saveProjectCommonActions (QString ngfpFullPath);
      bool isSaveRequired ();
      void closeEvent (QCloseEvent *event);
-     void showMsgForNonPremium ();
+     void showMsgForNotSupported ();
      void updateGuiOnLogging ();
+
+     void showFullMessage (QString sMainText, QString sDetailedText);
 
 private: // fields
 
+     struct FBSetting // Settings.
+     {
+         QString key;
+         QString value;
+         QString defaultValue;
+     };
+
+     struct FBLangInfo // Supported languages in program.
+     {
+         QString name;
+         QString code;
+         QString imgFlagPath;
+         QString imgNextgisPath;
+         QString offLink;
+     };
+
      bool isInited;
-         struct FBSetting // Settings.
-         {
-             QString key;
-             QString value;
-             QString defaultValue;
-         };
+
      FBSetting settLastShapeFullPath;
      FBSetting settLastNgfpFullPath;
      FBSetting settLastLanguageSelected;
      FBSetting settLastNgwUrl;
      FBSetting settLastNgwLogin;
-         struct FBLangInfo // Supported languages in program.
-         {
-             QString name;
-             QString code;
-             QString imgFlagPath;
-             QString imgNextgisPath;
-             QString offLink;
-         };
+
      QList<FBLangInfo> languages; // the order is important
      int indexLang; // index in this list, default is 0 = English
+
      FBProject *project; // Current project of the app.
+
      QProcess *prUpdatesCheck;
      QProcess *prMaintainer;
+
      QList<QPair<FBFctelem*,QString> > fctsElems; // registrar: first = factory, second = image path
      //QList<QPair<FBFctscreen*,QString> > fctsScreen;
+
      Ui::FB *ui;
+
      QVBoxLayout *lvAll;
      QHBoxLayout *lhMiddle;
      QTabWidget *tabMenuTop;
@@ -469,10 +489,10 @@ private: // fields
      QToolButton *toolbFieldManager;
      QComboBox *comboLang;
      QToolButton *toolbAboutGraphics;
-     QWidget *wPopup;
+     QWidget *wPopup;//FbAuthWidget *wPopup;
      QToolButton *toolbUpdates;
      QToolButton *toolbAuth;
-//     QLabel *labAuth;
+     QLabel *labAuth;
      QWidget *wMenuLeft;
      QPushButton *butArrowLeft;
      QTreeWidget *treeLeftFull;
@@ -486,9 +506,13 @@ private: // fields
      FBScreen *wScreen;
      QLabel *labBottom;
      FBDialogProgress *dlgProgress;
-     Nextgis::User oUser;
+
+     // TEMPORARY: for premium/non-premium use of the program.
+     // TODO: change this and many other connected things during the big refactoring.
+     FBSetting settLastUser;
+     QScopedPointer<Nextgis::My::User> pUser;
      QStringList listPremiumElems;
-     bool loggedAsPremium;
+     // Note: some buttons are also hardcoded as for premium use.
 };
 
 #endif //FB_H
