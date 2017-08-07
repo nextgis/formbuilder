@@ -293,15 +293,6 @@ class FBThreadSaveAs: public QThread
 };
 
 
-//class FbAuthWidget: public QWidget
-//{
-//    public:
-//        FbAuthWidget (QWidget* wParent): QWidget(wParent) { }
-//        virtual ~FbAuthWidget () { }
-//        void mousePressEvent (QMouseEvent *e) { e->ignore(); }
-//};
-
-
 /**
  * App's main window class.
  * Aggregates all GUI of the app, except specific dialogues. Contains the working area
@@ -428,6 +419,7 @@ private: // fields
          QString imgFlagPath;
          QString imgNextgisPath;
          QString offLink;
+         QString subscribeLink;
      };
 
      bool isInited;
@@ -489,7 +481,7 @@ private: // fields
      QToolButton *toolbFieldManager;
      QComboBox *comboLang;
      QToolButton *toolbAboutGraphics;
-     QWidget *wPopup;//FbAuthWidget *wPopup;
+     QWidget *wPopup; //FbAuthWidget *wPopup;
      QToolButton *toolbUpdates;
      QToolButton *toolbAuth;
      QLabel *labAuth;
@@ -506,6 +498,8 @@ private: // fields
      FBScreen *wScreen;
      QLabel *labBottom;
      FBDialogProgress *dlgProgress;
+     QLabel *labUserText;
+     QLabel *labUser;
 
      // TEMPORARY: for premium/non-premium use of the program.
      // TODO: change this and many other connected things during the big refactoring.

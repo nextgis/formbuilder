@@ -285,11 +285,11 @@ class FBElemSplitcombobox: public FBElemInputVariate
      virtual ~FBElemSplitcombobox () { }
      virtual QString getKeyName () { return FB_ELEMNAME_SPLIT_COMBOBOX; }
      virtual QString getDisplayName (){ return tr("Splitted combo"); }
-     virtual QString getDescription () { return tr("A pair of comboboxes with a single list of items.\n"
-                                                   "Each item has an inner value (which is finally saved\n"
-                                                   "during the data collection process) and a pair of\n"
-                                                   "displayed values. Thus for example the collector\n"
-                                                   "can see the same item but in different languages"); }
+     virtual QString getDescription () { return tr("A pair of linked comboboxes. Each item has an \n"
+                                                   "inner value (which will be saved during the data \n"
+                                                   "collection) and a pair of displayed values. The \n"
+                                                   "collector will be able to see the same item but \n"
+                                                   "in different languages"); }
      virtual FBElemtype getType () { return FBInput; }
     protected:
      FBAttrListvalues2 *attrListvals2Ptr;

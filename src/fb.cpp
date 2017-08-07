@@ -45,6 +45,7 @@ FB::FB(QWidget *parent):
     lang.imgFlagPath = "";
     lang.imgNextgisPath = ":/img/nextgis_en.png";
     lang.offLink = "http://nextgis.ru/en/nextgis-formbuilder";
+    lang.subscribeLink = "http://nextgis.com/pricing/";
     languages.append(lang);
 
     lang.name = tr("Russian");
@@ -52,6 +53,7 @@ FB::FB(QWidget *parent):
     lang.imgFlagPath = "";
     lang.imgNextgisPath = ":/img/nextgis_ru.png";
     lang.offLink = "http://nextgis.ru/nextgis-formbuilder";
+    lang.subscribeLink = "http://nextgis.ru/pricing/";
     languages.append(lang);
 
     settLastShapeFullPath.key = "last_shp";
@@ -256,9 +258,10 @@ void FB::initGui ()
     QObject::connect(toolbUpload, SIGNAL(clicked()),
                      this, SLOT(onUploadClick()));
     toolbLists = this->addTopMenuButton(wData,":/img/lists.png",
-      tr("Lists"), tr("Manage the lists of values which you can use e.g. in a Counter element\n"
-                     "to create specific IDs for different collectors in your data-collecting\n"
-                     "project"), false, true);
+      tr("Lists"), tr("Manage lists of values which can be used with \n"
+                      "a Counter element to create specific IDs for \n"
+                      "different collectors in your data-collecting \n"
+                      "project"), false, true);
     QObject::connect(toolbLists, SIGNAL(clicked()),
                      this, SLOT(onListsClick()));
     //toolbLists->hide(); // TEMP
@@ -316,9 +319,21 @@ void FB::initGui ()
     lvAbout2->addWidget(labAboutUrl);
     layAbout->insertLayout(layAbout->count()-1,lvAbout2);
     toolbAboutGraphics = this->addTopMenuButton(wAbout,":img/cc.png",
-              tr("Graphics"),tr("Authors of images\nin program"), false, true, true);
+              tr("Graphics"),tr("Authors of images\nin program"), false, true, false);
     QObject::connect(toolbAboutGraphics, SIGNAL(clicked()),
                      this, SLOT(onAboutGraphicsClick()));
+    labUser = new QLabel(this);
+    labUser->setPixmap(QPixmap(":img/user.png"));
+    labUserText = new QLabel(this);
+    labUserText->setStyleSheet("QLabel{color: "+QString(FB_COLOR_DARKGREY)+";}");
+    labUserText->setTextFormat(Qt::RichText);
+    labUserText->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    labUserText->setOpenExternalLinks(true);
+    labUserText->setFont(QFont(FB_GUI_FONTTYPE,FB_GUI_FONTSIZE_SMALL));
+    QHBoxLayout *lhAbout3 = new QHBoxLayout();
+    lhAbout3->addWidget(labUser);
+    lhAbout3->addWidget(labUserText);
+    layAbout->insertLayout(layAbout->count(),lhAbout3);
 
     //----------------------------------------------------------------------
     //                              Left menu
@@ -445,13 +460,14 @@ void FB::initGui ()
     //                            Pop-up widget
     //----------------------------------------------------------------------
 
-    wPopup = new QWidget(this);// FbAuthWidget(this); // not included in any layout
+    wPopup = new QWidget(this);//FbAuthWidget(this); // not included in any layout
+//    wPopup->setAttribute(Qt::WA_TransparentForMouseEvents);
     wPopup->setAutoFillBackground(false);
-//    wPopup->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    wPopup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    wPopup->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 //    wPopup->setFixedSize(66, 32);
 
     toolbUpdates = new QToolButton(wPopup);
+//    toolbUpdates->setAttribute(Qt::WA_TransparentForMouseEvents, false);
     QIcon iconUpdates(":/img/update_avail2.png");
     toolbUpdates->setIcon(iconUpdates);
     toolbUpdates->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -463,6 +479,7 @@ void FB::initGui ()
     QObject::connect(toolbUpdates, SIGNAL(clicked()), this, SLOT(onUpdatesClick()));
 
     toolbAuth = new QToolButton(wPopup);
+//    toolbAuth->setAttribute(Qt::WA_TransparentForMouseEvents, false);
     toolbAuth->setIcon(QIcon(":/img/auth.png"));
     toolbAuth->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     toolbAuth->setCursor(Qt::PointingHandCursor);
@@ -504,10 +521,12 @@ void FB::initGui ()
 // WINDOW RESIZE EVENT
 void FB::resizeEvent (QResizeEvent *event)
 {
-    //wPopup->move(0, 0);
-    //wPopup->resize(this->width(), wPopup->height());
+//    wPopup->move(0, 0);
+//    wPopup->resize(this->width(), wPopup->height());
 
     //wPopup->resize(labAuth->width() + toolbAuth->width() + toolbUpdates->width(), wPopup->height());
+
+    wPopup->resize(labAuth->width() + toolbAuth->width() + toolbUpdates->width() + 10, wPopup->height());
     wPopup->move(this->width() - wPopup->width(), 0);
 }
 
@@ -2711,6 +2730,8 @@ FBDialogAbout::FBDialogAbout (QWidget *parent):
     edit->append("Landan Lloyd");
     edit->append("jeff");
     edit->append("Roman Shvets");
+    edit->append("David");
+    edit->append("Gregor Cresnar");
 
     QLabel *lab2 = new QLabel(this);
     QString strCc = "http://creativecommons.org/licenses/by/3.0/us/legalcode";
@@ -2740,13 +2761,29 @@ FBDialogAbout::FBDialogAbout (QWidget *parent):
 
 void FB::showMsgForNotSupported ()
 {
-    this->onShowInfo(tr("Please sign in with the supported account if you want to use this feature"));
+    if (pUser.isNull() || !pUser.data()->isAuthenticated())
+        this->onShowInfo(tr("Please upgrade and sign in to use this feature") + ".<br><a href=\""
+                     + languages[indexLang].subscribeLink + "\">" + tr("View pricing") + "</a>");
+    else
+        this->onShowInfo(tr("Please upgrade your app to use this feature") + ".<br><a href=\""
+                     + languages[indexLang].subscribeLink + "\">" + tr("View pricing") + "</a>");
 }
 
 void FB::updateGuiOnLogging ()
-{   
+{        
     // Update user info in the About panel.
-    // ...
+    if (!pUser.isNull() && pUser.data()->getAccountType() == Nextgis::My::AccountType::Supported)
+    {
+        QDate date(1111,11,11);
+        labUserText->setText(tr("Your subscription is active") + "<br>" + tr("until")
+                             + date.toString(" dd.MM.yyyy"));
+    }
+    else
+    {
+        labUserText->setText(tr("Your are using free version.") + "<br>" + tr("Subscribe")
+           + " <a href=\"" + languages[indexLang].subscribeLink + QString("\">")
+           + tr("here") + "</a> " + tr("for more features."));
+    }
 
     // Update user name for the pop-up widget.
     if (!pUser.isNull() && pUser.data()->isAuthenticated())
@@ -2760,7 +2797,7 @@ void FB::updateGuiOnLogging ()
     {
         labAuth->hide();
         toolbAuth->setIcon(QIcon(":/img/auth.png"));
-        toolbAuth->setToolTip(tr("Sign in to NextGIS"));
+        toolbAuth->setToolTip(tr("Sign in at NextGIS"));
     }
 
     // Remove lock signs:

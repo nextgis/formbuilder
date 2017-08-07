@@ -94,5 +94,6 @@
         <file>img/make_default.png</file>
         <file>img/auth.png</file>
         <file>img/auth_out.png</file>
+        <file>img/user.png</file>
     </qresource>
 </RCC>

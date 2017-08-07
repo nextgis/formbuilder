@@ -203,7 +203,7 @@ program</source>
     <message>
         <source>Authors of images
 in program</source>
-        <translation>Авторы графики\nв программе</translation>
+        <translation>Авторы графики в программе</translation>
     </message>
     <message>
         <source>Creating new project. Select Shapefile ...</source>
@@ -493,21 +493,88 @@ the fields defined in this project</source>
     </message>
     <message>
         <source>Sign in to NextGIS</source>
-        <translation>Авторизируйтесь в системе NextGIS</translation>
+        <translation type="vanished">Авторизируйтесь в системе NextGIS</translation>
     </message>
     <message>
         <source>Manage the lists of values which you can use e.g. in a Counter element
 to create specific IDs for different collectors in your data-collecting
 project</source>
-        <translation>Редактировать списки значений. Пример использования: вы можете создать
+        <translation type="vanished">Редактировать списки значений. Пример использования: вы можете создать
 список сборщиков данных с уникальными идентификаторами и привязать его
 к элементу &quot;Счётчик&quot; для того чтобы вести учёт количества собранных
 данных определённым сборщиком</translation>
     </message>
     <message>
         <source>Please sign in with the premium account if you want to use this feature</source>
-        <translation>Пожалуйста, авторизируйтесь как премиум-пользователь NextGIS
+        <translation type="vanished">Пожалуйста, авторизируйтесь как премиум-пользователь NextGIS
 для того чтобы получить доступ к данной функции програмы</translation>
+    </message>
+    <message>
+        <source>Manage lists of values which can be used with 
+a Counter element to create specific IDs for 
+different collectors in your data-collecting 
+project</source>
+        <translation>Редактор списков значений. Пример использования: 
+вы можете создать список сборщиков данных с 
+уникальными идентификаторами и привязать его 
+к элементу &quot;Счётчик&quot; для того чтобы вести учёт 
+количества собранных данных определённым сборщиком</translation>
+    </message>
+    <message>
+        <source>Unable to authorize</source>
+        <translation>Невозможно авторизоваться</translation>
+    </message>
+    <message>
+        <source>Please upgrade and sign in to use this feature</source>
+        <translation>Пожалуйста, купите подписку для того чтобы получить доступ к данной функции</translation>
+    </message>
+    <message>
+        <source>View pricing</source>
+        <translation>Подробнее</translation>
+    </message>
+    <message>
+        <source>Please upgrade your app to use this feature</source>
+        <translation>Пожалуйста, купите подписку для того чтобы получить доступ к данной функции</translation>
+    </message>
+    <message>
+        <source>Your subscription is active</source>
+        <translation>Ваша подписка действительна</translation>
+    </message>
+    <message>
+        <source>until </source>
+        <translation type="vanished">до</translation>
+    </message>
+    <message>
+        <source>Your are using free version.</source>
+        <translation>Вы используете бесплатную версию программы.</translation>
+    </message>
+    <message>
+        <source>Subscribe</source>
+        <translation>Купите</translation>
+    </message>
+    <message>
+        <source>here</source>
+        <translation>подписку</translation>
+    </message>
+    <message>
+        <source> for more features.</source>
+        <translation type="vanished">чтобы использовать все возможности программы.</translation>
+    </message>
+    <message>
+        <source>Sign out</source>
+        <translation>Сменить пользователя</translation>
+    </message>
+    <message>
+        <source>Sign in at NextGIS</source>
+        <translation>Авторизация</translation>
+    </message>
+    <message>
+        <source>for more features.</source>
+        <translation>чтобы использовать все возможности программы.</translation>
+    </message>
+    <message>
+        <source>until</source>
+        <translation>до</translation>
     </message>
 </context>
 <context>
@@ -1630,11 +1697,11 @@ signature&quot;</source>
     </message>
     <message>
         <source>Allow own values</source>
-        <translation>Свои значения</translation>
+        <translation type="vanished">Свои значения</translation>
     </message>
     <message>
         <source>User can add own values to the list</source>
-        <translation>Пользователь может добавлять свои значения в список</translation>
+        <translation type="vanished">Пользователь может добавлять свои значения в список</translation>
     </message>
     <message>
         <source>Values</source>
@@ -1650,12 +1717,24 @@ Each item has an inner value (which is finally saved
 during the data collection process) and a pair of
 displayed values. Thus for example the collector
 can see the same item but in different languages</source>
-        <translation type="unfinished">Два выпадающих списка с общей таблицей значений.
+        <translation type="obsolete">Два выпадающих списка с общей таблицей значений.
 Вы можете использовать этот элемент чтобы разбить
 значения на те, что будут отображаться сборщику данных
 и на те что будут сохраняться в зависимости от выбора.
 Две колонки нужны например для того, чтобы выбирать одно
 значение, записанное на двух разных языках</translation>
+    </message>
+    <message>
+        <source>A pair of linked comboboxes. Each item has an 
+inner value (which will be saved during the data 
+collection) and a pair of displayed values. The 
+collector will be able to see the same item but 
+in different languages</source>
+        <translation>Два связанных выпадающих списка с общей таблицей 
+значений. Вы можете использовать этот элемент, чтобы 
+показать синонимы соответствующие одному значению. 
+Например, это могут быть версии названия объекта на 
+разных языках</translation>
     </message>
 </context>
 <context>
@@ -1836,6 +1915,29 @@ exists for the form</source>
     <message>
         <source>Unable to read data from the CSV file via GDAL.</source>
         <translation>Не удаётся считать данные из файла CSV при помощи GDAL.</translation>
+    </message>
+</context>
+<context>
+    <name>Nextgis::My::ApiWrapper</name>
+    <message>
+        <source>A void JSON reply</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cannot find &quot;supported&quot; boolean value in a JSON reply</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cannot find &quot;username&quot; string value in a JSON reply</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>[HTTP reply] </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Incorrect reply from server: not a JSON received</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
