@@ -45,7 +45,8 @@ FB::FB(QWidget *parent):
     lang.imgFlagPath = "";
     lang.imgNextgisPath = ":/img/nextgis_en.png";
     lang.offLink = "http://nextgis.ru/en/nextgis-formbuilder";
-    lang.subscribeLink = "http://nextgis.com/pricing/";
+    lang.subscribeLink = "<a href=\"http://nextgis.com/pricing/\">http://nextgis.com/pricing/</a>";
+    lang.callbakHtmlPath = ":/my/auth_confirm.html";
     languages.append(lang);
 
     lang.name = tr("Russian");
@@ -53,7 +54,8 @@ FB::FB(QWidget *parent):
     lang.imgFlagPath = "";
     lang.imgNextgisPath = ":/img/nextgis_ru.png";
     lang.offLink = "http://nextgis.ru/nextgis-formbuilder";
-    lang.subscribeLink = "http://nextgis.ru/pricing/";
+    lang.subscribeLink = "<a href=\"http://nextgis.ru/pricing/\">http://nextgis.ru/pricing/</a>";
+    lang.callbakHtmlPath = ":/my/auth_confirm_ru.html";
     languages.append(lang);
 
     settLastShapeFullPath.key = "last_shp";
@@ -90,6 +92,7 @@ FB::FB(QWidget *parent):
     // TEMPORARY:
     listPremiumElems.append(FB_ELEMNAME_SPLIT_COMBOBOX);
     pUser.reset();
+    bShowSupportExpiredMessage = false;
 }
 
 void FB::initGui ()
@@ -514,7 +517,7 @@ void FB::initGui ()
     this->updateAppTitle();
 
     // TEMPORARY:
-    this->updateGuiOnLogging();
+    this->updateAtUserChange();
 }
 
 
@@ -1594,36 +1597,12 @@ void FB::endMaintainerWork(int exitCode, QProcess::ExitStatus exitStatus)
 // AUTHENTICATION BUTTON CLICK
 void FB::onAuthClick ()
 {
-    // Sign in.
-    if (pUser.isNull())
-    {
-        pUser.reset(new Nextgis::My::User());
-        connect(pUser.data(), &Nextgis::My::User::authenticationFinished, this, &FB::onSignInFinished);
-        pUser.data()->startAuthentication();
-    }
-
-    // Sign out.
-    else
-    {
-        pUser.reset(nullptr);
-        this->updateGuiOnLogging();
-    }
+    this->authorize();
 }
-
 // Call this slot only in a connection with User::authenticationFinished.
 void FB::onSignInFinished ()
 {
-    if (!pUser.data()->isAuthenticated())
-    {
-        this->showFullMessage(tr("Unable to authorize"), pUser.data()->getLastError());
-        pUser.reset(nullptr);
-    }
-    else
-    {
-        settLastUser.value = pUser.data()->getLogin();
-    }
-
-    this->updateGuiOnLogging();
+    this->authorizeFinished();
 }
 
 
@@ -2759,30 +2738,87 @@ FBDialogAbout::FBDialogAbout (QWidget *parent):
 /*                                                                           */
 /*****************************************************************************/
 
-void FB::showMsgForNotSupported ()
+void FB::authorize ()
 {
-    if (pUser.isNull() || !pUser.data()->isAuthenticated())
-        this->onShowInfo(tr("Please upgrade and sign in to use this feature") + ".<br><a href=\""
-                     + languages[indexLang].subscribeLink + "\">" + tr("View pricing") + "</a>");
+    // Sign in.
+    if (pUser.isNull())
+    {
+        pUser.reset(new Nextgis::My::User());
+        connect(pUser.data(), &Nextgis::My::User::authenticationFinished, this, &FB::onSignInFinished);
+        pUser.data()->setAuthCallbackHtml(languages[indexLang].callbakHtmlPath);
+        pUser.data()->startAuthentication();
+    }
+
+    // Sign out.
     else
-        this->onShowInfo(tr("Please upgrade your app to use this feature") + ".<br><a href=\""
-                     + languages[indexLang].subscribeLink + "\">" + tr("View pricing") + "</a>");
+    {
+        pUser.reset(nullptr);
+        this->updateAtUserChange();
+    }
 }
 
-void FB::updateGuiOnLogging ()
-{        
-    // Update user info in the About panel.
-    if (!pUser.isNull() && pUser.data()->getAccountType() == Nextgis::My::AccountType::Supported)
+
+void FB::authorizeFinished ()
+{
+    // Sign in finished.
+    if (!pUser.data()->isAuthenticated())
     {
-        QDate date(1111,11,11);
-        labUserText->setText(tr("Your subscription is active") + "<br>" + tr("until")
-                             + date.toString(" dd.MM.yyyy"));
+        this->showFullMessage(tr("Unable to authorize"), pUser.data()->getLastError());
+        pUser.reset(nullptr);
     }
     else
     {
-        labUserText->setText(tr("Your are using free version.") + "<br>" + tr("Subscribe")
-           + " <a href=\"" + languages[indexLang].subscribeLink + QString("\">")
-           + tr("here") + "</a> " + tr("for more features."));
+        // Save some settings:
+
+        // Last user login.
+        settLastUser.value = pUser.data()->getLogin();
+
+        // Define if the support period for this user has just expired. Set the according flag and
+        // use it further so to show this message only once.
+        // Note: we do not handle such cases when user changes the system date manually.
+//        if ()
+//        {
+
+//        }
+    }
+
+    this->updateAtUserChange();
+}
+
+
+void FB::updateAtUserChange ()
+{
+    // Update user info in the About panel.
+    // Case: user has a supported account.
+    if (!pUser.isNull() && pUser.data()->getAccountType() == Nextgis::My::AccountType::Supported)
+    {
+        QDate date = pUser->getEndDate();
+        if (date.isValid())
+        {
+            labUserText->setText(tr("You are using an extended version.<br>"
+                                    "Your subscription is active until ") + date.toString("dd.MM.yyyy"));
+        }
+        else
+        {
+            labUserText->setText(tr("You are using an extended version.<br>"
+                                    "Your subscription is active"));
+        }
+    }
+
+    // Case: user has an unsupported account which support date has just expired.
+    else if (!pUser.isNull() && pUser.data()->getAccountType() == Nextgis::My::AccountType::NotSupported
+             && bShowSupportExpiredMessage)
+    {
+        labUserText->setText(tr("Your subscription has expired and some features<br>"
+                                "became unavailable. Visit %1<br>"
+                                "to renew your subscription").arg(languages[indexLang].subscribeLink));
+    }
+
+    // Case: user has an unsupportd account OR no user for this app was signed in.
+    else
+    {
+        labUserText->setText(tr("Your are using a free version. Upgrade at<br>"
+                                "%1 for more features").arg(languages[indexLang].subscribeLink));
     }
 
     // Update user name for the pop-up widget.
@@ -2797,18 +2833,30 @@ void FB::updateGuiOnLogging ()
     {
         labAuth->hide();
         toolbAuth->setIcon(QIcon(":/img/auth.png"));
-        toolbAuth->setToolTip(tr("Sign in at NextGIS"));
+        toolbAuth->setToolTip(tr("Sign in"));
     }
 
-    // Remove lock signs:
-    // ... from the elements.
+    // Remove/add lock sign:
+    // ... for elements.
     this->updateLeftTrees();
-    // ... from some menu buttons.
+    // ... for some menu buttons.
     if (!pUser.isNull() && pUser.data()->getAccountType() == Nextgis::My::AccountType::Supported)
         toolbLists->setText(tr("Lists"));
     else
         toolbLists->setText(tr("Lists") + QString::fromUtf8(FB_UTF8CHAR_LOCK));
 }
+
+
+void FB::showMsgForNotSupported ()
+{
+    if (pUser.isNull() || !pUser.data()->isAuthenticated())
+        this->onShowInfo(tr("Please upgrade and sign in to use this feature.<br>"
+                            "View pricing at %1").arg(languages[indexLang].subscribeLink));
+    else
+        this->onShowInfo(tr("Please upgrade to use this feature.<br>"
+                            "View pricing at %1").arg(languages[indexLang].subscribeLink));
+}
+
 
 void FB::showFullMessage (QString sMainText, QString sDetailedText)
 {
@@ -2820,4 +2868,6 @@ void FB::showFullMessage (QString sMainText, QString sDetailedText)
     wMsgBox.setIcon(QMessageBox::Information);
     wMsgBox.exec();
 }
+
+
 

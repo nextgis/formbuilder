@@ -95,5 +95,7 @@
         <file>img/auth.png</file>
         <file>img/auth_out.png</file>
         <file>img/user.png</file>
+        <file>my/auth_confirm.html</file>
+        <file>my/auth_confirm_ru.html</file>
     </qresource>
 </RCC>

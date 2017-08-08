@@ -34,6 +34,8 @@ ApiWrapper::ApiWrapper ():
     m_pAuthCodeFlow = new QOAuth2AuthorizationCodeFlow();
     m_pAuthReplyHandler = new QOAuthHttpServerReplyHandler(OA2_REDIRECT_PORT);
 
+    m_pAuthReplyHandler->setCallbackText(tr("You have successfully signed in to NextGIS "
+                                            "Formbuilder. You may now return back to the app."));
     m_pAuthCodeFlow->setScope(OA2_USER_INFO_SCOPE);
     connect(m_pAuthCodeFlow, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser,
             &QDesktopServices::openUrl);
@@ -53,6 +55,31 @@ ApiWrapper::~ApiWrapper ()
 {
     delete m_pAuthReplyHandler;
     delete m_pAuthCodeFlow;
+}
+
+
+/**
+ * @brief ...
+ */
+void ApiWrapper::setCallbackHtml (QString sFilePath)
+{
+    QFile file;
+
+    file.setFileName(sFilePath);
+    bool ok = file.open(QIODevice::ReadOnly | QIODevice::Text);
+    if (!ok)
+        return;
+
+    QByteArray ba = file.readAll();
+    file.close();
+
+    // FIXME: here is the strange bug with the html string which is passed to the
+    // QOAuthHttpServerReplyHandler. Though the string is read from the resource to the QString
+    // absolutely correctly the html code which is shown in the browser after the successful
+    // authentication is shown cutted (only when it contains some non-latin characters).
+    // Is it a bug in the Qt OAuth library?
+
+    m_pAuthReplyHandler->setCallbackText(QString::fromUtf8(ba));
 }
 
 
@@ -141,6 +168,43 @@ QString ApiWrapper::obtainLogin () const
     }
 
     return jUserName.toString();
+}
+
+
+/**
+ * @brief Obtain the start or end support dates from the JSON reply.
+ */
+QDate ApiWrapper::obtainDate (DateType eDateType) const
+{
+    QDate oDate;
+
+    if (m_jReply.isEmpty())
+    {
+        m_sLastError = tr("A void JSON reply");
+        return oDate;
+    }
+
+    QString sDateKey = "";
+    if (eDateType == DateType::Start)
+        sDateKey = "start_date";
+    else if (eDateType == DateType::End)
+        sDateKey = "end_date";
+
+    QJsonValue jDate = m_jReply.value(sDateKey);
+    if (!jDate.isString())
+    {
+        m_sLastError = tr("Cannot find \"") + sDateKey + tr("\" date value in a JSON reply");
+        return oDate;
+    }
+
+    oDate = QDate::fromString(jDate.toString(), "yyyy-MM-dd");
+    if (!oDate.isValid())
+    {
+        m_sLastError = tr("Unable to read the valid\"") + sDateKey + tr("\" date in a JSON reply");
+        return oDate;
+    }
+
+    return oDate;
 }
 
 

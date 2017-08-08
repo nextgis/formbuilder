@@ -47,6 +47,12 @@ enum class AccountType
     Supported
 };
 
+enum class DateType
+{
+    Start,
+    End
+};
+
 
 /**
  * @brief my.nextgis.com API wrapper of version 1.0.
@@ -63,6 +69,8 @@ class ApiWrapper: public QObject
         ApiWrapper ();
         virtual ~ApiWrapper ();
 
+        void setCallbackHtml (QString sFilePath);
+
         virtual void startAuthentication ();
 
         void startGet (QString sUrl);
@@ -72,6 +80,7 @@ class ApiWrapper: public QObject
         QString obtainLastError () const { return m_sLastError; }
         virtual AccountType obtainAccountType () const;
         virtual QString obtainLogin () const;
+        virtual QDate obtainDate (DateType eDateType) const;
 
         bool isAuthenticated () const { return m_bIsAuthenticated; }
 

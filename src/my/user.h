@@ -47,6 +47,7 @@ class User: public QObject
         virtual ~User ();
 
         void setApiWrapper (ApiWrapper *pApiWrapper);
+        void setAuthCallbackHtml (QString sFilePath);
 
         bool isAuthenticated () const;
         void startAuthentication ();
@@ -54,6 +55,8 @@ class User: public QObject
         QString getLastError () const { return m_pApiWrapper->obtainLastError(); }
         AccountType getAccountType () const { return m_eAccountType; }
         QString getLogin () const { return m_sName; }
+        QDate getStartDate () const { return m_oStartDate; }
+        QDate getEndDate () const { return m_oEndDate; }
 
     signals:
 
@@ -71,6 +74,8 @@ class User: public QObject
 
         Nextgis::My::AccountType m_eAccountType;
         QString m_sName;
+        QDate m_oStartDate;
+        QDate m_oEndDate;
 };
 
 

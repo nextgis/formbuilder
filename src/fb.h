@@ -399,7 +399,9 @@ private: // methods
      bool isSaveRequired ();
      void closeEvent (QCloseEvent *event);
      void showMsgForNotSupported ();
-     void updateGuiOnLogging ();
+     void updateAtUserChange ();
+     void authorize ();
+     void authorizeFinished ();
 
      void showFullMessage (QString sMainText, QString sDetailedText);
 
@@ -420,6 +422,7 @@ private: // fields
          QString imgNextgisPath;
          QString offLink;
          QString subscribeLink;
+         QString callbakHtmlPath;
      };
 
      bool isInited;
@@ -506,6 +509,7 @@ private: // fields
      FBSetting settLastUser;
      QScopedPointer<Nextgis::My::User> pUser;
      QStringList listPremiumElems;
+     bool bShowSupportExpiredMessage;
      // Note: some buttons are also hardcoded as for premium use.
 };
 
