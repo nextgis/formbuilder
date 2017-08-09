@@ -29,7 +29,8 @@ using namespace Nextgis::My;
 ApiWrapper::ApiWrapper ():
     m_bIsAuthenticated(false),
     m_sSupportInfoUrl("https://my.nextgis.com/api/v1/support_info/"),
-    m_sUserInfoUrl("https://my.nextgis.com/api/v1/user_info/")
+    m_sUserInfoUrl("https://my.nextgis.com/api/v1/user_info/"),
+    m_sLastToken("")
 {
     m_pAuthCodeFlow = new QOAuth2AuthorizationCodeFlow();
     m_pAuthReplyHandler = new QOAuthHttpServerReplyHandler(OA2_REDIRECT_PORT);
@@ -93,7 +94,19 @@ void ApiWrapper::startAuthentication ()
     // Note: no checks for the already done authentications. We need this to allow re-authenticate
     // if theewe were some errors during previous one.
     // QUESTION. Should we clear some OAuth2 variables here?
-    m_pAuthCodeFlow->grant();
+
+    // First-time authorization with browser.
+    if (m_sLastToken == "")
+    {
+        m_pAuthCodeFlow->grant();
+    }
+
+    // Non-browser authorization.
+    else
+    {
+        m_pAuthCodeFlow->setToken(m_sLastToken);
+        this->onOAuth2GrantFinished(); // do not wait for any signals
+    }
 }
 
 
@@ -219,10 +232,10 @@ QString ApiWrapper::toReplyError (QString sMessage) const
 void ApiWrapper::onOAuth2GrantFinished ()
 {
     // TODO: how to check unsuccessful oauth2 result? How to check errors?
-//    if ()
-//    {
+    // See QAbstractOAuth::Error
+    // See QAbstractOAuth2::error signal
 
-//    }
+    m_sLastToken = m_pAuthCodeFlow->token();
 
     m_bIsAuthenticated = true;
     emit authFinished();

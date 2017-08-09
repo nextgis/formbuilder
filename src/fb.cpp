@@ -65,8 +65,8 @@ FB::FB(QWidget *parent):
     settLastNgwUrl.key = "last_ngw_url";
     settLastNgwLogin.key = "last_ngw_login";
 
-    settLastUser.key = "last_my_nextgis_com_user";
-    settLastUser.defaultValue = "";
+    settLastToken.key = "last_token";
+    settLastToken.defaultValue = "";
 
     this->readSettings();
 
@@ -1599,11 +1599,6 @@ void FB::onAuthClick ()
 {
     this->authorize();
 }
-// Call this slot only in a connection with User::authenticationFinished.
-void FB::onSignInFinished ()
-{
-    this->authorizeFinished();
-}
 
 
 // KEY PRESS
@@ -1771,7 +1766,7 @@ void FB::writeSettings ()
     settings.setValue(settLastNgwUrl.key,settLastNgwUrl.value);
     settings.setValue(settLastNgwLogin.key,settLastNgwLogin.value);
 
-    settings.setValue(settLastUser.key, settLastUser.value);
+    settings.setValue(settLastToken.key, settLastToken.value);
 }
 
 void FB::readSettings ()
@@ -1789,8 +1784,8 @@ void FB::readSettings ()
     settLastNgwLogin.value = settings.value(settLastNgwLogin.key,
                                    settLastNgwLogin.defaultValue).toString();
 
-    settLastUser.value = settings.value(settLastUser.key,
-                                  settLastUser.defaultValue).toString();
+    settLastToken.value = settings.value(settLastToken.key,
+                                  settLastToken.defaultValue).toString();
 }
 
 
@@ -2738,13 +2733,29 @@ FBDialogAbout::FBDialogAbout (QWidget *parent):
 /*                                                                           */
 /*****************************************************************************/
 
-void FB::authorize ()
+
+void FB::startInitialAuthentication ()
+{
+    // We do not perform authorization if the user of this program has never signed in or has just
+    // signed out last time.
+    if (settLastToken.value == "")
+        return;
+
+    this->authorize(settLastToken.value);
+}
+
+
+void FB::authorize (QString strLastToken)
 {
     // Sign in.
     if (pUser.isNull())
     {
         pUser.reset(new Nextgis::My::User());
-        connect(pUser.data(), &Nextgis::My::User::authenticationFinished, this, &FB::onSignInFinished);
+        if (strLastToken != "")
+        {
+            pUser.data()->getApiWrapperPtr()->setLastToken(strLastToken);
+        }
+        connect(pUser.data(), &Nextgis::My::User::authenticationFinished, this, &FB::authorizeFinished);
         pUser.data()->setAuthCallbackHtml(languages[indexLang].callbakHtmlPath);
         pUser.data()->startAuthentication();
     }
@@ -2754,6 +2765,9 @@ void FB::authorize ()
     {
         pUser.reset(nullptr);
         this->updateAtUserChange();
+
+        // Reset last user token in settings.
+        settLastToken.value = "";
     }
 }
 
@@ -2763,22 +2777,21 @@ void FB::authorizeFinished ()
     // Sign in finished unsuccessfully.
     if (!pUser.data()->isAuthenticated())
     {
-        this->showFullMessage(tr("Unable to authorize"), pUser.data()->getLastError());
+        this->showFullMessage(tr("Unable to authorize"),
+                              pUser.data()->getApiWrapperPtr()->obtainLastError());
         pUser.reset(nullptr);
     }
 
     // Sign in finished successfully.
     else
     {
-        // Save some settings:
-
-        // Last user login.
-        settLastUser.value = pUser.data()->getLogin();
+        // Save last user login to settings.
+        settLastToken.value = pUser.data()->getApiWrapperPtr()->getLastToken();
 
         // Define if the support period for this user has just expired. Set the according flag and
         // use it further so to show this message only once.
         // Note: we do not handle such cases when user changes the system date manually.
-        QDate date = pUser.data()->getEndDate();
+        QDate date = pUser.data()->getSupportEndDate();
         Nextgis::My::AccountType account = pUser.data()->getAccountType();
         if (date.isValid() && date < QDate::currentDate()
                 && account == Nextgis::My::AccountType::NotSupported)
@@ -2797,7 +2810,7 @@ void FB::updateAtUserChange ()
     // Case: user has a supported account.
     if (!pUser.isNull() && pUser.data()->getAccountType() == Nextgis::My::AccountType::Supported)
     {
-        QDate date = pUser->getEndDate();
+        QDate date = pUser->getSupportEndDate();
         if (date.isValid())
         {
             labUserText->setText(tr("You are using an extended version.<br>"

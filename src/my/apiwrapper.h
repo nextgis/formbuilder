@@ -70,6 +70,8 @@ class ApiWrapper: public QObject
         virtual ~ApiWrapper ();
 
         void setCallbackHtml (QString sFilePath);
+        void setLastToken (QString sLastToken) { m_sLastToken = sLastToken; }
+        QString getLastToken () { return m_sLastToken; }
 
         virtual void startAuthentication ();
 
@@ -114,6 +116,8 @@ class ApiWrapper: public QObject
         QByteArray m_baReply;
         QNetworkReply *m_pReply;
         QJsonObject m_jReply;
+
+        QString m_sLastToken;
 };
 
 

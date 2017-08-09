@@ -44,6 +44,8 @@ int main (int argc, char *argv[])
     w.setFbStyle();
     w.show();
 
+    w.startInitialAuthentication();
+
     int ret = a.exec();
 
     //w.deregisterScreens();

@@ -36,6 +36,9 @@ namespace My
 /**
  * @brief The class which represents a my.nextgis.com user in the application. The class internally
  * uses Nextgis::My::ApiWrapper for requests to the my.nextgis.com server.
+ * @details Usage: create an instance of this class and call startAuthentication(). After the end of
+ * the authentication process (authenticationFinished() signal emitted) the instance will contain
+ * all nesessary information about the user.
  */
 class User: public QObject
 {
@@ -47,16 +50,17 @@ class User: public QObject
         virtual ~User ();
 
         void setApiWrapper (ApiWrapper *pApiWrapper);
+        ApiWrapper *getApiWrapperPtr () const { return m_pApiWrapper; }
+
         void setAuthCallbackHtml (QString sFilePath);
 
         bool isAuthenticated () const;
         void startAuthentication ();
 
-        QString getLastError () const { return m_pApiWrapper->obtainLastError(); }
         AccountType getAccountType () const { return m_eAccountType; }
         QString getLogin () const { return m_sName; }
-        QDate getStartDate () const { return m_oStartDate; }
-        QDate getEndDate () const { return m_oEndDate; }
+        QDate getSupportStartDate () const { return m_oStartDate; }
+        QDate getSupportEndDate () const { return m_oEndDate; }
 
     signals:
 

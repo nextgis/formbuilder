@@ -312,6 +312,8 @@ public:
      void registerElements ();
      void deregisterElements ();
 
+     void startInitialAuthentication ();
+
 protected:
 
      void resizeEvent (QResizeEvent *event);
@@ -347,7 +349,7 @@ private slots:
      void onAboutGraphicsClick ();
      void onUpdatesClick ();
      void onAuthClick ();
-     void onSignInFinished ();
+     void authorizeFinished ();
      void endCheckingUpdates (int exitCode, QProcess::ExitStatus exitStatus);
      void endMaintainerWork (int exitCode, QProcess::ExitStatus exitStatus);
      void keyPressEvent (QKeyEvent *);
@@ -400,8 +402,7 @@ private: // methods
      void closeEvent (QCloseEvent *event);
      void showMsgForNotSupported ();
      void updateAtUserChange ();
-     void authorize ();
-     void authorizeFinished ();
+     void authorize (QString strLastToken = "");
 
      void showFullMessage (QString sMainText, QString sDetailedText);
 
@@ -506,7 +507,7 @@ private: // fields
 
      // TEMPORARY: for premium/non-premium use of the program.
      // TODO: change this and many other connected things during the big refactoring.
-     FBSetting settLastUser;
+     FBSetting settLastToken;
      QScopedPointer<Nextgis::My::User> pUser;
      QStringList listPremiumElems;
      bool bShowSupportExpiredMessage;
