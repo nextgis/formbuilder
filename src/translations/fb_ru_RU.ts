@@ -526,19 +526,19 @@ project</source>
     </message>
     <message>
         <source>Please upgrade and sign in to use this feature</source>
-        <translation>Пожалуйста, купите подписку для того чтобы получить доступ к данной функции</translation>
+        <translation type="vanished">Пожалуйста, купите подписку для того чтобы получить доступ к данной функции</translation>
     </message>
     <message>
         <source>View pricing</source>
-        <translation>Подробнее</translation>
+        <translation type="vanished">Подробнее</translation>
     </message>
     <message>
         <source>Please upgrade your app to use this feature</source>
-        <translation>Пожалуйста, купите подписку для того чтобы получить доступ к данной функции</translation>
+        <translation type="vanished">Пожалуйста, купите подписку для того чтобы получить доступ к данной функции</translation>
     </message>
     <message>
         <source>Your subscription is active</source>
-        <translation>Ваша подписка действительна</translation>
+        <translation type="vanished">Ваша подписка действительна</translation>
     </message>
     <message>
         <source>until </source>
@@ -546,15 +546,15 @@ project</source>
     </message>
     <message>
         <source>Your are using free version.</source>
-        <translation>Вы используете бесплатную версию программы.</translation>
+        <translation type="vanished">Вы используете бесплатную версию программы.</translation>
     </message>
     <message>
         <source>Subscribe</source>
-        <translation>Купите</translation>
+        <translation type="vanished">Купите</translation>
     </message>
     <message>
         <source>here</source>
-        <translation>подписку</translation>
+        <translation type="vanished">подписку</translation>
     </message>
     <message>
         <source> for more features.</source>
@@ -566,15 +566,43 @@ project</source>
     </message>
     <message>
         <source>Sign in at NextGIS</source>
-        <translation>Авторизация</translation>
+        <translation type="vanished">Авторизация</translation>
     </message>
     <message>
         <source>for more features.</source>
-        <translation>чтобы использовать все возможности программы.</translation>
+        <translation type="vanished">чтобы использовать все возможности программы.</translation>
     </message>
     <message>
         <source>until</source>
-        <translation>до</translation>
+        <translation type="vanished">до</translation>
+    </message>
+    <message>
+        <source>You are using an extended version.&lt;br&gt;Your subscription is active until </source>
+        <translation>Вы используете расширенную версию.&lt;br&gt;Ваша подписка активна до </translation>
+    </message>
+    <message>
+        <source>You are using an extended version.&lt;br&gt;Your subscription is active</source>
+        <translation>Вы используете расширенную версию.&lt;br&gt;Ваша подписка актуальна</translation>
+    </message>
+    <message>
+        <source>Your subscription has expired and some features&lt;br&gt;became unavailable. Visit %1&lt;br&gt;to renew your subscription</source>
+        <translation>Ваша подписка истекла и платные функции&lt;br&gt;отключены. Продлите подписку на&lt;br&gt;%1</translation>
+    </message>
+    <message>
+        <source>Your are using a free version. Upgrade at&lt;br&gt;%1 for more features</source>
+        <translation>Вы используете бесплатную версию.&lt;br&gt;Приобретите подписку на %1,&lt;br&gt;чтобы использовать все возможности</translation>
+    </message>
+    <message>
+        <source>Sign in</source>
+        <translation>Авторизация</translation>
+    </message>
+    <message>
+        <source>Please upgrade and sign in to use this feature.&lt;br&gt;View pricing at %1</source>
+        <translation>Пожалуйста, приобретите подписку, чтобы&lt;br&gt;получить доступ к данной функции.&lt;br&gt;Подробнее (%1)</translation>
+    </message>
+    <message>
+        <source>Please upgrade to use this feature.&lt;br&gt;View pricing at %1</source>
+        <translation>Пожалуйста, приобретите подписку, чтобы&lt;br&gt;получить доступ к данной функции.&lt;br&gt;Подробнее (%1)</translation>
     </message>
 </context>
 <context>
@@ -1937,6 +1965,26 @@ exists for the form</source>
     </message>
     <message>
         <source>Incorrect reply from server: not a JSON received</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>You have successfully signed in to NextGIS Formbuilder. You may now return back to the app.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cannot find &quot;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&quot; date value in a JSON reply</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to read the valid&quot;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&quot; date in a JSON reply</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

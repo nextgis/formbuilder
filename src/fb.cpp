@@ -2760,12 +2760,14 @@ void FB::authorize ()
 
 void FB::authorizeFinished ()
 {
-    // Sign in finished.
+    // Sign in finished unsuccessfully.
     if (!pUser.data()->isAuthenticated())
     {
         this->showFullMessage(tr("Unable to authorize"), pUser.data()->getLastError());
         pUser.reset(nullptr);
     }
+
+    // Sign in finished successfully.
     else
     {
         // Save some settings:
@@ -2776,10 +2778,13 @@ void FB::authorizeFinished ()
         // Define if the support period for this user has just expired. Set the according flag and
         // use it further so to show this message only once.
         // Note: we do not handle such cases when user changes the system date manually.
-//        if ()
-//        {
-
-//        }
+        QDate date = pUser.data()->getEndDate();
+        Nextgis::My::AccountType account = pUser.data()->getAccountType();
+        if (date.isValid() && date < QDate::currentDate()
+                && account == Nextgis::My::AccountType::NotSupported)
+        {
+            bShowSupportExpiredMessage = true;
+        }
     }
 
     this->updateAtUserChange();

@@ -120,12 +120,8 @@ void User::u_onGetAccountTypeFinished ()
     }
 
     m_eAccountType = m_pApiWrapper->obtainAccountType();
-
-    if (m_eAccountType == AccountType::Supported)
-    {
-        m_oStartDate = m_pApiWrapper->obtainDate(DateType::Start);
-        m_oEndDate = m_pApiWrapper->obtainDate(DateType::End);
-    }
+    m_oStartDate = m_pApiWrapper->obtainDate(DateType::Start); // can be obtained invalid
+    m_oEndDate = m_pApiWrapper->obtainDate(DateType::End);
 
     disconnect(m_pApiWrapper, &ApiWrapper::requestFinished, 0, 0);
     connect(m_pApiWrapper, &ApiWrapper::requestFinished, this, &User::u_onGetNameFinished);
