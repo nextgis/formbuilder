@@ -30,13 +30,17 @@ ApiWrapper::ApiWrapper ():
     m_bIsAuthenticated(false),
     m_sSupportInfoUrl("https://my.nextgis.com/api/v1/support_info/"),
     m_sUserInfoUrl("https://my.nextgis.com/api/v1/user_info/"),
-    m_sLastToken("")
+    m_sLastAccessToken(""),
+    m_sLastRefreshToken("")
 {
     m_pAuthCodeFlow = new QOAuth2AuthorizationCodeFlow();
     m_pAuthReplyHandler = new QOAuthHttpServerReplyHandler(OA2_REDIRECT_PORT);
 
     m_pAuthReplyHandler->setCallbackText(tr("You have successfully signed in to NextGIS "
                                             "Formbuilder. You may now return back to the app."));
+    connect(m_pAuthReplyHandler, &QOAuthHttpServerReplyHandler::tokensReceived, this,
+            &ApiWrapper::onTokensReceived);
+
     m_pAuthCodeFlow->setScope(OA2_USER_INFO_SCOPE);
     connect(m_pAuthCodeFlow, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser,
             &QDesktopServices::openUrl);
@@ -45,8 +49,6 @@ ApiWrapper::ApiWrapper ():
     m_pAuthCodeFlow->setAccessTokenUrl(OA2_ACCESS_TOKEN_URL);
     m_pAuthCodeFlow->setClientIdentifierSharedKey("");
     m_pAuthCodeFlow->setReplyHandler(m_pAuthReplyHandler);
-    connect(m_pAuthCodeFlow, &QOAuth2AuthorizationCodeFlow::granted, this,
-            &ApiWrapper::onOAuth2GrantFinished);
 }
 
 /**
@@ -74,11 +76,11 @@ void ApiWrapper::setCallbackHtml (QString sFilePath)
     QByteArray ba = file.readAll();
     file.close();
 
-    // FIXME: here is the strange bug with the html string which is passed to the
+    // Note: here was a strange bug with the html string which is passed to the
     // QOAuthHttpServerReplyHandler. Though the string is read from the resource to the QString
     // absolutely correctly the html code which is shown in the browser after the successful
     // authentication is shown cutted (only when it contains some non-latin characters).
-    // Is it a bug in the Qt OAuth library?
+    // Is seems that this is fixed at least in Qt 5.9.1.
 
     m_pAuthReplyHandler->setCallbackText(QString::fromUtf8(ba));
 }
@@ -91,21 +93,55 @@ void ApiWrapper::setCallbackHtml (QString sFilePath)
  */
 void ApiWrapper::startAuthentication ()
 {
-    // Note: no checks for the already done authentications. We need this to allow re-authenticate
-    // if theewe were some errors during previous one.
-    // QUESTION. Should we clear some OAuth2 variables here?
+    if (m_bIsAuthenticated)
+        return;
 
     // First-time authorization with browser.
-    if (m_sLastToken == "")
+    if (m_sLastAccessToken == "")
     {
+        connect(m_pAuthCodeFlow, &QOAuth2AuthorizationCodeFlow::granted,
+        [=]()
+        {
+            this->onOAuth2Finished();
+            disconnect(m_pAuthCodeFlow, &QOAuth2AuthorizationCodeFlow::granted, 0, 0);
+        });
+
         m_pAuthCodeFlow->grant();
     }
 
     // Non-browser authorization.
     else
     {
-        m_pAuthCodeFlow->setToken(m_sLastToken);
-        this->onOAuth2GrantFinished(); // do not wait for any signals
+        m_pAuthCodeFlow->setToken(m_sLastAccessToken);
+        m_pAuthCodeFlow->setRefreshToken(m_sLastRefreshToken);
+
+//        if (m_pAuthCodeFlow->expirationAt() >= )
+//        {
+            // This is the only(?) way how to find out that there was a succesful refresh operation.
+            // But there is a bug in Qt 5.9.1: no emition of the according signal is done for the
+            // refresh operation (only when grant() is called before this).
+            connect(m_pAuthCodeFlow, &QOAuth2AuthorizationCodeFlow::statusChanged,
+            [=]()
+            {
+                this->onOAuth2Finished();
+                disconnect(m_pAuthCodeFlow, &QOAuth2AuthorizationCodeFlow::statusChanged, 0, 0);
+            });
+
+            // TODO: fix the following when it will be fixed in Qt (5.10 or earlier?).
+            // See this file: https://github.com/qt/qtnetworkauth/blob/5.9/src/oauth/qoauth2authorizationcodeflow.cpp#L308
+            QString s = OA2_CLIENT_ID;
+            s.replace("\"","");
+            m_pAuthCodeFlow->setModifyParametersFunction(
+            [&](QAbstractOAuth::Stage stage, QVariantMap *parameters)
+            {
+                //parameters->insert("refresh_token", m_sLastRefreshToken);
+                parameters->insert("client_id", s);
+            });
+
+            // Note: the QOAuth2AuthorizationCodeFlow::statusChanged will signalize about the
+            // ending of the refresh process.
+            m_pAuthCodeFlow->refreshAccessToken();
+//        }
     }
 }
 
@@ -142,6 +178,28 @@ void ApiWrapper::startGetUserInfo ()
 
 
 /**
+ * @brief ...
+ */
+QString ApiWrapper::obtainString (QString sJsonKey) const
+{
+    if (m_jReply.isEmpty())
+    {
+        m_sLastError = tr("A void JSON reply");
+        return "";
+    }
+
+    QJsonValue jStr = m_jReply.value(sJsonKey);
+    if (!jStr.isString())
+    {
+        m_sLastError = tr("Cannot find a valid \"") + sJsonKey + tr("\" element in a JSON reply");
+        return "";
+    }
+
+    return jStr.toString();
+}
+
+
+/**
  * @brief Obtain user account type from the JSON reply.
  */
 AccountType ApiWrapper::obtainAccountType () const
@@ -160,27 +218,6 @@ AccountType ApiWrapper::obtainAccountType () const
     }
 
     return (jSupported.toBool()) ? AccountType::Supported : AccountType::NotSupported;
-}
-
-/**
- * @brief Obtain user name from the JSON reply.
- */
-QString ApiWrapper::obtainLogin () const
-{   
-    if (m_jReply.isEmpty())
-    {
-        m_sLastError = tr("A void JSON reply");
-        return "";
-    }
-
-    QJsonValue jUserName = m_jReply.value("username");
-    if (!jUserName.isString())
-    {
-        m_sLastError = tr("Cannot find \"username\" string value in a JSON reply");
-        return "";
-    }
-
-    return jUserName.toString();
 }
 
 
@@ -206,7 +243,7 @@ QDate ApiWrapper::obtainDate (DateType eDateType) const
     QJsonValue jDate = m_jReply.value(sDateKey);
     if (!jDate.isString())
     {
-        m_sLastError = tr("Cannot find \"") + sDateKey + tr("\" date value in a JSON reply");
+        m_sLastError = tr("Cannot find a valid \"") + sDateKey + tr("\" element in a JSON reply");
         return oDate;
     }
 
@@ -221,6 +258,33 @@ QDate ApiWrapper::obtainDate (DateType eDateType) const
 }
 
 
+/**
+ * @brief Obtain ...
+ */
+QString ApiWrapper::obtainGuid () const
+{
+    return this->obtainString("nextgis_guid");
+}
+
+
+/**
+ * @brief Obtain ...
+ */
+QString ApiWrapper::obtainSign () const
+{
+    return this->obtainString("sign");
+}
+
+
+/**
+ * @brief Obtain user name from the JSON reply.
+ */
+QString ApiWrapper::obtainLogin () const
+{
+    return this->obtainString("username");
+}
+
+
 /// ...
 QString ApiWrapper::toReplyError (QString sMessage) const
 {
@@ -228,17 +292,35 @@ QString ApiWrapper::toReplyError (QString sMessage) const
 }
 
 
-// ...
-void ApiWrapper::onOAuth2GrantFinished ()
+// Connect/call this both for "grant" and "refresh" processes. See also onTokensReceived() where the
+// new/refreshed tokens are assigned.
+void ApiWrapper::onOAuth2Finished ()
 {
-    // TODO: how to check unsuccessful oauth2 result? How to check errors?
-    // See QAbstractOAuth::Error
-    // See QAbstractOAuth2::error signal
+    // TODO: how also to check unsuccessful oauth2 result? How to check errors?
+    // See QAbstractOAuth::Error ?
+    // See QAbstractOAuth2::error signal ?
+    // See QOAuth2AuthorizationCodeFlowPrivate::_q_accessTokenRequestFinished()
+    if (m_pAuthCodeFlow->status() == QAbstractOAuth::Status::Granted)
+    {
+        m_bIsAuthenticated = true;
+    }
+    else
+    {
+        m_sLastError = tr("OAuth2 process finished with a non-granted status");
+        m_bIsAuthenticated = false;
+    }
 
-    m_sLastToken = m_pAuthCodeFlow->token();
-
-    m_bIsAuthenticated = true;
     emit authFinished();
+}
+
+
+// Update tokens: both access and refresh.
+void ApiWrapper::onTokensReceived (const QVariantMap &mapTokens)
+{
+    QVariant vAccessToken = mapTokens["access_token"];
+    QVariant vRefreshToken = mapTokens["refresh_token"];
+    m_sLastAccessToken = vAccessToken.toString();
+    m_sLastRefreshToken = vRefreshToken.toString();
 }
 
 

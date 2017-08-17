@@ -70,8 +70,11 @@ class ApiWrapper: public QObject
         virtual ~ApiWrapper ();
 
         void setCallbackHtml (QString sFilePath);
-        void setLastToken (QString sLastToken) { m_sLastToken = sLastToken; }
-        QString getLastToken () { return m_sLastToken; }
+
+        void setLastAccessToken (QString sLastAccessToken) { m_sLastAccessToken = sLastAccessToken; }
+        void setLastRefreshToken (QString sLastRefreshToken) { m_sLastRefreshToken = sLastRefreshToken; }
+        QString getLastAccessToken () { return m_sLastAccessToken; }
+        QString getLastRefreshToken () { return m_sLastRefreshToken; }
 
         virtual void startAuthentication ();
 
@@ -80,9 +83,13 @@ class ApiWrapper: public QObject
         void startGetUserInfo ();
 
         QString obtainLastError () const { return m_sLastError; }
+        QString obtainString (QString sJsonKey) const;
+
         virtual AccountType obtainAccountType () const;
-        virtual QString obtainLogin () const;
         virtual QDate obtainDate (DateType eDateType) const;
+        virtual QString obtainGuid () const;
+        virtual QString obtainSign () const;
+        virtual QString obtainLogin () const;
 
         bool isAuthenticated () const { return m_bIsAuthenticated; }
 
@@ -102,7 +109,9 @@ class ApiWrapper: public QObject
 
     private slots:
 
-        void onOAuth2GrantFinished ();
+        void onOAuth2Finished ();
+        void onTokensReceived (const QVariantMap &mapTokens);
+
         void onReplyReadyRead ();
         void onReplyFinished ();
 
@@ -117,7 +126,8 @@ class ApiWrapper: public QObject
         QNetworkReply *m_pReply;
         QJsonObject m_jReply;
 
-        QString m_sLastToken;
+        QString m_sLastAccessToken;
+        QString m_sLastRefreshToken;
 };
 
 

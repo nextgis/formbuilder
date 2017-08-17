@@ -80,6 +80,8 @@ class User: public QObject
         QString m_sName;
         QDate m_oStartDate;
         QDate m_oEndDate;
+        QString m_sGuid;
+        QString m_sSign;
 };
 
 

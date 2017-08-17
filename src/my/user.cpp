@@ -122,6 +122,8 @@ void User::u_onGetAccountTypeFinished ()
     m_eAccountType = m_pApiWrapper->obtainAccountType();
     m_oStartDate = m_pApiWrapper->obtainDate(DateType::Start); // can be obtained invalid
     m_oEndDate = m_pApiWrapper->obtainDate(DateType::End);
+    m_sGuid = m_pApiWrapper->obtainGuid();
+    m_sSign = m_pApiWrapper->obtainSign();
 
     disconnect(m_pApiWrapper, &ApiWrapper::requestFinished, 0, 0);
     connect(m_pApiWrapper, &ApiWrapper::requestFinished, this, &User::u_onGetNameFinished);
@@ -139,6 +141,8 @@ void User::u_onGetNameFinished ()
     }
 
     m_sName = m_pApiWrapper->obtainLogin();
+
+    disconnect(m_pApiWrapper, &ApiWrapper::requestFinished, 0, 0);
 
     emit authenticationFinished();
 }

@@ -38,7 +38,6 @@ int main (int argc, char *argv[])
     FBForm::initDateTimeFormats();
     FBProject::initEnv();
     w.registerElements();
-    //w.registerScreens();
 
     w.initGui();
     w.setFbStyle();
@@ -48,7 +47,6 @@ int main (int argc, char *argv[])
 
     int ret = a.exec();
 
-    //w.deregisterScreens();
     w.deregisterElements();
     FBProject::deinitEnv();
     FBForm::deinitDateTimeFormats();

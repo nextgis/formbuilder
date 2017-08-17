@@ -402,7 +402,7 @@ private: // methods
      void closeEvent (QCloseEvent *event);
      void showMsgForNotSupported ();
      void updateAtUserChange ();
-     void authorize (QString strLastToken = "");
+     void authorize (QString sLastAccessToken = "", QString sLastRefreshToken = "");
 
      void showFullMessage (QString sMainText, QString sDetailedText);
 
@@ -507,7 +507,8 @@ private: // fields
 
      // TEMPORARY: for premium/non-premium use of the program.
      // TODO: change this and many other connected things during the big refactoring.
-     FBSetting settLastToken;
+     FBSetting settLastAccessToken;
+     FBSetting settLastRefreshToken;
      QScopedPointer<Nextgis::My::User> pUser;
      QStringList listPremiumElems;
      bool bShowSupportExpiredMessage;

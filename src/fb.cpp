@@ -65,8 +65,11 @@ FB::FB(QWidget *parent):
     settLastNgwUrl.key = "last_ngw_url";
     settLastNgwLogin.key = "last_ngw_login";
 
-    settLastToken.key = "last_token";
-    settLastToken.defaultValue = "";
+    settLastAccessToken.key = "last_access_token";
+    settLastAccessToken.defaultValue = "";
+
+    settLastRefreshToken.key = "last_refresh_token";
+    settLastRefreshToken.defaultValue = "";
 
     this->readSettings();
 
@@ -1766,7 +1769,8 @@ void FB::writeSettings ()
     settings.setValue(settLastNgwUrl.key,settLastNgwUrl.value);
     settings.setValue(settLastNgwLogin.key,settLastNgwLogin.value);
 
-    settings.setValue(settLastToken.key, settLastToken.value);
+    settings.setValue(settLastAccessToken.key, settLastAccessToken.value);
+    settings.setValue(settLastRefreshToken.key, settLastRefreshToken.value);
 }
 
 void FB::readSettings ()
@@ -1784,8 +1788,10 @@ void FB::readSettings ()
     settLastNgwLogin.value = settings.value(settLastNgwLogin.key,
                                    settLastNgwLogin.defaultValue).toString();
 
-    settLastToken.value = settings.value(settLastToken.key,
-                                  settLastToken.defaultValue).toString();
+    settLastAccessToken.value = settings.value(settLastAccessToken.key,
+                                  settLastAccessToken.defaultValue).toString();
+    settLastRefreshToken.value = settings.value(settLastRefreshToken.key,
+                                  settLastRefreshToken.defaultValue).toString();
 }
 
 
@@ -2738,22 +2744,29 @@ void FB::startInitialAuthentication ()
 {
     // We do not perform authorization if the user of this program has never signed in or has just
     // signed out last time.
-    if (settLastToken.value == "")
+    if (settLastAccessToken.value == "")
         return;
 
-    this->authorize(settLastToken.value);
+    toolbAuth->setEnabled(false);
+
+    this->authorize(settLastAccessToken.value, settLastRefreshToken.value);
 }
 
 
-void FB::authorize (QString strLastToken)
+void FB::authorize (QString sLastAccessToken, QString sLastRefreshToken)
 {
+    // Block auth button so not to allow to press on it several times during the authorization
+    // process.
+    toolbAuth->setEnabled(false);
+
     // Sign in.
     if (pUser.isNull())
     {
         pUser.reset(new Nextgis::My::User());
-        if (strLastToken != "")
+        if (sLastAccessToken != "")
         {
-            pUser.data()->getApiWrapperPtr()->setLastToken(strLastToken);
+            pUser.data()->getApiWrapperPtr()->setLastAccessToken(sLastAccessToken);
+            pUser.data()->getApiWrapperPtr()->setLastRefreshToken(sLastRefreshToken);
         }
         connect(pUser.data(), &Nextgis::My::User::authenticationFinished, this, &FB::authorizeFinished);
         pUser.data()->setAuthCallbackHtml(languages[indexLang].callbakHtmlPath);
@@ -2766,8 +2779,11 @@ void FB::authorize (QString strLastToken)
         pUser.reset(nullptr);
         this->updateAtUserChange();
 
-        // Reset last user token in settings.
-        settLastToken.value = "";
+        // Reset last tokens in settings.
+        settLastAccessToken.value = "";
+        settLastRefreshToken.value = "";
+
+        toolbAuth->setEnabled(true);
     }
 }
 
@@ -2780,13 +2796,16 @@ void FB::authorizeFinished ()
         this->showFullMessage(tr("Unable to authorize"),
                               pUser.data()->getApiWrapperPtr()->obtainLastError());
         pUser.reset(nullptr);
+        settLastAccessToken.value = "";
+        settLastRefreshToken.value = "";
     }
 
     // Sign in finished successfully.
     else
     {
-        // Save last user login to settings.
-        settLastToken.value = pUser.data()->getApiWrapperPtr()->getLastToken();
+        // Save last tokens in settings.
+        settLastAccessToken.value = pUser.data()->getApiWrapperPtr()->getLastAccessToken();
+        settLastRefreshToken.value = pUser.data()->getApiWrapperPtr()->getLastRefreshToken();
 
         // Define if the support period for this user has just expired. Set the according flag and
         // use it further so to show this message only once.
@@ -2798,7 +2817,14 @@ void FB::authorizeFinished ()
         {
             bShowSupportExpiredMessage = true;
         }
+        else
+        {
+            bShowSupportExpiredMessage = false;
+        }
     }
+
+    // Unblock auth button which was blocked for the time of authorization.
+    toolbAuth->setEnabled(true);
 
     this->updateAtUserChange();
 }
