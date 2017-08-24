@@ -31,6 +31,7 @@ namespace My
 
 
 const quint16 OA2_REDIRECT_PORT = 8090;
+const QUrl TEST_URL {"https://my.nextgis.com"};
 const QUrl OA2_AUTH_URL {"https://my.nextgis.com/oauth2/authorize/"};
 const QUrl OA2_ACCESS_TOKEN_URL {"https://my.nextgis.com/oauth2/token/"};
 const QString OA2_USER_INFO_SCOPE {"user_info.read"};
@@ -78,6 +79,7 @@ class ApiWrapper: public QObject
 
         virtual void startAuthentication ();
 
+        void startTestRequest ();
         void startGet (QString sUrl);
         void startGetSupportInfo ();
         void startGetUserInfo ();
@@ -96,7 +98,16 @@ class ApiWrapper: public QObject
     signals:
 
         void authFinished ();
+        void testRequestFinished (bool);
         void requestFinished ();
+
+    protected slots:
+
+        void onOAuth2Finished ();
+        void onTokensReceived (const QVariantMap &mapTokens);
+
+        void onReplyReadyRead ();
+        void onReplyFinished ();
 
     protected:
 
@@ -107,27 +118,18 @@ class ApiWrapper: public QObject
 
         mutable QString m_sLastError;
 
-    private slots:
-
-        void onOAuth2Finished ();
-        void onTokensReceived (const QVariantMap &mapTokens);
-
-        void onReplyReadyRead ();
-        void onReplyFinished ();
-
-    private:
+        bool m_bIsAuthenticated;
 
         QOAuth2AuthorizationCodeFlow *m_pAuthCodeFlow;
         QOAuthHttpServerReplyHandler *m_pAuthReplyHandler;
+        QNetworkAccessManager *m_pTestManager;
 
-        bool m_bIsAuthenticated;
+        QString m_sLastAccessToken;
+        QString m_sLastRefreshToken;
 
         QByteArray m_baReply;
         QNetworkReply *m_pReply;
         QJsonObject m_jReply;
-
-        QString m_sLastAccessToken;
-        QString m_sLastRefreshToken;
 };
 
 

@@ -49,6 +49,8 @@ ApiWrapper::ApiWrapper ():
     m_pAuthCodeFlow->setAccessTokenUrl(OA2_ACCESS_TOKEN_URL);
     m_pAuthCodeFlow->setClientIdentifierSharedKey("");
     m_pAuthCodeFlow->setReplyHandler(m_pAuthReplyHandler);
+
+    m_pTestManager = new QNetworkAccessManager();
 }
 
 /**
@@ -58,6 +60,7 @@ ApiWrapper::~ApiWrapper ()
 {
     delete m_pAuthReplyHandler;
     delete m_pAuthCodeFlow;
+    delete m_pTestManager;
 }
 
 
@@ -96,53 +99,103 @@ void ApiWrapper::startAuthentication ()
     if (m_bIsAuthenticated)
         return;
 
+    // Here we start an authentication process either with the help of browser or "implicitely".
+    // In both cases we try to send a test request to the server to check the internet connection.
+    // We need to do this because there is no other way to determine the need to perform
+    // an "offline" authorization outside and also because we do not receive any http replies
+    // to the internal "server" which listens the callbacks after the user's browser
+    // authorization.
+
     // First-time authorization with browser.
     if (m_sLastAccessToken == "")
     {
-        connect(m_pAuthCodeFlow, &QOAuth2AuthorizationCodeFlow::granted,
-        [=]()
+        connect(this, &ApiWrapper::testRequestFinished,
+        [=](bool ok)
         {
-            this->onOAuth2Finished();
-            disconnect(m_pAuthCodeFlow, &QOAuth2AuthorizationCodeFlow::granted, 0, 0);
+            if (ok) // internet connection is present, start grant process
+            {
+                connect(m_pAuthCodeFlow, &QOAuth2AuthorizationCodeFlow::granted,
+                [=]()
+                {
+                    this->onOAuth2Finished();
+                    disconnect(m_pAuthCodeFlow, &QOAuth2AuthorizationCodeFlow::granted, 0, 0);
+                });
+                m_pAuthCodeFlow->grant();
+            }
+            else // no internet connection
+            {
+                m_bIsAuthenticated = false;
+                m_sLastError = tr("Network error");
+                emit authFinished();
+            }
         });
-
-        m_pAuthCodeFlow->grant();
+        this->startTestRequest();
     }
 
     // Non-browser authorization.
     else
     {
-        m_pAuthCodeFlow->setToken(m_sLastAccessToken);
-        m_pAuthCodeFlow->setRefreshToken(m_sLastRefreshToken);
-
-//        if (m_pAuthCodeFlow->expirationAt() >= )
-//        {
-            // This is the only(?) way how to find out that there was a succesful refresh operation.
-            // But there is a bug in Qt 5.9.1: no emition of the according signal is done for the
-            // refresh operation (only when grant() is called before this).
-            connect(m_pAuthCodeFlow, &QOAuth2AuthorizationCodeFlow::statusChanged,
-            [=]()
+        connect(this, &ApiWrapper::testRequestFinished,
+        [=](bool ok)
+        {
+            if (ok) // internet connection is present, refresh tokens and other info
             {
-                this->onOAuth2Finished();
-                disconnect(m_pAuthCodeFlow, &QOAuth2AuthorizationCodeFlow::statusChanged, 0, 0);
-            });
+                m_pAuthCodeFlow->setToken(m_sLastAccessToken);
+                m_pAuthCodeFlow->setRefreshToken(m_sLastRefreshToken);
 
-            // TODO: fix the following when it will be fixed in Qt (5.10 or earlier?).
-            // See this file: https://github.com/qt/qtnetworkauth/blob/5.9/src/oauth/qoauth2authorizationcodeflow.cpp#L308
-            QString s = OA2_CLIENT_ID;
-            s.replace("\"","");
-            m_pAuthCodeFlow->setModifyParametersFunction(
-            [&](QAbstractOAuth::Stage stage, QVariantMap *parameters)
+                // This is the only(?) way how to find out that there was a succesful refresh operation.
+                // But there is a bug in Qt 5.9.1: no emition of the according signal is done for the
+                // refresh operation (only when grant() is called before this).
+                connect(m_pAuthCodeFlow, &QOAuth2AuthorizationCodeFlow::statusChanged,
+                [=]()
+                {
+                    this->onOAuth2Finished();
+                    disconnect(m_pAuthCodeFlow, &QOAuth2AuthorizationCodeFlow::statusChanged, 0, 0);
+                });
+
+                // TODO: fix the following when it will be fixed in Qt (5.10 or earlier?).
+                // See this file: https://github.com/qt/qtnetworkauth/blob/5.9/src/oauth/qoauth2authorizationcodeflow.cpp#L308
+                QString s = OA2_CLIENT_ID;
+                s.replace("\"","");
+                m_pAuthCodeFlow->setModifyParametersFunction(
+                [&](QAbstractOAuth::Stage stage, QVariantMap *parameters)
+                {
+                    //parameters->insert("refresh_token", m_sLastRefreshToken);
+                    parameters->insert("client_id", s);
+                });
+
+                // Note: the QOAuth2AuthorizationCodeFlow::statusChanged will signalize about the
+                // ending of the refresh process.
+                m_pAuthCodeFlow->refreshAccessToken();
+            }
+            else // no internet connection, an "offline" authorization can be performed outside
             {
-                //parameters->insert("refresh_token", m_sLastRefreshToken);
-                parameters->insert("client_id", s);
-            });
-
-            // Note: the QOAuth2AuthorizationCodeFlow::statusChanged will signalize about the
-            // ending of the refresh process.
-            m_pAuthCodeFlow->refreshAccessToken();
-//        }
+                m_bIsAuthenticated = false;
+                m_sLastError = tr("Network error");
+                emit authFinished();
+            }
+        });
+        this->startTestRequest();
     }
+}
+
+
+/**
+ * @brief ...
+ */
+void ApiWrapper::startTestRequest ()
+{
+    QNetworkRequest req(TEST_URL);
+    QNetworkReply *rep = m_pTestManager->get(req);
+    connect(rep, &QNetworkReply::finished,
+    [=]()
+    {
+        QNetworkReply::NetworkError err = rep->error();
+        if (err == QNetworkReply::NoError)
+            emit testRequestFinished(true);
+        else
+            emit testRequestFinished(false);
+    });
 }
 
 
@@ -300,6 +353,7 @@ void ApiWrapper::onOAuth2Finished ()
     // See QAbstractOAuth::Error ?
     // See QAbstractOAuth2::error signal ?
     // See QOAuth2AuthorizationCodeFlowPrivate::_q_accessTokenRequestFinished()
+
     if (m_pAuthCodeFlow->status() == QAbstractOAuth::Status::Granted)
     {
         m_bIsAuthenticated = true;
@@ -307,6 +361,11 @@ void ApiWrapper::onOAuth2Finished ()
     else
     {
         m_sLastError = tr("OAuth2 process finished with a non-granted status");
+        m_bIsAuthenticated = false;
+    }
+
+    if (m_sLastError != "")
+    {
         m_bIsAuthenticated = false;
     }
 

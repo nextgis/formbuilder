@@ -403,7 +403,8 @@ private: // methods
      void showMsgForNotSupported ();
      void updateAtUserChange ();
      void authorize (QString sLastAccessToken = "", QString sLastRefreshToken = "");
-
+     void dropUserSettings ();
+     void defineIfCanShowSupportInfo ();
      void showFullMessage (QString sMainText, QString sDetailedText);
 
 private: // fields
@@ -509,9 +510,10 @@ private: // fields
      // TODO: change this and many other connected things during the big refactoring.
      FBSetting settLastAccessToken;
      FBSetting settLastRefreshToken;
-     QScopedPointer<Nextgis::My::User> pUser;
+     QScopedPointer<Nextgis::User> pUser;
      QStringList listPremiumElems;
      bool bShowSupportExpiredMessage;
+     bool bForceOnlineAuth;
      // Note: some buttons are also hardcoded as for premium use.
 };
 

@@ -27,18 +27,23 @@
 #include <QString>
 #include <QtNetworkAuth>
 
+using namespace Nextgis::My;
+
 namespace Nextgis
 {
-namespace My
-{
+
+#ifdef _RSA_PUBLIC_KEY
+const QString RSA_PUBLIC_KEY = {_RSA_PUBLIC_KEY}; // should be defined somewhere outside
+#else
+const QString RSA_PUBLIC_KEY {""};
+#endif
 
 
 /**
- * @brief The class which represents a my.nextgis.com user in the application. The class internally
- * uses Nextgis::My::ApiWrapper for requests to the my.nextgis.com server.
- * @details Usage: create an instance of this class and call startAuthentication(). After the end of
- * the authentication process (authenticationFinished() signal emitted) the instance will contain
- * all nesessary information about the user.
+ * @brief The class which represents a NextGIS user in the application. The class internally
+ * uses Nextgis::My::ApiWrapper for requests to the my.nextgis.com server and uses the common
+ * NextGIS ini file if there is no internet connection. By default the User is not authenticated
+ * and you should call startAuthentication() in order to fill User's fields with neccessery info.
  */
 class User: public QObject
 {
@@ -52,7 +57,12 @@ class User: public QObject
         void setApiWrapper (ApiWrapper *pApiWrapper);
         ApiWrapper *getApiWrapperPtr () const { return m_pApiWrapper; }
 
-        void setAuthCallbackHtml (QString sFilePath);
+        void writeToCache ();
+        void readFromCache ();
+        void clearCache ();
+
+        bool verifyInfo ();
+        bool verifySignature ();
 
         bool isAuthenticated () const;
         void startAuthentication ();
@@ -74,10 +84,15 @@ class User: public QObject
 
     private:
 
+        static QString s_toString (const QDate &oDate);
+        static QString s_toString (Nextgis::My::AccountType eAccountType);
+        static QDate s_toDate (const QString &sString);
+        static Nextgis::My::AccountType s_toAccountType (const QString &sString);
+
         ApiWrapper *m_pApiWrapper;
 
-        Nextgis::My::AccountType m_eAccountType;
         QString m_sName;
+        Nextgis::My::AccountType m_eAccountType;
         QDate m_oStartDate;
         QDate m_oEndDate;
         QString m_sGuid;
@@ -85,7 +100,6 @@ class User: public QObject
 };
 
 
-}
 }
 
 #endif //USER_H

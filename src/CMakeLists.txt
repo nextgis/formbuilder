@@ -25,12 +25,20 @@ set(APP_NAME fb)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-# OAuth2 client id for this apllication which should be defined outside:
+# Add fatal message so not to forget: add OAuth2 client id for this apllication.
 if (DEFINED FB_OAUTH2_CLIENT_ID)
     add_definitions(-D_OAUTH2_CLIENT_ID=${FB_OAUTH2_CLIENT_ID})
 else()
     #add_definitions(-D_OAUTH2_CLIENT_ID="")
     message(FATAL_ERROR "OAuth2 client id (in the FB_OAUTH2_CLIENT_ID variable) should be defined in order to build the application")
+endif ()
+
+# Add fatal message so not to forget: add RSA public key for user info verification.
+if (DEFINED FB_RSA_PUBLIC_KEY)
+    add_definitions(-D_RSA_PUBLIC_KEY=${FB_RSA_PUBLIC_KEY})
+else()
+    #add_definitions(-D_RSA_PUBLIC_KEY="")
+    message(FATAL_ERROR "RSA public key for user info verification should be defined in order to build the application")
 endif ()
 
 set(APP_HEADERS

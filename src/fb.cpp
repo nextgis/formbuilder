@@ -96,6 +96,7 @@ FB::FB(QWidget *parent):
     listPremiumElems.append(FB_ELEMNAME_SPLIT_COMBOBOX);
     pUser.reset();
     bShowSupportExpiredMessage = false;
+    bForceOnlineAuth = false;
 }
 
 void FB::initGui ()
@@ -1600,6 +1601,7 @@ void FB::endMaintainerWork(int exitCode, QProcess::ExitStatus exitStatus)
 // AUTHENTICATION BUTTON CLICK
 void FB::onAuthClick ()
 {
+    bForceOnlineAuth = true;
     this->authorize();
 }
 
@@ -2742,13 +2744,16 @@ FBDialogAbout::FBDialogAbout (QWidget *parent):
 
 void FB::startInitialAuthentication ()
 {
-    // We do not perform authorization if the user of this program has never signed in or has just
-    // signed out last time.
+    //We do not perform authorization if the user of this program has never signed in or has just
+    //signed out last time.
     if (settLastAccessToken.value == "")
         return;
 
     toolbAuth->setEnabled(false);
 
+    // Anyway try the "online" authentication first because even just for refreshing the "offline"
+    // cache we need to authorize with OAuth2.
+    bForceOnlineAuth = false;
     this->authorize(settLastAccessToken.value, settLastRefreshToken.value);
 }
 
@@ -2759,29 +2764,36 @@ void FB::authorize (QString sLastAccessToken, QString sLastRefreshToken)
     // process.
     toolbAuth->setEnabled(false);
 
-    // Sign in.
+    // Start signing in.
     if (pUser.isNull())
     {
-        pUser.reset(new Nextgis::My::User());
+        pUser.reset(new Nextgis::User());
+
+        // Define if there was any user that signed in before and forse online authentication
+        // if there was no such user.
         if (sLastAccessToken != "")
         {
             pUser.data()->getApiWrapperPtr()->setLastAccessToken(sLastAccessToken);
             pUser.data()->getApiWrapperPtr()->setLastRefreshToken(sLastRefreshToken);
+            bForceOnlineAuth = false;
         }
-        connect(pUser.data(), &Nextgis::My::User::authenticationFinished, this, &FB::authorizeFinished);
-        pUser.data()->setAuthCallbackHtml(languages[indexLang].callbakHtmlPath);
+        else
+        {
+            bForceOnlineAuth = true;
+        }
+
+        connect(pUser.data(), &Nextgis::User::authenticationFinished, this, &FB::authorizeFinished);
+        pUser.data()->getApiWrapperPtr()->setCallbackHtml(languages[indexLang].callbakHtmlPath);
         pUser.data()->startAuthentication();
     }
 
-    // Sign out.
+    // Sign out immidiately.
     else
     {
         pUser.reset(nullptr);
         this->updateAtUserChange();
 
-        // Reset last tokens in settings.
-        settLastAccessToken.value = "";
-        settLastRefreshToken.value = "";
+        this->dropUserSettings();
 
         toolbAuth->setEnabled(true);
     }
@@ -2790,36 +2802,56 @@ void FB::authorize (QString sLastAccessToken, QString sLastRefreshToken)
 
 void FB::authorizeFinished ()
 {
-    // Sign in finished unsuccessfully.
-    if (!pUser.data()->isAuthenticated())
-    {
-        this->showFullMessage(tr("Unable to authorize"),
-                              pUser.data()->getApiWrapperPtr()->obtainLastError());
-        pUser.reset(nullptr);
-        settLastAccessToken.value = "";
-        settLastRefreshToken.value = "";
-    }
-
-    // Sign in finished successfully.
-    else
+    // "Online" sign in finished successfully.
+    if (pUser.data()->isAuthenticated())
     {
         // Save last tokens in settings.
         settLastAccessToken.value = pUser.data()->getApiWrapperPtr()->getLastAccessToken();
         settLastRefreshToken.value = pUser.data()->getApiWrapperPtr()->getLastRefreshToken();
 
-        // Define if the support period for this user has just expired. Set the according flag and
-        // use it further so to show this message only once.
-        // Note: we do not handle such cases when user changes the system date manually.
-        QDate date = pUser.data()->getSupportEndDate();
-        Nextgis::My::AccountType account = pUser.data()->getAccountType();
-        if (date.isValid() && date < QDate::currentDate()
-                && account == Nextgis::My::AccountType::NotSupported)
+        // Write user data to the settings file. This way we refresh the "offline" cache.
+        pUser.data()->writeToCache();
+
+        this->defineIfCanShowSupportInfo();
+    }
+
+    // "Online" sign in failed.
+    else
+    {
+        if (bForceOnlineAuth)
         {
-            bShowSupportExpiredMessage = true;
+            this->showFullMessage(tr("Unable to authorize"),
+                                  pUser.data()->getApiWrapperPtr()->obtainLastError());
+            pUser.reset(nullptr);
+//            this->dropUserSettings();
         }
+
+        // Try the "offline" authentication.
         else
         {
-            bShowSupportExpiredMessage = false;
+            pUser.reset(new Nextgis::User());
+            pUser.data()->readFromCache();
+
+            // "Offline" sign in failed.
+            // Incorrect user info was read from file or signature verification failed:
+            if (!pUser.data()->verifyInfo() ||
+                (pUser.data()->getAccountType() == Nextgis::My::AccountType::Supported &&
+                 !pUser.data()->verifySignature()))
+            {
+                this->showFullMessage(tr("Unable to authorize"), tr("Incorrect user info"));
+                pUser.reset(nullptr);
+//                this->dropUserSettings();
+            }
+
+            else
+            {
+
+            // "Offline" sign in finished successfully.
+//            if (pUser.data()->getSupportEndDate() >= QDate::currentDate())
+//            {
+                this->defineIfCanShowSupportInfo();
+//            }
+            }
         }
     }
 
@@ -2827,6 +2859,34 @@ void FB::authorizeFinished ()
     toolbAuth->setEnabled(true);
 
     this->updateAtUserChange();
+}
+
+
+void FB::dropUserSettings ()
+{
+    settLastAccessToken.value = "";
+    settLastRefreshToken.value = "";
+
+    pUser.data()->clearCache();
+}
+
+
+void FB::defineIfCanShowSupportInfo ()
+{
+    // Define if the support period for this user has just expired. Set the according flag and
+    // use it further so to show this message only once.
+    // Note: we do not handle such cases when user changes the system date manually.
+    QDate date = pUser.data()->getSupportEndDate();
+    Nextgis::My::AccountType account = pUser.data()->getAccountType();
+    if (date.isValid() && date < QDate::currentDate() &&
+        account == Nextgis::My::AccountType::NotSupported)
+    {
+        bShowSupportExpiredMessage = true;
+    }
+    else
+    {
+        bShowSupportExpiredMessage = false;
+    }
 }
 
 

@@ -20,6 +20,14 @@
  
 #include "user.h"
 
+#include <openssl/pem.h>
+#include <openssl/rsa.h>
+#include <openssl/err.h>
+#include <openssl/bio.h>
+#include <openssl/x509.h>
+//#include <openssl/evp_pkey.h>
+
+using namespace Nextgis;
 using namespace Nextgis::My;
 
 
@@ -58,11 +66,115 @@ void User::setApiWrapper (ApiWrapper *pApiWrapper)
 
 
 /**
- * @brief ...
+ * @brief Write user settings to the file.
  */
-void User::setAuthCallbackHtml (QString sFilePath)
+void User::writeToCache ()
 {
-    m_pApiWrapper->setCallbackHtml(sFilePath);
+    QSettings s(QSettings::IniFormat, QSettings::UserScope, "NextGIS", "User");
+    s.setValue("user_id", m_sGuid);
+    s.setValue("sign", m_sSign);
+    s.setValue("start_date", s_toString(m_oStartDate));
+    s.setValue("end_date", s_toString(m_oEndDate));
+    s.setValue("supported", s_toString(m_eAccountType));
+    s.setValue("user_name", m_sName);
+}
+
+/**
+ * @brief Read file with user last saved settings. Can be read invalid. Check this outside.
+ * @see User::hasValidInfo
+ */
+void User::readFromCache ()
+{
+    QSettings s(QSettings::IniFormat, QSettings::UserScope, "NextGIS", "User");
+    m_sGuid = s.value("user_id", "").toString();
+    m_sSign = s.value("sign", "").toString();
+    m_oStartDate = s_toDate(s.value("start_date", "").toString());
+    m_oEndDate = s_toDate(s.value("end_date", "").toString());
+    m_eAccountType = s_toAccountType(s.value("supported", "").toString());
+    m_sName = s.value("user_name", "").toString();
+}
+
+/**
+ * @brief Clears the file with user settings. Can be called when user is logged out.
+ */
+void User::clearCache ()
+{
+    QSettings s(QSettings::IniFormat, QSettings::UserScope, "NextGIS", "User");
+    s.setValue("user_id", "");
+    s.setValue("sign", "");
+    s.setValue("start_date", "");
+    s.setValue("end_date", "");
+    s.setValue("supported", "");
+    s.setValue("user_name", "");
+}
+
+
+/**
+ * @brief Returns true if this User has a correct set of info fields.
+ */
+bool User::verifyInfo ()
+{
+    if (m_eAccountType == AccountType::Undefined || m_sGuid == "")
+        return false; // the ini file at least must have these fields
+
+    if (m_eAccountType == AccountType::Supported &&
+        (!m_oStartDate.isValid() || !m_oEndDate.isValid()))
+        return false; // if the user is "supported" it must have the dates correctly set
+
+    return true;
+}
+
+
+/**
+ * @brief Verify User info with RSA signature.
+ */
+bool User::verifySignature ()
+{
+    QString sMessage = m_sGuid + s_toString(m_oStartDate) + s_toString(m_oEndDate)
+            + s_toString(m_eAccountType);
+
+    QByteArray baMessage = sMessage.toUtf8();
+    QByteArray baSignature = QByteArray::fromBase64(m_sSign.toUtf8());
+    QByteArray baRsaPublicKey = RSA_PUBLIC_KEY.toUtf8();
+
+    auto warn = []()
+    {
+        unsigned long err;
+        do
+        {
+            err = ERR_get_error();
+            char *str = (char*)malloc(1024);
+            ERR_error_string(err, str);
+            qWarning()<<QString(str);
+        }
+        while(err);
+    };
+
+    BIO* b = BIO_new(BIO_s_mem());
+    if (b == NULL) { warn(); return false; }
+
+    BIO_write(b, baRsaPublicKey.data(), baRsaPublicKey.size());
+
+    EVP_PKEY* evpkey = PEM_read_bio_PUBKEY(b, NULL, NULL, NULL);
+    if (evpkey == NULL) { warn(); BIO_free(b); return false; }
+
+    const EVP_MD* dgst = EVP_get_digestbyname("sha256");
+    if (dgst == NULL) { warn(); EVP_PKEY_free(evpkey); BIO_free(b); return false; }
+
+    EVP_MD_CTX* ctx = NULL;
+    ctx = EVP_MD_CTX_create();
+    if (ctx == NULL) { warn(); EVP_PKEY_free(evpkey); BIO_free(b); return false; }
+
+    EVP_VerifyInit(ctx, dgst);
+    EVP_VerifyUpdate(ctx, (unsigned char*)(baMessage.data()), baMessage.size());
+
+    int ret = EVP_VerifyFinal(ctx, (unsigned char*)(baSignature.data()), baSignature.size(), evpkey);
+
+    EVP_MD_CTX_destroy(ctx);
+    EVP_PKEY_free(evpkey);
+    BIO_free(b);
+
+    return ret;
 }
 
 
@@ -145,6 +257,35 @@ void User::u_onGetNameFinished ()
     disconnect(m_pApiWrapper, &ApiWrapper::requestFinished, 0, 0);
 
     emit authenticationFinished();
+}
+
+
+QString User::s_toString (const QDate &oDate)
+{
+    return oDate.toString("yyyy-MM-dd");
+}
+
+QString User::s_toString (Nextgis::My::AccountType eAccountType)
+{
+    if (eAccountType == AccountType::Supported)
+        return "true";
+    if (eAccountType == AccountType::NotSupported)
+        return "false";
+    return "";
+}
+
+QDate User::s_toDate (const QString &sString)
+{
+    return QDate::fromString(sString, "yyyy-MM-dd"); // can be returned invalid
+}
+
+AccountType User::s_toAccountType (const QString &sString)
+{
+    if (sString == "true")
+        return AccountType::Supported;
+    if (sString == "false")
+        return AccountType::NotSupported;
+    return AccountType::Undefined;
 }
 
 
