@@ -604,6 +604,14 @@ project</source>
         <source>Please upgrade to use this feature.&lt;br&gt;View pricing at %1</source>
         <translation>Пожалуйста, приобретите подписку, чтобы&lt;br&gt;получить доступ к данной функции.&lt;br&gt;Подробнее (%1)</translation>
     </message>
+    <message>
+        <source>Authorization...</source>
+        <translation>Авторизация...</translation>
+    </message>
+    <message>
+        <source>Incorrect user info</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>FBAttrDialog</name>
@@ -1956,10 +1964,6 @@ exists for the form</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Cannot find &quot;username&quot; string value in a JSON reply</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>[HTTP reply] </source>
         <translation type="unfinished"></translation>
     </message>
@@ -1972,19 +1976,27 @@ exists for the form</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Cannot find &quot;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>&quot; date value in a JSON reply</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Unable to read the valid&quot;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <source>&quot; date in a JSON reply</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Network error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cannot find a valid &quot;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&quot; element in a JSON reply</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>OAuth2 process finished with a non-granted status</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
