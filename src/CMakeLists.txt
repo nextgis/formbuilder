@@ -62,6 +62,8 @@ project/projects.h
 screen/screen_core.h
 screen/screens.h
 screen/devices.h
+
+fbclickablelabel.h
 )
 
 set(APP_SOURCES
@@ -96,6 +98,8 @@ screen/screenandroid.cpp
 screen/screenios.cpp
 screen/screenweb.cpp
 screen/screenqgis.cpp
+
+fbclickablelabel.cpp
 
 jsoncpp.cpp
 ngw.cpp

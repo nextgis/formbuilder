@@ -97,5 +97,6 @@
         <file>img/user.png</file>
         <file>my/auth_confirm.html</file>
         <file>my/auth_confirm_ru.html</file>
+        <file>img/loading.gif</file>
     </qresource>
 </RCC>

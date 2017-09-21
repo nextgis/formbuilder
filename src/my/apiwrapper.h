@@ -30,7 +30,7 @@ namespace My
 {
 
 
-const quint16 OA2_REDIRECT_PORT = 8090;
+const quint16 OA2_REDIRECT_PORT = 65020; //= 8090;
 const QUrl TEST_URL {"https://my.nextgis.com"};
 const QUrl OA2_AUTH_URL {"https://my.nextgis.com/oauth2/authorize/"};
 const QUrl OA2_ACCESS_TOKEN_URL {"https://my.nextgis.com/oauth2/token/"};

@@ -59,6 +59,8 @@
 #include "project/projects.h"
 #include "screen/screens.h"
 
+#include "fbclickablelabel.h"
+
 #define FB_PATH_TRANSLATIONS "../share/nextgis/fb/translations"
 #define FB_PATH_MAINTAINER_WIN32 "\\..\\nextgisupdater.exe"
 
@@ -349,6 +351,7 @@ private slots:
      void onAboutGraphicsClick ();
      void onUpdatesClick ();
      void onAuthClick ();
+     void onLabAuthAnimClick ();
      void authorizeFinished ();
      void endCheckingUpdates (int exitCode, QProcess::ExitStatus exitStatus);
      void endMaintainerWork (int exitCode, QProcess::ExitStatus exitStatus);
@@ -403,6 +406,7 @@ private: // methods
      void showMsgForNotSupported ();
      void updateAtUserChange ();
      void authorize (QString sLastAccessToken = "", QString sLastRefreshToken = "");
+     void stopAuthorization ();
      void dropUserSettings ();
      void defineIfCanShowSupportInfo ();
      void showFullMessage (QString sMainText, QString sDetailedText);
@@ -489,6 +493,8 @@ private: // fields
      QWidget *wPopup; //FbAuthWidget *wPopup;
      QToolButton *toolbUpdates;
      QToolButton *toolbAuth;
+     FbClickableLabel *labAuthAnim;
+     QMovie *movieAnim;
      QLabel *labAuth;
      QWidget *wMenuLeft;
      QPushButton *butArrowLeft;

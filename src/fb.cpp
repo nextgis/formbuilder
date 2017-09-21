@@ -494,6 +494,17 @@ void FB::initGui ()
     toolbAuth->setFixedSize(32,32);
     QObject::connect(toolbAuth, SIGNAL(clicked()), this, SLOT(onAuthClick()));
 
+    labAuthAnim = new FbClickableLabel(wPopup);
+    labAuthAnim->hide();
+    movieAnim = new QMovie(":/img/loading.gif");
+    labAuthAnim->setMovie(movieAnim);
+    movieAnim->start();
+//    labAuthAnim->setCursor(Qt::PointingHandCursor);
+    labAuthAnim->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    labAuthAnim->setFixedSize(32,32);
+    labAuthAnim->setToolTip(tr("Authorization..."));//\nClick to stop authorization process"));
+//    connect(labAuthAnim, SIGNAL(clicked()), this, SLOT(onLabAuthAnimClick()));
+
     labAuth = new QLabel(wPopup);
     labAuth->setText("");
     labAuth->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
@@ -505,6 +516,7 @@ void FB::initGui ()
     lhPopup->addStretch();
     lhPopup->addWidget(labAuth);
     lhPopup->addWidget(toolbAuth);
+    lhPopup->addWidget(labAuthAnim);
     lhPopup->addWidget(toolbUpdates);
 
     //wPopup->adjustSize();
@@ -1603,6 +1615,12 @@ void FB::onAuthClick ()
 {
     bForceOnlineAuth = true;
     this->authorize();
+}
+
+// AUTHENTICATION PROCESS LABEL CLICK
+void FB::onLabAuthAnimClick ()
+{
+    this->stopAuthorization();
 }
 
 
@@ -2749,7 +2767,8 @@ void FB::startInitialAuthentication ()
     if (settLastAccessToken.value == "")
         return;
 
-    toolbAuth->setEnabled(false);
+    toolbAuth->hide(); //toolbAuth->setEnabled(false);
+    labAuthAnim->show();
 
     // Anyway try the "online" authentication first because even just for refreshing the "offline"
     // cache we need to authorize with OAuth2.
@@ -2762,7 +2781,8 @@ void FB::authorize (QString sLastAccessToken, QString sLastRefreshToken)
 {
     // Block auth button so not to allow to press on it several times during the authorization
     // process.
-    toolbAuth->setEnabled(false);
+    toolbAuth->hide(); //toolbAuth->setEnabled(false);
+    labAuthAnim->show();
 
     // Start signing in.
     if (pUser.isNull())
@@ -2795,7 +2815,8 @@ void FB::authorize (QString sLastAccessToken, QString sLastRefreshToken)
 
         this->dropUserSettings();
 
-        toolbAuth->setEnabled(true);
+        labAuthAnim->hide();
+        toolbAuth->show(); //toolbAuth->setEnabled(true);
     }
 }
 
@@ -2856,9 +2877,16 @@ void FB::authorizeFinished ()
     }
 
     // Unblock auth button which was blocked for the time of authorization.
-    toolbAuth->setEnabled(true);
+    labAuthAnim->hide();
+    toolbAuth->show(); //toolbAuth->setEnabled(true);
 
     this->updateAtUserChange();
+}
+
+
+void FB::stopAuthorization ()
+{
+
 }
 
 
