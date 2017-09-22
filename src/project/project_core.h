@@ -36,7 +36,7 @@
 #define FB_PATH_GDALDATA "../share/gdal"
 
 // The only float version constant of all Formbuilder project.
-#define FB_VERSION 2.1
+#define FB_VERSION 2.2
 
 // Names.
 #define FB_PROJECT_EXTENSION "ngfp"

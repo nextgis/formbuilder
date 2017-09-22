@@ -180,7 +180,7 @@ endif()
 
 ################################### CPack packaging: ##############################################
 
-set(FB_VERSION "2.1.0") # TODO: get FB version from sources.
+set(FB_VERSION "2.2.0") # TODO: get FB version from sources.
 
 set(FB_CPACK_PACKAGE_SETUPNAME "formbuilder")
 set(FB_CPACK_PACKAGE_NAME "NextGIS Formbuilder")
