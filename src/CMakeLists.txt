@@ -155,6 +155,7 @@ if(WIN32)
         install(FILES ${QT_DIR_PREFIX_PATH}/bin/Qt5NetworkAuthd.dll DESTINATION ${INSTALL_BIN_DIR})
         install(FILES ${QT_DIR_PREFIX_PATH}/plugins/platforms/qwindowsd.dll DESTINATION ${INSTALL_BIN_DIR}/platforms)
         install(FILES ${QT_DIR_PREFIX_PATH}/plugins/imageformats/qicod.dll DESTINATION ${INSTALL_BIN_DIR}/imageformats) # for app icon on win XP
+        install(FILES ${QT_DIR_PREFIX_PATH}/plugins/imageformats/qgifd.dll DESTINATION ${INSTALL_BIN_DIR}/imageformats)
     else()
         install(FILES ${QT_DIR_PREFIX_PATH}/bin/Qt5Core.dll DESTINATION ${INSTALL_BIN_DIR})
         install(FILES ${QT_DIR_PREFIX_PATH}/bin/Qt5Gui.dll DESTINATION ${INSTALL_BIN_DIR})
@@ -163,6 +164,7 @@ if(WIN32)
         install(FILES ${QT_DIR_PREFIX_PATH}/bin/Qt5NetworkAuth.dll DESTINATION ${INSTALL_BIN_DIR})
         install(FILES ${QT_DIR_PREFIX_PATH}/plugins/platforms/qwindows.dll DESTINATION ${INSTALL_BIN_DIR}/platforms)
         install(FILES ${QT_DIR_PREFIX_PATH}/plugins/imageformats/qico.dll DESTINATION ${INSTALL_BIN_DIR}/imageformats) # for app icon on win XP
+        install(FILES ${QT_DIR_PREFIX_PATH}/plugins/imageformats/qgif.dll DESTINATION ${INSTALL_BIN_DIR}/imageformats)
     endif()
     # Install QM files.
     if(Qt5LinguistTools_FOUND)
