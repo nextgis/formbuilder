@@ -50,6 +50,7 @@ FBErr FBProjectNgw::readFirst (QString anyPath)
 
     // Firstly initialize with default GDAL method.
     FBErr err = this->readFromDataset(anyPath);
+
     if (err != FBErrNone && err != FBErrIncorrectGdalDataset_NotForNgw)
         return err;
 

@@ -114,7 +114,10 @@ QString FBDialogProjectNgw::getSelectedNgwResource (QString &strUrl, QString &st
     strId = this->strId.toInt(); // TODO: should we check for conversion errors?
     jsonLayerMeta = this->jsonLayerMeta;
 
+    // FUTURE: here we use some last NGW API version. Determine the actual API version here when
+    // the according functionality will be implemented in NGW.
     QString ret = "";
-    ret = strUrl + "/resource/" + QString::number(strId) + "/geojson/";
+//    ret = strUrl + "/resource/" + QString::number(strId) + "/geojson/";
+    ret = strUrl + "/api/resource/" + QString::number(strId) + "/geojson";
     return ret;
 }

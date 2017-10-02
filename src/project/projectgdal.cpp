@@ -39,7 +39,7 @@ FBErr FBProjectGdal::readFromDataset (QString datasetPath)
     QByteArray ba;
     ba = datasetPath.toUtf8();
     GDALDataset *dataset;
-    dataset = (GDALDataset*) GDALOpenEx(ba.data(), GDAL_OF_VECTOR,
+    dataset = (GDALDataset*) GDALOpenEx(ba.data(), GDAL_OF_READONLY | GDAL_OF_VECTOR,
                                         NULL, NULL, NULL);
     if (dataset == NULL)
     {
