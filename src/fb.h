@@ -54,15 +54,13 @@
 
 #include "ngw.h"
 
-#include "my/user.h"
-
 #include "project/projects.h"
 #include "screen/screens.h"
 
 #include "fbclickablelabel.h"
+#include "fbupdater.h"
 
 #define FB_PATH_TRANSLATIONS "../share/nextgis/fb/translations"
-#define FB_PATH_MAINTAINER_WIN32 "\\..\\nextgisupdater.exe"
 
 // GUI constants.
 #define FB_GUI_FONTTYPE "Candara"
@@ -306,15 +304,13 @@ class FB: public QWidget
 
 public:
 
-     explicit FB (QWidget *parent = 0);
+     explicit FB (QWidget *parent = nullptr);
      ~FB();
 
      void initGui ();
      void setFbStyle ();
      void registerElements ();
      void deregisterElements ();
-
-     void startInitialAuthentication ();
 
 protected:
 
@@ -350,11 +346,7 @@ private slots:
      void onLanguageSelect (int index);
      void onAboutGraphicsClick ();
      void onUpdatesClick ();
-     void onAuthClick ();
-     void onLabAuthAnimClick ();
-     void authorizeFinished ();
-     void endCheckingUpdates (int exitCode, QProcess::ExitStatus exitStatus);
-     void endMaintainerWork (int exitCode, QProcess::ExitStatus exitStatus);
+     void onSupportInfoUpdated();
      void keyPressEvent (QKeyEvent *);
      int onShowBox (QString msg, QString caption);
      void onShowInfo (QString msg);
@@ -365,6 +357,7 @@ private slots:
      bool onAskToLeaveUnsafeProject ();
      void onProjDialogFinished (int code);
      void onSaveAnyEnded (FBErr err);
+     void onCheckUpdatesFinished(bool updatesAvailable);
 
 private: // methods
 
@@ -405,11 +398,9 @@ private: // methods
      void closeEvent (QCloseEvent *event);
      void showMsgForNotSupported ();
      void updateAtUserChange ();
-     void authorize (QString sLastAccessToken = "", QString sLastRefreshToken = "");
-     void stopAuthorization ();
-     void dropUserSettings ();
      void defineIfCanShowSupportInfo ();
      void showFullMessage (QString sMainText, QString sDetailedText);
+     bool isFunctionAvailable(const QString &functionName);
 
 private: // fields
 
@@ -428,7 +419,6 @@ private: // fields
          QString imgNextgisPath;
          QString offLink;
          QString subscribeLink;
-         QString callbakHtmlPath;
      };
 
      bool isInited;
@@ -443,9 +433,6 @@ private: // fields
      int indexLang; // index in this list, default is 0 = English
 
      FBProject *project; // Current project of the app.
-
-     QProcess *prUpdatesCheck;
-     QProcess *prMaintainer;
 
      QList<QPair<FBFctelem*,QString> > fctsElems; // registrar: first = factory, second = image path
      //QList<QPair<FBFctscreen*,QString> > fctsScreen;
@@ -478,9 +465,9 @@ private: // fields
      QComboBox *comboScreenDevice;
      QList<QToolButton*> toolbsScreenState;
      QWidget *wScreenInfo;
-      QLabel *labScreenInfo1;
-      QLabel *labScreenInfo2;
-      QLabel *labScreenInfo3;
+     QLabel *labScreenInfo1;
+     QLabel *labScreenInfo2;
+     QLabel *labScreenInfo3;
 //     QToolButton *toolbUndo;
 //     QToolButton *toolbRedo;
      QToolButton *toolbClearScreen;
@@ -512,15 +499,9 @@ private: // fields
      QLabel *labUserText;
      QLabel *labUser;
 
-     // TEMPORARY: for premium/non-premium use of the program.
-     // TODO: change this and many other connected things during the big refactoring.
-     FBSetting settLastAccessToken;
-     FBSetting settLastRefreshToken;
-     QScopedPointer<Nextgis::User> pUser;
-     QStringList listPremiumElems;
      bool bShowSupportExpiredMessage;
-     bool bForceOnlineAuth;
-     // Note: some buttons are also hardcoded as for premium use.
+
+     FBUpdater *updater;
 };
 
 #endif //FB_H

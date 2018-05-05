@@ -10,7 +10,7 @@ specification rules and is encoded in UTF-8.
 Syntax
 ======
 
-.. http:options::
+.. http:options:: 
 
    Example of the "form.json" file which represents a form with two elements for
    entering person's name:

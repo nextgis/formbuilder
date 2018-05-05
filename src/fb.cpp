@@ -24,13 +24,17 @@
 #include "form/elements.h"
 #include "ngw.h"
 
+#include <QMovie>
 #include <QProcess>
 
+#include "framework/access/access.h"
+#include "framework/access/signbutton.h"
 
 FB::~FB()
 {
     this->writeSettings();
     delete ui;
+    NGAccess::instance().save();
 }
 
 FB::FB(QWidget *parent):
@@ -44,9 +48,8 @@ FB::FB(QWidget *parent):
     lang.code = "en_GB";
     lang.imgFlagPath = "";
     lang.imgNextgisPath = ":/img/nextgis_en.png";
-    lang.offLink = "http://nextgis.ru/en/nextgis-formbuilder";
+    lang.offLink = "http://nextgis.com/nextgis-formbuilder";
     lang.subscribeLink = "<a href=\"http://nextgis.com/pricing/\">http://nextgis.com/pricing/</a>";
-    lang.callbakHtmlPath = ":/my/auth_confirm.html";
     languages.append(lang);
 
     lang.name = tr("Russian");
@@ -55,21 +58,14 @@ FB::FB(QWidget *parent):
     lang.imgNextgisPath = ":/img/nextgis_ru.png";
     lang.offLink = "http://nextgis.ru/nextgis-formbuilder";
     lang.subscribeLink = "<a href=\"http://nextgis.ru/pricing/\">http://nextgis.ru/pricing/</a>";
-    lang.callbakHtmlPath = ":/my/auth_confirm_ru.html";
     languages.append(lang);
 
     settLastShapeFullPath.key = "last_shp";
     settLastNgfpFullPath.key = "last_ngfp";
     settLastLanguageSelected.key = "language";
-     settLastLanguageSelected.defaultValue = languages[0].code;
+    settLastLanguageSelected.defaultValue = languages[0].code;
     settLastNgwUrl.key = "last_ngw_url";
     settLastNgwLogin.key = "last_ngw_login";
-
-    settLastAccessToken.key = "last_access_token";
-    settLastAccessToken.defaultValue = "";
-
-    settLastRefreshToken.key = "last_refresh_token";
-    settLastRefreshToken.defaultValue = "";
 
     this->readSettings();
 
@@ -83,20 +79,15 @@ FB::FB(QWidget *parent):
         }
     }
 
-    project = NULL;
-
-    prUpdatesCheck = NULL;
-    prMaintainer = NULL;
+    project = nullptr;
 
     this->setObjectName("FB"); // at least for style sheets
 
     ui->setupUi(this);
 
-    // TEMPORARY:
-    listPremiumElems.append(FB_ELEMNAME_SPLIT_COMBOBOX);
-    pUser.reset();
-    bShowSupportExpiredMessage = false;
-    bForceOnlineAuth = false;
+    updater = new FBUpdater(this);
+//    connect(updater, SIGNAL(checkUpdatesStarted()), this, SLOT(checkUpdatesStarted()));
+    connect(updater, SIGNAL(checkUpdatesFinished(bool)), this, SLOT(onCheckUpdatesFinished(bool)));
 }
 
 void FB::initGui ()
@@ -109,7 +100,7 @@ void FB::initGui ()
     //                              Working area
     //----------------------------------------------------------------------
 
-    wScreen = new FBScreen(NULL,FB_SCREEN_SIZEFACTOR); // currently with no form
+    wScreen = new FBScreen(nullptr, FB_SCREEN_SIZEFACTOR); // currently with no form
     wScreen->changeDevice(0);
     wScreen->changeState(0);
     wScreen->redecorate();
@@ -485,15 +476,18 @@ void FB::initGui ()
     toolbUpdates->setToolTip(tr("Updates available!"));
     QObject::connect(toolbUpdates, SIGNAL(clicked()), this, SLOT(onUpdatesClick()));
 
-    toolbAuth = new QToolButton(wPopup);
+    //// toolbAuth = new QToolButton(wPopup);
+    toolbAuth = new NGSignInButton(QString("40ONLYJYYQFLBD6btOpQnJNO9DHfuejUt4FPSUJ3"),
+                                   "user_info.read", wPopup);
 //    toolbAuth->setAttribute(Qt::WA_TransparentForMouseEvents, false);
-    toolbAuth->setIcon(QIcon(":/img/auth.png"));
+    //// toolbAuth->setIcon(QIcon(":/img/auth.png"));
     toolbAuth->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     toolbAuth->setCursor(Qt::PointingHandCursor);
     toolbAuth->setIconSize(QSize(32,32));
     toolbAuth->setFixedSize(32,32);
-    QObject::connect(toolbAuth, SIGNAL(clicked()), this, SLOT(onAuthClick()));
+    QObject::connect(toolbAuth, SIGNAL(supportInfoUpdated()), this, SLOT(onSupportInfoUpdated()));
 
+    // TODO: do this needed?
     labAuthAnim = new FbClickableLabel(wPopup);
     labAuthAnim->hide();
     movieAnim = new QMovie(":/img/loading.gif");
@@ -519,11 +513,9 @@ void FB::initGui ()
     lhPopup->addWidget(labAuthAnim);
     lhPopup->addWidget(toolbUpdates);
 
-    //wPopup->adjustSize();
+    wPopup->adjustSize();
 
-    #ifdef Q_OS_WIN32
     this->startCheckingUpdates(); // after that toolbUpdates may change its enableness
-    #endif
 
     //----------------------------------------------------------------------
     //                         Common GUI settings
@@ -538,7 +530,7 @@ void FB::initGui ()
 
 
 // WINDOW RESIZE EVENT
-void FB::resizeEvent (QResizeEvent *event)
+void FB::resizeEvent (QResizeEvent */*event*/)
 {
 //    wPopup->move(0, 0);
 //    wPopup->resize(this->width(), wPopup->height());
@@ -697,20 +689,18 @@ void FB::setFbStyle ()
 /****************************************************************************/
 
 // ADD ELEM FROM LEFT MENU
-void FB::onAddElemPress (QTreeWidgetItem* item, int column)
+void FB::onAddElemPress (QTreeWidgetItem* item, int /*column*/)
 {
     FBForm *form = wScreen->getFormPtr();
-    if (form == NULL)
+    if (form == nullptr)
         return;
 
     if (item->childCount() != 0) // check if it is not a group header in tree
         return;
 
-    QString keyName = item->data(0,Qt::UserRole).toString();
+    QString keyName = item->data(0, Qt::UserRole).toString();
 
-    // TEMPORARY:
-    if ((pUser.isNull() || pUser.data()->getAccountType() != Nextgis::My::AccountType::Supported)
-            && listPremiumElems.contains(keyName))
+    if (!isFunctionAvailable(keyName))
     {
         this->showMsgForNotSupported();
         return;
@@ -719,8 +709,8 @@ void FB::onAddElemPress (QTreeWidgetItem* item, int column)
     wScreen->requestScrollToBottom();
 
     FBElem *elem = FBForm::createElem(keyName);
-    form->addElem(elem,NULL);
-    elem->setDecorator(wScreen->findDecorator(elem->getKeyName())); // can be NULL
+    form->addElem(elem, nullptr);
+    elem->setDecorator(wScreen->findDecorator(elem->getKeyName())); // can be nullptr
     elem->redecorateSelf();
     elem->updateSelf();
 
@@ -911,7 +901,7 @@ void FB::onOpenClick ()
         }
 
         // If all was correct: replace old project and form with new ones.
-        if (project != NULL)
+        if (project != nullptr)
             delete project;
         project = projOpen;
         wScreen->deleteForm();
@@ -944,7 +934,7 @@ void FB::onSaveClick ()
     toolbSave->setDown(true);
 
     FBForm *form = wScreen->getFormPtr();
-    if (project == NULL || form == NULL || !project->wasFirstSaved())
+    if (project == nullptr || form == nullptr || !project->wasFirstSaved())
     {
         toolbSave->setDown(false);
         return;
@@ -960,7 +950,7 @@ void FB::onSaveAsClick ()
     toolbSaveAs->setDown(true);
 
     FBForm *form = wScreen->getFormPtr();
-    if (project == NULL || form == NULL)
+    if (project == nullptr || form == nullptr)
     {
         toolbSaveAs->setDown(false);
         return;
@@ -1023,7 +1013,7 @@ void FB::onUploadClick ()
             // TODO: when adding images it will be necessery to save them separetely.
             FBForm* form = wScreen->getFormPtr();
             Json::Value jForm;
-            if (form != NULL)
+            if (form != nullptr)
             {
                 jForm = form->toJson();
             }
@@ -1064,13 +1054,13 @@ void FB::onUploadClick ()
 // LISTS BUTTON CLICKED
 void FB::onListsClick ()
 {
-    if (project == NULL) // we need a valid project for storing lists
+    if (project == nullptr) // we need a valid project for storing lists
         return;
 
     toolbLists->setDown(true);
 
-    // TEMPORARY:
-    if (pUser.isNull() || pUser.data()->getAccountType() != Nextgis::My::AccountType::Supported)
+    // FIXME: Is this right name for this functionality?
+    if (!isFunctionAvailable("lists"))
     {
         this->showMsgForNotSupported();
         toolbLists->setDown(false);
@@ -1095,13 +1085,13 @@ void FB::onListsClick ()
             listNames.append(lists[i][0]);
         }
         FBForm* form = wScreen->getFormPtr();
-        if (form != NULL)
+        if (form != nullptr)
         {
             QList<FBElem*> elems = form->getAllElems();
             for (int i=0; i<elems.size(); i++)
             {
                 FBElemCounter *e = qobject_cast<FBElemCounter*>(elems[i]);
-                if (e != NULL)
+                if (e != nullptr)
                 {
                     // See comments of this method. We can't only reset indexes, we must shift them
                     // in some cases.
@@ -1121,28 +1111,28 @@ void FB::onListsClick ()
 // SCREENS PICK
 void FB::onScreenAndroidPick ()
 {
-    FBScreenAndroid *screen = new FBScreenAndroid(NULL,FB_SCREEN_SIZEFACTOR);
+    FBScreenAndroid *screen = new FBScreenAndroid(nullptr,FB_SCREEN_SIZEFACTOR);
     screen->registerAllDecorators();
     this->recreateScreen(screen,false);
     this->afterPickScreen(toolbScreenAndroid);
 }
 void FB::onScreenIosPick ()
 {
-    FBScreen *screen = new FBScreen(NULL,FB_SCREEN_SIZEFACTOR);
+    FBScreen *screen = new FBScreen(nullptr,FB_SCREEN_SIZEFACTOR);
     screen->registerAllDecorators();
     this->recreateScreen(screen,false);
     this->afterPickScreen(toolbScreenIos);
 }
 void FB::onScreenWebPick ()
 {
-    FBScreenWeb *screen = new FBScreenWeb(NULL,FB_SCREEN_SIZEFACTOR);
+    FBScreenWeb *screen = new FBScreenWeb(nullptr,FB_SCREEN_SIZEFACTOR);
     screen->registerAllDecorators();
     this->recreateScreen(screen,false);
     this->afterPickScreen(toolbScreenWeb);
 }
 void FB::onScreenQgisPick ()
 {
-    FBScreenQgis *screen = new FBScreenQgis(NULL,FB_SCREEN_SIZEFACTOR);
+    FBScreenQgis *screen = new FBScreenQgis(nullptr,FB_SCREEN_SIZEFACTOR);
     screen->registerAllDecorators();
     this->recreateScreen(screen,false);
     this->afterPickScreen(toolbScreenQgis);
@@ -1169,7 +1159,7 @@ void FB::onScreenStatePick ()
     // We must always have the default screen type - so here we set
     // the first occur button in the array.
     QObject *obj = this->sender();
-    if (obj == NULL)
+    if (obj == nullptr)
     {
         return;
     }
@@ -1204,7 +1194,7 @@ void FB::onRedoClick ()
 void FB::onClearScreenClick ()
 {
     FBForm *form = wScreen->getFormPtr();
-    if (form == NULL || form->isVoid())
+    if (form == nullptr || form->isVoid())
         return;
     toolbClearScreen->setDown(true);
     if (this->onShowWarning(tr("Clear screen from all elements?"))
@@ -1221,7 +1211,7 @@ void FB::onClearScreenClick ()
 void FB::onDeleteElemClick ()
 {
     FBForm *form = wScreen->getFormPtr();
-    if (form == NULL || form->isVoid())
+    if (form == nullptr || form->isVoid())
         return;
     toolbDeleteElem->setDown(true);
     form->deleteSelected();
@@ -1233,7 +1223,7 @@ void FB::onDeleteElemClick ()
 // FIELDS MANAGER
 void FB::onFieldsManagerClick ()
 {
-    if (project == NULL)
+    if (project == nullptr)
         return;
 
     toolbFieldManager->setDown(true);
@@ -1263,14 +1253,14 @@ void FB::onFieldsManagerClick ()
         // deleted ones, because for now they are still being selected in the elems.
         FBElemInput::updateFields(project->getFields().keys());
         FBForm* form = wScreen->getFormPtr();
-        if (form != NULL)
+        if (form != nullptr)
         {
             QList<FBElem*> elems = form->getAllElems();
             for (int i=0; i<elems.size(); i++)
             {
                 // This is only for Input elems.
                 FBElemInput *e = qobject_cast<FBElemInput*>(elems[i]);
-                if (e != NULL)
+                if (e != nullptr)
                 {
                     // Get selected (for the other project) field of elem.
                     // Some elements may have several Field attributes, so we try to
@@ -1298,7 +1288,7 @@ void FB::onFieldsManagerClick ()
 void FB::onImportControlsClick()
 {
     FBForm* form = wScreen->getFormPtr();
-    if (project == NULL || form == NULL)
+    if (project == nullptr || form == nullptr)
         return;
 
     toolbImportControls->setDown(true);
@@ -1397,7 +1387,7 @@ void FB::onImportControlsClick()
         {
             // This is only for Input elems.
             FBElemInput *e = qobject_cast<FBElemInput*>(elems[i]);
-            if (e != NULL)
+            if (e != nullptr)
             {
                 // Get selected (for the other project) field of elem.
                 // Some elements may have several Field attributes, so we try to
@@ -1443,7 +1433,7 @@ void FB::onImportControlsClick()
 // UPDATE DATA
 void FB::onUpdateDataClick ()
 {
-    if (project == NULL)
+    if (project == nullptr)
         return;
 
     toolbUpdateData->setDown(true);
@@ -1543,84 +1533,25 @@ void FB::onAboutGraphicsClick ()
 // START THE PROCESS WHICH CHECKS FOR UPDATES
 void FB::startCheckingUpdates ()
 {
-    // Check for updates.
-    // Do it only for Windows and only if the program is correctly installed via NextGIS
-    // installer.
-
-    if (prUpdatesCheck != NULL)
-        return;
-
-    QString path = QDir::currentPath() + FB_PATH_MAINTAINER_WIN32;
-    if (!QFile::exists(path))
-        return;
-
-    QStringList args;
-    args<<"-v"<<"--checkupdates";
-    prUpdatesCheck = new QProcess(this);
-    QObject::connect(prUpdatesCheck, SIGNAL(finished(int,QProcess::ExitStatus)),
-                     this, SLOT(endCheckingUpdates(int,QProcess::ExitStatus)));
-    prUpdatesCheck->start(path, args);
+    updater->checkUpdates();
 }
 
 // END OF THE PROCESS WHICH CHECKS FOR UPDATES
-void FB::endCheckingUpdates (int exitCode, QProcess::ExitStatus exitStatus)
+void FB::onCheckUpdatesFinished (bool updatesAvailable)
 {
-    if (prUpdatesCheck == NULL)
-        return;
-
-    bool hasUpdates = false;
-    QString output(prUpdatesCheck->readAllStandardOutput());
-    if (output.contains("<updates>"))
-    {
-        hasUpdates = true;
-    }
-
-    if (hasUpdates)
+    if (updatesAvailable)
         toolbUpdates->show();
 }
 
 // UPDATES BUTTON CLICK
 void FB::onUpdatesClick ()
 {
-    #ifdef Q_OS_WIN32
-    QString path = QDir::currentPath() + FB_PATH_MAINTAINER_WIN32;
-    if (!QFile::exists(path))
-    {
-        this->onShowError(tr("Can not find nextgisupdater.exe. The program may"
-                             " be installed incorrectly"));
-        return;
-    }
-    QStringList args;
-    args<<"--updater";
-    prMaintainer = new QProcess();//(this); // app will be closed by user
-    QObject::connect(prMaintainer, SIGNAL(finished(int,QProcess::ExitStatus)),
-                     this, SLOT(endMaintainerWork(int,QProcess::ExitStatus)));
-    prMaintainer->start(path, args);
-    #endif
-}
+    // TODO: Show dialog to save current project if has changes
 
-// END OF NEXTGISUPDATER.EXE WORK
-void FB::endMaintainerWork(int exitCode, QProcess::ExitStatus exitStatus)
-{
-    if (exitCode == 0 && exitStatus == QProcess::NormalExit) //0 == EXIT_SUCCESS, see qtifw project
-    {
-        toolbUpdates->hide();
-        this->onShowInfo(tr("Please restart the application to apply updates"));
-    }
-}
-
-
-// AUTHENTICATION BUTTON CLICK
-void FB::onAuthClick ()
-{
-    bForceOnlineAuth = true;
-    this->authorize();
-}
-
-// AUTHENTICATION PROCESS LABEL CLICK
-void FB::onLabAuthAnimClick ()
-{
-    this->stopAuthorization();
+    QString projectPath("");
+    if(project)
+        projectPath = project->getCurrentFilePath();
+    updater->startUpdate(projectPath);
 }
 
 
@@ -1630,7 +1561,7 @@ void FB::keyPressEvent (QKeyEvent *event)
     if (event->key() == Qt::Key_Delete)
     {
         FBForm *form = wScreen->getFormPtr();
-        if (form != NULL)
+        if (form != nullptr)
         {
             form->deleteSelected();
             this->updateRightMenu();
@@ -1725,7 +1656,7 @@ int FB::onShowQuestion (QString msg)
 // Call only in according methods.
 bool FB::onAskToLeaveUnsafeProject ()
 {
-    return (project != NULL
+    return (project != nullptr
             && project->isSaveRequired()
             && this->onShowWarning(tr("Project hasn't been saved. Continue?"))
                 != QMessageBox::Ok);
@@ -1734,7 +1665,7 @@ bool FB::onAskToLeaveUnsafeProject ()
 
 // Some common GUI actions after closing project dialogs.
 // Connect only to finished() signal of according dialogues.
-void FB::onProjDialogFinished (int code)
+void FB::onProjDialogFinished (int /*code*/)
 {
     toolbNewVoid->setDown(false);
     toolbNewShape->setDown(false);
@@ -1788,9 +1719,6 @@ void FB::writeSettings ()
     settings.setValue(settLastLanguageSelected.key,settLastLanguageSelected.value);
     settings.setValue(settLastNgwUrl.key,settLastNgwUrl.value);
     settings.setValue(settLastNgwLogin.key,settLastNgwLogin.value);
-
-    settings.setValue(settLastAccessToken.key, settLastAccessToken.value);
-    settings.setValue(settLastRefreshToken.key, settLastRefreshToken.value);
 }
 
 void FB::readSettings ()
@@ -1807,11 +1735,6 @@ void FB::readSettings ()
                                    settLastNgwUrl.defaultValue).toString();
     settLastNgwLogin.value = settings.value(settLastNgwLogin.key,
                                    settLastNgwLogin.defaultValue).toString();
-
-    settLastAccessToken.value = settings.value(settLastAccessToken.key,
-                                  settLastAccessToken.defaultValue).toString();
-    settLastRefreshToken.value = settings.value(settLastRefreshToken.key,
-                                  settLastRefreshToken.defaultValue).toString();
 }
 
 
@@ -1872,7 +1795,7 @@ QToolButton *FB::addTopMenuButton (QWidget *parentTab, QString imgPath, QString 
          QString description, bool isSmall, bool withCaption, bool atTheEnd)
 {
     QToolButton *but = new QToolButton(parentTab);
-    QHBoxLayout *lhParent = (QHBoxLayout*)parentTab->layout();
+    QHBoxLayout *lhParent = static_cast<QHBoxLayout*>(parentTab->layout());
     but->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
     but->setAutoRaise(true);
     but->setIcon(QIcon(imgPath));
@@ -1943,7 +1866,7 @@ QComboBox *FB::addTopMenuCombo (QWidget *parentTab, QString caption,
     lab->setStyleSheet("QLabel {color: "+QString(FB_COLOR_DARKGREY)+"}");
     lab->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Fixed);
 
-    QHBoxLayout *lhParent = (QHBoxLayout*)parentTab->layout();
+    QHBoxLayout *lhParent = static_cast<QHBoxLayout*>(parentTab->layout());
     QVBoxLayout *vl = new QVBoxLayout();
     vl->setContentsMargins(0,0,0,0);
     vl->setSpacing(10);
@@ -1963,7 +1886,7 @@ void FB::addTopMenuSplitter (QWidget *parentTab)
     wid->setFixedWidth(FB_GUI_SIZE_TOPSPLITT);
     wid->setStyleSheet("QWidget {background-color: "
                              +QString(FB_COLOR_LIGHTMEDIUMGREY)+"}");
-    QHBoxLayout *lhParent = (QHBoxLayout*)parentTab->layout();
+    QHBoxLayout *lhParent = static_cast<QHBoxLayout*>(parentTab->layout());
     lhParent->insertWidget(lhParent->count()-1,wid); // last is stretch item.
 }
 
@@ -1971,7 +1894,7 @@ void FB::addTopMenuSplitter (QWidget *parentTab)
 // Create and add a void area for any tab in the top menu.
 void FB::addTopMenuSpacer (QWidget *parentTab)
 {
-    QHBoxLayout *lhParent = (QHBoxLayout*)parentTab->layout();
+    QHBoxLayout *lhParent = static_cast<QHBoxLayout*>(parentTab->layout());
     lhParent->insertSpacing(lhParent->count()-1,FB_GUI_SIZE_TOPSPACE);
 }
 
@@ -1994,7 +1917,7 @@ QLabel *FB::addTopMenuLabel(QWidget *parentTab, QString text, QString caption)
     lv->setSpacing(5);
     lv->addWidget(lab2);
     lv->addWidget(lab1);
-    QHBoxLayout *lhParent = (QHBoxLayout*)parentTab->layout();
+    QHBoxLayout *lhParent = static_cast<QHBoxLayout*>(parentTab->layout());
     lhParent->insertLayout(lhParent->count()-1,lv); // last is stretch item.
     return lab1;
 }
@@ -2102,7 +2025,7 @@ QTableWidget* FB::addRightMenuTable ()
 // Update enable states for all GUI elements in program.
 void FB::updateEnableness ()
 {
-    if (project == NULL)
+    if (project == nullptr)
     {
         wMenuLeft->setEnabled(false);
         wMenuRight->setEnabled(false);
@@ -2192,9 +2115,8 @@ void FB::updateLeftTrees ()
 
         // TEMPORARY:
         QString sElemDispName;
-        if ((pUser.isNull() || pUser.data()->getAccountType() != Nextgis::My::AccountType::Supported)
-            && listPremiumElems.contains(testElem->getKeyName()))
-            sElemDispName = testElem->getDisplayName() + QString::fromUtf8(FB_UTF8CHAR_LOCK);
+        if (!isFunctionAvailable(testElem->getKeyName()))
+            sElemDispName = testElem->getDisplayName() + " " + QString::fromUtf8(FB_UTF8CHAR_LOCK);
         else
             sElemDispName = testElem->getDisplayName();
 
@@ -2241,7 +2163,7 @@ void FB::updateRightMenu ()
     // Get form elements.
     QList<FBElem*> elemsSelected;
     FBForm *form = wScreen->getFormPtr();
-    if (form != NULL)
+    if (form != nullptr)
         elemsSelected = form->getSelectedElems();
 
     if (elemsSelected.size() == 0)
@@ -2253,7 +2175,7 @@ void FB::updateRightMenu ()
     }
 
     else if (elemsSelected.size() == 1)
-    { 
+    {
         // Create a table for one selected elem's attributes.
         // TODO: create different tables for different attribute roles.
         QTableWidget* table = this->addRightMenuTable();
@@ -2327,7 +2249,7 @@ void FB::updateProjectString ()
     QString strToShorten = "";
     QString strToPrepend = "";
 
-    if (project == NULL)
+    if (project == nullptr)
     {
         strToShorten = tr("Create new or open existing project ...");
     }
@@ -2441,7 +2363,7 @@ void FB::afterPickScreen (QToolButton *toolbDown)
     toolbScreenIos->setDown(false);
     toolbScreenWeb->setDown(false);
     toolbScreenQgis->setDown(false);
-    if (toolbDown != NULL)
+    if (toolbDown != nullptr)
         toolbDown->setDown(true);
 }
 
@@ -2451,7 +2373,7 @@ void FB::updateAppTitle ()
 {
     QString str = tr("NextGIS Formbuilder");
 
-    if (project != NULL)
+    if (project != nullptr)
     {
         QString strPath;
         QString strNameBase = "";
@@ -2485,7 +2407,7 @@ void FB::pickDefaultScreen ()
     // TODO: think about what other screen to set in this situation - may be
     // read it from the current project structure. Currently we set Android
     // screen.
-    FBScreenAndroid *screen = new FBScreenAndroid(NULL,FB_SCREEN_SIZEFACTOR);
+    FBScreenAndroid *screen = new FBScreenAndroid(nullptr,FB_SCREEN_SIZEFACTOR);
     screen->registerAllDecorators();
     this->recreateScreen(screen,false); // with form copy, if was some
     this->afterPickScreen(toolbScreenAndroid);
@@ -2493,10 +2415,10 @@ void FB::pickDefaultScreen ()
 // Recreate screen to void. Just "reset to grey screen".
 void FB::pickVoidScreen ()
 {
-    FBScreen *screen = new FBScreen(NULL,FB_SCREEN_SIZEFACTOR);
+    FBScreen *screen = new FBScreen(nullptr,FB_SCREEN_SIZEFACTOR);
     screen->registerAllDecorators();
     this->recreateScreen(screen,true); // do not copy form
-    this->afterPickScreen(NULL);
+    this->afterPickScreen(nullptr);
 }
 
 
@@ -2504,7 +2426,7 @@ void FB::pickVoidScreen ()
 // Pass only newly created screen!
 void FB::recreateScreen (FBScreen *newScreen, bool destroyForm)
 {
-    if (newScreen == NULL)
+    if (newScreen == nullptr)
         return;
     if (!destroyForm)
     {
@@ -2540,7 +2462,7 @@ bool FB::newProjectCommonActions (FBProject *proj, QString path)
         this->onShowErrorFull(tr("Unable to create new project! "), err);
         return false;
     }
-    if (project != NULL)
+    if (project != nullptr)
         delete project;
     project = proj;
 
@@ -2585,7 +2507,7 @@ void FB::saveProjectCommonActions (QString ngfpFullPath)
 
     dlgProgress->setWindowTitle(tr("Saving ..."));
     FBThreadSaveAs *thread = new FBThreadSaveAs(this, ngfpFullPath, project,
-                      wScreen->getFormPtr()->toJson()); // NULL-check was made outside
+                      wScreen->getFormPtr()->toJson()); // nullptr-check was made outside
     QObject::connect(thread,SIGNAL(resultReady(FBErr)),
                      this, SLOT(onSaveAnyEnded(FBErr)));
     QObject::connect(thread,SIGNAL(finished()),
@@ -2607,10 +2529,10 @@ void FB::saveProjectCommonActions (QString ngfpFullPath)
 
 bool FB::isSaveRequired ()
 {
-    if (project == NULL)
+    if (project == nullptr)
         return false;
     FBForm *form = wScreen->getFormPtr();
-    if (form == NULL)
+    if (form == nullptr)
         return false;
 
     if (!project->isSaveRequired() && !form->isSaveRequired())
@@ -2760,228 +2682,37 @@ FBDialogAbout::FBDialogAbout (QWidget *parent):
 /*****************************************************************************/
 
 
-void FB::startInitialAuthentication ()
+void FB::onSupportInfoUpdated()
 {
-    //We do not perform authorization if the user of this program has never signed in or has just
-    //signed out last time.
-    if (settLastAccessToken.value == "")
-        return;
-
-    toolbAuth->hide(); //toolbAuth->setEnabled(false);
-    labAuthAnim->show();
-
-    // Anyway try the "online" authentication first because even just for refreshing the "offline"
-    // cache we need to authorize with OAuth2.
-    bForceOnlineAuth = false;
-    this->authorize(settLastAccessToken.value, settLastRefreshToken.value);
-}
-
-
-void FB::authorize (QString sLastAccessToken, QString sLastRefreshToken)
-{
-    // Block auth button so not to allow to press on it several times during the authorization
-    // process.
-    toolbAuth->hide(); //toolbAuth->setEnabled(false);
-    labAuthAnim->show();
-
-    // Start signing in.
-    if (pUser.isNull())
-    {
-        pUser.reset(new Nextgis::User());
-
-        // Define if there was any user that signed in before and forse online authentication
-        // if there was no such user.
-        if (sLastAccessToken != "")
-        {
-            pUser.data()->getApiWrapperPtr()->setLastAccessToken(sLastAccessToken);
-            pUser.data()->getApiWrapperPtr()->setLastRefreshToken(sLastRefreshToken);
-            bForceOnlineAuth = false;
-        }
-        else
-        {
-            bForceOnlineAuth = true;
-        }
-
-        connect(pUser.data(), &Nextgis::User::authenticationFinished, this, &FB::authorizeFinished);
-        pUser.data()->getApiWrapperPtr()->setCallbackHtml(languages[indexLang].callbakHtmlPath);
-        pUser.data()->startAuthentication();
-    }
-
-    // Sign out immidiately.
-    else
-    {
-        pUser.reset(nullptr);
-        this->updateAtUserChange();
-
-        this->dropUserSettings();
-
-        labAuthAnim->hide();
-        toolbAuth->show(); //toolbAuth->setEnabled(true);
-    }
-}
-
-
-void FB::authorizeFinished ()
-{
-    // "Online" sign in finished successfully.
-    if (pUser.data()->isAuthenticated())
-    {
-        // Save last tokens in settings.
-        settLastAccessToken.value = pUser.data()->getApiWrapperPtr()->getLastAccessToken();
-        settLastRefreshToken.value = pUser.data()->getApiWrapperPtr()->getLastRefreshToken();
-
-        // Write user data to the settings file. This way we refresh the "offline" cache.
-        pUser.data()->writeToCache();
-
-        this->defineIfCanShowSupportInfo();
-    }
-
-    // "Online" sign in failed.
-    else
-    {
-        if (bForceOnlineAuth)
-        {
-            this->showFullMessage(tr("Unable to authorize"),
-                                  pUser.data()->getApiWrapperPtr()->obtainLastError());
-            pUser.reset(nullptr);
-//            this->dropUserSettings();
-        }
-
-        // Try the "offline" authentication.
-        else
-        {
-            pUser.reset(new Nextgis::User());
-            pUser.data()->readFromCache();
-
-            // "Offline" sign in failed.
-            // Incorrect user info was read from file or signature verification failed:
-            if (!pUser.data()->verifyInfo() ||
-                (pUser.data()->getAccountType() == Nextgis::My::AccountType::Supported &&
-                 !pUser.data()->verifySignature()))
-            {
-                this->showFullMessage(tr("Unable to authorize"), tr("Incorrect user info"));
-                pUser.reset(nullptr);
-//                this->dropUserSettings();
-            }
-
-            else
-            {
-
-            // "Offline" sign in finished successfully.
-//            if (pUser.data()->getSupportEndDate() >= QDate::currentDate())
-//            {
-                this->defineIfCanShowSupportInfo();
-//            }
-            }
-        }
-    }
-
-    // Unblock auth button which was blocked for the time of authorization.
-    labAuthAnim->hide();
-    toolbAuth->show(); //toolbAuth->setEnabled(true);
-
+    this->defineIfCanShowSupportInfo();
     this->updateAtUserChange();
 }
-
-
-void FB::stopAuthorization ()
-{
-
-}
-
-
-void FB::dropUserSettings ()
-{
-    settLastAccessToken.value = "";
-    settLastRefreshToken.value = "";
-
-    pUser.data()->clearCache();
-}
-
 
 void FB::defineIfCanShowSupportInfo ()
 {
     // Define if the support period for this user has just expired. Set the according flag and
     // use it further so to show this message only once.
     // Note: we do not handle such cases when user changes the system date manually.
-    QDate date = pUser.data()->getSupportEndDate();
-    Nextgis::My::AccountType account = pUser.data()->getAccountType();
-    if (date.isValid() && date < QDate::currentDate() &&
-        account == Nextgis::My::AccountType::NotSupported)
-    {
-        bShowSupportExpiredMessage = true;
-    }
-    else
-    {
-        bShowSupportExpiredMessage = false;
-    }
+    bShowSupportExpiredMessage = NGAccess::instance().isUserAuthorized() &&
+            !NGAccess::instance().isUserSupported();
 }
-
 
 void FB::updateAtUserChange ()
 {
-    // Update user info in the About panel.
-    // Case: user has a supported account.
-    if (!pUser.isNull() && pUser.data()->getAccountType() == Nextgis::My::AccountType::Supported)
-    {
-        QDate date = pUser->getSupportEndDate();
-        if (date.isValid())
-        {
-            labUserText->setText(tr("You are using an extended version.<br>"
-                                    "Your subscription is active until ") + date.toString("dd.MM.yyyy"));
-        }
-        else
-        {
-            labUserText->setText(tr("You are using an extended version.<br>"
-                                    "Your subscription is active"));
-        }
-    }
-
-    // Case: user has an unsupported account which support date has just expired.
-    else if (!pUser.isNull() && pUser.data()->getAccountType() == Nextgis::My::AccountType::NotSupported
-             && bShowSupportExpiredMessage)
-    {
-        labUserText->setText(tr("Your subscription has expired and some features<br>"
-                                "became unavailable. Visit %1<br>"
-                                "to renew your subscription").arg(languages[indexLang].subscribeLink));
-    }
-
-    // Case: user has an unsupportd account OR no user for this app was signed in.
-    else
-    {
-        labUserText->setText(tr("Your are using a free version. Upgrade at<br>"
-                                "%1 for more features").arg(languages[indexLang].subscribeLink));
-    }
-
-    // Update user name for the pop-up widget.
-    if (!pUser.isNull() && pUser.data()->isAuthenticated())
-    {
-        labAuth->setText(pUser.data()->getLogin());
-        labAuth->show();
-        toolbAuth->setIcon(QIcon(":/img/auth_out.png"));
-        toolbAuth->setToolTip(tr("Sign out"));
-    }
-    else
-    {
-        labAuth->hide();
-        toolbAuth->setIcon(QIcon(":/img/auth.png"));
-        toolbAuth->setToolTip(tr("Sign in"));
-    }
-
     // Remove/add lock sign:
     // ... for elements.
     this->updateLeftTrees();
     // ... for some menu buttons.
-    if (!pUser.isNull() && pUser.data()->getAccountType() == Nextgis::My::AccountType::Supported)
+    if (isFunctionAvailable("lists"))
         toolbLists->setText(tr("Lists"));
     else
-        toolbLists->setText(tr("Lists") + QString::fromUtf8(FB_UTF8CHAR_LOCK));
+        toolbLists->setText(tr("Lists") + " " + QString::fromUtf8(FB_UTF8CHAR_LOCK));
 }
 
 
 void FB::showMsgForNotSupported ()
 {
-    if (pUser.isNull() || !pUser.data()->isAuthenticated())
+    if (!NGAccess::instance().isUserAuthorized())
         this->onShowInfo(tr("Please upgrade and sign in to use this feature.<br>"
                             "View pricing at %1").arg(languages[indexLang].subscribeLink));
     else
@@ -3001,5 +2732,11 @@ void FB::showFullMessage (QString sMainText, QString sDetailedText)
     wMsgBox.exec();
 }
 
-
-
+bool FB::isFunctionAvailable(const QString &functionName)
+{
+    if(functionName.compare(FB_ELEMNAME_SPLIT_COMBOBOX, Qt::CaseInsensitive) == 0 ||
+            functionName.compare("lists", Qt::CaseInsensitive) == 0) {
+        return NGAccess::instance().isFunctionAvailable("fb", functionName);
+    }
+    return true;
+}

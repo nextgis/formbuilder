@@ -3,7 +3,7 @@
 # Purpose:  CMake build scripts
 # Author:   Dmitry Baryshnikov, polimax@mail.ru
 ################################################################################
-# Copyright (C) 2015, NextGIS <info@nextgis.com>
+# Copyright (C) 2015-2018, NextGIS <info@nextgis.com>
 # Copyright (C) 2012,2013,2014 Dmitry Baryshnikov
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
@@ -26,29 +26,27 @@
 ################################################################################
 
 
-function(check_version include_dir major minor rev)
+function(check_version major minor)
 
-    # parse the version number from gdal_version.h and include in
-    # major, minor and rev parameters
+    set(VERSION_FILE ${CMAKE_CURRENT_SOURCE_DIR}/src/project/project_core.h)
 
-    file(READ ${include_dir}/gdal_version.h GDAL_VERSION_H_CONTENTS)
+    file(READ ${VERSION_FILE} _VERSION_H_CONTENTS)
 
-    string(REGEX MATCH "GDAL_VERSION_MAJOR[ \t]+([0-9]+)"
-      GDAL_MAJOR_VERSION ${GDAL_VERSION_H_CONTENTS})
-    string (REGEX MATCH "([0-9]+)"
-      GDAL_MAJOR_VERSION ${GDAL_MAJOR_VERSION})
-    string(REGEX MATCH "GDAL_VERSION_MINOR[ \t]+([0-9]+)"
-      GDAL_MINOR_VERSION ${GDAL_VERSION_H_CONTENTS})
-    string (REGEX MATCH "([0-9]+)"
-      GDAL_MINOR_VERSION ${GDAL_MINOR_VERSION})
-    string(REGEX MATCH "GDAL_VERSION_REV[ \t]+([0-9]+)"
-      GDAL_REV_VERSION ${GDAL_VERSION_H_CONTENTS})
-    string (REGEX MATCH "([0-9]+)"
-      GDAL_REV_VERSION ${GDAL_REV_VERSION})
+    string(REGEX MATCH "FB_VERSION[ \t]+([0-9].[0-9]+)" FB_VERSION ${_VERSION_H_CONTENTS})
+    string(REGEX MATCH "([0-9].[0-9]+)" FB_VERSION ${FB_VERSION})
 
-    set(${major} ${GDAL_MAJOR_VERSION} PARENT_SCOPE)
-    set(${minor} ${GDAL_MINOR_VERSION} PARENT_SCOPE)
-    set(${rev} ${GDAL_REV_VERSION} PARENT_SCOPE)
+    string(REPLACE "." ";" FB_VERSION ${FB_VERSION})
+    list(GET FB_VERSION 0 FB_MAJOR_VERSION)
+    list(GET FB_VERSION 1 FB_MINOR_VERSION)
+
+    set(${major} ${FB_MAJOR_VERSION} PARENT_SCOPE)
+    set(${minor} ${FB_MINOR_VERSION} PARENT_SCOPE)
+
+    # Store version string in file for installer needs
+    file(TIMESTAMP ${VERSION_FILE} VERSION_DATETIME "%Y-%m-%d %H:%M:%S" UTC)
+    set(VERSION ${FB_MAJOR_VERSION}.${FB_MINOR_VERSION})
+    get_cpack_filename(${VERSION} PROJECT_CPACK_FILENAME)
+    file(WRITE ${CMAKE_BINARY_DIR}/version.str "${VERSION}\n${VERSION_DATETIME}\n${PROJECT_CPACK_FILENAME}")
 
 endfunction(check_version)
 
@@ -57,21 +55,20 @@ function(report_version name ver)
     string(ASCII 27 Esc)
     set(BoldYellow  "${Esc}[1;33m")
     set(ColourReset "${Esc}[m")
-        
-    message(STATUS "${BoldYellow}${name} version ${ver}${ColourReset}")
-    
-endfunction() 
+
+    message("${BoldYellow}${name} version ${ver}${ColourReset}")
+
+endfunction()
 
 function(warning_msg text)
-    if(NOT SUPRESS_VERBOSE_OUTPUT)
+    if(NOT SUPPRESS_VERBOSE_OUTPUT)
     string(ASCII 27 Esc)
     set(Red         "${Esc}[31m")
     set(ColourReset "${Esc}[m")
-        
+
     message(STATUS "${Red}${text}${ColourReset}")
     endif()
-endfunction()    
-
+endfunction()
 
 
 # macro to find packages on the host OS
@@ -80,17 +77,9 @@ macro( find_exthost_package )
         set( CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER )
         set( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY NEVER )
         set( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE NEVER )
-        if( CMAKE_HOST_WIN32 )
-            SET( WIN32 1 )
-            SET( UNIX )
-        elseif( CMAKE_HOST_APPLE )
-            SET( APPLE 1 )
-            SET( UNIX )
-        endif()
+
         find_package( ${ARGN} )
-        SET( WIN32 )
-        SET( APPLE )
-        SET( UNIX 1 )
+
         set( CMAKE_FIND_ROOT_PATH_MODE_PROGRAM ONLY )
         set( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY )
         set( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY )
@@ -106,17 +95,9 @@ macro( find_exthost_program )
         set( CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER )
         set( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY NEVER )
         set( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE NEVER )
-        if( CMAKE_HOST_WIN32 )
-            SET( WIN32 1 )
-            SET( UNIX )
-        elseif( CMAKE_HOST_APPLE )
-            SET( APPLE 1 )
-            SET( UNIX )
-        endif()
+
         find_program( ${ARGN} )
-        SET( WIN32 )
-        SET( APPLE )
-        SET( UNIX 1 )
+
         set( CMAKE_FIND_ROOT_PATH_MODE_PROGRAM ONLY )
         set( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY )
         set( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY )
@@ -126,29 +107,33 @@ macro( find_exthost_program )
 endmacro()
 
 
-# macro to find path on the host OS
-macro( find_exthost_path )
-    if(CMAKE_CROSSCOMPILING)
-        set( CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER )
-        set( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY NEVER )
-        set( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE NEVER )
-        if( CMAKE_HOST_WIN32 )
-            SET( WIN32 1 )
-            SET( UNIX )
-        elseif( CMAKE_HOST_APPLE )
-            SET( APPLE 1 )
-            SET( UNIX )
-        endif()
-        find_path( ${ARGN} )
-        SET( WIN32 )
-        SET( APPLE )
-        SET( UNIX 1 )
-        set( CMAKE_FIND_ROOT_PATH_MODE_PROGRAM ONLY )
-        set( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY )
-        set( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY )
-    else()
-        find_path( ${ARGN} )
+function(get_cpack_filename ver name)
+    get_compiler_version(COMPILER)
+    if(BUILD_STATIC_LIBS)
+        set(STATIC_PREFIX "static-")
     endif()
-endmacro()
 
+    set(${name} ${PROJECT_NAME}-${STATIC_PREFIX}${ver}-${COMPILER} PARENT_SCOPE)
+endfunction()
 
+function(get_compiler_version ver)
+    ## Limit compiler version to 2 or 1 digits
+    string(REPLACE "." ";" VERSION_LIST ${CMAKE_C_COMPILER_VERSION})
+    list(LENGTH VERSION_LIST VERSION_LIST_LEN)
+    if(VERSION_LIST_LEN GREATER 2 OR VERSION_LIST_LEN EQUAL 2)
+        list(GET VERSION_LIST 0 COMPILER_VERSION_MAJOR)
+        # list(GET VERSION_LIST 1 COMPILER_VERSION_MINOR)
+        set(COMPILER_VERSION_MINOR 0)
+        set(COMPILER ${CMAKE_C_COMPILER_ID}-${COMPILER_VERSION_MAJOR}.${COMPILER_VERSION_MINOR})
+    else()
+        set(COMPILER ${CMAKE_C_COMPILER_ID}-${CMAKE_C_COMPILER_VERSION})
+    endif()
+
+    if(WIN32)
+        if(CMAKE_CL_64)
+            set(COMPILER "${COMPILER}-64bit")
+        endif()
+    endif()
+
+    set(${ver} ${COMPILER} PARENT_SCOPE)
+endfunction()

@@ -1,8 +1,9 @@
 /******************************************************************************
  * Project:  NextGIS Formbuilder
- * Author:   Mikhail Gusev, gusevmihs@gmail.com
+ * Purpose:  updater class
+ * Author:   Dmitry Baryshnikov, dmitry.baryshnikov@nextgis.com
  ******************************************************************************
-*   Copyright (C) 2014-2017 NextGIS
+*   Copyright (C) 2018 NextGIS
 *
 *    This program is free software: you can redistribute it and/or modify
 *    it under the terms of the GNU General Public License as published by
@@ -17,28 +18,19 @@
 *    You should have received a copy of the GNU General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
+#ifndef FBUPDATER_H
+#define FBUPDATER_H
 
-#ifndef FBCLICKABLELABEL_H
-#define FBCLICKABLELABEL_H
+#include "framework/updater.h"
 
-#include <QLabel>
-#include <QWidget>
+class FBUpdater : public NGUpdater
+{
+public:
+    explicit FBUpdater( QWidget *parent = nullptr );
 
-
-class FbClickableLabel: public QLabel 
-{ 
-    Q_OBJECT 
-
-    public:
-        explicit FbClickableLabel (QWidget* wParent = nullptr);
-        ~FbClickableLabel ();
-
-    signals:
-        void clicked ();
-
-    protected:
-        void mousePressEvent (QMouseEvent* event);
-
+protected:
+    virtual const QStringList ignorePackages() override;
+    virtual const QString updaterPath() override;
 };
 
-#endif //FBCLICKABLELABEL_H
+#endif // FBUPDATER_H

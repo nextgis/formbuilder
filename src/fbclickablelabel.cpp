@@ -28,7 +28,7 @@ FbClickableLabel::~FbClickableLabel ()
 {    
 }
 
-void FbClickableLabel::mousePressEvent (QMouseEvent* event) 
+void FbClickableLabel::mousePressEvent (QMouseEvent* /*event*/)
 {
     emit clicked();
 }

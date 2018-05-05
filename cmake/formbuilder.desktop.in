@@ -1,5 +1,5 @@
 [Desktop Entry]
-Version=2.1
+Version=@VERSION@
 Type=Application
 Name=NextGIS Formbuilder
 Comment=Forms editor for NextGIS Mobile

@@ -27,7 +27,7 @@
 #include "project_core.h"
 
 #include "projects.h"
- 
+
 QList<FbGeomType*> FBProject::GEOM_TYPES;
 QList<FbDataType*> FBProject::DATA_TYPES;
 QList<FbSrsType*> FBProject::SRS_TYPES;
@@ -214,7 +214,7 @@ FBErr FBProject::read (QString ngfpFullPath)
     QString versProg = FBProject::getProgVersionStr();
     float fVersFile = versFile.toFloat();
     int nVersFileMain = fVersFile; // truncate fractional part
-    int nVersProgMain = FB_VERSION;
+    int nVersProgMain = static_cast<int>(ceil(FB_VERSION));
     if (nVersFileMain < nVersProgMain)
     {
         FBProject::CUR_ERR_INFO = QObject::tr("Project file is of version ")
@@ -1231,6 +1231,3 @@ FBErr FBProject::reprojectLayer (OGRLayer *layer)
 
     return FBErrNone;
 }
-
-
-

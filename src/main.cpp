@@ -5,9 +5,28 @@
 #include <QTranslator>
 #include <QLibraryInfo>
 
+#ifdef Q_OS_MACOS
+static void translationPath(const QString &basePath,
+                               QList<QString> &localePaths)
+{
+    QDir baseDir(basePath);
+    QStringList filters;
+    filters << QStringLiteral("ngstd_*.framework");
+    QStringList list = baseDir.entryList(filters);
+    foreach (QString subPath, list) {
+        const QString &libTrPath = basePath + "/" + subPath +
+                "/Resources/translations";
+        localePaths.append(libTrPath);
+    }
+}
+#endif // Q_OS_MACOS
+
 int main (int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    a.setApplicationName("FormBuilder");
+    a.setOrganizationName("NextGIS");
+    a.setOrganizationDomain("com.nextgis");
 
     // TODO: implement the recognition and setting of the system language firstly.
     //QString langSys = QLocale::system().name();
@@ -20,18 +39,42 @@ int main (int argc, char *argv[])
     QString langSetSys = langSet; // get qt translation file suffix
     langSetSys.chop(3);
 
-    // TODO: maybe we need to load more files with system translations? See e.g.
-    // C:\Qt\5.8\msvc2013\translations for Windows.
-    QString sysTransName = "qtbase_" + langSetSys;
-    QTranslator translatorSys;
-    translatorSys.load(sysTransName,QLibraryInfo::location(QLibraryInfo::TranslationsPath));
-    a.installTranslator(&translatorSys); // will use qt.conf for file paths if it exists
+    QList<QString> localePaths;
+#ifdef Q_OS_MACOS
+    const QString &libTrPath = QCoreApplication::applicationDirPath()
+            + QLatin1String("/Contents/Resources/translations/");
+    localePaths.append(libTrPath);
+    translationPath(QCoreApplication::applicationDirPath() +
+                       "/Contents/Frameworks/", localePaths);
+    translationPath(QCoreApplication::applicationDirPath() +
+                       "/../Library/Frameworks/", localePaths);
+#else
+    const QString &libTrPath = QCoreApplication::applicationDirPath()
+            + QLatin1String("/../share/translations");
+    localePaths.append(libTrPath);
+#endif
 
-    // For program translations we always have the same path for Linux and for Windows
-    // if the program installed correctly.
-    QTranslator translator;
-	translator.load(FB_PATH_TRANSLATIONS + QString("/fb_") + langSet);
-    a.installTranslator(&translator);
+    localePaths.append(QLibraryInfo::location(QLibraryInfo::TranslationsPath));
+
+    // get qm files list in libTrPath
+    QStringList filters;
+    filters << QStringLiteral("ngstd_%1*").arg(langSetSys);
+    filters << QStringLiteral("qt_%1*").arg(langSetSys);
+    filters << QStringLiteral("qtbase_%1*").arg(langSetSys);
+    filters << QStringLiteral("fb_%1*").arg(langSet);
+    foreach(QString localePath, localePaths) {
+        QDir localeDir(localePath);
+        QStringList libTrList = localeDir.entryList(filters);
+        foreach (QString trFileName, libTrList) {
+            QTranslator *translator = new QTranslator;
+            if (translator->load(trFileName, localePath)) {
+                a.installTranslator(translator);
+            }
+            else {
+                delete translator;
+            }
+        }
+    }
 
     FB w;
 
@@ -42,8 +85,6 @@ int main (int argc, char *argv[])
     w.initGui();
     w.setFbStyle();
     w.show();
-
-    w.startInitialAuthentication();
 
     int ret = a.exec();
 
