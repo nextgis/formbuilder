@@ -130,5 +130,5 @@ find_anyproject(NGSTD REQUIRED COMPONENTS framework5)
 # Build gui executable.
 add_subdirectory(src)
 
-configure_file(${FB_SOURCE_DIR}/cmake/qt.conf.cmake.in ${FB_BINARY_DIR}/qt.conf IMMEDIATE @ONLY)
-install(FILES ${FB_BINARY_DIR}/qt.conf DESTINATION ${INSTALL_SHARE_DIR})
+configure_file(${PROJECT_SOURCE_DIR}/cmake/qt.conf.cmake.in ${CMAKE_BINARY_DIR}/qt.conf IMMEDIATE @ONLY)
+install(FILES ${CMAKE_BINARY_DIR}/qt.conf DESTINATION ${INSTALL_SHARE_DIR})
