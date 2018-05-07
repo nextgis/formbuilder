@@ -63,7 +63,10 @@ else()
     set(QT5_TRANSLATION_DIR FIXME)
 endif()
 
-cmake_policy(SET CMP0071 NEW)
+if(POLICY CMP0071)
+    cmake_policy(SET CMP0071 NEW)
+endif()
+
 # Tell CMake to run moc when necessary:
 set(CMAKE_AUTOMOC ON)
 
