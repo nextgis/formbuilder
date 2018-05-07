@@ -43,6 +43,11 @@ if(OSX_FRAMEWORK)
     set(SKIP_INSTALL_FILES OFF)
     set(SKIP_INSTALL_EXPORT ON)
     set(CMAKE_MACOSX_RPATH ON)
+
+    set(QT4_PLUGINS_DIR Library/Plugins/Qt4)
+    set(QT4_TRANSLATION_DIR Library/Translations/Qt4)
+    set(QT5_PLUGINS_DIR Library/Plugins/Qt5)
+    set(QT5_TRANSLATION_DIR Library/Translations/Qt5)
 else()
     include(GNUInstallDirs)
 
@@ -50,6 +55,12 @@ else()
     set(INSTALL_LIB_DIR ${CMAKE_INSTALL_LIBDIR} CACHE INTERNAL "Installation directory for libraries" FORCE)
     set(INSTALL_SHARE_DIR "${CMAKE_INSTALL_DATADIR}/${VENDOR_NAME}/${PROJECT_NAME}" CACHE INTERNAL "Installation directory for share data" FORCE)
     set(INSTALL_TRANSLATIONS_DIR "${CMAKE_INSTALL_DATADIR}/translations" CACHE INTERNAL "Installation directory for translations" FORCE)
+
+    # On Windows qt.conf will be common for several applications so we need to have paths for qt4/5
+    set(QT4_PLUGINS_DIR FIXME)
+    set(QT4_TRANSLATION_DIR FIXME)
+    set(QT5_PLUGINS_DIR FIXME)
+    set(QT5_TRANSLATION_DIR FIXME)
 endif()
 
 cmake_policy(SET CMP0071 NEW)
@@ -115,3 +126,6 @@ find_anyproject(NGSTD REQUIRED COMPONENTS framework5)
 
 # Build gui executable.
 add_subdirectory(src)
+
+configure_file(${FB_SOURCE_DIR}/cmake/qt.conf.cmake.in ${FB_BINARY_DIR}/qt.conf IMMEDIATE @ONLY)
+install(FILES ${FB_BINARY_DIR}/qt.conf DESTINATION ${INSTALL_SHARE_DIR})
