@@ -5,6 +5,8 @@
 #include <QTranslator>
 #include <QLibraryInfo>
 
+#include <QtDebug>
+
 #ifdef Q_OS_MACOS
 static void translationPath(const QString &basePath,
                                QList<QString> &localePaths)
