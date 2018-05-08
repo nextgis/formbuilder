@@ -44,10 +44,16 @@ int main (int argc, char *argv[])
     const QString &libTrPath = QCoreApplication::applicationDirPath()
             + QLatin1String("/Contents/Resources/translations/");
     localePaths.append(libTrPath);
+    localePaths.append(QCoreApplication::applicationDirPath()
+            + QLatin1String("/../../Contents/Resources/translations/"));
     translationPath(QCoreApplication::applicationDirPath() +
                        "/Contents/Frameworks/", localePaths);
     translationPath(QCoreApplication::applicationDirPath() +
+                       "/../../Contents/Frameworks/", localePaths);
+    translationPath(QCoreApplication::applicationDirPath() +
                        "/../Library/Frameworks/", localePaths);
+    translationPath(QCoreApplication::applicationDirPath() +
+                       "/../../../../Library/", localePaths);
 #else
     const QString &libTrPath = QCoreApplication::applicationDirPath()
             + QLatin1String("/../share/translations");
@@ -58,7 +64,7 @@ int main (int argc, char *argv[])
 
     // get qm files list in libTrPath
     QStringList filters;
-    filters << QStringLiteral("ngstd_%1*").arg(langSetSys);
+    filters << QStringLiteral("ngstd_*%1*").arg(langSetSys);
     filters << QStringLiteral("qt_%1*").arg(langSetSys);
     filters << QStringLiteral("qtbase_%1*").arg(langSetSys);
     filters << QStringLiteral("fb_%1*").arg(langSet);

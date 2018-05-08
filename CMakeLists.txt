@@ -63,6 +63,7 @@ else()
     set(QT5_TRANSLATION_DIR FIXME)
 endif()
 
+set(QT_PREFIX ${CMAKE_INSTALL_PREFIX})
 if(POLICY CMP0071)
     cmake_policy(SET CMP0071 NEW)
 endif()
