@@ -72,6 +72,7 @@ int main (int argc, char *argv[])
     filters << QStringLiteral("fb_%1*").arg(langSet);
     qInfo() << "load tra";
     foreach(QString localePath, localePaths) {
+        qInfo() << "localePath " << localePath;
         QDir localeDir(localePath);
         QStringList libTrList = localeDir.entryList(filters);
         foreach (QString trFileName, libTrList) {
