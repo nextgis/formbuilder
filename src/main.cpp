@@ -68,16 +68,15 @@ int main (int argc, char *argv[])
     filters << QStringLiteral("qt_%1*").arg(langSetSys);
     filters << QStringLiteral("qtbase_%1*").arg(langSetSys);
     filters << QStringLiteral("fb_%1*").arg(langSet);
+    qInfo() << "load tra";
     foreach(QString localePath, localePaths) {
         QDir localeDir(localePath);
         QStringList libTrList = localeDir.entryList(filters);
         foreach (QString trFileName, libTrList) {
-            QTranslator *translator = new QTranslator;
-            if (translator->load(trFileName, localePath)) {
-                a.installTranslator(translator);
-            }
-            else {
-                delete translator;
+            QTranslator translator;
+            qInfo() << "File " << trFileName << " and folder " << localePath;
+            if (translator.load(trFileName, localePath)) {
+                a.installTranslator(&translator);
             }
         }
     }
