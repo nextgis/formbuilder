@@ -27,6 +27,7 @@
 #include <QMap>
 #include <QSet>
 #include <QString>
+#include <QStringList>
 #include <QFile>
 
 #include "ogrsf_frmts.h"
@@ -269,7 +270,7 @@ class FBProject: public QObject
      static FBErr writeJsonFile (QFile &file, Json::Value json);
 
     protected:
-     
+
      bool isInited; // whether the project had been already initialized (read). If the
                     // project is inited - it MUST HAVE ALL ITS METADATA SET
 
