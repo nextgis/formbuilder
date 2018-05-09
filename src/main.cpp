@@ -55,7 +55,7 @@ int main (int argc, char *argv[])
     translationPath(QCoreApplication::applicationDirPath() +
                        "/../Library/Frameworks/", localePaths);
     translationPath(QCoreApplication::applicationDirPath() +
-                       "/../../../../Library/", localePaths);
+                       "/../../../../Library/Frameworks/", localePaths);
 #else
     const QString &libTrPath = QCoreApplication::applicationDirPath()
             + QLatin1String("/../share/translations");
@@ -70,16 +70,18 @@ int main (int argc, char *argv[])
     filters << QStringLiteral("qt_%1*").arg(langSetSys);
     filters << QStringLiteral("qtbase_%1*").arg(langSetSys);
     filters << QStringLiteral("fb_%1*").arg(langSet);
-    qInfo() << "load tra";
     foreach(QString localePath, localePaths) {
-        qInfo() << "localePath " << localePath;
         QDir localeDir(localePath);
         QStringList libTrList = localeDir.entryList(filters);
         foreach (QString trFileName, libTrList) {
-            QTranslator translator;
-            qInfo() << "File " << trFileName << " and folder " << localePath;
-            if (translator.load(trFileName, localePath)) {
-                a.installTranslator(&translator);
+            QString loadFile = localeDir.absoluteFilePath(trFileName);
+            QTranslator *translator = new QTranslator;
+            if (translator->load(loadFile)) {
+                qDebug() << "Loaded file " << loadFile; // trFileName << " and folder " << localePath;
+                a.installTranslator(translator);
+            }
+            else {
+                delete translator;
             }
         }
     }
