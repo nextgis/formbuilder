@@ -36,6 +36,7 @@ if(OSX_FRAMEWORK)
     set(INSTALL_BIN_DIR "Applications" CACHE INTERNAL "Installation directory for executables" FORCE)
     set(INSTALL_LIB_DIR "${INSTALL_BIN_DIR}/${PROJECT_NAME}.app/Contents/Frameworks" CACHE INTERNAL "Installation directory for libraries" FORCE)
     set(INSTALL_SHARE_DIR "${INSTALL_BIN_DIR}/${PROJECT_NAME}.app/Contents/Resources" CACHE INTERNAL "Installation directory for shared files" FORCE)
+    set(INSTALL_TRANSLATIONS_DIR "${INSTALL_BIN_DIR}/${PROJECT_NAME}.app/Contents/Resources/translations" CACHE INTERNAL "Installation directory for translations" FORCE)
     set(QT5_TRANSLATION_DIR "Library/Translations/Qt5")
 
     set(SKIP_INSTALL_HEADERS ON)
