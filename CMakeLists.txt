@@ -53,7 +53,7 @@ else()
 
     set(INSTALL_BIN_DIR ${CMAKE_INSTALL_BINDIR} CACHE INTERNAL "Installation directory for executables" FORCE)
     set(INSTALL_LIB_DIR ${CMAKE_INSTALL_LIBDIR} CACHE INTERNAL "Installation directory for libraries" FORCE)
-    set(INSTALL_SHARE_DIR "${CMAKE_INSTALL_DATADIR}/${VENDOR_NAME}/${PROJECT_NAME}" CACHE INTERNAL "Installation directory for share data" FORCE)
+    set(INSTALL_SHARE_DIR "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}" CACHE INTERNAL "Installation directory for share data" FORCE)
     set(INSTALL_TRANSLATIONS_DIR "${CMAKE_INSTALL_DATADIR}/translations" CACHE INTERNAL "Installation directory for translations" FORCE)
 
     # On Windows qt.conf will be common for several applications so we need to have paths for qt4/5
