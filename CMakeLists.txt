@@ -107,7 +107,7 @@ if(COMPILER_SUPPORTS_CXX11)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 endif()
 
-set(QT5_REQUIRED_COMPONENTS Widgets Network LinguistTools)
+set(QT5_REQUIRED_COMPONENTS Widgets Network Svg LinguistTools)
 if(APPLE)
     set(QT5_REQUIRED_COMPONENTS ${QT5_REQUIRED_COMPONENTS} MacExtras)
 endif()
