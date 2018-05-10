@@ -24,6 +24,7 @@
 #include "form/elements.h"
 #include "ngw.h"
 
+#include <QDebug>
 #include <QMovie>
 #include <QProcess>
 
@@ -2116,7 +2117,7 @@ void FB::updateLeftTrees ()
         // TEMPORARY:
         QString sElemDispName;
         if (!isFunctionAvailable(testElem->getKeyName()))
-            sElemDispName = testElem->getDisplayName() + QLatin1String(" ") + QString::fromUtf8(FB_UTF8CHAR_LOCK);
+            sElemDispName = QString("🔒 %1").arg(testElem->getDisplayName());
         else
             sElemDispName = testElem->getDisplayName();
 
@@ -2703,10 +2704,13 @@ void FB::updateAtUserChange ()
     // ... for elements.
     this->updateLeftTrees();
     // ... for some menu buttons.
-    if (isFunctionAvailable("lists"))
+    if (isFunctionAvailable("lists")) {
         toolbLists->setText(tr("Lists"));
-    else
-        toolbLists->setText(tr("Lists") + QLatin1String(" ") + QString::fromUtf8(FB_UTF8CHAR_LOCK));
+    }
+    else {
+        QString lockListStr = QString("🔒 %1").arg(tr("Lists"));
+        toolbLists->setText(lockListStr);
+    }
 }
 
 
