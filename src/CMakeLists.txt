@@ -104,6 +104,7 @@ set(APP_SOURCES
     fbupdater.cpp
 )
 
+qt5_wrap_cpp(MOC_SRCS ${APP_HEADERS})
 qt5_wrap_ui(UI_HDRS fb.ui)
 qt5_add_resources(RESOURCES res.qrc)
 
@@ -118,7 +119,7 @@ foreach(TRANSLATION ${TRANSLATIONS})
     endif()
 endforeach()
 
-add_executable(${APP_NAME} MACOSX_BUNDLE WIN32 ${APP_SOURCES} ${APP_HEADERS} ${FB_TARGET_OBJECTS} ${RESOURCES} ${UI_HDRS} ${QM_FILES})
+add_executable(${APP_NAME} MACOSX_BUNDLE WIN32 ${APP_SOURCES} ${APP_HEADERS} ${MOC_SRCS} ${FB_TARGET_OBJECTS} ${RESOURCES} ${UI_HDRS} ${QM_FILES})
 set_property(TARGET ${APP_NAME} PROPERTY CXX_STANDARD 11)
 
 if(WIN32)

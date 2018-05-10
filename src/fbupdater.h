@@ -25,8 +25,10 @@
 
 class FBUpdater : public NGUpdater
 {
+    Q_OBJECT
 public:
     explicit FBUpdater( QWidget *parent = nullptr );
+    virtual ~FBUpdater() = default;
 
 protected:
     virtual const QStringList ignorePackages() override;
