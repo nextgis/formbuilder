@@ -2116,7 +2116,7 @@ void FB::updateLeftTrees ()
         // TEMPORARY:
         QString sElemDispName;
         if (!isFunctionAvailable(testElem->getKeyName()))
-            sElemDispName = testElem->getDisplayName() + " " + QString::fromUtf8(FB_UTF8CHAR_LOCK);
+            sElemDispName = testElem->getDisplayName() + QLatin1String(" ") + QString::fromUtf8(FB_UTF8CHAR_LOCK);
         else
             sElemDispName = testElem->getDisplayName();
 
@@ -2706,7 +2706,7 @@ void FB::updateAtUserChange ()
     if (isFunctionAvailable("lists"))
         toolbLists->setText(tr("Lists"));
     else
-        toolbLists->setText(tr("Lists") + " " + QString::fromUtf8(FB_UTF8CHAR_LOCK));
+        toolbLists->setText(tr("Lists") + QLatin1String(" ") + QString::fromUtf8(FB_UTF8CHAR_LOCK));
 }
 
 
