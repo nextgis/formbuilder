@@ -532,7 +532,7 @@ void FB::initGui ()
 
 
 // WINDOW RESIZE EVENT
-void FB::resizeEvent (QResizeEvent */*event*/)
+void FB::resizeEvent (QResizeEvent * /*event*/)
 {
 //    wPopup->move(0, 0);
 //    wPopup->resize(this->width(), wPopup->height());
