@@ -24,6 +24,7 @@
 #include "form/elements.h"
 #include "ngw.h"
 
+#include <QApplication>
 #include <QDebug>
 #include <QMovie>
 #include <QProcess>
@@ -1553,6 +1554,8 @@ void FB::onUpdatesClick ()
     if(project)
         projectPath = project->getCurrentFilePath();
     updater->startUpdate(projectPath);
+
+    QApplication::quit();
 }
 
 
