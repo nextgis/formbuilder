@@ -57,6 +57,8 @@ set(APP_HEADERS
 
     fbclickablelabel.h
     fbupdater.h
+    fb.h
+    ngw.h
 )
 
 set(APP_SOURCES
