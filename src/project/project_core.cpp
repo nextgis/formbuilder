@@ -217,10 +217,10 @@ FBErr FBProject::read (QString ngfpFullPath)
     int nVersProgMain = static_cast<int>(ceil(FB_VERSION));
     if (nVersFileMain < nVersProgMain)
     {
-        FBProject::CUR_ERR_INFO = QObject::tr("Project file is of version ")
-                + versFile + QObject::tr(", while the program is of "
-                "version ") + versProg;
-        return FBErrWrongVersion;
+//        FBProject::CUR_ERR_INFO = QObject::tr("Project file is of version ")
+//                + versFile + QObject::tr(", while the program is of "
+//                "version ") + versProg;
+//        return FBErrWrongVersion;
     }
 
     // Set project's metadata.
