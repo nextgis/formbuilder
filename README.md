@@ -6,7 +6,7 @@ Forms editor for various GIS software. Currently builds forms for NextGIS Mobile
 
 Official page: http://nextgis.com/nextgis-formbuilder/
 
-Questions?
+# Links
 
 * Official contacts: http://nextgis.com/contact/
 * GIS-Lab Forum (with discussion, Ru): http://gis-lab.info/forum/viewtopic.php?f=14&t=19303
