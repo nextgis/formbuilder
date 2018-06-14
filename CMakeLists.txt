@@ -88,6 +88,7 @@ endif()
 report_version(${PROJECT_NAME} ${VERSION})
 
 include(FindAnyProject)
+option(BUILD_SHARED_LIBS "Build external libraries shared [Default: ON]" ON)
 
 if(UNIX)
     find_package(Threads)
