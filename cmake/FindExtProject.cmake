@@ -406,14 +406,9 @@ function(find_extproject name)
             WORKING_DIRECTORY ${EXT_BINARY_DIR})
     endif()
 
-    if(CMAKE_CROSSCOMPILING OR ANDROID OR IOS)
-        set( CMAKE_FIND_ROOT_PATH_MODE_PROGRAM ONLY )
-        set( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY )
-        set( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY )
-    endif()
-
-    # We need to build Qt5 here to get cmake target files
-    if(${UPPER_NAME} EQUAL "QT5")
+    string(TOUPPER ${name} UPPER_NAME)
+        # We need to build Qt5 here to get cmake target files
+    if(${UPPER_NAME} STREQUAL "QT5")
         execute_process(COMMAND ${CMAKE_COMMAND} --build . --config Release
             WORKING_DIRECTORY ${EXT_BINARY_DIR}
             RESULT_VARIABLE EXECUTE_RESULT_CODE
@@ -423,8 +418,13 @@ function(find_extproject name)
             message(FATAL_ERROR "Build ${NAME} failed")
         endif()
     endif()
+    
+    if(CMAKE_CROSSCOMPILING OR ANDROID OR IOS)
+        set( CMAKE_FIND_ROOT_PATH_MODE_PROGRAM ONLY )
+        set( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY )
+        set( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY )
+    endif()
 
-    string(TOUPPER ${name} UPPER_NAME)
     if(EXISTS ${EXT_BINARY_DIR}/${UPPER_NAME}Config.cmake)
         include(${EXT_BINARY_DIR}/${UPPER_NAME}Config.cmake)
     else()
