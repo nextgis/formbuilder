@@ -144,7 +144,7 @@ function(find_extproject name)
             if(TARGET ${TARGETG})
                 set_target_properties(${TARGETG} PROPERTIES IMPORTED_GLOBAL TRUE)
             endif()
-        endforeach() 
+        endforeach()
         return()
     endif()
 
@@ -412,6 +412,18 @@ function(find_extproject name)
         set( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY )
     endif()
 
+    # We need to build Qt5 here to get cmake target files
+    if(${UPPER_NAME} EQUAL "QT5")
+        execute_process(COMMAND ${CMAKE_COMMAND} --build . --config Release
+            WORKING_DIRECTORY ${EXT_BINARY_DIR}
+            RESULT_VARIABLE EXECUTE_RESULT_CODE
+        )
+
+        if(NOT ${EXECUTE_RESULT_CODE} EQUAL 0)
+            message(FATAL_ERROR "Build ${NAME} failed")
+        endif()
+    endif()
+
     string(TOUPPER ${name} UPPER_NAME)
     if(EXISTS ${EXT_BINARY_DIR}/${UPPER_NAME}Config.cmake)
         include(${EXT_BINARY_DIR}/${UPPER_NAME}Config.cmake)
@@ -431,9 +443,11 @@ function(find_extproject name)
     set(${UPPER_NAME}_LIBRARIES ${${UPPER_NAME}_LIBRARIES} PARENT_SCOPE)
     set(${UPPER_NAME}_INCLUDE_DIRS ${${UPPER_NAME}_INCLUDE_DIRS} PARENT_SCOPE)
 
-    set_target_properties(${${UPPER_NAME}_LIBRARIES} PROPERTIES IMPORTED_GLOBAL TRUE)
+    if(${${UPPER_NAME}_LIBRARIES})
+        set_target_properties(${${UPPER_NAME}_LIBRARIES} PROPERTIES IMPORTED_GLOBAL TRUE)
 
-    add_dependencies(${${UPPER_NAME}_LIBRARIES} ${name}_EP)
+        add_dependencies(${${UPPER_NAME}_LIBRARIES} ${name}_EP)
+    endif()
 
     # On static build we need all targets in TARGET_LINK_LIB
     if(ALT_UPPER_NAME)
