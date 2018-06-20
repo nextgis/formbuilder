@@ -240,7 +240,7 @@ find_anyproject(GDAL REQUIRED VERSION 2.1
     -DGDAL_BUILD_DOCS=OFF
 )
 
-get_target_property(RCC_PATH Qt5::lrelease IMPORTED_LOCATION)
+get_target_property(RCC_PATH Qt5::lupdate IMPORTED_LOCATION)
 execute_process(COMMAND ${RCC_PATH} -version RESULT_VARIABLE IS_RCC_WORKING)
 if(NOT IS_RCC_WORKING EQUAL 0)
     if(WITH_ZLIB_EXTERNAL)
