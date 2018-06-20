@@ -418,7 +418,7 @@ function(find_extproject name)
             message(FATAL_ERROR "Build ${NAME} failed")
         endif()
     endif()
-    
+
     if(CMAKE_CROSSCOMPILING OR ANDROID OR IOS)
         set( CMAKE_FIND_ROOT_PATH_MODE_PROGRAM ONLY )
         set( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY )
@@ -451,9 +451,9 @@ function(find_extproject name)
 
     # On static build we need all targets in TARGET_LINK_LIB
     if(ALT_UPPER_NAME)
-        set(EXPORTS_PATHS "${EXPORTS_PATHS} ${EXT_BINARY_DIR}/${ALT_UPPER_NAME}Targets.cmake" PARENT_SCOPE)
+        set(EXPORTS_PATHS ${EXPORTS_PATHS} ${EXT_BINARY_DIR}/${ALT_UPPER_NAME}Targets.cmake PARENT_SCOPE)
     else()
-        set(EXPORTS_PATHS "${EXPORTS_PATHS} ${EXT_BINARY_DIR}/${UPPER_NAME}Targets.cmake" PARENT_SCOPE)
+        set(EXPORTS_PATHS ${EXPORTS_PATHS} ${EXT_BINARY_DIR}/${UPPER_NAME}Targets.cmake PARENT_SCOPE)
     endif()
 
     # For static builds we need all libraries list in main project.
