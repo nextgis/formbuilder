@@ -241,7 +241,7 @@ find_anyproject(GDAL REQUIRED VERSION 2.1
 )
 
 get_target_property(RCC_PATH Qt5::rcc IMPORTED_LOCATION)
-execute_process(COMMAND ${RCC_PATH} -v RESULT_VARIABLE ${IS_RCC_WORKING})
+execute_process(COMMAND ${RCC_PATH} -v RESULT_VARIABLE IS_RCC_WORKING)
 if(NOT IS_RCC_WORKING EQUAL 0)
     if(WITH_ZLIB_EXTERNAL)
         # ZLIB needed for uic, rcc, lrelease and lupdate
