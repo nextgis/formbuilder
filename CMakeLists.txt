@@ -240,7 +240,7 @@ find_anyproject(GDAL REQUIRED VERSION 2.1
     -DGDAL_BUILD_DOCS=OFF
 )
 
-if(NOT BUILD_STATIC_LIBS)
+if(BUILD_SHARED_LIBS OR OSX_FRAMEWORK)
     if(WITH_ZLIB_EXTERNAL)
         # ZLIB needed for uic, rcc, lrelease and lupdate
         find_anyproject(ZLIB REQUIRED)
