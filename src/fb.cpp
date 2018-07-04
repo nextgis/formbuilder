@@ -2719,14 +2719,8 @@ void FB::updateAtUserChange ()
 
 void FB::showMsgForNotSupported ()
 {
-    if (!NGAccess::instance().isUserAuthorized())
-        this->onShowInfo(tr("Please upgrade and sign in to use this feature.<br>"
-                            "View pricing at %1").arg(languages[indexLang].subscribeLink));
-    else
-        this->onShowInfo(tr("Please upgrade to use this feature.<br>"
-                            "View pricing at %1").arg(languages[indexLang].subscribeLink));
+    NGAccess::showUnsupportedMessage();
 }
-
 
 void FB::showFullMessage (QString sMainText, QString sDetailedText)
 {
