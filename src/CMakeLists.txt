@@ -26,7 +26,7 @@ set(APP_NAME fb)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-# FIXME: Hot to add client_id to launchpad build?
+# FIXME: How to add client_id to launchpad build?
 # # Add fatal message so not to forget: add OAuth2 client id for this apllication.
 # if (DEFINED FB_OAUTH2_CLIENT_ID)
 #     add_definitions(-D_OAUTH2_CLIENT_ID=${FB_OAUTH2_CLIENT_ID})
@@ -123,6 +123,10 @@ endforeach()
 
 add_executable(${APP_NAME} MACOSX_BUNDLE WIN32 ${APP_SOURCES} ${APP_HEADERS} ${MOC_SRCS} ${FB_TARGET_OBJECTS} ${RESOURCES} ${UI_HDRS} ${QM_FILES})
 set_property(TARGET ${APP_NAME} PROPERTY CXX_STANDARD 11)
+
+if(WIN32)
+    add_definitions(-DFB_GDALDATA_IN_SHARE) # This is define path to gdal data as ../share/gdal
+endif()
 
 if(WIN32)
     set_property(TARGET ${APP_NAME} APPEND PROPERTY LINK_FLAGS /entry:mainCRTStartup)
