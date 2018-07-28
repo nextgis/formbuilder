@@ -264,6 +264,8 @@ endif()
 
 find_anyproject(NGSTD REQUIRED COMPONENTS framework5)
 
+set(PACKAGE_NAME ${PROJECT_NAME})
+
 # Build gui executable.
 add_subdirectory(src)
 
