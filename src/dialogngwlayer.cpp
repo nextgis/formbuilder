@@ -211,7 +211,8 @@ QString FBDialogLayerNgw::getSelectedNgwResource (QString &strUrl, QString &strU
     strId = this->strId.toInt(); // TODO: should we check for conversion errors?
     jsonLayerMeta = this->jsonLayerMeta;
     QString ret = "";
-    ret = strUrl + "/resource/" + QString::number(strId) + "/geojson/";
+    //ret = strUrl + "/resource/" + QString::number(strId) + "/geojson/";
+    ret = strUrl + "/api/resource/" + QString::number(strId) + "/geojson";
     return ret;
 }
 
