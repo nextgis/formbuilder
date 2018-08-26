@@ -34,7 +34,11 @@ int main (int argc, char *argv[])
     //QString langSys = QLocale::system().name();
 
     // TODO: move this and reading of other settings somewhere else.
+#ifdef Q_OS_MACOS
+    QSettings settings(QSettings::NativeFormat, QSettings::UserScope, "NextGIS", "FormBuilder");
+#else
     QSettings settings(QSettings::IniFormat, QSettings::UserScope, "NextGIS", "FormBuilder");
+#endif
     QString langSet;
     langSet = settings.value("language","en_GB").toString();
 
