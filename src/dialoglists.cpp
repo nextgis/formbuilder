@@ -21,6 +21,8 @@
 
 #include "fb.h"
 
+#include "gui/gui_globals.h"
+
 #include <QHeaderView>
 
 #define FB_LISTS_MAX_COLUMNS 64
@@ -144,6 +146,11 @@ FBDialogLists::FBDialogLists (QWidget *parent):
     butMakeKey->setToolTip(tr("Mark selected column as a key column"));
     QObject::connect(butMakeKey, SIGNAL(clicked()), this, SLOT(onMakeKeyClick()));
 
+    butLoadCsv = new QToolButton(this);
+    butLoadCsv->setIcon(QIcon(":/img/load_csv.png"));
+    butLoadCsv->setToolTip(tr("Load items from a CSV file"));
+    QObject::connect(butLoadCsv, SIGNAL(clicked()), this, SLOT(onLoadCsvClick()));
+
     butOk = new QPushButton(this);
     butOk->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
     butOk->setText(tr("OK"));
@@ -155,6 +162,7 @@ FBDialogLists::FBDialogLists (QWidget *parent):
     lvButs->addWidget(butRemoveCol);
     lvButs->addWidget(butRemoveRow);
     lvButs->addWidget(butMakeKey);
+    lvButs->addWidget(butLoadCsv);
     lvButs->addStretch();
 
     QHBoxLayout *lhMain = new QHBoxLayout();
@@ -298,6 +306,96 @@ void FBDialogLists::onMakeKeyClick ()
     this->colorColumn(indexKeyList, FB_LISTS_COLOR_DEFAULT); // remove color from previous key column
     indexKeyList = table->currentColumn();
     this->colorColumn(indexKeyList, FB_LISTS_COLOR_KEY_COLUMN);
+}
+
+
+void FBDialogLists::onLoadCsvClick ()
+{
+    using namespace Fb;
+    using namespace Gui;
+
+    if (table->rowCount() > 0 && table->columnCount() > 0)
+    {
+        int ret = g_showQuestionBox(this, tr("If you load items from a CSV file all current items "
+                                             "in the table will be removed. Continue?"));
+        if (ret != QMessageBox::Ok)
+            return;
+    }
+
+    QFileDialog oFileDialog(this);
+    oFileDialog.setAcceptMode(QFileDialog::AcceptOpen);
+    oFileDialog.setFileMode(QFileDialog::ExistingFile);
+    oFileDialog.setViewMode(QFileDialog::List);
+    oFileDialog.setDefaultSuffix("csv");
+    oFileDialog.setNameFilter("*.csv");
+    oFileDialog.setWindowTitle(tr("Select a CSV file"));
+    oFileDialog.setDirectory(QDir());
+    if (!oFileDialog.exec())
+        return;
+
+    QString sPath = oFileDialog.selectedFiles()[0];
+
+    QByteArray baPath;
+    baPath = sPath.toUtf8();
+    char **papszAllowedDrivers = NULL;
+    papszAllowedDrivers = CSLAddString(papszAllowedDrivers, "CSV");
+    GDALDataset *poDS = (GDALDataset*) GDALOpenEx(baPath.data(), GDAL_OF_VECTOR | GDAL_OF_READONLY, papszAllowedDrivers, NULL, NULL);
+    CSLDestroy(papszAllowedDrivers);
+    if (poDS == NULL)
+    {
+        g_showMsgBox(this, tr("Unable to open CSV file via GDAL."), true);
+        return;
+    }
+    OGRLayer *poLayer = poDS->GetLayer(0);
+    if (poLayer == NULL)
+    {
+        g_showMsgBox(this, tr("Unable to read the layer in a CSV dataset via GDAL."), true);
+        GDALClose(poDS);
+        return;
+    }
+    OGRFeatureDefn *poFDefn = poLayer->GetLayerDefn();
+    int fieldCount = poFDefn->GetFieldCount();
+
+    table->clear();
+    table->setRowCount(0);
+    table->setColumnCount(fieldCount);
+
+    // Get column names.
+    QStringList listCsvColumns;
+    for (int i = 0; i < fieldCount; i++)
+    {
+        QString sLayerName(poFDefn->GetFieldDefn(i)->GetNameRef());
+        listCsvColumns.append(sLayerName);
+    }
+
+    if (listCsvColumns.empty())
+    {
+        GDALClose(poDS);
+        g_showMsgBox(this, tr("Unable to read columns in the CSV file via GDAL."), true);
+        return;
+    }
+
+    table->setHorizontalHeaderLabels(listCsvColumns);
+
+    OGRFeature *poFeature;
+    poLayer->ResetReading();
+    while((poFeature = poLayer->GetNextFeature()) != NULL)
+    {
+        table->setRowCount(table->rowCount() + 1);
+
+        for (int i = 0; i < fieldCount; i++)
+        {
+            QString str = QString::fromUtf8(poFeature->GetFieldAsString(i));
+            table->setItem(table->rowCount() - 1, i, new QTableWidgetItem(str));
+        }
+
+        OGRFeature::DestroyFeature(poFeature);
+    }
+
+    indexKeyList = 0;
+    this->colorColumn(indexKeyList, FB_LISTS_COLOR_KEY_COLUMN);
+
+    GDALClose(poDS);
 }
 
 

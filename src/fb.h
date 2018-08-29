@@ -212,6 +212,7 @@ class FBDialogLists: public QDialog
      void onAddRowClick ();
      void onRemoveRowClick ();
      void onMakeKeyClick ();
+     void onLoadCsvClick ();
     protected:
      void colorColumn (int index, QColor color);
     protected:
@@ -221,6 +222,7 @@ class FBDialogLists: public QDialog
      QToolButton *butAddRow;
      QToolButton *butRemoveRow;
      QToolButton *butMakeKey;
+     QToolButton *butLoadCsv;
      QPushButton *butOk;
      int indexKeyList;
 };
