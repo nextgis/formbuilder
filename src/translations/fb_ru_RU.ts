@@ -598,11 +598,11 @@ project</source>
     </message>
     <message>
         <source>Please upgrade and sign in to use this feature.&lt;br&gt;View pricing at %1</source>
-        <translation>Пожалуйста, приобретите подписку, чтобы&lt;br&gt;получить доступ к данной функции.&lt;br&gt;Подробнее (%1)</translation>
+        <translation type="vanished">Пожалуйста, приобретите подписку, чтобы&lt;br&gt;получить доступ к данной функции.&lt;br&gt;Подробнее (%1)</translation>
     </message>
     <message>
         <source>Please upgrade to use this feature.&lt;br&gt;View pricing at %1</source>
-        <translation>Пожалуйста, приобретите подписку, чтобы&lt;br&gt;получить доступ к данной функции.&lt;br&gt;Подробнее (%1)</translation>
+        <translation type="vanished">Пожалуйста, приобретите подписку, чтобы&lt;br&gt;получить доступ к данной функции.&lt;br&gt;Подробнее (%1)</translation>
     </message>
     <message>
         <source>Authorization...</source>
@@ -926,6 +926,30 @@ List of authors:</source>
     <message>
         <source>Do you really want to remove the selected row?</source>
         <translation>Вы точно хотите удалить выбранную строку?</translation>
+    </message>
+    <message>
+        <source>Load items from a CSV file</source>
+        <translation type="unfinished">Загрузить значения из файла CSV</translation>
+    </message>
+    <message>
+        <source>If you load items from a CSV file all current items in the table will be removed. Continue?</source>
+        <translation type="unfinished">Если вы загрузите значения из файла все текущие значения будут потеряны. Продолжить?</translation>
+    </message>
+    <message>
+        <source>Select a CSV file</source>
+        <translation type="unfinished">Выберите файл CSV</translation>
+    </message>
+    <message>
+        <source>Unable to open CSV file via GDAL.</source>
+        <translation type="unfinished">Не удаётся открыть файл CSV при помощи GDAL.</translation>
+    </message>
+    <message>
+        <source>Unable to read the layer in a CSV dataset via GDAL.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to read columns in the CSV file via GDAL.</source>
+        <translation type="unfinished">Не удаётся считать названия колонок в файле CSV при помощи GDAL.</translation>
     </message>
 </context>
 <context>
@@ -1997,11 +2021,11 @@ exists for the form</source>
     </message>
     <message>
         <source>Project file is of version </source>
-        <translation>Версия файла проекта </translation>
+        <translation type="vanished">Версия файла проекта </translation>
     </message>
     <message>
         <source>, while the program is of version </source>
-        <translation>, тогда как версия программы </translation>
+        <translation type="vanished">, тогда как версия программы </translation>
     </message>
     <message>
         <source>Unable to create temporary dir at </source>
