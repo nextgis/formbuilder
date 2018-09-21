@@ -160,8 +160,8 @@ void FBDialogNgw::onConnectClicked ()
         strUrl.chop(1);
 
     // Add "http" prefix if needed:
-    if (!strUrl.startsWith("http://",Qt::CaseInsensitive))
-        strUrl.prepend("http://");
+//    if (!strUrl.startsWith("http://", Qt::CaseInsensitive))
+//        strUrl.prepend("http://");
 
     // Add main url suffix:
 //strUrl+=FB_NGW_WEBGIS_SUFFIX;
