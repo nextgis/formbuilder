@@ -302,6 +302,13 @@ class FBDecAndrSplitCombobox: public FBDecAndrCombobox
     virtual void redecor (FBElem *elem);
     virtual void update (FBElem *elem);
 };
+class FBDecAndrDistance: public FBDecoratorAndroid
+{
+    public:
+    FBDecAndrDistance (): FBDecoratorAndroid() { }
+    ~FBDecAndrDistance () { }
+    virtual void redecor (FBElem *elem);
+};
 
 
 /**

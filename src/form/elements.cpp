@@ -697,3 +697,16 @@ FBElemSplitcombobox::FBElemSplitcombobox (QWidget *appWidget):
 }
 
 
+/******************************************************************************/
+/*                                                                            */
+/*                              FBElemDistance                                */
+/*                                                                            */
+/******************************************************************************/
+
+FBElemDistance::FBElemDistance ():
+    FBElemInput()
+{
+}
+
+
+

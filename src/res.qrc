@@ -94,5 +94,6 @@
         <file>img/make_default.png</file>
         <file>img/user.png</file>
         <file>img/loading.gif</file>
+        <file>img/distance.png</file>
     </qresource>
 </RCC>

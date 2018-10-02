@@ -74,6 +74,7 @@
 #define FB_ELEMNAME_COUNTER "counter"
 #define FB_ELEMNAME_COORDINATES "coordinates"
 #define FB_ELEMNAME_SPLIT_COMBOBOX "split_combobox"
+#define FB_ELEMNAME_DISTANCE "distance"
 //#define FB_ELEMNAME_TABS "tabs"
 //#define FB_ELEMNAME_GROUP "group"
 //#define FB_ELEMNAME_VERTICAL_LAYOUT "ver_layout"

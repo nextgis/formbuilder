@@ -136,5 +136,13 @@ class FBFctelemSplitcombobox: public FBFctelemAppwidget
      FBElem *create () { return new FBElemSplitcombobox(appWidget); }
 };
 
+class FBFctelemDistance: public FBFctelem
+{
+    public:
+     FBFctelemDistance (): FBFctelem () { }
+     ~FBFctelemDistance () { }
+     FBElem *create () { return new FBElemDistance(); }
+};
+
 #endif // FACTORIES_H
 

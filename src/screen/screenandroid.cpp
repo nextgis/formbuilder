@@ -924,6 +924,25 @@ void FBDecAndrSplitCombobox::update (FBElem* elem)
 }
 
 
+void FBDecAndrDistance::redecor (FBElem* elem)
+{
+    if (elem == NULL) return;
+    this->clearWithDefaults(elem);
+    QLabel *labText = new QLabel(elem);
+    labText->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+    labText->setFont(QFont(FB_ANDR_FONTTYPE,
+                           FB_ANDR_FONTSIZE_NORMAL));
+    labText->setStyleSheet("QLabel"
+                           "{color: "+QString(FB_ANDR_COLOR_DARKGREY)+";"
+                               "border-top: none;"
+                               "border-left: none;"
+                               "border-right: none;"
+                               "border-bottom: none;}");
+    labText->setText(QObject::tr("0 m"));
+    elem->addAsDecor(labText, "");
+}
+
+
 // REGISTRAR:
 void FBScreenAndroid::registerDecorators ()
 {
@@ -941,4 +960,5 @@ void FBScreenAndroid::registerDecorators ()
     this->registerDecorator(FB_ELEMNAME_COUNTER, new FBDecAndrCounter());
     this->registerDecorator(FB_ELEMNAME_COORDINATES, new FBDecAndrCoordinates());
     this->registerDecorator(FB_ELEMNAME_SPLIT_COMBOBOX, new FBDecAndrSplitCombobox());
+    this->registerDecorator(FB_ELEMNAME_DISTANCE, new FBDecAndrDistance());
 }

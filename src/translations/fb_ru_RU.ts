@@ -1547,6 +1547,25 @@ based on predefined format</source>
     </message>
 </context>
 <context>
+    <name>FBElemDistance</name>
+    <message>
+        <source>Distance</source>
+        <translation>Дистанция</translation>
+    </message>
+    <message>
+        <source>This element automatically mesures distance between current 
+position of the point and current position of the surveyor</source>
+        <translation type="vanished">Элемент автоматически измеряющий расстояние между текущим положением 
+сборщика данных и указанной точкой</translation>
+    </message>
+    <message>
+        <source>This element automatically measures distance between current 
+position of the point and current position of the surveyor</source>
+        <translation>Элемент автоматически измеряющий расстояние между текущим положением 
+сборщика данных и указанной точкой</translation>
+    </message>
+</context>
+<context>
     <name>FBElemDoublecombobox</name>
     <message>
         <source>Layer&apos;s field for 1</source>
@@ -2239,6 +2258,10 @@ Try to select another saving directory</source>
     <message>
         <source>Question</source>
         <translation>Вопрос</translation>
+    </message>
+    <message>
+        <source>0 m</source>
+        <translation>0 м</translation>
     </message>
 </context>
 </TS>

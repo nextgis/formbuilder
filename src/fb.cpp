@@ -2735,9 +2735,14 @@ void FB::showFullMessage (QString sMainText, QString sDetailedText)
 
 bool FB::isFunctionAvailable(const QString &functionName)
 {
-    if(functionName.compare(FB_ELEMNAME_SPLIT_COMBOBOX, Qt::CaseInsensitive) == 0 ||
-            functionName.compare("lists", Qt::CaseInsensitive) == 0) {
+    if (functionName.compare(FB_ELEMNAME_SPLIT_COMBOBOX, Qt::CaseInsensitive) == 0 ||
+        functionName.compare(FB_ELEMNAME_DISTANCE, Qt::CaseInsensitive) == 0 ||
+        functionName.compare("lists", Qt::CaseInsensitive) == 0)
+    {
         return NGAccess::instance().isFunctionAvailable("fb", functionName);
     }
     return true;
 }
+
+
+

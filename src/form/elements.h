@@ -297,6 +297,19 @@ class FBElemSplitcombobox: public FBElemInputVariate
      FBAttrString *attrLabel2Ptr;
 };
 
+class FBElemDistance: public FBElemInput
+{
+    Q_OBJECT
+    public:
+     FBElemDistance ();
+     virtual ~FBElemDistance () { }
+     virtual QString getKeyName () { return FB_ELEMNAME_DISTANCE; }
+     virtual QString getDisplayName () { return tr("Distance"); }
+     virtual QString getDescription () { return tr("This element automatically measures distance between current \n"
+                                                   "position of the point and current position of the surveyor"); }
+     virtual FBElemtype getType () { return FBMetric; }
+};
+
 
 #endif //ELEMENTS_H
 
