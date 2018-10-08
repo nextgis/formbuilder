@@ -90,6 +90,8 @@ FB::FB(QWidget *parent):
     updater = new FBUpdater(this);
 //    connect(updater, SIGNAL(checkUpdatesStarted()), this, SLOT(checkUpdatesStarted()));
     connect(updater, SIGNAL(checkUpdatesFinished(bool)), this, SLOT(onCheckUpdatesFinished(bool)));
+        
+    qDebug() << "Compiled against SSL library: " << QSslSocket::sslLibraryBuildVersionString();
 }
 
 void FB::initGui ()
