@@ -1,0 +1,72 @@
+<RCC>
+    <qresource prefix="/images">
+        <file>theme_white/combo_box.svg</file>
+        <file>theme_white/radio_group.svg</file>
+        <file>theme_white/text_edit.svg</file>
+        <file>theme_white/label.svg</file>
+        <file>theme_white/void_space.svg</file>
+        <file>theme_white/coords.svg</file>
+        <file>theme_white/date_time.svg</file>
+        <file>theme_white/photo.svg</file>
+        <file>theme_white/sign_field.svg</file>
+        <file>theme_white/check_box.svg</file>
+        <file>theme_white/counter.svg</file>
+        <file>theme_white/dep_combo_boxes.svg</file>
+        <file>theme_white/split_combo_box.svg</file>
+        <file>theme_white/tabs.svg</file>
+        <file>theme_white/distance_meter.svg</file>
+        <file>theme_white/change_device.svg</file>
+        <file>theme_white/clear_screen.svg</file>
+        <file>theme_white/create_ngw_layer.svg</file>
+        <file>theme_white/edit_layer.svg</file>
+        <file>theme_white/import_elements.svg</file>
+        <file>theme_white/new_from_ngw.svg</file>
+        <file>theme_white/new_from_shp.svg</file>
+        <file>theme_white/new_from_void.svg</file>
+        <file>theme_white/open.svg</file>
+        <file>theme_white/save.svg</file>
+        <file>theme_white/update_layer.svg</file>
+        <file>theme_white/zoom_in.svg</file>
+        <file>theme_white/zoom_out.svg</file>
+        <file>theme_white/ngw_down.svg</file>
+        <file>theme_white/ngw_create.svg</file>
+
+        <file>theme_white/coords_dis.svg</file>
+        <file>theme_white/photo_dis.svg</file>
+        <file>theme_white/sign_field_dis.svg</file>
+        <file>theme_white/dep_combo_boxes_dis.svg</file>
+        <file>theme_white/split_combo_box_dis.svg</file>
+        <file>theme_white/tabs_dis.svg</file>
+        <file>theme_white/counter_dis.svg</file>
+        <file>theme_white/distance_meter_dis.svg</file>
+
+        <file>theme_white/form_props.svg</file>
+        <file>theme_white/ngw_create2.svg</file>
+        <file>theme_white/edit_layer2.svg</file>
+        <file>theme_white/update_layer2.svg</file>
+        <file>theme_white/clear_screen2.svg</file>
+        <file>theme_white/new_from_void2.svg</file>
+        <file>theme_white/open2.svg</file>
+        <file>theme_white/save2.svg</file>
+        <file>theme_white/updates_available.svg</file>
+        <file>theme_white/updates_unavailable.svg</file>
+
+        <file>theme_white/ngw_create2_dis.svg</file>
+
+        <file>cancel.svg</file>
+        <file>ok.svg</file>
+        <file>add.svg</file>
+        <file>clear.svg</file>
+        <file>csv.svg</file>
+        <file>remove.svg</file>
+        <file>set_default.svg</file>
+        <file>network_spin.gif</file>
+        <file>ngw/ngw_group.png</file>
+        <file>ngw/ngw_vector.png</file>
+        <file>ngw/ngw_postgis.png</file>
+        <file>data.svg</file>
+        <file>no_data.svg</file>
+
+        <file>lock.svg</file>
+    </qresource>
+</RCC>

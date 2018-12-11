@@ -28,7 +28,7 @@
 
 function(check_version major minor)
 
-    set(VERSION_FILE ${CMAKE_CURRENT_SOURCE_DIR}/src/project/project_core.h)
+    set(VERSION_FILE ${CMAKE_CURRENT_SOURCE_DIR}/desktop/version.txt)
 
     file(READ ${VERSION_FILE} _VERSION_H_CONTENTS)
 

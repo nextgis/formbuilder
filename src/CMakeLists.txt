@@ -1,195 +1,347 @@
-#***************************************************************************
-# Project:  NextGIS Formbuilder
-# Purpose:  cmake script
-# Author:  Mikhail Gusev, gusevmihs@gmail.com
-# Author:   Dmitry Baryshnikov, dmitry.baryshnikov@nexgis.com
-#***************************************************************************
-#   Copyright (C) 2014-2018 NextGIS
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 2 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#***************************************************************************
+####################################################################################################
+#                                                                                                  #
+#    Project:   NextGIS Formbuilder                                                                #
+#    Authors:   Mikhail Gusev, gusevmihs@gmail.com                                                 #
+#               Copyright (C) 2014-2018 NextGIS                                                    #
+#                                                                                                  #
+####################################################################################################
 
-add_subdirectory(translations)
 
-set(APP_NAME fb)
+# Library names.
+set(FB_CORE_LIB_NAME fbcore)
+set(FB_GUI_LIB_NAME fbgui)
+set(FB_MOCKUP_LIB_NAME fbmockup)
+set(FB_SERIALIZER_LIB_NAME fbserializer)
+set(FB_UTIL_LIB_NAME fbutil)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+if(BUILD_NEXTGIS_PACKAGE)
+	
+	set(PACKAGE_VENDOR NextGIS)
+	set(PACKAGE_BUGREPORT info@nextgis.com)
+	
+	set(CMAKE_COLOR_MAKEFILE ON)
+	
+	if(OSX_FRAMEWORK)
+		set(INSTALL_BIN_DIR "Applications" CACHE INTERNAL "Installation directory for executables" FORCE)
+		set(INSTALL_LIB_DIR "${INSTALL_BIN_DIR}/${PROJECT_NAME}.app/Contents/Frameworks" CACHE INTERNAL "Installation directory for libraries" FORCE)
+		set(INSTALL_SHARE_DIR "${INSTALL_BIN_DIR}/${PROJECT_NAME}.app/Contents/Resources" CACHE INTERNAL "Installation directory for shared files" FORCE)
+		set(INSTALL_TRANSLATIONS_DIR "${INSTALL_BIN_DIR}/${PROJECT_NAME}.app/Contents/Resources/translations" CACHE INTERNAL "Installation directory for translations" FORCE)
+		set(QT5_TRANSLATION_DIR "Library/Translations/Qt5")
 
-# FIXME: How to add client_id to launchpad build?
-# # Add fatal message so not to forget: add OAuth2 client id for this apllication.
-# if (DEFINED FB_OAUTH2_CLIENT_ID)
-#     add_definitions(-D_OAUTH2_CLIENT_ID=${FB_OAUTH2_CLIENT_ID})
-# else()
-#     #add_definitions(-D_OAUTH2_CLIENT_ID="")
-#     message(FATAL_ERROR "OAuth2 client id (in the FB_OAUTH2_CLIENT_ID variable) should be defined in order to build the application")
-# endif ()
+		set(SKIP_INSTALL_HEADERS ON)
+		set(SKIP_INSTALL_EXECUTABLES OFF)
+		set(SKIP_INSTALL_FILES OFF)
+		set(SKIP_INSTALL_EXPORT ON)
+		set(CMAKE_MACOSX_RPATH ON)
 
-configure_file(${PROJECT_SOURCE_DIR}/cmake/formbuilder.desktop.in ${CMAKE_CURRENT_BINARY_DIR}/formbuilder.desktop @ONLY)
+		set(QT4_PLUGINS_DIR Library/Plugins/Qt4)
+		set(QT4_TRANSLATION_DIR Library/Translations/Qt4)
+		set(QT5_PLUGINS_DIR Library/Plugins/Qt5)
+		set(QT5_TRANSLATION_DIR Library/Translations/Qt5)
+	else()
+		include(GNUInstallDirs)
 
-set(APP_HEADERS
-    gui/gui_globals.h
-    gui/inputtablewidget.h
-    gui/csvcolumnsdialog.h
-    gui/itemsdialog.h
+		set(INSTALL_BIN_DIR ${CMAKE_INSTALL_BINDIR} CACHE INTERNAL "Installation directory for executables" FORCE)
+		set(INSTALL_LIB_DIR ${CMAKE_INSTALL_LIBDIR} CACHE INTERNAL "Installation directory for libraries" FORCE)
+		set(INSTALL_SHARE_DIR "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}" CACHE INTERNAL "Installation directory for share data" FORCE)
+		set(INSTALL_TRANSLATIONS_DIR "${CMAKE_INSTALL_DATADIR}/translations" CACHE INTERNAL "Installation directory for translations" FORCE)
 
-    form/form_core.h
-    form/attributes.h
-    form/elements.h
-    form/factories.h
+		# On Windows qt.conf will be common for several applications so we need to have paths for qt4/5
+		set(QT4_PLUGINS_DIR FIXME)
+		set(QT4_TRANSLATION_DIR FIXME)
+		set(QT5_PLUGINS_DIR FIXME)
+		set(QT5_TRANSLATION_DIR FIXME)
+	endif()	
+	
+	set(QT_PREFIX ${CMAKE_INSTALL_PREFIX})
+	if(POLICY CMP0071)
+		cmake_policy(SET CMP0071 NEW)
+	endif()
+	
+	# Tell CMake to run moc when necessary:
+	# FIXME: Not working on Qt <= 5.5 and Ubuntu [trusty, xenial]
+	set(CMAKE_AUTOMOC ON)
+	
+	set(CMAKE_AUTOUIC ON)
 
-    project/project_core.h
-    project/projects.h
+	set(CMAKE_INCLUDE_CURRENT_DIR ON)
+	
+	include(util)
+	check_version(FB_MAJOR_VERSION FB_MINOR_VERSION)
+	set(VERSION ${FB_MAJOR_VERSION}.${FB_MINOR_VERSION})
 
-    screen/screen_core.h
-    screen/screens.h
-    screen/devices.h
+	if(OSX_FRAMEWORK)
+		set(FRAMEWORK_VERSION ${FB_MAJOR_VERSION})
+	endif()
 
-    fbclickablelabel.h
-    fbupdater.h
-    fb.h
-    ngw.h
-)
+	report_version(${PROJECT_NAME} ${VERSION})
 
-set(APP_SOURCES
-    gui/gui_globals.cpp
-    gui/inputtablewidget.cpp
-    gui/csvcolumnsdialog.cpp
-    gui/itemsdialog.cpp
+	include(FindAnyProject)
+	option(BUILD_SHARED_LIBS "Build external libraries shared [Default: ON]" ON)
 
-    form/dialogcsv.cpp
-    form/dialoglistvalues.cpp
-    form/dialogngwlookup.cpp
-    form/dialogdlistvalues.cpp
-    form/dialogdatetime.cpp
-    form/form_core.cpp
-    form/attributes.cpp
-    form/elements.cpp
+	if(UNIX)
+		find_package(Threads)
+		set(TARGET_LINK_LIB ${TARGET_LINK_LIB} ${CMAKE_THREAD_LIBS_INIT})
+		find_library(DL_LIB dl)
+		set(TARGET_LINK_LIB ${TARGET_LINK_LIB} ${DL_LIB})
+		find_library(M_LIB m)
+		set(TARGET_LINK_LIB ${TARGET_LINK_LIB} ${M_LIB})
+	endif()
 
-    project/project_core.cpp
-    project/projectvoid.cpp
-    project/projectgdal.cpp
-    project/projectshp.cpp
-    project/projectngw.cpp
+	if(OSX_FRAMEWORK)
+		set(TARGET_LINK_LIB ${TARGET_LINK_LIB} "-framework CoreFoundation -framework CoreServices -framework ApplicationServices")
+	endif()
 
-    screen/screen_core.cpp
-    screen/screencommon.cpp
-    screen/screenmobile.cpp
-    screen/screenandroid.cpp
-    screen/screenios.cpp
-    screen/screenweb.cpp
-    screen/screenqgis.cpp
+	include(CheckCXXCompilerFlag)
+	CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+	if(COMPILER_SUPPORTS_CXX11)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+	endif()
 
-    fbclickablelabel.cpp
+	set(QT5_REQUIRED_COMPONENTS Widgets Network Svg LinguistTools)
+	#set(QT5_REQUIRED_COMPONENTS Core Widgets Network Svg LinguistTools)
+	if(APPLE)
+		set(QT5_REQUIRED_COMPONENTS ${QT5_REQUIRED_COMPONENTS} MacExtras)
+	endif()
 
-    jsoncpp.cpp
-    ngw.cpp
-    dialognewvoid.cpp
-    dialogngwproject.cpp
-    dialogngwlayer.cpp
-    dialogfieldmanager.cpp
-    dialoglists.cpp
-    appicon.rc
-    registrar.cpp
-    fb.cpp
-    main.cpp
-    fbupdater.cpp
-)
+	find_anyproject(Qt5 REQUIRED COMPONENTS ${QT5_REQUIRED_COMPONENTS})
+	
+	find_anyproject(GDAL REQUIRED VERSION 2.1
+		CMAKE_ARGS
+		-DSKIP_DEFAULTS=ON
+		-DENABLE_PLSCENES=OFF
+		-DENABLE_AAIGRID_GRASSASCIIGRID=OFF
+		-DENABLE_ADRG_SRP=OFF
+		-DENABLE_AIG=OFF
+		-DENABLE_AIRSAR=OFF
+		-DENABLE_ARG=OFF
+		-DENABLE_BLX=OFF
+		-DENABLE_BMP=OFF
+		-DENABLE_BSB=OFF
+		-DENABLE_CALS=OFF
+		-DENABLE_CEOS=OFF
+		-DENABLE_CEOS2=OFF
+		-DENABLE_COASP=OFF
+		-DENABLE_COSAR=OFF
+		-DENABLE_CTG=OFF
+		-DENABLE_DIMAP=OFF
+		-DENABLE_DTED=OFF
+		-DENABLE_E00GRID=OFF
+		-DENABLE_ELAS=OFF
+		-DENABLE_ENVISAT=OFF
+		-DENABLE_ERS=OFF
+		-DENABLE_FIT=OFF
+		-DENABLE_GFF=OFF
+		-DENABLE_GRIB=OFF
+		-DENABLE_GSAG_GSBG_GS7BG=OFF
+		-DENABLE_GXF=OFF
+		-DENABLE_HF2=OFF
+		-DENABLE_IDRISI_RASTER=OFF
+		-DENABLE_ILWIS=OFF
+		-DENABLE_INGR=OFF
+		-DENABLE_IRIS=OFF
+		-DENABLE_JAXAPALSAR=OFF
+		-DENABLE_JDEM=OFF
+		-DENABLE_KMLSUPEROVERLAY=OFF
+		-DENABLE_L1B=OFF
+		-DENABLE_LEVELLER=OFF
+		-DENABLE_MAP=OFF
+		-DENABLE_MBTILES=OFF
+		-DENABLE_MSGN=OFF
+		-DENABLE_NGSGEOID=OFF
+		-DENABLE_NITF_RPFTOC_ECRGTOC=OFF
+		-DENABLE_NWT=OFF
+		-DENABLE_OZI=OFF
+		-DENABLE_PRF=OFF
+		-DENABLE_PDS_ISIS2_ISIS3_VICAR=OFF
+		-DENABLE_PLMOSAIC=OFF
+		-DENABLE_PNG=OFF
+		-DENABLE_POSTGISRASTER=OFF
+		-DENABLE_R=OFF
+		-DENABLE_RASTERLITE=OFF
+		-DENABLE_RIK=OFF
+		-DENABLE_RMF=OFF
+		-DENABLE_RS2=OFF
+		-DENABLE_SAGA=OFF
+		-DENABLE_GIF=OFF
+		-DENABLE_SDTS_RASTER=OFF
+		-DENABLE_SGI=OFF
+		-DENABLE_SRTMHGT=OFF
+		-DENABLE_TERRAGEN=OFF
+		-DENABLE_TIL=OFF
+		-DENABLE_TSX=OFF
+		-DENABLE_USGSDEM=OFF
+		-DENABLE_WCS=OFF
+		-DENABLE_WMS=OFF
+		-DENABLE_WMTS=OFF
+		-DENABLE_XPM=OFF
+		-DENABLE_XYZ=OFF
+		-DENABLE_ZMAP=OFF
+		-DENABLE_AERONAVFAA=OFF
+		-DENABLE_ARCGEN=OFF
+		-DENABLE_AVC=OFF
+		-DENABLE_BNA=OFF
+		-DENABLE_CARTO=OFF
+		-DENABLE_CLOUDANT=OFF
+		-DENABLE_COUCHDB=OFF
+		-DENABLE_CSV=OFF
+		-DENABLE_CSW=OFF
+		-DENABLE_DGN=OFF
+		-DENABLE_DXF=OFF
+		-DENABLE_EDIGEO=OFF
+		-DENABLE_ELASTIC=OFF
+		-DENABLE_GEOCONCEPT=OFF
+		-DENABLE_GEORSS=OFF
+		-DENABLE_GFT=OFF
+		-DENABLE_GML=OFF
+		-DENABLE_GMT=OFF
+		-DENABLE_GPSBABEL=OFF
+		-DENABLE_GPX=OFF
+		-DENABLE_GTM=OFF
+		-DENABLE_HTF=OFF
+		-DENABLE_IDRISI_VECTOR=OFF
+		-DENABLE_JML=OFF
+		-DENABLE_NTF=OFF
+		-DENABLE_ODS=OFF
+		-DENABLE_OPENAIR=OFF
+		-DENABLE_OPENFILEGDB=OFF
+		-DENABLE_OSM=OFF
+		-DENABLE_PDS_VECTOR=OFF
+		-DENABLE_PG=OFF
+		-DENABLE_PGDUMP=OFF
+		-DENABLE_REC=OFF
+		-DENABLE_S57=OFF
+		-DENABLE_SDTS_VECTOR=OFF
+		-DENABLE_SEGUKOOA=OFF
+		-DENABLE_SEGY=OFF
+		-DENABLE_SELAFIN=OFF
+	#    -DENABLE_SHAPE=OFF
+		-DENABLE_SQLITE_GPKG=OFF
+		-DENABLE_SUA=OFF
+		-DENABLE_SVG=OFF
+		-DENABLE_SXF=OFF
+		-DENABLE_TIGER=OFF
+		-DENABLE_VDV=OFF
+		-DENABLE_VFK=OFF
+		-DENABLE_WASP=OFF
+		-DENABLE_WFS=OFF
+		-DENABLE_XLSX=OFF
+		-DENABLE_CAD=OFF
+		-DGDAL_BUILD_APPS=OFF
+		-DGDAL_BUILD_DOCS=OFF
+	)
 
-qt5_wrap_cpp(MOC_SRCS ${APP_HEADERS})
-qt5_wrap_ui(UI_HDRS fb.ui)
-qt5_add_resources(RESOURCES res.qrc)
+	find_anyproject(ZLIB DEFAULT ON)
+	if(ZLIB_FOUND AND WITH_ZLIB_EXTERNAL)
+		# ZLIB needed for uic, rcc, lrelease and lupdate
+		get_target_property(ZLIB_IMPORTED_LOCATION ${ZLIB_LIBRARIES} IMPORTED_LOCATION_RELEASE)
+		get_target_property(RCC_PATH Qt5::rcc IMPORTED_LOCATION)
+		get_filename_component(QT_BIN_DIR ${RCC_PATH} PATH)
+		if(WIN32)
+			get_filename_component(PATH_DIR ${ZLIB_IMPORTED_LOCATION} PATH)
+			set(ENV{PATH} "$ENV{PATH};${PATH_DIR}")
+			if(EXISTS ${ZLIB_IMPORTED_LOCATION})
+				file(COPY ${ZLIB_IMPORTED_LOCATION} DESTINATION ${QT_BIN_DIR})
+			endif()
+		elseif(OSX_FRAMEWORK)
+			get_filename_component(PATH_DIR ${ZLIB_IMPORTED_LOCATION} PATH)
+			get_filename_component(PATH_DIR ${PATH_DIR} PATH)
+			get_filename_component(PATH_DIR ${PATH_DIR} PATH)
+			if(EXISTS ${PATH_DIR})
+				file(COPY ${PATH_DIR} DESTINATION ${QT_BIN_DIR}/Frameworks)
+			endif()
+		endif()
+	endif()
 
-set(TRANSLATIONS
-    ${CMAKE_CURRENT_SOURCE_DIR}/translations/fb_ru_RU.ts
-)
+	find_anyproject(NGSTD REQUIRED COMPONENTS framework5)
 
-unset(QM_FILES)
-foreach(TRANSLATION ${TRANSLATIONS})
-    if(EXISTS ${TRANSLATION})
-        qt5_add_translation(QM_FILES ${TRANSLATION})
-    endif()
-endforeach()
+	set(PACKAGE_NAME ${PROJECT_NAME})
+	
+else()	
 
-add_executable(${APP_NAME} MACOSX_BUNDLE WIN32 ${APP_SOURCES} ${APP_HEADERS} ${MOC_SRCS} ${FB_TARGET_OBJECTS} ${RESOURCES} ${UI_HDRS} ${QM_FILES})
-set_property(TARGET ${APP_NAME} PROPERTY CXX_STANDARD 11)
+	set(CMAKE_INCLUDE_CURRENT_DIR ON) # find includes in corresponding build directories
+	set(CMAKE_AUTOMOC ON) # instruct CMake to run moc automatically when needed
+	set(CMAKE_AUTOUIC ON) # create code from a list of Qt designer ui files
 
-if(WIN32)
-    add_definitions(-DFB_GDALDATA_IN_SHARE) # This is define path to gdal data as ../share/gdal
+	set(BUILD_SHARED_LIBS ON CACHE BOOL "Link libraries dinamically")
+
+	set(CMAKE_CXX_STANDARD 14)
+
+	# Find Qt:
+
+	set(FB_QT_MINIMUM_VERSION 5.9.0)
+
+	#find_package(Qt5Widgets CONFIG REQUIRED)
+	find_package(Qt5Widgets REQUIRED) # will find its own dependencies (QtGui and QtCore)
+	find_package(Qt5Network REQUIRED)
+	find_package(Qt5NetworkAuth REQUIRED)
+	find_package(Qt5LinguistTools REQUIRED) # for *.qm generating
+
+	message("Found Qt5Widgets of version ${Qt5Widgets_VERSION}")
+	message("Found Qt5Network of version ${Qt5Network_VERSION}")
+	message("Found Qt5NetworkAuth of version ${Qt5NetworkAuth_VERSION}")
+	if(Qt5NetworkAuth_VERSION VERSION_LESS FB_QT_MINIMUM_VERSION)
+		message(FATAL_ERROR "Minimum supported Qt5NetworkAuth version is ${FB_QT_MINIMUM_VERSION}")
+	endif()
+
+	include_directories(${Qt5Widgets_INCLUDE_DIRS})
+	include_directories(${Qt5Network_INCLUDE_DIRS})
+	include_directories(${Qt5NetworkAuth_INCLUDE_DIRS})
+
+	# Find GDAL:
+
+	set(FB_GDAL_MINIMUM_VERSION 2.1.0)
+
+	if(WIN32)
+		set(GDAL_DIR "C:/OSGeo4W") # one of the usual paths where GDAL is installed on Windows
+		set(CMAKE_PREFIX_PATH "${GDAL_DIR};${CMAKE_PREFIX_PATH}")
+		# TODO: add C:/OSGeo4W64 path for 64bit architecture
+	endif()
+
+	find_package(GDAL REQUIRED)
+
+	if(GDAL_FOUND)
+		get_gdal_version(GDAL_VERSION)
+		message("Found GDAL of version ${GDAL_VERSION}")
+		if(GDAL_VERSION VERSION_LESS FB_GDAL_MINIMUM_VERSION)
+			message(FATAL_ERROR "Required GDAL version ${FB_GDAL_MINIMUM_VERSION} or higher")
+		endif()
+	endif()
+
+	include_directories(${GDAL_INCLUDE_DIR})
+
+	# Find LibNGSTD:
+
+	find_package(NGSTD REQUIRED)
+	if(NGSTD_FOUND)
+		message("Found NGSTD of version ${NGSTD_VERSION}")
+	endif()
+
+	include_directories(${NGSTD_INCLUDE_DIRS})
+
+	# Installation directories:
+	
+	# include(GNUInstallDirs)
+	# set(INSTALL_BIN_DIR ${CMAKE_INSTALL_BINDIR} CACHE INTERNAL
+		# "Installation directory for executables" FORCE)
+	# set(INSTALL_LIB_DIR ${CMAKE_INSTALL_LIBDIR} CACHE INTERNAL
+		# "Installation directory for libraries" FORCE)	
+	
 endif()
 
-if(WIN32)
-    set_property(TARGET ${APP_NAME} APPEND PROPERTY LINK_FLAGS /entry:mainCRTStartup)
+# Build libraries.
+add_subdirectory(core)
+add_subdirectory(util)
+add_subdirectory(gui)
+add_subdirectory(mockup)
+add_subdirectory(serializer)
+
+# Build GUI executable.
+add_subdirectory(desktop)
+
+
+if(BUILD_NEXTGIS_PACKAGE)
+	configure_file(${PROJECT_SOURCE_DIR}/cmake/qt.conf.cmake.in ${CMAKE_BINARY_DIR}/qt.conf IMMEDIATE @ONLY)
+	install(FILES ${CMAKE_BINARY_DIR}/qt.conf DESTINATION ${INSTALL_SHARE_DIR})
 endif()
 
-target_link_extlibraries(${APP_NAME})
-
-if(OSX_FRAMEWORK)
-    set_target_properties(${APP_NAME} PROPERTIES
-        MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Version ${VERSION}, Copyright 2011-2018 NextGIS."
-        # MACOSX_BUNDLE_ICON_FILE ${ICON_FILE_NAME}
-        MACOSX_BUNDLE_GUI_IDENTIFIER "${PROJECT_NAME}"
-        MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_NAME} Version ${VERSION}"
-        MACOSX_BUNDLE_BUNDLE_NAME ${PROJECT_NAME}
-        MACOSX_BUNDLE_SHORT_VERSION_STRING ${VERSION}
-        MACOSX_BUNDLE_BUNDLE_VERSION ${FRAMEWORK_VERSION}
-        MACOSX_BUNDLE_COPYRIGHT "Copyright 2011-2018, NextGIS. All Rights Reserved."
-        MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/cmake/MacOSXBundleInfo.plist.in"
-        INSTALL_RPATH "@executable_path/../../../../Library/Frameworks;@executable_path/../Frameworks"
-    )
-endif()
-
-# install ======================================================================
-
-if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
-    install(TARGETS ${APP_NAME}
-        BUNDLE DESTINATION ${INSTALL_BIN_DIR}
-        RUNTIME DESTINATION ${INSTALL_BIN_DIR}
-        LIBRARY DESTINATION ${INSTALL_LIB_DIR}
-        ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
-        FRAMEWORK DESTINATION ${INSTALL_LIB_DIR}
-        PUBLIC_HEADER DESTINATION ${INSTALL_INC_DIR} COMPONENT headers
-    )
-endif()
-
-if(NOT SKIP_INSTALL_FILES AND NOT SKIP_INSTALL_ALL)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/fb_ru_RU.qm DESTINATION ${INSTALL_TRANSLATIONS_DIR})
-endif()
-
-if(UNIX AND NOT OSX_FRAMEWORK)
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/img/formbuilder.png DESTINATION ${CMAKE_INSTALL_DATADIR}/pixmaps)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/formbuilder.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
-endif()
-
-if(OSX_FRAMEWORK)
-    file(GLOB ICONS "img/*.icns")
-    install(FILES ${ICONS} DESTINATION ${INSTALL_SHARE_DIR})
-endif()
-
-# Archiving ====================================================================
-
-set(CPACK_PACKAGE_NAME "${PACKAGE_NAME}")
-set(CPACK_PACKAGE_VENDOR "${PACKAGE_VENDOR}")
-set(CPACK_PACKAGE_VERSION "${VERSION}")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PACKAGE_NAME} Installation")
-set(CPACK_PACKAGE_RELOCATABLE TRUE)
-set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
-set(CPACK_GENERATOR "ZIP")
-set(CPACK_MONOLITHIC_INSTALL ON)
-set(CPACK_STRIP_FILES TRUE)
-
-# Get cpack zip archive name
-get_cpack_filename(${VERSION} PROJECT_CPACK_FILENAME)
-set(CPACK_PACKAGE_FILE_NAME ${PROJECT_CPACK_FILENAME})
-
-include(CPack)
