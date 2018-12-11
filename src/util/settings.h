@@ -20,6 +20,7 @@
 #pragma once
 
 #include <QSettings>
+#include <QCoreApplication>
 
 #define FB_STS_LANGUAGE "language"
 #define FB_STS_LAYERDLG_W "layerdlg_w"
@@ -57,7 +58,7 @@ namespace Fb
 
 inline QSettings *g_getSettings ()
 {
-/*
+
 #ifdef Q_OS_MACOS
     static QSettings settings(QSettings::NativeFormat,
                               QSettings::UserScope,
@@ -69,10 +70,12 @@ inline QSettings *g_getSettings ()
                               QCoreApplication::organizationName(),
                               QCoreApplication::applicationName());
 #endif
-*/
 
+/*
     static QSettings settings(QSettings::IniFormat, QSettings::UserScope,
                               "NextGIS_temp", "Formbuilder_temp");
+*/
+
     return &settings;
 }
 

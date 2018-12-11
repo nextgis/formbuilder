@@ -6,7 +6,6 @@
 #                                                                                                  #
 ####################################################################################################
 
-
 # Library names.
 set(FB_CORE_LIB_NAME fbcore)
 set(FB_GUI_LIB_NAME fbgui)
@@ -250,7 +249,7 @@ else()
 
 	set(CMAKE_CXX_STANDARD 14)
 
-    # Check version of sources:
+    # Print version of sources:
 
     get_formbuilder_version(FB_VERSION)
     message("Formbuilder sources version: ${FB_VERSION}")

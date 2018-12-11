@@ -38,15 +38,36 @@
 void installTranslators (const QApplication &app, const QStringList &tr_names)
 {
     QStringList tr_paths;
+
     #ifdef Q_OS_MACOS
-
+    auto getMacTransPath = [&](const QString &base_path, QList<QString> &locale_paths)
+    {
+        QDir base_dir(base_path);
+        QStringList filters;
+        filters << QStringLiteral("ngstd_*.framework");
+        QStringList list = base_dir.entryList(filters);
+        foreach (QString sub_path, list)
+        {
+            const QString &lib_tr_path = base_path + "/" + sub_path + "/Resources/translations";
+            locale_paths.append(lib_tr_path);
+        }
+    };
+    const QString &lib_tr_path = QCoreApplication::applicationDirPath()
+            + QLatin1String("/Contents/Resources/translations/");
+    tr_paths.append(lib_tr_path);
+    tr_paths.append(QCoreApplication::applicationDirPath()
+            + QLatin1String("/../../Contents/Resources/translations/"));
+    getMacTransPath(QCoreApplication::applicationDirPath() +
+                       "/Contents/Frameworks/", tr_paths);
+    getMacTransPath(QCoreApplication::applicationDirPath() +
+                       "/../../Contents/Frameworks/", tr_paths);
+    getMacTransPath(QCoreApplication::applicationDirPath() +
+                       "/../Library/Frameworks/", tr_paths);
+    getMacTransPath(QCoreApplication::applicationDirPath() +
+                       "/../../../../Library/Frameworks/", tr_paths);
     #else
-//    const QString &app_tr_path = QCoreApplication::applicationDirPath()
-//            + QLatin1String("/../share/translations");
-
-    // TEMP:
-    const QString &app_tr_path = QCoreApplication::applicationDirPath();
-    tr_paths.append(app_tr_path);
+    tr_paths.append(QCoreApplication::applicationDirPath()+QLatin1String("/../share/translations"));
+    tr_paths.append(QCoreApplication::applicationDirPath()); // where executable is placed
     #endif
 
     tr_paths.append(QLibraryInfo::location(QLibraryInfo::TranslationsPath));
