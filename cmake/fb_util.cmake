@@ -6,6 +6,13 @@
 #                                                                                                  #
 ####################################################################################################
 
+function(get_formbuilder_version version)
+    set(VERSION_FILE ${CMAKE_CURRENT_SOURCE_DIR}/desktop/data/VERSION)
+    file(READ ${VERSION_FILE} _VERSION_FILE_CONTENTS)
+    string(REGEX MATCH "([0-9].[0-9]+)" FB_VERSION ${_VERSION_FILE_CONTENTS})
+    set(${version} ${FB_VERSION} PARENT_SCOPE)
+endfunction()
+
 function(get_gdal_version version)
     if(GDAL_INCLUDE_DIR)
         set(VERSION_FILE ${GDAL_INCLUDE_DIR}/gdal_version.h)

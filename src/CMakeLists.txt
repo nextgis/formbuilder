@@ -15,57 +15,41 @@ set(FB_SERIALIZER_LIB_NAME fbserializer)
 set(FB_UTIL_LIB_NAME fbutil)
 
 if(BUILD_NEXTGIS_PACKAGE)
-	
+
 	set(PACKAGE_VENDOR NextGIS)
 	set(PACKAGE_BUGREPORT info@nextgis.com)
-	
+
 	set(CMAKE_COLOR_MAKEFILE ON)
-	
+
 	if(OSX_FRAMEWORK)
 		set(INSTALL_BIN_DIR "Applications" CACHE INTERNAL "Installation directory for executables" FORCE)
 		set(INSTALL_LIB_DIR "${INSTALL_BIN_DIR}/${PROJECT_NAME}.app/Contents/Frameworks" CACHE INTERNAL "Installation directory for libraries" FORCE)
 		set(INSTALL_SHARE_DIR "${INSTALL_BIN_DIR}/${PROJECT_NAME}.app/Contents/Resources" CACHE INTERNAL "Installation directory for shared files" FORCE)
 		set(INSTALL_TRANSLATIONS_DIR "${INSTALL_BIN_DIR}/${PROJECT_NAME}.app/Contents/Resources/translations" CACHE INTERNAL "Installation directory for translations" FORCE)
 		set(QT5_TRANSLATION_DIR "Library/Translations/Qt5")
-
 		set(SKIP_INSTALL_HEADERS ON)
 		set(SKIP_INSTALL_EXECUTABLES OFF)
 		set(SKIP_INSTALL_FILES OFF)
 		set(SKIP_INSTALL_EXPORT ON)
 		set(CMAKE_MACOSX_RPATH ON)
-
-		set(QT4_PLUGINS_DIR Library/Plugins/Qt4)
-		set(QT4_TRANSLATION_DIR Library/Translations/Qt4)
-		set(QT5_PLUGINS_DIR Library/Plugins/Qt5)
-		set(QT5_TRANSLATION_DIR Library/Translations/Qt5)
 	else()
 		include(GNUInstallDirs)
-
 		set(INSTALL_BIN_DIR ${CMAKE_INSTALL_BINDIR} CACHE INTERNAL "Installation directory for executables" FORCE)
 		set(INSTALL_LIB_DIR ${CMAKE_INSTALL_LIBDIR} CACHE INTERNAL "Installation directory for libraries" FORCE)
 		set(INSTALL_SHARE_DIR "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}" CACHE INTERNAL "Installation directory for share data" FORCE)
 		set(INSTALL_TRANSLATIONS_DIR "${CMAKE_INSTALL_DATADIR}/translations" CACHE INTERNAL "Installation directory for translations" FORCE)
+	endif()
 
-		# On Windows qt.conf will be common for several applications so we need to have paths for qt4/5
-		set(QT4_PLUGINS_DIR FIXME)
-		set(QT4_TRANSLATION_DIR FIXME)
-		set(QT5_PLUGINS_DIR FIXME)
-		set(QT5_TRANSLATION_DIR FIXME)
-	endif()	
-	
 	set(QT_PREFIX ${CMAKE_INSTALL_PREFIX})
 	if(POLICY CMP0071)
 		cmake_policy(SET CMP0071 NEW)
 	endif()
-	
-	# Tell CMake to run moc when necessary:
-	# FIXME: Not working on Qt <= 5.5 and Ubuntu [trusty, xenial]
-	set(CMAKE_AUTOMOC ON)
-	
+
+    set(CMAKE_AUTOMOC ON) # FIXME: Not working on Qt <= 5.5 and Ubuntu [trusty, xenial]
 	set(CMAKE_AUTOUIC ON)
 
 	set(CMAKE_INCLUDE_CURRENT_DIR ON)
-	
+
 	include(util)
 	check_version(FB_MAJOR_VERSION FB_MINOR_VERSION)
 	set(VERSION ${FB_MAJOR_VERSION}.${FB_MINOR_VERSION})
@@ -99,13 +83,12 @@ if(BUILD_NEXTGIS_PACKAGE)
 	endif()
 
 	set(QT5_REQUIRED_COMPONENTS Widgets Network Svg LinguistTools)
-	#set(QT5_REQUIRED_COMPONENTS Core Widgets Network Svg LinguistTools)
 	if(APPLE)
 		set(QT5_REQUIRED_COMPONENTS ${QT5_REQUIRED_COMPONENTS} MacExtras)
 	endif()
 
 	find_anyproject(Qt5 REQUIRED COMPONENTS ${QT5_REQUIRED_COMPONENTS})
-	
+
 	find_anyproject(GDAL REQUIRED VERSION 2.1
 		CMAKE_ARGS
 		-DSKIP_DEFAULTS=ON
@@ -256,8 +239,8 @@ if(BUILD_NEXTGIS_PACKAGE)
 	find_anyproject(NGSTD REQUIRED COMPONENTS framework5)
 
 	set(PACKAGE_NAME ${PROJECT_NAME})
-	
-else()	
+
+else()
 
 	set(CMAKE_INCLUDE_CURRENT_DIR ON) # find includes in corresponding build directories
 	set(CMAKE_AUTOMOC ON) # instruct CMake to run moc automatically when needed
@@ -266,6 +249,11 @@ else()
 	set(BUILD_SHARED_LIBS ON CACHE BOOL "Link libraries dinamically")
 
 	set(CMAKE_CXX_STANDARD 14)
+
+    # Check version of sources:
+
+    get_formbuilder_version(FB_VERSION)
+    message("Formbuilder sources version: ${FB_VERSION}")
 
 	# Find Qt:
 
@@ -320,13 +308,13 @@ else()
 	include_directories(${NGSTD_INCLUDE_DIRS})
 
 	# Installation directories:
-	
+
 	# include(GNUInstallDirs)
 	# set(INSTALL_BIN_DIR ${CMAKE_INSTALL_BINDIR} CACHE INTERNAL
 		# "Installation directory for executables" FORCE)
 	# set(INSTALL_LIB_DIR ${CMAKE_INSTALL_LIBDIR} CACHE INTERNAL
-		# "Installation directory for libraries" FORCE)	
-	
+		# "Installation directory for libraries" FORCE)
+
 endif()
 
 # Build libraries.
@@ -338,10 +326,3 @@ add_subdirectory(serializer)
 
 # Build GUI executable.
 add_subdirectory(desktop)
-
-
-if(BUILD_NEXTGIS_PACKAGE)
-	configure_file(${PROJECT_SOURCE_DIR}/cmake/qt.conf.cmake.in ${CMAKE_BINARY_DIR}/qt.conf IMMEDIATE @ONLY)
-	install(FILES ${CMAKE_BINARY_DIR}/qt.conf DESTINATION ${INSTALL_SHARE_DIR})
-endif()
-

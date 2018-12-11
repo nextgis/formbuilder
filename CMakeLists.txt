@@ -14,7 +14,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 include(fb_util)
 
 # An option to build package for NextGIS online installer.
-set(BUILD_NEXTGIS_PACKAGE ON CACHE BOOL "Build package for NextGIS Installation system (based on Borsch) instead of simple build")
+set(BUILD_NEXTGIS_PACKAGE OFF CACHE BOOL "Build package for NextGIS Installation system (based on Borsch) instead of simple build")
 
 # TODO: add an option to build offline installer.
 

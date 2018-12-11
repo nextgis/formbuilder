@@ -57,20 +57,26 @@ FbAboutDialog::FbAboutDialog (QWidget *parent, Language language):
         ui->stw_about->setCurrentIndex(ui->list_about->currentRow());
     });
 
-    QFile file(":/data/img_authors.txt");
-    if (file.open(QIODevice::ReadOnly))
+    QFile file_authors(":/data/img_authors.txt");
+    if (file_authors.open(QIODevice::ReadOnly))
     {
-        QTextStream in(&file);
+        QTextStream in(&file_authors);
         while (!in.atEnd())
         {
             QString str = in.readLine();
             ui->tedit_cc->appendPlainText(str);
         }
-        file.close();
+        file_authors.close();
     }
 
-    // TEMP:
-    ui->lab_version->setText(QString::number(2.2));
+    QFile file_vers(":/data/VERSION");
+    if (file_vers.open(QIODevice::ReadOnly))
+    {
+        QTextStream in(&file_vers);
+        QString str = in.readLine();
+        ui->lab_version->setText(str);
+        file_vers.close();
+    }
 
     ui->lab_offpage->setText(QString("<a href=\"%1\">%1</a>")
                              .arg(LANGUAGES.value(language).app_link));
@@ -127,6 +133,3 @@ void FbAboutDialog::onNeedToUpdateAccountInfo ()
     ng_dialog->updateContent();
     ng_dialog->show();
 }
-
-
-

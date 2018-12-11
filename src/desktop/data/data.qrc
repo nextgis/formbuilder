@@ -2,5 +2,6 @@
     <qresource prefix="data/">
         <file>ngfb.ico</file>
         <file>img_authors.txt</file>
+        <file>VERSION</file>
     </qresource>
 </RCC>
