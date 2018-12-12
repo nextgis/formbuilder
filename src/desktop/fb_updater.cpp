@@ -65,7 +65,7 @@ const QString FbUpdater::updaterPath ()
 
 #if defined Q_OS_WIN
     QDir updater_dir = app_dir.dir();
-    updater_dir.cdUp();
+    //updater_dir.cdUp();
     return updater_dir.absoluteFilePath(NGUpdater::updaterPath());
 #elif defined(Q_OS_MACX)
     // 4 level up
