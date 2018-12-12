@@ -257,8 +257,7 @@ FbWindow::FbWindow (Language last_language):
 
     // Create updater.
     fb_updater = new FbUpdater(this);
-    connect(fb_updater, SIGNAL(checkUpdatesFinished(bool)),
-            this, SLOT(onCheckUpdatesFinished(bool)));
+    connect(fb_updater, &FbUpdater::checkUpdatesFinished, this, &FbWindow::onCheckUpdatesFinished);
 
     // Start checking for updates. Updates button will be shown if updates will be found.
     fb_updater->checkUpdates();

@@ -61,17 +61,19 @@ const QStringList FbUpdater::ignorePackages ()
 
 const QString FbUpdater::updaterPath ()
 {
-    QFileInfo appDir(qApp->applicationDirPath());
+    QFileInfo app_dir(qApp->applicationDirPath());
 
 #if defined Q_OS_WIN
-    return appDir.dir().absoluteFilePath(NGUpdater::updaterPath());
+    QDir updater_dir = app_dir.dir();
+    updater_dir.cdUp();
+    return updater_dir.absoluteFilePath(NGUpdater::updaterPath());
 #elif defined(Q_OS_MACX)
     // 4 level up
-    QDir updaterDir = appDir.dir();
-    updaterDir.cdUp();
-    updaterDir.cdUp();
-    updaterDir.cdUp();
-    return updaterDir.absoluteFilePath(NGUpdater::updaterPath());
+    QDir updater_dir = app_dir.dir();
+    updater_dir.cdUp();
+    updater_dir.cdUp();
+    updater_dir.cdUp();
+    return updater_dir.absoluteFilePath(NGUpdater::updaterPath());
 #else
     return NGUpdater::updaterPath();
 #endif

@@ -68,11 +68,6 @@ qt5_add_translation(FB_QMS ${FB_TSS})
 add_custom_target(translations ALL DEPENDS ${FB_QMS}) # in order to track updating of *.ts files
 
 
-# if(BUILD_NEXTGIS_PACKAGE)
-	# qt5_wrap_cpp(MOC_HEADERS ${FB_HEADERS})
-	# set(FB_HEADERS ${FB_HEADERS} ${MOC_HEADERS})
-# endif()
-
 add_executable(${FB_APP_NAME} MACOSX_BUNDLE WIN32 ${FB_SOURCES} ${FB_HEADERS} ${FB_UIS} ${FB_QRCS} ${FB_QMS})	
 
 
