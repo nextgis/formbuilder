@@ -25,6 +25,8 @@ endif()
 
 set(FB_SOURCES
 
+    app_icon.rc
+
     fb_project.cpp
     fb_updater.cpp
     fb_aboutdialog.cpp
