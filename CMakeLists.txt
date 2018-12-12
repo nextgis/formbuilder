@@ -6,7 +6,7 @@
 #                                                                                                  #
 ####################################################################################################
 
-cmake_minimum_required(VERSION 3.9.0)
+cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR) #cmake_minimum_required(VERSION 3.9.0)
 
 project(fb) #project(formbuilder)
 
