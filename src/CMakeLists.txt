@@ -31,6 +31,10 @@ if(BUILD_NEXTGIS_PACKAGE)
 		set(SKIP_INSTALL_FILES OFF)
 		set(SKIP_INSTALL_EXPORT ON)
 		set(CMAKE_MACOSX_RPATH ON)
+        set(QT4_PLUGINS_DIR Library/Plugins/Qt4)
+        set(QT4_TRANSLATION_DIR Library/Translations/Qt4)
+        set(QT5_PLUGINS_DIR Library/Plugins/Qt5)
+        set(QT5_TRANSLATION_DIR Library/Translations/Qt5)
 	else()
 		include(GNUInstallDirs)
 		set(INSTALL_BIN_DIR ${CMAKE_INSTALL_BINDIR} CACHE INTERNAL "Installation directory for executables" FORCE)
@@ -325,3 +329,11 @@ add_subdirectory(serializer)
 
 # Build GUI executable.
 add_subdirectory(desktop)
+
+
+if(BUILD_NEXTGIS_PACKAGE)
+    if(OSX_FRAMEWORK)
+        configure_file(${PROJECT_SOURCE_DIR}/cmake/qt.conf.cmake.in ${CMAKE_BINARY_DIR}/qt.conf IMMEDIATE @ONLY)
+        install(FILES ${CMAKE_BINARY_DIR}/qt.conf DESTINATION ${INSTALL_SHARE_DIR})
+    endif()
+endif()
