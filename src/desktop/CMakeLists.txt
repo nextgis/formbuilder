@@ -123,12 +123,12 @@ if(BUILD_NEXTGIS_PACKAGE)
 	endif()
 
 	if(UNIX AND NOT OSX_FRAMEWORK)
-		install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/img/formbuilder.png DESTINATION ${CMAKE_INSTALL_DATADIR}/pixmaps)
+        install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/formbuilder.png DESTINATION ${CMAKE_INSTALL_DATADIR}/pixmaps)
 		install(FILES ${CMAKE_CURRENT_BINARY_DIR}/formbuilder.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
 	endif()
 
 	if(OSX_FRAMEWORK)
-		file(GLOB ICONS "img/*.icns")
+        file(GLOB ICONS "data/*.icns")
 		install(FILES ${ICONS} DESTINATION ${INSTALL_SHARE_DIR})
 	endif()
 
