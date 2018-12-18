@@ -257,7 +257,10 @@ FbWindow::FbWindow (Language last_language):
 
     // Create updater.
     fb_updater = new FbUpdater(this);
-    connect(fb_updater, &FbUpdater::checkUpdatesFinished, this, &FbWindow::onCheckUpdatesFinished);
+    // TODO: do the following with new connect syntax but the signal in NGUpdater must be with
+    // something like Q_DECL_EXPORT in order to get it connected.
+    connect(fb_updater, SIGNAL(checkUpdatesFinished(bool)),
+            this, SLOT(onCheckUpdatesFinished(bool)));
 
     // Start checking for updates. Updates button will be shown if updates will be found.
     fb_updater->checkUpdates();
