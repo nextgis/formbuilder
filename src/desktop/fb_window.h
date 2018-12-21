@@ -135,7 +135,8 @@ class FbWindow final: public MainWindow
      QToolBar *toolb_form;
 
      NGSignInButton *but_ngauth;
-     QToolButton *but_updates;
+     //QToolButton *but_updates;
+     QAction *act_updates;
 
      QAction *act_new_void;
      QAction *act_open;

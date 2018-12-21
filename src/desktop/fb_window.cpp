@@ -235,12 +235,11 @@ FbWindow::FbWindow (Language last_language):
     connect(but_ngauth, &NGSignInButton::supportInfoUpdated, this, &FbWindow::onSupportInfoUpdated);
 
     // NextGIS Updates button.
-    but_updates = new QToolButton();
+    QToolButton *but_updates = new QToolButton();
     but_updates->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     but_updates->setCursor(Qt::PointingHandCursor);
     but_updates->setToolTip(tr("Updates available!"));
     but_updates->setIcon(QIcon(":/images/theme_white/updates_available.svg"));
-    but_updates->hide();
     connect(but_updates, &QToolButton::clicked, this, &FbWindow::onUpdatesAvailClicked);
 
     // Unclosable toolbar.
@@ -251,7 +250,8 @@ FbWindow::FbWindow (Language last_language):
     toolbar_unclose->setFloatable(false);
     toolbar_unclose->setMovable(false);
     toolbar_unclose->addWidget(w_stretch_unclose);
-    toolbar_unclose->addWidget(but_updates);
+    act_updates = toolbar_unclose->addWidget(but_updates);
+    act_updates->setVisible(false);
     toolbar_unclose->addWidget(but_ngauth);
     this->addToolBar(toolbar_unclose);
 
@@ -612,12 +612,11 @@ void FbWindow::onUpdatesAvailClicked ()
 
 void FbWindow::onCheckUpdatesFinished (bool updates_avail)
 {
-    // TEMP:
-    but_updates->show();
+    // TEMP:    
     if (updates_avail)
-        but_updates->setIcon(QIcon(":/images/theme_white/updates_available.svg"));
+        act_updates->setVisible(true);
     else
-        but_updates->setIcon(QIcon(":/images/theme_white/updates_unavailable.svg"));
+        act_updates->setVisible(false);
 }
 
 
