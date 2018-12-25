@@ -60,8 +60,9 @@ class FbWindow final: public MainWindow
      void onSaveClicked ();
      void onSaveAsClicked ();
      void onExitClicked ();
+     void onDownloadFromNgw ();
+     void onUploadToNgw ();
      void onEditFormPropsClicked ();
-     void onCreateNgwForm ();
      void onClearScreenClicked ();
      void onLanguageClicked (QAction *action);
      void onViewHelpClicked ();
@@ -93,7 +94,7 @@ class FbWindow final: public MainWindow
 
     private:
 
-      QMenu *createPopupMenu() override;
+      QMenu *createPopupMenu () override;
 
       template <typename Slot>
       QAction *addMainMenuAction (QMenu *menu, QToolBar *toolb, Slot slot,
@@ -143,8 +144,9 @@ class FbWindow final: public MainWindow
      QAction *act_save;
      QAction *act_save_as;
      QAction *act_exit;
+     QAction *act_download_from_ngw;
+     QAction *act_upload_to_ngw;
      QAction *act_form_props;
-     QAction *act_create_ngw_form;
      QAction *act_clear_screen;
      QAction *act_view_help;
      QAction *act_comm_supp;

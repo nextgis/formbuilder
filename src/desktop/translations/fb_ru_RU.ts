@@ -1294,5 +1294,9 @@
         <source>Authentication &amp; Updates</source>
         <translation>Авторизация и Обновления</translation>
     </message>
+    <message>
+        <source>Label</source>
+        <translation>Надпись</translation>
+    </message>
 </context>
 </TS>

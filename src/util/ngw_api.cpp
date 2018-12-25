@@ -41,7 +41,8 @@ QString NgwApi::urlRootResources (QString base_url)
 
 QString NgwApi::urlResources (QString base_url, int resource_id)
 {
-    return QString("%1/resource/%2/child/").arg(base_url).arg(resource_id);
+    //return QString("%1/resource/%2/child/").arg(base_url).arg(resource_id);
+    return QString("%1/api/resource/?parent=%2").arg(base_url).arg(resource_id);
 }
 
 QString NgwApi::urlResource (QString base_url, int resource_id)

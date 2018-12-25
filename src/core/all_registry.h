@@ -302,7 +302,7 @@ inline void g_registerElements ()
        false, false,
        new LabelFct(key_name),
        "label.svg", "",
-       QObject::tr("Text"),
+       QObject::tr("Label"),
        QObject::tr("An element which displays static text"),
     });
 

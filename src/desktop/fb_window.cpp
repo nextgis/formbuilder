@@ -89,6 +89,8 @@ FbWindow::FbWindow (Language last_language):
                             ":/images/theme_white/open2.svg",
                             tr("Open"),
                             tr("Open project"));
+    // TEMP:
+    act_open->setVisible(false);
 
     act_save = this->addMainMenuAction(
                             menu_file, toolb_project,
@@ -115,9 +117,11 @@ FbWindow::FbWindow (Language last_language):
 
     // EDIT menu.
 
-    act_create_ngw_form = this->addMainMenuAction(
+
+
+    act_upload_to_ngw = this->addMainMenuAction(
                             menu_edit, toolb_ngw,
-                            &FbWindow::onCreateNgwForm,
+                            &FbWindow::onUploadToNgw,
                             ":/images/theme_white/ngw_create2.svg",
                             tr("Upload to NextGIS Web"),
                             tr("Upload form to NextGIS Web with creating new layer"));
@@ -394,15 +398,13 @@ void FbWindow::onExitClicked ()
     this->close(); // see closeEvent()
 }
 
-void FbWindow::onEditFormPropsClicked ()
+void FbWindow::onDownloadFromNgw ()
 {
-    this->u_showLayerMetaDialog(
-                cur_project.data()->layer0_get()->getNgwUrl() == "" ? true : false,
-                "", "", tr("OK"));
+
 }
 
 
-void FbWindow::onCreateNgwForm ()
+void FbWindow::onUploadToNgw ()
 {
     if (!this->u_canUseSupportedFeature())
         return;
@@ -514,6 +516,13 @@ void FbWindow::onCreateNgwForm ()
     this->u_updateTitle();
 }
 
+void FbWindow::onEditFormPropsClicked ()
+{
+    this->u_showLayerMetaDialog(
+                cur_project.data()->layer0_get()->getNgwUrl() == "" ? true : false,
+                "", "", tr("OK"));
+}
+
 void FbWindow::onClearScreenClicked ()
 {
     if (cur_device->getScreen() == nullptr)
@@ -612,7 +621,6 @@ void FbWindow::onUpdatesAvailClicked ()
 
 void FbWindow::onCheckUpdatesFinished (bool updates_avail)
 {
-    // TEMP:    
     if (updates_avail)
         act_updates->setVisible(true);
     else
@@ -828,7 +836,7 @@ void FbWindow::u_addElem (QString elem_key_name)
         elem_data->fct != nullptr && elemview_fct != nullptr)
     {
         // Create elem and its elem view.
-        new_elem= elem_data->fct->create();
+        new_elem = elem_data->fct->create();
         new_elemview = elemview_fct->create(new_elem);
 
         // Connect elemview with project in order all elems will be deleted automatically.
@@ -1234,7 +1242,7 @@ void FbWindow::u_updateSupportedIcons (bool is_supported)
     {
         icon = QIcon(":/images/theme_white/ngw_create2.svg");
     }
-    act_create_ngw_form->setIcon(icon);
+    act_upload_to_ngw->setIcon(icon);
 }
 
 bool FbWindow::u_canUseSupportedFeature ()

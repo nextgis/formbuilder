@@ -35,6 +35,7 @@
 #include <QDateTime>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QDebug>
 
 using namespace Fb;
 using namespace Serializer;
@@ -46,6 +47,9 @@ using namespace Util;
 
 void NgfpReader::loadNgfp (QString file_path, Layer *layer, NgmFormView *form)
 {
+    if (form == nullptr || layer == nullptr)
+        return;
+
     if (!QFile::exists(file_path))
         throw QString("Unable to find %1").arg(file_path);
 
@@ -93,14 +97,14 @@ void NgfpReader::metaFromJson (const QJsonDocument &j_layer, Layer *layer)
 
     QJsonValue j_fields = j_root["fields"];
     if (!j_fields.isArray())
-        throw "Not found proper \"fields\" key in .ngfp meta.json";
+        throw "Not found proper \"fields\" key in meta.json";
 
     QJsonArray j_fields_arr = j_fields.toArray();
     for (int i = 0; i < j_fields_arr.size(); i++)
     {
         if (!j_fields_arr[i].isObject())
         {
-            qDebug() << "Not a proper JSON object for field in .ngfp meta.json";
+            qDebug() << "Not a proper JSON object for field in meta.json";
             continue;
         }
 
@@ -109,25 +113,26 @@ void NgfpReader::metaFromJson (const QJsonDocument &j_layer, Layer *layer)
         QJsonValue j_datatype = j_field["datatype"];
         if (!j_datatype.isString())
         {
-            qDebug() << "Not found proper \"datatype\" key for field in .ngfp meta.json";
+            qDebug() << "Not found proper \"datatype\" key for field in meta.json";
             continue;
         }
 
         QJsonValue j_disp_name = j_field["display_name"];
         if (!j_disp_name.isString())
         {
-            qDebug() << "Not found proper \"display_name\" key for field in .ngfp meta.json";
+            qDebug() << "Not found proper \"display_name\" key for field in meta.json";
             continue;
         }
 
         QJsonValue j_name = j_field["keyname"];
         if (!j_name.isString())
         {
-            qDebug() << "Not found proper \"keyname\" key for field in .ngfp meta.json";
+            qDebug() << "Not found proper \"keyname\" key for field in meta.json";
             continue;
         }
 
-        if (!layer->addField(j_name.toString(), g_findFieldType(j_datatype.toString())))
+        if (!layer->addField(j_name.toString(), j_disp_name.toString(),
+                             g_findFieldType(j_datatype.toString())))
         {
             qDebug() << "Unable to add field from .ngfp meta.json";
             continue;
@@ -155,48 +160,40 @@ void NgfpReader::metaFromJson (const QJsonDocument &j_layer, Layer *layer)
     else */
     if (!j_ngw_con.isNull())
     {
-        qDebug() << "Not found proper \"ngw_connection\" key in .ngfp";
+        qDebug() << "A key \"ngw_connection\" must have null value in meta.json (temporary)";
     }
 
     QJsonValue j_name = j_root["name"];
     if (!j_name.isString())
-        qDebug() << "Not found proper \"name\" key in .ngfp";
+        qDebug() << "Not found proper \"name\" key in meta.json";
     else
         layer->setName(j_name.toString());
 
     QJsonValue j_geom_type = j_root["geometry_type"];
     if (!j_name.isString())
-        qDebug() << "Not found proper \"geometry_type\" key in .ngfp";
+        qDebug() << "Not found proper \"geometry_type\" key in meta.json";
     else
         layer->setGeomType(g_findGeomType(j_geom_type.toString()));
 
-    QJsonValue j_srs = j_root["srs"];
-/*
-    if (!j_srs.isObject())
-    {
-        qDebug() << "Not found proper \"srs\" key in .ngfp";
-    }
-    else
-    {
-        QJsonValue j_srs_id = j_srs["id"];
-        if (!j_srs_id.isString())
-            qDebug() << "Not found proper \"id\" key for srs in .ngfp";
-        else
-            layer->setSrsType(g_findSrsType(j_srs_id.toString()));
-    }
-*/
     layer->setSrsType(g_findSrsType("4326"));
 }
 
 
-void NgfpReader::formFromJson (const QJsonDocument &j_form, NgmFormView *form, const Layer *layer)
+void NgfpReader::formFromJson (const QJsonDocument &j_form, NgmFormView *form, Layer *layer)
 {
     if (!j_form.isArray())
         throw "Form: not a proper JSON object";
     QJsonArray j_form_arr = j_form.array();
-    for (int i = 0; i < j_form_arr.size(); i++)
+
+    containerFromJson(j_form_arr, const_cast<Container*>(form->getContainer()), layer);
+}
+
+
+void NgfpReader::containerFromJson (const QJsonArray &j_container, Container *container, Layer *layer)
+{
+    for (int i = 0; i < j_container.size(); i++)
     {
-        if (!j_form_arr[i].isObject())
+        if (!j_container[i].isObject())
         {
             qDebug() << "Not a proper JSON object for element in .ngfp";
             continue;
@@ -206,7 +203,7 @@ void NgfpReader::formFromJson (const QJsonDocument &j_form, NgmFormView *form, c
         QJsonValue j_type = j_elem["type"];
         if (!j_type.isString())
         {
-            skipped_elements.append("No proper \"type\" key for element");
+            last_warnings.append(QString("No proper \"type\" key for element %1").arg(i));
             continue;
         }
 
@@ -215,7 +212,7 @@ void NgfpReader::formFromJson (const QJsonDocument &j_form, NgmFormView *form, c
         auto elemview_fct = ElemViewRegistrar::get(elem_keyname);
         if (elem_data == nullptr || elem_data->fct == nullptr || elemview_fct == nullptr)
         {
-            skipped_elements.append(QString("Unable to create \"%1\" element. Incorrect keyname or factory").arg(elem_keyname));
+            last_warnings.append(QString("Unable to create \"%1\" element. Incorrect keyname or factory").arg(elem_keyname));
             continue;
         }
 
@@ -224,8 +221,22 @@ void NgfpReader::formFromJson (const QJsonDocument &j_form, NgmFormView *form, c
 
         ElemView *elemview = elemview_fct->create(elem);
         cur_screen->setTopLevelElemView(top_elemview);
-
     }
+}
+
+void NgfpReader::elemViewFromJson (const QJsonValue &j_elem_view, ElemView *elemview, Layer *layer)
+{
+
+}
+
+void NgfpReader::attrFromJson (const QJsonValue &j_attr, Attr *attr)
+{
+
+}
+
+void NgfpReader::fieldSlotFromJson (const QJsonValue &j_f_slot, Layer *layer, Elem *elem, QString field_slot)
+{
+
 }
 
 

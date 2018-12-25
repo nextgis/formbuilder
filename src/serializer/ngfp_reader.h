@@ -61,9 +61,14 @@ class NgfpReader
     protected:
 
      static void metaFromJson (const QJsonDocument &j_layer, Layer *layer);
-     static void formFromJson (const QJsonDocument &j_form, NgmFormView *form, const Layer *layer);
+     static void formFromJson (const QJsonDocument &j_form, NgmFormView *form, Layer *layer);
      //static void metaFromJson (const QJsonDocument &j_layer, NgfpLayerInfo &layer_info);
      //static void formFromJson (const QJsonDocument &j_form, NgfpLayerInfo &layer_info, NgfpFormInfo &form_info);
+
+     static void containerFromJson (const QJsonArray &j_container, Container *container, Layer *layer);
+     static void elemViewFromJson (const QJsonValue &j_elem_view, ElemView *elemview, Layer *layer);
+     static void attrFromJson (const QJsonValue &j_attr, Attr *attr);
+     static void fieldSlotFromJson (const QJsonValue &j_f_slot, Layer *layer, Elem *elem, QString field_slot);
 };
 
 
