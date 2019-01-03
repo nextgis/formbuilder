@@ -20,3 +20,4 @@
 *.app
 
 CMakeLists.txt.user
+build*

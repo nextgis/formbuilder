@@ -1,9 +1,0 @@
-<RCC>
-    <qresource prefix="data/">
-        <file>formbuilder.png</file>
-        <file>ngfb.ico</file>
-        <file>fb.icns</file>
-        <file>img_authors.txt</file>
-        <file>VERSION</file>
-    </qresource>
-</RCC>
