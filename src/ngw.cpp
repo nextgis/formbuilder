@@ -301,7 +301,8 @@ void FBDialogNgw::httpAuthFinished ()
         wProgBar->setValue(50);
 
         QUrl url;
-        url.setUrl(strUrl+"/resource/0/child/");
+        //url.setUrl(strUrl+"/resource/0/child/");
+        url.setUrl(strUrl + "/api/resource/?parent=0");
         QNetworkRequest request(url);
         httpReply = httpManager.get(request);
         QObject::connect(httpReply, SIGNAL(finished()),
