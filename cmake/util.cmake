@@ -28,12 +28,13 @@
 
 function(check_version major minor)
 
-    set(VERSION_FILE ${CMAKE_CURRENT_SOURCE_DIR}/src/project/project_core.h)
+    set(VERSION_FILE ${CMAKE_CURRENT_SOURCE_DIR}/desktop/data/VERSION)
 
     file(READ ${VERSION_FILE} _VERSION_H_CONTENTS)
 
-    string(REGEX MATCH "FB_VERSION[ \t]+([0-9].[0-9]+)" FB_VERSION ${_VERSION_H_CONTENTS})
-    string(REGEX MATCH "([0-9].[0-9]+)" FB_VERSION ${FB_VERSION})
+#    string(REGEX MATCH "FB_VERSION[ \t]+([0-9].[0-9]+)" FB_VERSION ${_VERSION_H_CONTENTS})
+#    string(REGEX MATCH "([0-9].[0-9]+)" FB_VERSION ${FB_VERSION})
+    string(REGEX MATCH "([0-9].[0-9]+)" FB_VERSION ${_VERSION_H_CONTENTS})
 
     string(REPLACE "." ";" FB_VERSION ${FB_VERSION})
     list(GET FB_VERSION 0 FB_MAJOR_VERSION)
