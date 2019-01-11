@@ -310,6 +310,7 @@ else()
 	endif()
 
 	include_directories(${NGSTD_INCLUDE_DIRS})
+        include_directories(${NGSTD_INCLUDE_DIRS}/..)
 
 	# Installation directories:
 

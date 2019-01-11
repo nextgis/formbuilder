@@ -21,7 +21,7 @@
 
 #include "core/geom_types.h"
 
-#include "core/request.h" // lib_ngstd
+#include "ngstd/core/request.h"
 
 #include <QJsonDocument>
 #include <QJsonObject>
