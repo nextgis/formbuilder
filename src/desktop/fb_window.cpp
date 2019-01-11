@@ -31,6 +31,8 @@
 #include "util/settings.h"
 #include "gui/sizes.h"
 
+#include "ngstd/core/request.h"
+
 #include <QFileDialog>
 #include <QMenuBar>
 #include <QDockWidget>
@@ -519,8 +521,11 @@ void FbWindow::onUploadToNgw ()
 
     // Step 3 of 3: Create form for the new layer.
 
+    QString upload_url = QString("%1/api/component/file_upload/upload").arg(res_info.base_url);
+    QString s_reply = NGRequest::uploadFile(upload_url, file_path, "file"); // required "file" keyword
+
     int new_form_id;
-    if (!ngw_io->createForm(new_form_id, file_path, res_info.base_url, new_layer_id))
+    if (!ngw_io->createForm(new_form_id, s_reply, res_info.base_url, new_layer_id))
     {
         g_showWarningDet(this, tr("Unable to create form on NextGIS Web"),
                          ngw_io->getLastError());

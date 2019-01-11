@@ -21,8 +21,6 @@
 
 #include "core/geom_types.h"
 
-#include "ngstd/core/request.h"
-
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -146,8 +144,7 @@ bool NgwGdalIo::createLayer (int &new_layer_id, const NgwLayerInfo &layer_info, 
 bool NgwGdalIo::createForm (int &new_form_id, QString ngfp_path, QString base_url,
                             int layer_id)
 {
-    QString upload_url = api->urlUploadFile(base_url);
-    QString s_reply = NGRequest::uploadFile(upload_url, ngfp_path, "file"); // required "file" keyword
+    QString s_reply = ngfp_path; // a hack
 
     QJsonDocument j_reply = QJsonDocument::fromJson(s_reply.toUtf8());
     if (!j_reply.isObject())
