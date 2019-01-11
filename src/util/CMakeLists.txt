@@ -43,7 +43,9 @@ set(FB_UTIL_LIB_PUBLIC_HEADERS
 add_library(${FB_UTIL_LIB_NAME} STATIC ${FB_UTIL_LIB_SOURCES} ${FB_UTIL_LIB_HEADERS})
 
 if(BUILD_NEXTGIS_PACKAGE)
+    set(TARGET_LINK_LIB ${TARGET_LINK_LIB}
+        ${NGSTD_LIBRARIES})
 	target_link_extlibraries(${FB_UTIL_LIB_NAME})
 else()
-	target_link_libraries(${FB_UTIL_LIB_NAME} Qt5::Widgets Qt5::Network)
-endif()	
+	target_link_libraries(${FB_UTIL_LIB_NAME} Qt5::Widgets Qt5::Network ${NGSTD_LIBRARIES})
+endif()
