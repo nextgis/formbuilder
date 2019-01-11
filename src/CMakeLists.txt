@@ -240,6 +240,7 @@ if(BUILD_NEXTGIS_PACKAGE)
 	endif()
 
 	find_anyproject(NGSTD REQUIRED COMPONENTS framework5)
+        include_directories(${NGSTD_INCLUDE_DIRS}/..)
 
 	set(PACKAGE_NAME ${PROJECT_NAME})
 
