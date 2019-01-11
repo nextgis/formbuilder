@@ -150,27 +150,27 @@ if(BUILD_NEXTGIS_PACKAGE)
 
 else()
 
-	target_link_libraries(${FB_APP_NAME}
-						  Qt5::Widgets
-						  ${GDAL_LIBRARY}
-						  ${FB_CORE_LIB_NAME} ${FB_GUI_LIB_NAME} ${FB_MOCKUP_LIB_NAME}
-						  ${FB_SERIALIZER_LIB_NAME} ${FB_UTIL_LIB_NAME}
-						  ${NGSTD_LIBRARIES})
+    target_link_libraries(${FB_APP_NAME}
+                          Qt5::Widgets
+                          ${GDAL_LIBRARY}
+                          ${FB_CORE_LIB_NAME} ${FB_GUI_LIB_NAME} ${FB_MOCKUP_LIB_NAME}
+                          ${FB_SERIALIZER_LIB_NAME} ${FB_UTIL_LIB_NAME}
+                          ${NGSTD_LIBRARIES})
 
-	# install(TARGETS ${FB_APP_NAME}
-	  # RUNTIME DESTINATION ${INSTALL_BIN_DIR}
-	  # LIBRARY DESTINATION ${INSTALL_LIB_DIR}
-	  # ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
-	# )
-	
-	# TODO: for Windows also add copying of the following files:
-	# <bin folder>/Qt5Svg.dll # though the app is not linked directly with this lib
-	# <bin folder>/styles/qwindowsvistastyle.dll
-	# <bin folder>/: msvcr100.dll, msvcr120.dll, msvcp140.dll (for 32bit build dlls must be 32 bit from C:\Windows\SysWOW64, not 64 bit from C:\Windows\System32)
-	# ? <bin folder>/libEGL.dll & <bin folder>/libGLESv2.dll
-	# ? <bin folder>/platforms/qwindows.dll
-	# ? <bin folder>/imageformats/<qgif,qico,qsvg>.dll
-	# ? <bin folder>/iconengines/qsvgicon.dll
+    # install(TARGETS ${FB_APP_NAME}
+      # RUNTIME DESTINATION ${INSTALL_BIN_DIR}
+      # LIBRARY DESTINATION ${INSTALL_LIB_DIR}
+      # ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
+    # )
+
+    # TODO: for Windows also add copying of the following files:
+    # <bin folder>/Qt5Svg.dll # though the app is not linked directly with this lib
+    # <bin folder>/styles/qwindowsvistastyle.dll
+    # <bin folder>/: msvcr100.dll, msvcr120.dll, msvcp140.dll (for 32bit build dlls must be 32 bit from C:\Windows\SysWOW64, not 64 bit from C:\Windows\System32)
+    # ? <bin folder>/libEGL.dll & <bin folder>/libGLESv2.dll
+    # ? <bin folder>/platforms/qwindows.dll
+    # ? <bin folder>/imageformats/<qgif,qico,qsvg>.dll
+    # ? <bin folder>/iconengines/qsvgicon.dll
 	
 endif()	
 

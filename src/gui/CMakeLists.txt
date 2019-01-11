@@ -112,8 +112,8 @@ if(BUILD_NEXTGIS_PACKAGE)
 	target_link_extlibraries(${FB_GUI_LIB_NAME})
 else()
 	target_link_libraries(${FB_GUI_LIB_NAME}
-						  Qt5::Widgets
-						  ${FB_CORE_LIB_NAME} ${FB_UTIL_LIB_NAME})
+                                Qt5::Widgets
+                                ${FB_CORE_LIB_NAME} ${FB_UTIL_LIB_NAME})
 endif()			
 			
 			
