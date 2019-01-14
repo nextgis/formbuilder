@@ -84,6 +84,10 @@ if(BUILD_NEXTGIS_PACKAGE)
 
 #	set_property(TARGET ${FB_APP_NAME} PROPERTY CXX_STANDARD 11)
 
+    if(WIN32)
+        add_definitions(-DFB_GDALDATA_IN_SHARE)
+    endif()
+
 	if(WIN32)
 		set_property(TARGET ${FB_APP_NAME} APPEND PROPERTY LINK_FLAGS /entry:mainCRTStartup)
 	endif()
