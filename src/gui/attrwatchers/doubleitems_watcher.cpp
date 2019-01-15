@@ -2,7 +2,7 @@
  *                                                                                                *
  *    Project:  NextGIS Formbuilder                                                               *
  *    Authors:  Mikhail Gusev, gusevmihs@gmail.com                                                *
- *              Copyright (C) 2014-2018 NextGIS                                                   *
+ *              Copyright (C) 2014-2019 NextGIS                                                   *
  *                                                                                                *
  *    This program is free software: you can redistribute it and/or modify it under the terms     *
  *    of the GNU General Public License as published by the Free Software Foundation, either      *

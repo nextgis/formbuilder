@@ -2,7 +2,7 @@
 #                                                                                                  #
 #    Project:   NextGIS Formbuilder                                                                #
 #    Authors:   Mikhail Gusev, gusevmihs@gmail.com                                                 #
-#               Copyright (C) 2014-2018 NextGIS                                                    #
+#               Copyright (C) 2014-2019 NextGIS                                                    #
 #                                                                                                  #
 ####################################################################################################
 
