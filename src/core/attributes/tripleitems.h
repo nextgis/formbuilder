@@ -48,6 +48,8 @@ class TripleItems: public Attr
      virtual ~TripleItems ();
 
      virtual QVariant getValueAsVar () const override;
+     virtual void setValueAsVar (const QVariant &new_value) override;
+
      const TripleItemsValue &getValue () const;
      void setValue (const TripleItemsValue &new_value);
 

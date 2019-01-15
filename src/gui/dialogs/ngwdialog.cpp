@@ -117,28 +117,6 @@ NgwDialog::~NgwDialog ()
     delete ui;
 }
 
-//QPair<QString, int> NgwDialog::getResource ()
-//{
-//    int id;
-//    QTreeWidgetItem *item = ui->tree_reses->currentItem();
-//    if (item != nullptr)
-//    {
-//        auto data = item->data(0, Qt::UserRole).value<NgwDialogItemData>();
-//        id = data.res_id;
-//    }
-//    else
-//    {
-//        id = 0;
-//    }
-
-//    return qMakePair(cur_url, id);
-//}
-
-//QPair<QString, QString> NgwDialog::getCreds ()
-//{
-//    return qMakePair(cur_login, cur_password);
-//}
-
 
 NgwDialogResInfo NgwDialog::getSelectedResourceInfo ()
 {
@@ -189,12 +167,6 @@ void NgwDialog::onConnectClicked ()
         cur_password = ui->edit_password->text();
     }
 
-//    this->hideTreeDecor();
-//    this->showTreeSpinner();
-//    ui->tree_reses->setEnabled(false);
-//    ui->but_connect->setEnabled(false);
-//    ui->but_add->setEnabled(false);
-//    ui->but_select->setEnabled(false);
     ui->tree_reses->clear();
 
     ngw_io->reset(); // this should also clear old authentication data
@@ -225,111 +197,7 @@ void NgwDialog::onConnectClicked ()
         this->updateTree(resources);
         was_success_connection = true;
     }
-
-//    this->hideTreeDecor();
-//    ui->tree_reses->setEnabled(true);
-//    ui->but_connect->setEnabled(true);
-//    ui->but_add->setEnabled(true);
 }
-
-
-/*
-void NgwDialog::onAddClicked ()
-{
-
-    if (cur_layer == nullptr)
-        return;
-
-    QTreeWidgetItem *item = nullptr;
-    NgwDialogItemData item_data;
-    QTreeWidgetItem *parent_item = nullptr;
-
-    int selected_res_group_id = 0;
-    QString res_group_name = tr("root");
-    item = ui->tree_reses->currentItem();
-    if (item != nullptr)
-    {
-        item_data = item->data(0, Qt::UserRole).value<NgwDialogItemData>();
-        if (item_data.res_type == NgwResourceType::ResourceGroup)
-        {
-            selected_res_group_id = item_data.res_id;
-            res_group_name = item->text(0);
-        }
-        else
-        {
-            parent_item = item->parent();
-            if (parent_item != nullptr) // then this is definitely a resource group
-            {
-                auto parent_item_data = parent_item->data(0, Qt::UserRole).value<NgwDialogItemData>();
-                selected_res_group_id = parent_item_data.res_id;
-                res_group_name = parent_item->text(0);
-            }
-        }
-    }
-
-    QString res_group_url = ngw_io->getNgwApi()->requestResourceView(cur_url,selected_res_group_id);
-
-    LayerDialog dialog(this, cur_layer, true, res_group_url, res_group_name);
-    dialog.setWindowTitle(tr("Create new layer"));
-    dialog.setOkButtonText(tr("Create"));
-
-    if (!dialog.exec())
-        return;
-
-//    this->showTreeSpinner();
-//    ui->tree_reses->setEnabled(false);
-//    ui->but_connect->setEnabled(false);
-
-    QString new_name;
-    Core::GeomType new_geom_type;
-    QList<QPair<QString, Core::FieldType>> new_fields_data;
-
-    dialog.getLayerMeta(new_name, new_geom_type);
-    dialog.getFields(new_fields_data);
-
-    NgwLayerInfo layer_info;
-    layer_info.name = new_name;
-    layer_info.geom_type = Core::g_getGeomTypeNgwName(new_geom_type);
-    for (auto &field_data: new_fields_data)
-        layer_info.fields.append({field_data.first, Core::g_getFieldTypeNgwName(field_data.second)});
-
-    this->blockGuiOnConnect();
-
-    int new_layer_id;
-    bool ok = ngw_io->createLayer(new_layer_id, layer_info, cur_url, selected_res_group_id);
-
-    this->unblockGuiOnConnect();
-
-    if (!ok)
-    {
-        g_showWarningDet(this, tr("Unable to create NextGIS Web layer"),
-                         ngw_io->getLastError());
-    }
-    else
-    {
-        new_layer_ids.insert(new_layer_id);
-
-        if (parent_item != nullptr)
-        {
-            ui->tree_reses->collapseItem(parent_item);
-            ui->tree_reses->expandItem(parent_item);
-        }
-        else if (item != nullptr && item_data.res_type == NgwResourceType::ResourceGroup)
-        {
-            ui->tree_reses->collapseItem(item);
-            ui->tree_reses->expandItem(item);
-        }
-        else
-        {
-            this->onConnectClicked();
-        }
-    }
-
-//    this->hideTreeDecor();
-//    ui->tree_reses->setEnabled(true);
-//    ui->but_connect->setEnabled(true);
-}
-*/
 
 
 /*!
@@ -337,9 +205,6 @@ void NgwDialog::onAddClicked ()
  */
 void NgwDialog::onTreeItemExpanded (QTreeWidgetItem *item)
 {
-//    this->showTreeSpinner();
-//    ui->tree_reses->setEnabled(false);
-//    ui->but_connect->setEnabled(false);
     this->blockGuiOnConnect();
 
     auto data = item->data(0, Qt::UserRole).value<NgwDialogItemData>();
@@ -355,9 +220,6 @@ void NgwDialog::onTreeItemExpanded (QTreeWidgetItem *item)
         qDebug() << ngw_io->getLastError();
     }
 
-//    this->hideTreeDecor();
-//    ui->tree_reses->setEnabled(true);
-//    ui->but_connect->setEnabled(true);
     this->unblockGuiOnConnect();
 }
 
@@ -416,6 +278,11 @@ void NgwDialog::blockGuiOnConnect ()
     ui->but_connect->setEnabled(false);
 
     is_gui_blocked = true;
+
+    // TEMP: the following lines are necessary only for using with ngw_gdal_io:
+    ui->tree_reses->repaint();
+    lab_spinner->setVisible(true);
+    lab_spinner->repaint();
 }
 
 void NgwDialog::unblockGuiOnConnect ()
@@ -432,11 +299,7 @@ void NgwDialog::unblockGuiOnConnect ()
 
 void NgwDialog::showTreeSpinner ()
 {
-//    if (is_tree_decor_shown)
-//        return;
-//    is_tree_decor_shown = true;
-
-    QLabel *lab_spinner = new QLabel(ui->tree_reses);
+    lab_spinner = new QLabel(ui->tree_reses);
     lab_spinner->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     lab_spinner->setAlignment(Qt::AlignCenter);
     lab_spinner->setMovie(movie_spinner);
@@ -448,10 +311,6 @@ void NgwDialog::showTreeSpinner ()
 
 void NgwDialog::showTreeMessage (QString text)
 {
-//    if (is_tree_decor_shown)
-//        return;
-//    is_tree_decor_shown = true;
-
     QLabel *lab_msg = new QLabel(ui->tree_reses);
     lab_msg->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     lab_msg->setAlignment(Qt::AlignCenter);
@@ -464,10 +323,6 @@ void NgwDialog::showTreeMessage (QString text)
 
 void NgwDialog::hideTreeDecor ()
 {
-//    if (!is_tree_decor_shown)
-//        return;
-//    is_tree_decor_shown = false;
-
     movie_spinner->stop();
 
     auto item = lay_spinner->takeAt(0);

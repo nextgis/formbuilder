@@ -8,13 +8,13 @@
 
 set(FB_SERIALIZER_LIB_SOURCES
 
-    #ngfp_reader.cpp
+    ngfp_reader.cpp
     ngfp_writer.cpp
 )
 
 set(FB_SERIALIZER_LIB_HEADERS
 
-    #ngfp_reader.h
+    ngfp_reader.h
     ngfp_writer.h
 
     ngfp_common.h

@@ -69,7 +69,12 @@ void DateTimePicker::behave (Attr *attr)
     attr_init_date->setFormat(g_getDateTimeCommonFormat(date_type));
 
     // Can write to date OR time OR date-time fields.
-    this->addTypeToFieldSlot(fslot_timestamp, g_getDateTimeFieldType(date_type));
+    //this->addTypeToFieldSlot(fslot_timestamp, g_getDateTimeFieldType(date_type));
+
+    // Currently allow all date-time types. At least solves problem with loading datetimepicker from json.
+    this->addTypeToFieldSlot(fslot_timestamp, FieldType::Date);
+    this->addTypeToFieldSlot(fslot_timestamp, FieldType::Time);
+    this->addTypeToFieldSlot(fslot_timestamp, FieldType::DateTime);
 }
 
 

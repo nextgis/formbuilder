@@ -45,7 +45,7 @@ class TabsView: public ElemView
 
      const QList<Container*> &getAllContainers () const { return containers; }
 
-    protected:
+ //   protected:
 
      virtual void atElemChange (Core::Attr *attr) override;
 

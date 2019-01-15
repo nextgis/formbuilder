@@ -67,6 +67,12 @@ QVariant DoubleItems::getValueAsVar () const
     return QVariant::fromValue(value);
 }
 
+void DoubleItems::setValueAsVar (const QVariant &new_value)
+{
+    setValue(new_value.value<DoubleItemsValue>());
+}
+
+
 const DoubleItemsValue &DoubleItems::getValue () const
 {
     return value;

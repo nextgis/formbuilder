@@ -57,7 +57,8 @@ class Screen final: public CustomWidget
      Screen () = delete;
      ~Screen ();
 
-     inline const ElemView *getTopLevelElemView () const { return top_level_elemview; }
+     //inline const ElemView *getTopLevelElemView () const { return top_level_elemview; }
+     inline ElemView *getTopLevelElemView () const { return top_level_elemview; }
      inline const ElemView *getSelectedElemView () const { return elemview_selected; }
 
      void setDecorator (Decorator *new_decorator);
@@ -107,7 +108,10 @@ class Screen final: public CustomWidget
 
      ElemView *elemview_selected;
      bool is_elemview_selected_moving;
+
+    public:
      Space *space_showed;
+    private:
 
      bool is_new_elemview_moving;
 

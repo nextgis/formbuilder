@@ -23,11 +23,27 @@
 
 #include <QTableWidget>
 #include <QLabel>
+#include <QComboBox>
+#include <QWheelEvent>
 
 namespace Fb
 {
 namespace Gui
 {
+
+
+class NoWheelCombobox: public QComboBox
+{
+    public:
+
+     NoWheelCombobox (): QComboBox() {}
+     NoWheelCombobox (QWidget *parent): QComboBox(parent) {}
+     ~NoWheelCombobox () override {}
+
+    protected:
+
+     void wheelEvent (QWheelEvent *event) override { event->ignore(); }
+};
 
 
 class FieldsTableWidget2 final: public QTableWidget
@@ -51,6 +67,8 @@ class FieldsTableWidget2 final: public QTableWidget
 
      void stretchColumns ();
 };
+
+
 
 
 }

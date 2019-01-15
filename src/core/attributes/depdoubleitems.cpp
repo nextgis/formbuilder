@@ -67,6 +67,12 @@ QVariant DepDoubleItems::getValueAsVar () const
     return QVariant::fromValue(value);
 }
 
+void DepDoubleItems::setValueAsVar (const QVariant &new_value)
+{
+    setValue(new_value.value<DepDoubleItemsValue>());
+}
+
+
 const DepDoubleItemsValue &DepDoubleItems::getValue () const
 {
     return value;

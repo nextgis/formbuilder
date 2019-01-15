@@ -46,6 +46,8 @@ class DepDoubleItems: public Attr
      virtual ~DepDoubleItems ();
 
      virtual QVariant getValueAsVar () const override;
+     virtual void setValueAsVar (const QVariant &new_value) override;
+
      const DepDoubleItemsValue &getValue () const;
      void setValue (const DepDoubleItemsValue &new_value);
 

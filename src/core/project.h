@@ -110,6 +110,8 @@ class Project: public QObject
      Project ();
      virtual ~Project ();
 
+     Layer *temp_getLayer () { return *layers.begin(); }
+
      void addElem (Elem *elem);
      void deleteElem (Elem *elem);
 

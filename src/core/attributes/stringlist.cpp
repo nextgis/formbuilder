@@ -60,6 +60,12 @@ QVariant StringList::getValueAsVar () const
     return value;
 }
 
+void StringList::setValueAsVar (const QVariant &new_value)
+{
+    setValue(new_value.toStringList());
+}
+
+
 const QStringList &StringList::getValue () const
 {
     return value;

@@ -123,6 +123,7 @@ FbWindow::FbWindow (Language last_language):
                             ":/images/theme_white/ngw_download2.svg",
                             tr("Download from NextGIS"),
                             tr("Download form and data structure from NextGIS Web"));
+    act_download_from_ngw->setVisible(false);
 
     act_upload_to_ngw = this->addMainMenuAction(
                             menu_edit, toolb_ngw,
@@ -285,10 +286,6 @@ FbWindow::FbWindow (Language last_language):
 
     // Initialize project.
     this->u_resetProject();
-
-    // TEMP:
-    act_open->setVisible(false);
-    act_download_from_ngw->setVisible(false);
 }
 
 FbWindow::~FbWindow ()
@@ -353,8 +350,7 @@ void FbWindow::onNewVoidClicked ()
     bool ok = false;
     if (need_to_save)
     {
-        int ret = g_showYesNoQuestion(this, tr("Do you want to save current project before "
-                                               "creating a new one?"));
+        int ret = g_showYesNoQuestion(this, tr("Do you want to save current project to file before creating a new one?"));
         if (ret == QMessageBox::Yes)
         {
             this->u_saveNgfp(cur_project.data()->getFilePath());
@@ -365,7 +361,6 @@ void FbWindow::onNewVoidClicked ()
             ok = true;
         }
     }
-
     if (!ok)
         return;
 
@@ -374,7 +369,29 @@ void FbWindow::onNewVoidClicked ()
 
 void FbWindow::onOpenClicked ()
 {
-	/*
+    bool ok = true;
+    if (need_to_save)
+    {
+        int ret = g_showYesNoQuestion(this, tr("Do you want to save current project to file before opening another one?"));
+        if (ret == QMessageBox::Yes)
+        {
+            this->u_saveNgfp(cur_project.data()->getFilePath());
+            ok = true;
+        }
+        else if (ret == QMessageBox::No)
+        {
+            ok = true;
+        }
+        else
+        {
+            ok = false;
+        }
+    }
+    if (!ok)
+        return;
+
+    this->u_resetProject();
+
     QFileDialog dialog(this);
     dialog.setAcceptMode(QFileDialog::AcceptOpen);
     dialog.setFileMode(QFileDialog::ExistingFile);
@@ -383,13 +400,16 @@ void FbWindow::onOpenClicked ()
     dialog.setNameFilter("*.ngfp");
     dialog.setWindowTitle(tr("Select project file"));
 
+    QFileInfo file_info(g_getSettings()->value(FB_STS_NGFP_FILE).toString());
+    dialog.setDirectory(file_info.absoluteDir());
+
     if (!dialog.exec())
         return;
 
     QString ngfp_path = dialog.selectedFiles()[0];
+    g_getSettings()->setValue(FB_STS_NGFP_FILE, ngfp_path);
 
     this->u_openNgfp(ngfp_path);
-	*/
 }
 
 void FbWindow::onSaveClicked ()
@@ -476,6 +496,8 @@ void FbWindow::onUploadToNgw ()
     // Step 1 of 3: Create new layer.
 
     this->setEnabled(false);
+
+    this->repaint();
 
     int new_layer_id;
     bool ok = ngw_io->createLayer(new_layer_id, layer_info, res_info.base_url, res_info.resource_id);
@@ -885,55 +907,6 @@ void FbWindow::u_addElemToTheEnd (QString elem_key_name)
     this->u_addElem(elem_key_name);
 }
 
-/*
-void FbWindow::addElemByNameToTheEnd (QString new_elem_key_name)
-{
-    Screen *cur_screen = cur_device->getScreen();
-    cur_screen->form_pickLastSpace();
-    cur_screen->form_setCanScrollToBottom();
-
-    this->addElemByName(new_elem_key_name);
-}
-
-void FbWindow::addElemByName (QString new_elem_key_name)
-{
-    auto elem_data = ElemRegistrar::get(new_elem_key_name);
-    Elem *new_elem = nullptr;
-    if (elem_data != nullptr && elem_data->fct != nullptr)
-        new_elem= elem_data->fct->create();
-
-    this->addElemViewAndElem(new_elem);
-}
-
-void FbWindow::addElemByOther (Elem *new_elem, Elem *container_elem)
-{
-    Screen *cur_screen = cur_device->getScreen();
-    cur_screen->form_pickLastSpaceInContainer(container_elem);
-
-    this->addElemViewAndElem(new_elem);
-}
-
-void FbWindow::addElemViewAndElem (Elem *new_elem)
-{
-    Screen *cur_screen = cur_device->getScreen();
-
-    if (cur_screen != nullptr && new_elem != nullptr)
-    {
-        auto elemview_fct = ElemViewRegistrar::get(new_elem->getKeyName());
-        ElemView *new_elemview = nullptr;
-        if (elemview_fct != nullptr)
-        {
-            new_elemview = elemview_fct->create(new_elem);
-            connect(new_elemview, &ElemView::needToRemoveElem,
-                    cur_project.data(), &Core::Project::onNeedToRemoveElem);
-        }
-    }
-
-    cur_project.data()->addElem(new_elem); // nullptr can be passed
-    cur_screen->endMoveNewElemView(new_elemview);  // nullptr can be passed
-}
-*/
-
 
 void FbWindow::u_removeElem ()
 {
@@ -973,36 +946,32 @@ void FbWindow::u_removeElem ()
 
 void FbWindow::u_openNgfp (QString file_path)
 {
-	/*
-    NgfpLayerInfo new_layer_info;
-    NgfpFormInfo new_form_info;
+    cur_device->getScreen()->blockSignals(true);
 
     try
     {
-        NgfpReader::loadNgfp(file_path, new_layer_info, new_form_info);
+        NgfpReader::loadNgfp(file_path, static_cast<Project*>(cur_project.data()), cur_device->getScreen(),
+                             static_cast<NgmFormView*>(cur_device->getScreen()->getTopLevelElemView()));
     }
     catch (QString &s)
     {
         g_showMessageDet(this, tr("Unable to open project"), s);
+        cur_device->getScreen()->blockSignals(false);
         return;
     }
 
-    if (NgfpReader::last_warnings.size() > 0)
-    {
-        g_showMessageDet(this, tr("Project is opened but there are some warnings"),
-                         NgfpReader::last_warnings);
-    }
+//    if (NgfpReader::last_warnings.size() > 0)
+//    {
+//        g_showMessageDet(this, tr("Project is opened but there are some warnings"),
+//                         NgfpReader::last_warnings.join("\n"));
+//    }
+    cur_device->getScreen()->blockSignals(false);
 
-    // Change current layer.
+    table_fields->updateSelf(cur_project.data()->layer0_getFields(), nullptr);
 
-
-    // Change current form.
-
-    for ()
-    {
-
-    }
-	*/
+    cur_project.data()->setFilePath(file_path);
+    need_to_save = false;
+    this->u_updateTitle();
 }
 
 bool FbWindow::u_saveNgfp (QString file_path)

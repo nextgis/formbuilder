@@ -40,6 +40,8 @@ class StringList: public Attr
      virtual ~StringList ();
 
      QVariant getValueAsVar () const;
+     virtual void setValueAsVar (const QVariant &new_value) override;
+
      const QStringList &getValue () const;
      void setValue (QStringList new_value);
 

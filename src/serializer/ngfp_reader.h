@@ -53,22 +53,20 @@ class NgfpReader
 {
     public:
 
-     static void loadNgfp (QString file_path, Layer *layer, NgmFormView *form);
-     //static void loadNgfp (QString file_path, NgfpLayerInfo &layer_info, NgfpFormInfo &form_info);
+     static void loadNgfp (QString file_path, Project *project, Screen *screen, NgmFormView *form);
 
      static QStringList last_warnings;
 
     protected:
 
-     static void metaFromJson (const QJsonDocument &j_layer, Layer *layer);
-     static void formFromJson (const QJsonDocument &j_form, NgmFormView *form, Layer *layer);
-     //static void metaFromJson (const QJsonDocument &j_layer, NgfpLayerInfo &layer_info);
-     //static void formFromJson (const QJsonDocument &j_form, NgfpLayerInfo &layer_info, NgfpFormInfo &form_info);
-
-     static void containerFromJson (const QJsonArray &j_container, Container *container, Layer *layer);
-     static void elemViewFromJson (const QJsonValue &j_elem_view, ElemView *elemview, Layer *layer);
+     static void metaFromJson (const QJsonDocument &j_layer, Project *project);
+     static void formFromJson (const QJsonDocument &j_form, NgmFormView *form, Project *project, Screen *screen);
+     static void containerFromJson (const QJsonArray &j_container, Container *container, Project *project, Screen *screen);
+     static void elemViewFromJson (const QJsonObject &j_elemview, ElemView *elemview, Project *project);
      static void attrFromJson (const QJsonValue &j_attr, Attr *attr);
-     static void fieldSlotFromJson (const QJsonValue &j_f_slot, Layer *layer, Elem *elem, QString field_slot);
+     static void fieldSlotFromJson (QString field_name, Project *project, Elem *elem, QString slot_name);
+
+     static void modifySpecificElemView (const QJsonValue &j_elemview, ElemView *elemview, Project *project, Screen *screen);
 };
 
 

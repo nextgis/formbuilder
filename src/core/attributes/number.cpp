@@ -48,6 +48,12 @@ QVariant Number::getValueAsVar () const
     return value;
 }
 
+void Number::setValueAsVar (const QVariant &new_value)
+{
+    setValue(new_value.toInt());
+}
+
+
 int Number::getValue () const
 {
     return value;

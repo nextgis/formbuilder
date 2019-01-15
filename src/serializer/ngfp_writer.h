@@ -50,6 +50,7 @@ class NgfpWriter
      static QJsonValue elemViewToJson (const ElemView *elemview, const Layer *layer);
      static QJsonValue attrToJson (const Attr *attr);
      static QJsonValue fieldSlotToJson (const Layer *layer, const Elem *elem, QString field_slot);
+
      static void modifySpecificElemView (QJsonValue &j_elemview, const ElemView *elemview,
                                          const Layer *layer);
 };

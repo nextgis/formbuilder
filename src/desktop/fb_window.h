@@ -102,10 +102,6 @@ class FbWindow final: public MainWindow
 
       void u_addElem (QString elem_key_name);
       void u_addElemToTheEnd (QString elem_key_name);
- //     void u_addElemByNameToTheEnd (QString new_elem_key_name);
- //     void u_addElemByName (QString new_elem_key_name);
- //     void u_addElemByOther (Elem *new_elem, Elem *container_elem);
- //     void u_addElemViewAndElem (Elem *new_elem);
       void u_removeElem ();
       void u_openNgfp (QString file_path);
       bool u_saveNgfp (QString file_path);

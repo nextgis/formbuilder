@@ -38,6 +38,8 @@ class Boolean: public Attr
      virtual ~Boolean ();
 
      virtual QVariant getValueAsVar () const override;
+     virtual void setValueAsVar (const QVariant &new_value) override;
+
      bool getValue () const;
      void setValue (bool new_value);
 

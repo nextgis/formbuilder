@@ -41,6 +41,8 @@ class String: public Attr
      virtual ~String ();
 
      virtual QVariant getValueAsVar () const override;
+     virtual void setValueAsVar (const QVariant &new_value) override;
+
      QString getValue () const;
      void setValue (const QString &new_value);
 

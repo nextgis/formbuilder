@@ -98,7 +98,7 @@ void FieldsTableWidget2::updateSelf (const QList<Field*> &fields, const Elem *se
                 this, &FieldsTableWidget2::fieldAliasChanged);
 
         int cur_index = -1;
-        QComboBox *combo_type = new QComboBox();
+        NoWheelCombobox *combo_type = new NoWheelCombobox();
         combo_type->setFocusPolicy(Qt::NoFocus);
         const auto &all_field_types = g_getFieldTypes().keys();
         std::set<FieldType> allowed_field_types;

@@ -42,6 +42,8 @@ class DateTime: public Attr
      virtual ~DateTime ();
 
      QVariant getValueAsVar () const;
+     virtual void setValueAsVar (const QVariant &new_value) override;
+
      const QDateTime &getValue () const;
      void setValue (const QDateTime &new_value);
 

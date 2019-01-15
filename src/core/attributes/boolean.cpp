@@ -39,6 +39,12 @@ QVariant Boolean::getValueAsVar () const
     return value;
 }
 
+void Boolean::setValueAsVar (const QVariant &new_value)
+{
+    setValue(new_value.toBool());
+}
+
+
 bool Boolean::getValue () const
 {
     return value;

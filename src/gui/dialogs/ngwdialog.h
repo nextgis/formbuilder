@@ -27,6 +27,7 @@
 #include <QStringListModel>
 #include <QVBoxLayout>
 #include <QTreeWidget>
+#include <QLabel>
 #include <QMovie>
 
 namespace Ui { class NgwDialog; }
@@ -109,6 +110,7 @@ class NgwDialog: public CustomDialog
      QStringListModel *url_compl_model;
 
      QVBoxLayout *lay_spinner;
+     QLabel *lab_spinner;
      QMovie *movie_spinner;
      bool is_gui_blocked;
 

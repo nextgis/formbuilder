@@ -40,6 +40,12 @@ QVariant DateTime::getValueAsVar () const
     return value;
 }
 
+void DateTime::setValueAsVar (const QVariant &new_value)
+{
+    setValue(new_value.toDateTime());
+}
+
+
 const QDateTime &DateTime::getValue () const
 {
     return value;

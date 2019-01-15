@@ -47,6 +47,8 @@ class DoubleItems: public Attr
      virtual ~DoubleItems ();
 
      virtual QVariant getValueAsVar () const override;
+     virtual void setValueAsVar (const QVariant &new_value) override;
+
      const DoubleItemsValue &getValue () const;
      void setValue (const DoubleItemsValue &new_value);
 

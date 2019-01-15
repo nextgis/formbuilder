@@ -38,6 +38,8 @@ class Enum: public Attr
      virtual ~Enum ();
 
      QVariant getValueAsVar () const;
+     virtual void setValueAsVar (const QVariant &new_value) override;
+
      int getValue () const;
      void setValue (int new_value_index);
 

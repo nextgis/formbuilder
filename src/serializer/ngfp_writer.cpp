@@ -254,7 +254,8 @@ QJsonValue NgfpWriter::attrToJson (const Attr *attr)
         return var.toString();
     }
 
-    else if (input_type == AttrInputType::StringList || input_type == AttrInputType::PageList)
+    else if (input_type == AttrInputType::StringList ||
+             input_type == AttrInputType::PageList)
     {
         QJsonArray j_arr;
         const QStringList &strs = var.toStringList();
@@ -265,7 +266,7 @@ QJsonValue NgfpWriter::attrToJson (const Attr *attr)
 
     else if (input_type == AttrInputType::DateTime)
     {
-        return var.toDateTime().toString("yyyy-MM-dd HH:mm:ss");
+        return var.toDateTime().toString(FB_NGFP_DATETIME_FORMAT_DT);
     }
 
     else if (input_type == AttrInputType::Enum)
@@ -368,7 +369,7 @@ QJsonValue NgfpWriter::attrToJson (const Attr *attr)
 }
 
 
-QJsonValue NgfpWriter::fieldSlotToJson (const Layer *layer, const Elem *elem,QString field_slot)
+QJsonValue NgfpWriter::fieldSlotToJson (const Layer *layer, const Elem *elem, QString field_slot)
 {
     auto fields = layer->getFields();
     for (auto field: fields)
@@ -444,9 +445,9 @@ void NgfpWriter::modifySpecificElemView (QJsonValue &j_elemview, const ElemView 
             QString format;
             switch (date_type)
             {
-                case 0: format = "yyyy-MM-dd"; break;
-                case 1: format = "HH:mm:ss"; break;
-                default: format = "yyyy-MM-dd HH:mm:ss"; break;
+                case 0: format = FB_NGFP_DATETIME_FORMAT_D; break;
+                case 1: format = FB_NGFP_DATETIME_FORMAT_T; break;
+                default: format = FB_NGFP_DATETIME_FORMAT_DT; break;
             }
 
             QDateTime date = attr_date_init->getValueAsVar().toDateTime();

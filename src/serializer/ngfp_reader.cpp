@@ -21,10 +21,12 @@
 
 #include "core/field_types.h"
 #include "mockup/container.h"
+#include "mockup/screen.h"
 #include "util/json_io.h"
 #include "util/zip_io.h"
 #include "core/elem_registrar.h"
 #include "mockup/elemview_registrar.h"
+#include "core/attributes/number.h"
 
 #include "core/attributes/datetime.h"
 #include "core/attributes/doubleitems.h"
@@ -45,9 +47,11 @@ using namespace Mockup;
 using namespace Util;
 
 
-void NgfpReader::loadNgfp (QString file_path, Layer *layer, NgmFormView *form)
+QStringList NgfpReader::last_warnings;
+
+void NgfpReader::loadNgfp (QString file_path, Project *project, Screen *screen, NgmFormView *form)
 {
-    if (form == nullptr || layer == nullptr)
+    if (form == nullptr || project == nullptr)
         return;
 
     if (!QFile::exists(file_path))
@@ -79,8 +83,8 @@ void NgfpReader::loadNgfp (QString file_path, Layer *layer, NgmFormView *form)
 
     try
     {
-        metaFromJson(j_meta_doc, layer);
-        formFromJson(j_form_doc, form, layer);
+        metaFromJson(j_meta_doc, project);
+        formFromJson(j_form_doc, form, project, screen);
     }
     catch (QString &s)
     {
@@ -89,7 +93,7 @@ void NgfpReader::loadNgfp (QString file_path, Layer *layer, NgmFormView *form)
 }
 
 
-void NgfpReader::metaFromJson (const QJsonDocument &j_layer, Layer *layer)
+void NgfpReader::metaFromJson (const QJsonDocument &j_layer, Project *project)
 {
     if (!j_layer.isObject())
         throw "Meta: not a proper JSON object";
@@ -98,6 +102,8 @@ void NgfpReader::metaFromJson (const QJsonDocument &j_layer, Layer *layer)
     QJsonValue j_fields = j_root["fields"];
     if (!j_fields.isArray())
         throw "Not found proper \"fields\" key in meta.json";
+
+    Layer *layer = project->temp_getLayer();
 
     QJsonArray j_fields_arr = j_fields.toArray();
     for (int i = 0; i < j_fields_arr.size(); i++)
@@ -179,28 +185,28 @@ void NgfpReader::metaFromJson (const QJsonDocument &j_layer, Layer *layer)
 }
 
 
-void NgfpReader::formFromJson (const QJsonDocument &j_form, NgmFormView *form, Layer *layer)
+void NgfpReader::formFromJson (const QJsonDocument &j_form, NgmFormView *form, Project *project, Screen *screen)
 {
     if (!j_form.isArray())
         throw "Form: not a proper JSON object";
     QJsonArray j_form_arr = j_form.array();
 
-    containerFromJson(j_form_arr, const_cast<Container*>(form->getContainer()), layer);
+    containerFromJson(j_form_arr, const_cast<Container*>(form->getContainer()), project, screen);
 }
 
 
-void NgfpReader::containerFromJson (const QJsonArray &j_container, Container *container, Layer *layer)
+void NgfpReader::containerFromJson (const QJsonArray &j_container, Container *container, Project *project, Screen *screen)
 {
     for (int i = 0; i < j_container.size(); i++)
     {
         if (!j_container[i].isObject())
         {
-            qDebug() << "Not a proper JSON object for element in .ngfp";
+            last_warnings.append("Not a proper JSON object for element in .ngfp");
             continue;
         }
-        QJsonObject j_elem = j_form_arr[i].toObject();
+        QJsonValue j_elemview = j_container[i];
 
-        QJsonValue j_type = j_elem["type"];
+        QJsonValue j_type = j_elemview.toObject()["type"];
         if (!j_type.isString())
         {
             last_warnings.append(QString("No proper \"type\" key for element %1").arg(i));
@@ -212,31 +218,302 @@ void NgfpReader::containerFromJson (const QJsonArray &j_container, Container *co
         auto elemview_fct = ElemViewRegistrar::get(elem_keyname);
         if (elem_data == nullptr || elem_data->fct == nullptr || elemview_fct == nullptr)
         {
-            last_warnings.append(QString("Unable to create \"%1\" element. Incorrect keyname or factory").arg(elem_keyname));
+            last_warnings.append(QString("Unable to create \"%1\" element. Incorrect keyname or "
+                                         "factory").arg(elem_keyname));
             continue;
         }
 
         Elem *elem = elem_data->fct->create();
-        cur_project.data()->addElem(elem);
-
         ElemView *elemview = elemview_fct->create(elem);
-        cur_screen->setTopLevelElemView(top_elemview);
+        QObject::connect(elemview, &ElemView::needToRemoveElem,
+                         project, &Core::Project::onNeedToRemoveElem);
+
+        elemViewFromJson(j_elemview.toObject(), elemview, project);
+        modifySpecificElemView(j_elemview, elemview, project, screen);
+
+        elem->behave(); // because attribute values have been just loaded from file
+
+        project->addElem(elem);
+        screen->space_showed = container->getLastSpace();
+        screen->endMoveNewElemView(elemview);
     }
 }
 
-void NgfpReader::elemViewFromJson (const QJsonValue &j_elem_view, ElemView *elemview, Layer *layer)
+void NgfpReader::elemViewFromJson (const QJsonObject &j_elemview, ElemView *elemview, Project *project)
 {
+    Elem *elem = const_cast<Elem*>(elemview->getElem());
+    QString elem_keyname = elem->getKeyName();
 
+    QJsonObject j_attrs = j_elemview.value("attributes").toObject();
+
+    auto attrs = elem->getAttrs();
+    for (auto &attr: attrs)
+    {
+        QString attr_fb_keyname = attr->getKeyName();
+        QString attr_ngfp_keyname = NGFP_ATTR_KEYS.value(attr_fb_keyname, "");
+
+        QJsonValue j_attr = j_attrs.value(attr_ngfp_keyname);
+        if (j_attr.isUndefined())
+        {
+            last_warnings.append(QString("A key \"%1\" was not found in form.json for the \"%2\" "
+                                         "elem. The default value is used")
+                                 .arg(attr_fb_keyname).arg(elem_keyname));
+            continue;
+        }
+
+        attrFromJson(j_attr, attr);
+    }
+
+    auto field_slots = elem->getFieldSlots().keys();
+    for (auto &field_slot: field_slots)
+    {
+        QString fs_ngfp_keyname = NGFP_FIELD_KEYS.value(field_slot, "");
+
+        QJsonValue j_attr = j_attrs.value(fs_ngfp_keyname);
+        if (j_attr.isUndefined())
+        {
+            last_warnings.append(QString("A key \"%1\" was not found in form.json for the \"%2\" "
+                                         "elem. No field binding is used instead")
+                                 .arg(fs_ngfp_keyname).arg(elem_keyname));
+            continue;
+        }
+
+        fieldSlotFromJson(j_attr.toString(""), project, elem, field_slot);
+    }
 }
 
 void NgfpReader::attrFromJson (const QJsonValue &j_attr, Attr *attr)
 {
+    AttrInputType input_type = attr->getInputType();
+    QVariant var;
 
+    if (input_type == AttrInputType::Boolean)
+    {
+        var = j_attr.toBool();
+    }
+
+    else if (input_type == AttrInputType::Number)
+    {
+        var = j_attr.toInt();
+    }
+
+    else if (input_type == AttrInputType::String)
+    {
+        var = j_attr.toString();
+    }
+
+    else if (input_type == AttrInputType::StringList ||
+             input_type == AttrInputType::PageList)
+    {
+        QStringList list;
+        QJsonArray j_arr = j_attr.toArray(QJsonArray());
+        for (int i = 0; i < j_arr.size(); i++)
+            list.append(j_arr[i].toString());
+        var = list;
+    }
+
+    else if (input_type == AttrInputType::DateTime)
+    {
+        var = QDateTime::fromString(j_attr.toString(), FB_NGFP_DATETIME_FORMAT_DT);
+    }
+
+    else if (input_type == AttrInputType::Enum)
+    {
+        var = j_attr.toInt();
+    }
+
+    else if (input_type == AttrInputType::DoubleItems)
+    {
+        DoubleItemsValue value;
+        QJsonArray j_arr = j_attr.toArray(QJsonArray());
+        value.def_index = -1;
+        for (int i = 0; i < j_arr.size(); i++)
+        {
+            QJsonValue j_arr_item = j_arr[i];
+            value.inners.append(j_arr_item.toObject()["name"].toString());
+            value.outers.append(j_arr_item.toObject()["alias"].toString());
+            if (!j_arr_item.toObject().value("default").isUndefined())
+                value.def_index = i;
+        }
+        var = QVariant::fromValue<DoubleItemsValue>(value);
+    }
+
+    else if (input_type == AttrInputType::TripleItems)
+    {
+        TripleItemsValue value;
+        QJsonArray j_arr = j_attr.toArray(QJsonArray());
+        value.def_index = -1;
+        for (int i = 0; i < j_arr.size(); i++)
+        {
+            QJsonValue j_arr_item = j_arr[i];
+            value.inners.append(j_arr_item.toObject()["name"].toString());
+            value.outers_left.append(j_arr_item.toObject()["alias"].toString());
+            value.outers_right.append(j_arr_item.toObject()["alias2"].toString());
+            if (!j_arr_item.toObject().value("default").isUndefined())
+                value.def_index = i;
+        }
+        var = QVariant::fromValue<TripleItemsValue>(value);
+    }
+
+    else if (input_type == AttrInputType::DepDoubleItems)
+    {
+        DepDoubleItemsValue value;
+        QJsonArray j_arr = j_attr.toArray(QJsonArray());
+        value.main.def_index = -1;
+        for (int i = 0; i < j_arr.size(); i++)
+        {
+            QJsonValue j_arr_item = j_arr[i];
+            value.main.inners.append(j_arr_item.toObject()["name"].toString());
+            value.main.outers.append(j_arr_item.toObject()["alias"].toString());
+            if (!j_arr_item.toObject().value("default").isUndefined())
+                value.main.def_index = i;
+            value.deps.append(DoubleItemsValue());
+            QJsonValue j_arr2_val = j_arr_item.toObject()["values"];
+            QJsonArray j_arr2 = j_arr2_val.toArray(QJsonArray());
+            if (!(j_arr2.size() == 1 &&
+                j_arr2[0].toObject()["name"].toString() == "-1" &&
+                j_arr2[0].toObject()["alias"].toString() == "--"))
+            {
+                value.deps.last().def_index = -1;
+                for (int i2 = 0; i2 < j_arr2.size(); i2++)
+                {
+                    QJsonValue j_arr_item2 = j_arr2[i2];
+                    value.deps.last().inners.append(j_arr_item2.toObject()["name"].toString());
+                    value.deps.last().outers.append(j_arr_item2.toObject()["alias"].toString());
+                    if (!j_arr_item2.toObject().value("default").isUndefined())
+                        value.deps.last().def_index = i2;
+                }
+            }
+        }
+        var = QVariant::fromValue<DepDoubleItemsValue>(value);
+    }
+
+    attr->setValueAsVar(var);
 }
 
-void NgfpReader::fieldSlotFromJson (const QJsonValue &j_f_slot, Layer *layer, Elem *elem, QString field_slot)
+void NgfpReader::fieldSlotFromJson (QString field_name, Project *project, Elem *elem, QString slot_name)
 {
+    if (field_name == "")
+        return;
 
+    Layer *layer = project->temp_getLayer();
+
+    Field *field = layer->getField(field_name);
+    if (field == nullptr)
+    {
+        last_warnings.append(QString("A field named \"%1\" was found in element, but was not found"
+                                     "in a layer. This element will have no binding with any field")
+                             .arg(field_name));
+        return;
+    }
+
+    field->bind(elem, slot_name);
+}
+
+
+// Some magic required by .ngfp format.
+void NgfpReader::modifySpecificElemView (const QJsonValue &j_elemview, ElemView *elemview, Project *project, Screen *screen)
+{
+    auto modifyTabs = [&]()
+    {
+        auto attrs = elemview->getElem()->getAttrs();
+
+        QJsonArray j_pages = j_elemview.toObject()["pages"].toArray();
+
+        TabsView *tabsview = qobject_cast<TabsView*>(elemview);
+        if (tabsview == nullptr)
+            return;
+
+        int cur_page = 0;
+        QStringList page_hdrs;
+
+        tabsview->removeLastPage();
+        tabsview->removeLastPage();
+
+        for (int i = 0; i < j_pages.size(); i++)
+        {
+            page_hdrs.append(j_pages[i].toObject()["caption"].toString());
+
+            if (!j_pages[i].toObject().value("default").isUndefined())
+                cur_page = i;
+
+            tabsview->appendPage();
+
+            containerFromJson(j_pages[i].toObject()["elements"].toArray(),
+                    tabsview->getAllContainers().last(), project, screen); // recursion
+        }
+
+        Attr* attr_page_hdrs = attrs.value("page_hdrs");
+        attr_page_hdrs->setValueAsVar(page_hdrs);
+        tabsview->headers = page_hdrs;
+
+        Attr* attr_cur_page = attrs.value("cur_page");
+        static_cast<Number*>(attr_cur_page)->setMax(page_hdrs.size());
+        static_cast<Number*>(attr_cur_page)->setValue(cur_page + 1); // because this attr values starts from 1
+        tabsview->cur_container_index = cur_page;
+    };
+
+
+    auto modifyDateTimePicker = [&]()
+    {
+        auto attrs = elemview->getElem()->getAttrs();
+        QJsonObject j_attrs = j_elemview.toObject()["attributes"].toObject();
+        if (j_attrs["datetime"].isNull())
+        {
+            attrs["date_is_cur"]->setValueAsVar(true);
+        }
+        else
+        {
+            attrs["date_is_cur"]->setValueAsVar(false);
+
+            if (j_attrs["date_type"].toInt() == 0)
+                attrs["init_date"]->setValueAsVar(QDateTime::fromString(j_attrs["datetime"].toString(), FB_NGFP_DATETIME_FORMAT_D));
+            else if (j_attrs["date_type"].toInt() == 1)
+                attrs["init_date"]->setValueAsVar(QDateTime::fromString(j_attrs["datetime"].toString(), FB_NGFP_DATETIME_FORMAT_T));
+            else
+                attrs["init_date"]->setValueAsVar(QDateTime::fromString(j_attrs["datetime"].toString(), FB_NGFP_DATETIME_FORMAT_DT));
+        }
+    };
+
+
+    auto modifyComboBox = [&]()
+    {
+        // nothing to do here for reading
+    };
+
+
+    auto modifyCounter = [&]()
+    {
+        // nothing to do here for reading
+    };
+
+
+    auto modifyTextEdit = [&]()
+    {
+        // nothing to do here for reading
+    };
+
+
+    if (!j_elemview.isObject())
+        return;
+    if (elemview == nullptr)
+        return;
+
+    typedef std::function<void()> ModifierCallback;
+    const QString &elem_name = elemview->getKeyName();
+    const QMap<QString, ModifierCallback> modifiers =
+    {
+        {{"tabs"},           {modifyTabs}},
+        {{"datetimepicker"}, {modifyDateTimePicker}},
+        {{"combobox"},       {modifyComboBox}},
+        {{"counter"},        {modifyCounter}},
+        {{"textedit"},       {modifyTextEdit}}
+    };
+
+    if (!modifiers.contains(elem_name))
+        return;
+
+    modifiers.value(elem_name)(); // call function
 }
 
 

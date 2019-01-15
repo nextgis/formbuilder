@@ -40,6 +40,12 @@ QVariant String::getValueAsVar () const
     return value;
 }
 
+void String::setValueAsVar (const QVariant &new_value)
+{
+    setValue(new_value.toString());
+}
+
+
 QString String::getValue () const
 {
     return value;

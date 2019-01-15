@@ -24,6 +24,10 @@
 
 #define FB_NGFP_VERSION 2.2
 
+#define FB_NGFP_DATETIME_FORMAT_D "yyyy-MM-dd"
+#define FB_NGFP_DATETIME_FORMAT_T "HH:mm:ss"
+#define FB_NGFP_DATETIME_FORMAT_DT "yyyy-MM-dd HH:mm:ss"
+
 namespace Fb
 {
 namespace Serializer
@@ -41,13 +45,13 @@ const QMap<QString, QString> NGFP_FIELD_KEYS =
     {{"field_lon"},        {"field_long"}}
 };
 
-inline QString g_ngfpFindFieldSlotName (QString ngfp_key)
-{
-    for (auto &key: NGFP_FIELD_KEYS.keys())
-        if (ngfp_key == NGFP_FIELD_KEYS.value(key))
-            return key;
-    return "";
-}
+//inline QString g_ngfpFindFieldSlotName (QString ngfp_key)
+//{
+//    for (auto &key: NGFP_FIELD_KEYS.keys())
+//        if (ngfp_key == NGFP_FIELD_KEYS.value(key))
+//            return key;
+//    return "";
+//}
 
 
 const QMap<QString, QString> NGFP_ATTR_KEYS =
@@ -84,13 +88,13 @@ const QMap<QString, QString> NGFP_ATTR_KEYS =
     //{{"cur_page"},         {""}},
 };
 
-inline QString g_ngfpFindAttrName (QString ngfp_key)
-{
-    for (auto &key: NGFP_ATTR_KEYS.keys())
-        if (ngfp_key == NGFP_ATTR_KEYS.value(key))
-            return key;
-    return "";
-}
+//inline QString g_ngfpFindAttrName (QString ngfp_key)
+//{
+//    for (auto &key: NGFP_ATTR_KEYS.keys())
+//        if (ngfp_key == NGFP_ATTR_KEYS.value(key))
+//            return key;
+//    return "";
+//}
 
 
 const QMap<QString, QString> NGFP_ELEM_KEYS =

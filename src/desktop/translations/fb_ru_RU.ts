@@ -587,7 +587,7 @@
     </message>
     <message>
         <source>Do you want to save current project before creating a new one?</source>
-        <translation>Вы хотите сохранить текущий проект перед созданием нового?</translation>
+        <translation type="vanished">Вы хотите сохранить текущий проект перед созданием нового?</translation>
     </message>
     <message>
         <source>This will delete all elements on the form. Do you really want to do this?</source>
@@ -739,6 +739,22 @@
     </message>
     <message>
         <source>Select resource</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Do you want to save current project to file before creating a new one?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Do you want to save current project to file before opening another one?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select project file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to open project</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

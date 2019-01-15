@@ -66,7 +66,7 @@ class Attr: public QObject
      virtual ~Attr ();
 
      virtual QVariant getValueAsVar () const = 0;
-//     virtual void setValueAsVar (const QVariant &new_value) = 0;
+     virtual void setValueAsVar (const QVariant &new_value) = 0;
 
      inline const QString &getKeyName () const { return key_name; }
      inline AttrInputType getInputType () const { return input_type; }

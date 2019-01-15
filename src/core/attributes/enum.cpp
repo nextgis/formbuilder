@@ -44,6 +44,12 @@ QVariant Enum::getValueAsVar () const
     return value_index;
 }
 
+void Enum::setValueAsVar (const QVariant &new_value)
+{
+    setValue(new_value.toInt());
+}
+
+
 int Enum::getValue () const
 {
     return value_index;

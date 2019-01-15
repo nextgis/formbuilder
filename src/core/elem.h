@@ -67,9 +67,11 @@ class Elem: public QObject
 
      void hasChanged (Attr *attr);
 
-    protected:
+    //protected:
 
      virtual void behave (Attr *attr = nullptr) = 0;
+
+    protected:
 
      Attr* addAttr (Attr *attr);
      QString addFieldSlot(QString slot_key_name);

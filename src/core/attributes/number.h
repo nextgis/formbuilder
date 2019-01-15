@@ -38,6 +38,8 @@ class Number: public Attr
      virtual ~Number ();
 
      virtual QVariant getValueAsVar () const override;
+     virtual void setValueAsVar (const QVariant &new_value) override;
+
      int getValue () const;
      void setValue (int new_value);
 

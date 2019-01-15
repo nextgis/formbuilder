@@ -67,6 +67,12 @@ QVariant TripleItems::getValueAsVar () const
     return QVariant::fromValue(value);
 }
 
+void TripleItems::setValueAsVar (const QVariant &new_value)
+{
+    setValue(new_value.value<TripleItemsValue>());
+}
+
+
 const TripleItemsValue &TripleItems::getValue () const
 {
     return value;
