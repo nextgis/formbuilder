@@ -108,11 +108,17 @@ bool NgwGdalIo::createLayer (int &new_layer_id, const NgwLayerInfo &layer_info, 
     OGRSpatialReference *srs = new OGRSpatialReference();
     srs->importFromEPSG(3857);
 
-    OGRLayer *layer = dataset_p.data()->CreateLayer(ba_name.data(), srs, geom_type);
+    char **papszOptions = NULL;
+    papszOptions = CSLAddString(papszOptions, "OVERWRITE=NO");
+
+    OGRLayer *layer = dataset_p.data()->CreateLayer(ba_name.data(), srs, geom_type, papszOptions);
+
+    CSLDestroy(papszOptions);
     OSRRelease(srs);
+
     if (layer == NULL)
     {
-        error = QObject::tr("Unable to create NGW layer via GDAL");
+        error = QObject::tr("Unable to create NGW layer via GDAL: %1").arg();
         return false;
     }
 

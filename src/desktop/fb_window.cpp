@@ -390,8 +390,6 @@ void FbWindow::onOpenClicked ()
     if (!ok)
         return;
 
-    this->u_resetProject();
-
     QFileDialog dialog(this);
     dialog.setAcceptMode(QFileDialog::AcceptOpen);
     dialog.setFileMode(QFileDialog::ExistingFile);
@@ -409,6 +407,7 @@ void FbWindow::onOpenClicked ()
     QString ngfp_path = dialog.selectedFiles()[0];
     g_getSettings()->setValue(FB_STS_NGFP_FILE, ngfp_path);
 
+    this->u_resetProject();
     this->u_openNgfp(ngfp_path);
 }
 
@@ -476,8 +475,6 @@ void FbWindow::onDownloadFromNgw ()
     if (!ok)
         return;
 
-    this->u_resetProject();
-
     // Step 1. Download .ngfp file to temporary dir.
 
     NgwGdalIo *ngw_io = dialog.getNgwIo();
@@ -491,21 +488,12 @@ void FbWindow::onDownloadFromNgw ()
 
     // Step 2. Load temporary form file as project.
 
+    this->u_resetProject();
     this->u_openNgfp(ngfp_file_path);
 
     // Step 3. Download layer with features also to temporary dir.
 
-
-
-
-
-//    auto pair = qMakePair(res_info.base_url, res_info.resource_id);
-//    if (!this->u_getNgwLayer(pair, {res_info.login, res_info.password}, ngw_io))
-//    {
-//        g_showWarningDet(this, tr("Unable to read selected NextGIS Web layer"),
-//                         ngw_io->getLastError());
-//        return;
-//    }
+    // ...
 }
 
 void FbWindow::onUploadToNgw ()

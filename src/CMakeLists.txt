@@ -266,19 +266,19 @@ else()
 	#find_package(Qt5Widgets CONFIG REQUIRED)
 	find_package(Qt5Widgets REQUIRED) # will find its own dependencies (QtGui and QtCore)
 	find_package(Qt5Network REQUIRED)
-	find_package(Qt5NetworkAuth REQUIRED)
+        #find_package(Qt5NetworkAuth REQUIRED)
 	find_package(Qt5LinguistTools REQUIRED) # for *.qm generating
 
 	message("Found Qt5Widgets of version ${Qt5Widgets_VERSION}")
 	message("Found Qt5Network of version ${Qt5Network_VERSION}")
-	message("Found Qt5NetworkAuth of version ${Qt5NetworkAuth_VERSION}")
-	if(Qt5NetworkAuth_VERSION VERSION_LESS FB_QT_MINIMUM_VERSION)
-		message(FATAL_ERROR "Minimum supported Qt5NetworkAuth version is ${FB_QT_MINIMUM_VERSION}")
+        #message("Found Qt5NetworkAuth of version ${Qt5NetworkAuth_VERSION}")
+        if(Qt5Widgets_VERSION VERSION_LESS FB_QT_MINIMUM_VERSION)
+                message(FATAL_ERROR "Minimum supported Qt5Widgets version is ${FB_QT_MINIMUM_VERSION}")
 	endif()
 
 	include_directories(${Qt5Widgets_INCLUDE_DIRS})
 	include_directories(${Qt5Network_INCLUDE_DIRS})
-	include_directories(${Qt5NetworkAuth_INCLUDE_DIRS})
+        #include_directories(${Qt5NetworkAuth_INCLUDE_DIRS})
 
 	# Find GDAL:
 
