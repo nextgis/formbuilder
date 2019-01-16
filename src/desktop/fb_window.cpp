@@ -31,7 +31,8 @@
 #include "util/settings.h"
 #include "gui/sizes.h"
 
-#include "ngstd/core/request.h"
+//#include "ngstd/core/request.h"
+#include "core/request.h" // lib_ngstd
 
 #include <QFileDialog>
 #include <QMenuBar>
@@ -122,15 +123,14 @@ FbWindow::FbWindow (Language last_language):
                             &FbWindow::onDownloadFromNgw,
                             ":/images/theme_white/ngw_download2.svg",
                             tr("Download from NextGIS"),
-                            tr("Download form and data structure from NextGIS Web"));
-    act_download_from_ngw->setVisible(false);
+                            tr("Download form and data from NextGIS Web"));
 
     act_upload_to_ngw = this->addMainMenuAction(
                             menu_edit, toolb_ngw,
                             &FbWindow::onUploadToNgw,
                             ":/images/theme_white/ngw_create2.svg",
                             tr("Upload to NextGIS"),
-                            tr("Upload form to NextGIS Web with creating new layer"));
+                            tr("Upload new form to NextGIS Web"));
 
     menu_edit->addSeparator();
 
@@ -429,6 +429,9 @@ void FbWindow::onExitClicked ()
 
 void FbWindow::onDownloadFromNgw ()
 {
+    if (!this->u_canUseSupportedFeature())
+        return;
+
     std::set<NgwResourceType> allowed_types;
     allowed_types.insert(NgwResourceType::VectorLayer);
 
@@ -436,26 +439,73 @@ void FbWindow::onDownloadFromNgw ()
     dialog.setWindowTitle(tr("Select resource"));
     if (!dialog.exec())
         return;
-/*
+
     auto res_info = dialog.getSelectedResourceInfo();
 
-    NgwDefaultIo *ngw_io = dialog.getNgwIo();
+    // Create temp file.
 
-    // ...
-    ngw_io->
-
-
-    // ...
-    auto pair = qMakePair(res_info.base_url, res_info.resource_id);
-    if (!this->u_getNgwLayer(pair, {res_info.login, res_info.password}, ngw_io))
+    QTemporaryDir temp_dir;
+    if (!temp_dir.isValid())
     {
-        g_showWarningDet(this, tr("Unable to read selected NextGIS Web layer"),
+        g_showMessage(this, "Unable to create temp directory for saving form");
+        return;
+    }
+
+    QString ngfp_file_path = temp_dir.path() + "/form.ngfp";
+
+    // Reset current project.
+
+    bool ok = true;
+    if (need_to_save)
+    {
+        int ret = g_showYesNoQuestion(this, tr("Do you want to save current project to file before downloading another one?"));
+        if (ret == QMessageBox::Yes)
+        {
+            this->u_saveNgfp(cur_project.data()->getFilePath());
+            ok = true;
+        }
+        else if (ret == QMessageBox::No)
+        {
+            ok = true;
+        }
+        else
+        {
+            ok = false;
+        }
+    }
+    if (!ok)
+        return;
+
+    this->u_resetProject();
+
+    // Step 1. Download .ngfp file to temporary dir.
+
+    NgwGdalIo *ngw_io = dialog.getNgwIo();
+    ok = ngw_io->downloadForm(res_info.base_url, res_info.resource_id, ngfp_file_path);
+    if (!ok)
+    {
+        g_showWarningDet(this, tr("Unable to download NextGIS Web form"),
                          ngw_io->getLastError());
         return;
     }
 
-    g_showMessage(this, tr("Layer was successfully downloaded from NextGIS Web"));
-*/
+    // Step 2. Load temporary form file as project.
+
+    this->u_openNgfp(ngfp_file_path);
+
+    // Step 3. Download layer with features also to temporary dir.
+
+
+
+
+
+//    auto pair = qMakePair(res_info.base_url, res_info.resource_id);
+//    if (!this->u_getNgwLayer(pair, {res_info.login, res_info.password}, ngw_io))
+//    {
+//        g_showWarningDet(this, tr("Unable to read selected NextGIS Web layer"),
+//                         ngw_io->getLastError());
+//        return;
+//    }
 }
 
 void FbWindow::onUploadToNgw ()
@@ -1224,20 +1274,24 @@ bool FbWindow::u_initialFieldStructureWasChanged ()
 
 void FbWindow::u_updateSupportedIcons (bool is_supported)
 {
-    // Create form at NGW icon:
-    QIcon icon;
+    QIcon icon_download;
+    QIcon icon_upload;
+
     if (!is_supported)
     {
-        icon = NGAccess::lockIcon(QIcon(":/images/theme_white/ngw_create2_dis.svg"),
-                                  //this->iconSize()); // at this point no size yet
-                                  {TOOLB_SIZE, TOOLB_SIZE},
-                                  QIcon(":/images/lock.svg"));
+        icon_download = NGAccess::lockIcon(QIcon(":/images/theme_white/ngw_download2_dis.svg"),
+                                         {TOOLB_SIZE, TOOLB_SIZE}, QIcon(":/images/lock.svg"));
+        icon_upload = NGAccess::lockIcon(QIcon(":/images/theme_white/ngw_create2_dis.svg"),
+                                         {TOOLB_SIZE, TOOLB_SIZE}, QIcon(":/images/lock.svg"));
     }
     else
     {
-        icon = QIcon(":/images/theme_white/ngw_create2.svg");
+        icon_download = QIcon(":/images/theme_white/ngw_download2.svg");
+        icon_upload = QIcon(":/images/theme_white/ngw_create2.svg");
     }
-    act_upload_to_ngw->setIcon(icon);
+
+    act_download_from_ngw->setIcon(icon_download);
+    act_upload_to_ngw->setIcon(icon_upload);
 }
 
 bool FbWindow::u_canUseSupportedFeature ()

@@ -21,6 +21,9 @@
 
 #include "core/geom_types.h"
 
+#include "cpl_http.h"
+#include "cpl_vsi.h"
+
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -214,6 +217,50 @@ bool NgwGdalIo::createForm (int &new_form_id, QString ngfp_path, QString base_ur
 
     return true;
 }
+
+
+bool NgwGdalIo::downloadForm (QString base_url, int layer_id, QString file_path)
+{
+    // Firstly get layer's child resources in order to get form id.
+    QList<NgwResourceData> resources;
+    bool ok = u_getChildResources(resources, base_url, layer_id, {NgwResourceType::FormbuilderForm});
+    if (!ok || resources.size() != 1)
+    {
+        error = "Unable to get form id for the passed layer via GDAL";
+        return false;
+    }
+
+    // Then download form for the layer.
+    QString s_url = api->urlDownloadNgfp(base_url, resources[0].id);
+    CPLHTTPResult *http_result = CPLHTTPFetch(s_url.toUtf8().data(), NULL);
+    if (http_result == NULL)
+    {
+        error = "Unable to download NGW form via GDAL";
+        return false;
+    }
+
+    auto file = VSIFOpenL(file_path.toUtf8().data(), "wb");
+    if (file == NULL)
+    {
+        error = "Unable to open temp file for writing form";
+        CPLHTTPDestroyResult(http_result);
+        return false;
+    }
+    auto ret = VSIFWriteL(http_result->pabyData, 1, http_result->nDataAlloc, file);
+    if (ret == 0)
+    {
+        error = "Unable to write downloaded form file";
+        VSIFCloseL(file);
+        CPLHTTPDestroyResult(http_result);
+        return false;
+    }
+
+    VSIFCloseL(file);
+    CPLHTTPDestroyResult(http_result);
+
+    return true;
+}
+
 
 QString NgwGdalIo::getUrlResourcePage (QString base_url, int resource_id)
 {

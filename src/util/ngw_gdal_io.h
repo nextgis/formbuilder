@@ -54,6 +54,8 @@ class NgwGdalIo: public NgwIo
      virtual bool createForm (int &new_form_id, QString ngfp_path, QString base_url,
                               int layer_id) override;
 
+     virtual bool downloadForm (QString base_url, int layer_id, QString file_path);
+
      QString getUrlResourcePage (QString base_url, int resource_id);
 
     protected:

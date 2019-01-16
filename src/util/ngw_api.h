@@ -49,7 +49,7 @@ class NgwApi
      virtual QString urlResourcePage (QString base_url, int resource_id);
      virtual QString urlCreateResource (QString base_url);
      virtual QString urlUploadFile (QString base_url);
-     virtual QString urlDownloadNgfp (QString base_url, int resource_id);
+     virtual QString urlDownloadNgfp (QString base_url, int form_resource_id);
 
      virtual QByteArray bodyAuth (QString login, QString password);
      virtual QByteArray bodyCreateLayer (const NgwLayerInfo &layer_info, int resource_group_id);

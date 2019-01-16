@@ -719,11 +719,11 @@
     </message>
     <message>
         <source>Upload form to NextGIS Web with creating new layer</source>
-        <translation>Загрузить форму в NextGIS Web с созданием нового слоя</translation>
+        <translation type="vanished">Загрузить форму в NextGIS Web с созданием нового слоя</translation>
     </message>
     <message>
         <source>Download form and data structure from NextGIS Web</source>
-        <translation>Скачать форму и структуру данных из NextGIS Web</translation>
+        <translation type="vanished">Скачать форму и структуру данных из NextGIS Web</translation>
     </message>
     <message>
         <source>Download from NextGIS</source>
@@ -739,23 +739,39 @@
     </message>
     <message>
         <source>Select resource</source>
-        <translation type="unfinished"></translation>
+        <translation>Выберите ресурс</translation>
     </message>
     <message>
         <source>Do you want to save current project to file before creating a new one?</source>
-        <translation type="unfinished"></translation>
+        <translation>Вы хотите сохранить текущий проект в файл прежде чем будет создан новый проект?</translation>
     </message>
     <message>
         <source>Do you want to save current project to file before opening another one?</source>
-        <translation type="unfinished"></translation>
+        <translation>Вы хотите сохранить текущий проект в файл прежде чем будет открыт новый проект?</translation>
     </message>
     <message>
         <source>Select project file</source>
-        <translation type="unfinished"></translation>
+        <translation>Выберите файл проекта</translation>
     </message>
     <message>
         <source>Unable to open project</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось открыть файл проекта</translation>
+    </message>
+    <message>
+        <source>Download form and data from NextGIS Web</source>
+        <translation>Загрузить форму и данные из NextGIS Web</translation>
+    </message>
+    <message>
+        <source>Upload new form to NextGIS Web</source>
+        <translation>Загрузить новую форму в NextGIS Web</translation>
+    </message>
+    <message>
+        <source>Do you want to save current project to file before downloading another one?</source>
+        <translation>Вы хотите сохранить текущий проект в файл перед скачиванием нового?</translation>
+    </message>
+    <message>
+        <source>Unable to download NextGIS Web form</source>
+        <translation>Не удалось загрузить форму из NextGIS Web</translation>
     </message>
 </context>
 <context>
@@ -1336,23 +1352,27 @@
     </message>
     <message>
         <source>Unable to open NGW dataset via GDAL</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось открыть источник данных NGW при помощи GDAL</translation>
     </message>
     <message>
         <source>Unable to create NGW layer via GDAL</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось создать слой NGW при помощи GDAL</translation>
     </message>
     <message>
         <source>Unable fetch JSON via CPLJSONDocument</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось считать JSON при помощи CPLJSONDocument</translation>
     </message>
     <message>
         <source>Incorrect JSON structure</source>
-        <translation type="unfinished"></translation>
+        <translation>Некорректная структура JSON документа</translation>
     </message>
     <message>
         <source>Failed to open temporary form file</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось открыть временный файл формы</translation>
+    </message>
+    <message>
+        <source>Formbuilder form</source>
+        <translation>Форма Formbuilder</translation>
     </message>
 </context>
 </TS>

@@ -60,6 +60,7 @@ enum class NgwResourceType
     ResourceGroup,
     VectorLayer,
     PostgisLayer,
+    FormbuilderForm
 };
 
 struct NgwResourceTypeData
@@ -89,6 +90,12 @@ const QMap<NgwResourceType, NgwResourceTypeData> NGW_RESOURCE_TYPES =
          QObject::tr("PostGIS layer"),
          ":/images/ngw/ngw_postgis.png"
      }},
+    {{NgwResourceType::FormbuilderForm},
+     {
+         "formbuilder_form",
+         QObject::tr("Formbuilder form"),
+         ""
+     }}
 };
 
 

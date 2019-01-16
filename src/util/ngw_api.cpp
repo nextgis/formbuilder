@@ -65,9 +65,9 @@ QString NgwApi::urlUploadFile (QString base_url)
     return QString("%1/api/component/file_upload/upload").arg(base_url);
 }
 
-QString NgwApi::urlDownloadNgfp (QString base_url, int resource_id)
+QString NgwApi::urlDownloadNgfp (QString base_url, int form_resource_id)
 {
-    return QString("%1/api/resource/%2/ngfp").arg(base_url).arg(resource_id);
+    return QString("%1/api/resource/%2/ngfp").arg(base_url).arg(form_resource_id);
 }
 
 
