@@ -491,9 +491,14 @@ void FbWindow::onDownloadFromNgw ()
     this->u_resetProject();
     this->u_openNgfp(ngfp_file_path);
 
-    // Step 3. Download layer with features also to temporary dir.
+    // Save information about successfully loaded form+layer in order to copy features later.
+    cur_project->copy_ngw_base_url = res_info.base_url;
+    cur_project->copy_ngw_res_id = res_info.resource_id;
 
-    // ...
+    cur_project->file_path = "";
+
+    need_to_save = true;
+    this->u_updateTitle();
 }
 
 void FbWindow::onUploadToNgw ()
@@ -538,7 +543,10 @@ void FbWindow::onUploadToNgw ()
     this->repaint();
 
     int new_layer_id;
-    bool ok = ngw_io->createLayer(new_layer_id, layer_info, res_info.base_url, res_info.resource_id);
+    bool ok = ngw_io->createLayer(new_layer_id, layer_info, res_info.base_url, res_info.resource_id,
+                                  cur_project->copy_ngw_base_url, cur_project->copy_ngw_res_id);
+    cur_project->copy_ngw_base_url = "";
+    cur_project->copy_ngw_res_id = -1;
     if (!ok)
     {
         g_showWarningDet(this, tr("Unable to create NextGIS Web layer"),
@@ -866,7 +874,7 @@ void FbWindow::onFieldTypeChangedInTable (int index)
 }
 
 
-QMenu *FbWindow::createPopupMenu()
+QMenu *FbWindow::createPopupMenu ()
 {
     QMenu *menu = QMainWindow::createPopupMenu(); // default menu
 
@@ -1021,7 +1029,7 @@ bool FbWindow::u_saveNgfp (QString file_path)
         return false;
     }
 
-    if (file_path == "")
+    if (file_path == "" || cur_project.data()->copy_ngw_res_id != -1)
     {
         QFileDialog dialog(this);
         dialog.setAcceptMode(QFileDialog::AcceptSave);
@@ -1172,6 +1180,9 @@ void FbWindow::u_resetProject ()
     // Reset current fields structure: user can freely change current layer's field structure.
 //    initial_fields_info.clear();
 
+    cur_project->copy_ngw_base_url = "";
+    cur_project->copy_ngw_res_id = -1;
+
     need_to_save = false;
     this->u_updateTitle();
 }
@@ -1313,6 +1324,9 @@ void FbWindow::u_updateTitle ()
 
     if (file.isEmpty())
         file = tr("new");
+    if (cur_project.data()->copy_ngw_res_id != -1)
+        file = tr("new (loaded from %1)").arg(cur_project.data()->copy_ngw_base_url);
+
     if (need_to_save)
         title.prepend("* ");
 

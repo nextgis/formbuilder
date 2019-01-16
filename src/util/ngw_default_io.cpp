@@ -103,7 +103,8 @@ bool NgwDefaultIo::getLayerInfo (NgwLayerInfo &layer_info, QString base_url, int
 }
 
 bool NgwDefaultIo::createLayer (int &new_layer_id, const NgwLayerInfo &layer_info, QString base_url,
-                                int resource_group_id)
+                                int resource_group_id, QString base_url_copy_features,
+                                int layer_id_copy_features)
 {
     ww->post(api->urlCreateResource(base_url), api->bodyCreateLayer(layer_info, resource_group_id));
     if (ww->wasError())

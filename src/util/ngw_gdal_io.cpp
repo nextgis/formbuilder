@@ -93,7 +93,7 @@ bool NgwGdalIo::getLayerInfo (NgwLayerInfo &layer_info, QString base_url, int re
 }
 
 bool NgwGdalIo::createLayer (int &new_layer_id, const NgwLayerInfo &layer_info, QString base_url,
-                             int resource_group_id)
+                             int resource_group_id, QString base_url_copy_features, int layer_id_copy_features)
 {
     GDALDatasetPtr dataset_p;
     u_openDataset(dataset_p, base_url, resource_group_id, false);
@@ -146,6 +146,36 @@ bool NgwGdalIo::createLayer (int &new_layer_id, const NgwLayerInfo &layer_info, 
     auto metadata = layer->GetMetadata("");
     QString s_new_layer_id = {CSLFetchNameValue(metadata, "id")};
     new_layer_id = s_new_layer_id.toInt();
+
+    if (base_url_copy_features != "" && layer_id_copy_features != -1)
+    {
+        GDALDatasetPtr dataset_p2;
+        u_openDataset(dataset_p2, base_url_copy_features.toUtf8().data(), layer_id_copy_features, true);
+        if (dataset_p2.data() == NULL)
+        {
+            // TODO: warning
+            error = QObject::tr("Unable to open NGW dataset to copy features from");
+            //return false;
+        }
+
+        OGRLayer *layer2 = dataset_p2.data()->GetLayer(0);
+        if (layer2 == NULL)
+        {
+            // TODO: warning
+            error = QObject::tr("Unable to open NGW layer to copy features from");
+            //return false;
+        }
+
+        layer2->ResetReading();
+        OGRFeature *feature;
+        while ((feature = layer2->GetNextFeature()) != NULL)
+        {
+            layer->CreateFeature(feature);
+            OGRFeature::DestroyFeature(feature);
+        }
+
+        layer->SyncToDisk();
+    }
 
     return true;
 }
@@ -336,11 +366,22 @@ bool NgwGdalIo::u_getChildResources (QList<NgwResourceData> &resources,
         if (j_disp_name.GetType() != CPLJSONObject::String)
             continue;
 
+        // Make another request in order to check that vector layer has a form
+        bool has_form = false;
+//        if (children && res_type == NgwResourceType::VectorLayer)
+//        {
+//            QList<NgwResourceData> resources;
+//            bool ok = u_getChildResources(resources, base_url, id, {NgwResourceType::FormbuilderForm});
+//            if (ok && resources.size() == 1)
+//                has_form = true;
+//        }
+
         NgwResourceData res_data;
         res_data.id = id;
         res_data.cls = res_type;
         res_data.children = children;
         res_data.display_name = QString::fromStdString(disp_name);
+        res_data.has_form = has_form;
 
         resources.append(res_data);
     }

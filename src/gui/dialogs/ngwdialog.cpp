@@ -397,6 +397,9 @@ QTreeWidgetItem *NgwDialog::makeItem (Util::NgwResourceData res_data)
     item->setData(0, Qt::UserRole, QVariant::fromValue(data));
     item->setIcon(0, QIcon(g_getNgwResTypeIconPath(res_data.cls)));
 
+    if (res_data.cls == NgwResourceType::VectorLayer && res_data.has_form)
+        item->setIcon(0, QIcon(":/images/ngw/ngw_vector_with_form.png"));
+
     if (new_layer_ids.contains(res_data.id))
     {
         QFont font(item->font(0));

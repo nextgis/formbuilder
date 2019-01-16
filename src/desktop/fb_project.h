@@ -54,11 +54,14 @@ class FbProject: public Project
      void layer0_updateAllBindings ();
      void layer0_resetBindingsForElem (const Elem *elem);
 
-    protected:
+    //protected:
 
      Layer *layer; // will point to the 0 layer of the base class
 
      QString file_path;
+
+     QString copy_ngw_base_url = ""; // used for downloaded ngw forms to copy features
+     int copy_ngw_res_id = -1;
 };
 
 

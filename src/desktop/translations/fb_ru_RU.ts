@@ -773,6 +773,10 @@
         <source>Unable to download NextGIS Web form</source>
         <translation>Не удалось загрузить форму из NextGIS Web</translation>
     </message>
+    <message>
+        <source>new (loaded from %1)</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>NewVoidProjectDialog</name>
@@ -1373,6 +1377,14 @@
     <message>
         <source>Formbuilder form</source>
         <translation>Форма Formbuilder</translation>
+    </message>
+    <message>
+        <source>Unable to open NGW dataset to copy features from</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to open NGW layer to copy features from</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

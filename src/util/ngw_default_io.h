@@ -56,7 +56,8 @@ class NgwDefaultIo: public NgwIo
      virtual bool getLayerInfo (NgwLayerInfo &layer_info, QString base_url,
                                 int resource_id) override;
      virtual bool createLayer (int &new_layer_id, const NgwLayerInfo &layer_info, QString base_url,
-                               int resource_group_id = 0) override;
+                               int resource_group_id = 0, QString base_url_copy_features = "",
+                               int layer_id_copy_features = -1) override;
      virtual bool createForm (int &new_form_id, QString ngfp_path, QString base_url,
                               int layer_id) override;
 

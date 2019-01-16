@@ -36,6 +36,7 @@ struct NgwResourceData
     NgwResourceType cls;
     QString display_name;
     bool children;
+    bool has_form;
 };
 
 struct NgwFileInfo
