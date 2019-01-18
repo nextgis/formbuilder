@@ -305,7 +305,7 @@ else()
 
 	# Find LibNGSTD:
 
-	find_package(NGSTD REQUIRED)
+        find_package(NGSTD REQUIRED COMPONENTS core5 framework5)
 	if(NGSTD_FOUND)
 		message("Found NGSTD of version ${NGSTD_VERSION}")
 	endif()
