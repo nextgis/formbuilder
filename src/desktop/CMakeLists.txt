@@ -161,12 +161,6 @@ else()
                           ${FB_SERIALIZER_LIB_NAME} ${FB_UTIL_LIB_NAME}
                           ${NGSTD_LIBRARIES})
 
-    # install(TARGETS ${FB_APP_NAME}
-      # RUNTIME DESTINATION ${INSTALL_BIN_DIR}
-      # LIBRARY DESTINATION ${INSTALL_LIB_DIR}
-      # ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
-    # )
-
     # TODO: for Windows also add copying of the following files:
     # <bin folder>/Qt5Svg.dll # though the app is not linked directly with this lib
     # <bin folder>/styles/qwindowsvistastyle.dll

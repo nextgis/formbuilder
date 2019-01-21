@@ -239,8 +239,8 @@ if(BUILD_NEXTGIS_PACKAGE)
 		endif()
 	endif()
 
-        find_anyproject(NGSTD REQUIRED COMPONENTS core5 framework5)
-        include_directories(${NGSTD_INCLUDE_DIRS}/..)
+    find_anyproject(NGSTD REQUIRED COMPONENTS core5 framework5)
+    include_directories(${NGSTD_INCLUDE_DIRS}/..)
 
 	set(PACKAGE_NAME ${PROJECT_NAME})
 
@@ -263,30 +263,26 @@ else()
 
 	set(FB_QT_MINIMUM_VERSION 5.9.0)
 
-	#find_package(Qt5Widgets CONFIG REQUIRED)
 	find_package(Qt5Widgets REQUIRED) # will find its own dependencies (QtGui and QtCore)
 	find_package(Qt5Network REQUIRED)
-        #find_package(Qt5NetworkAuth REQUIRED)
 	find_package(Qt5LinguistTools REQUIRED) # for *.qm generating
 
 	message("Found Qt5Widgets of version ${Qt5Widgets_VERSION}")
 	message("Found Qt5Network of version ${Qt5Network_VERSION}")
-        #message("Found Qt5NetworkAuth of version ${Qt5NetworkAuth_VERSION}")
-        if(Qt5Widgets_VERSION VERSION_LESS FB_QT_MINIMUM_VERSION)
-                message(FATAL_ERROR "Minimum supported Qt5Widgets version is ${FB_QT_MINIMUM_VERSION}")
+    if(Qt5Widgets_VERSION VERSION_LESS FB_QT_MINIMUM_VERSION)
+        message(FATAL_ERROR "Minimum supported Qt5Widgets version is ${FB_QT_MINIMUM_VERSION}")
 	endif()
 
 	include_directories(${Qt5Widgets_INCLUDE_DIRS})
 	include_directories(${Qt5Network_INCLUDE_DIRS})
-        #include_directories(${Qt5NetworkAuth_INCLUDE_DIRS})
 
 	# Find GDAL:
 
-        #set(FB_GDAL_MINIMUM_VERSION 2.4.0)
-        set(FB_GDAL_MINIMUM_VERSION 2.1.0)
+    #set(FB_GDAL_MINIMUM_VERSION 2.4.0)
+    set(FB_GDAL_MINIMUM_VERSION 2.1.0)
 
 	if(WIN32)
-                set(GDAL_DIR "C:/OSGeo4W") # one of the usual paths where GDAL is installed on Windows
+        set(GDAL_DIR "C:/OSGeo4W") # one of the usual paths where GDAL is installed on Windows
 		set(CMAKE_PREFIX_PATH "${GDAL_DIR};${CMAKE_PREFIX_PATH}")
 		# TODO: add C:/OSGeo4W64 path for 64bit architecture
 	endif()
@@ -305,21 +301,13 @@ else()
 
 	# Find LibNGSTD:
 
-        find_package(NGSTD REQUIRED COMPONENTS core5 framework5)
+    find_package(NGSTD REQUIRED COMPONENTS core5 framework5)
 	if(NGSTD_FOUND)
 		message("Found NGSTD of version ${NGSTD_VERSION}")
 	endif()
 
 	include_directories(${NGSTD_INCLUDE_DIRS})
-        include_directories(${NGSTD_INCLUDE_DIRS}/..)
-
-	# Installation directories:
-
-	# include(GNUInstallDirs)
-	# set(INSTALL_BIN_DIR ${CMAKE_INSTALL_BINDIR} CACHE INTERNAL
-		# "Installation directory for executables" FORCE)
-	# set(INSTALL_LIB_DIR ${CMAKE_INSTALL_LIBDIR} CACHE INTERNAL
-		# "Installation directory for libraries" FORCE)
+    include_directories(${NGSTD_INCLUDE_DIRS}/..)
 
 endif()
 
