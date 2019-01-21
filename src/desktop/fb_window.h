@@ -117,6 +117,7 @@ class FbWindow final: public MainWindow
       bool u_initialFieldStructureWasChanged ();
       void u_updateSupportedIcons (bool is_supported);
       bool u_canUseSupportedFeature ();
+      bool u_okToReset ();
       void u_updateTitle ();
 
      QMenu *menu_file;

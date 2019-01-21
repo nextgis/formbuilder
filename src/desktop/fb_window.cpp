@@ -347,21 +347,7 @@ void FbWindow::closeEvent (QCloseEvent *event)
 
 void FbWindow::onNewVoidClicked ()
 {
-    bool ok = false;
-    if (need_to_save)
-    {
-        int ret = g_showYesNoQuestion(this, tr("Do you want to save current project to file before creating a new one?"));
-        if (ret == QMessageBox::Yes)
-        {
-            this->u_saveNgfp(cur_project.data()->getFilePath());
-            ok = true;
-        }
-        else if (ret == QMessageBox::No)
-        {
-            ok = true;
-        }
-    }
-    if (!ok)
+    if (!this->u_okToReset())
         return;
 
     this->u_resetProject();
@@ -369,25 +355,7 @@ void FbWindow::onNewVoidClicked ()
 
 void FbWindow::onOpenClicked ()
 {
-    bool ok = true;
-    if (need_to_save)
-    {
-        int ret = g_showYesNoQuestion(this, tr("Do you want to save current project to file before opening another one?"));
-        if (ret == QMessageBox::Yes)
-        {
-            this->u_saveNgfp(cur_project.data()->getFilePath());
-            ok = true;
-        }
-        else if (ret == QMessageBox::No)
-        {
-            ok = true;
-        }
-        else
-        {
-            ok = false;
-        }
-    }
-    if (!ok)
+    if (!this->u_okToReset())
         return;
 
     QFileDialog dialog(this);
@@ -454,31 +422,13 @@ void FbWindow::onDownloadFromNgw ()
 
     // Reset current project.
 
-    bool ok = true;
-    if (need_to_save)
-    {
-        int ret = g_showYesNoQuestion(this, tr("Do you want to save current project to file before downloading another one?"));
-        if (ret == QMessageBox::Yes)
-        {
-            this->u_saveNgfp(cur_project.data()->getFilePath());
-            ok = true;
-        }
-        else if (ret == QMessageBox::No)
-        {
-            ok = true;
-        }
-        else
-        {
-            ok = false;
-        }
-    }
-    if (!ok)
+    if (!this->u_okToReset())
         return;
 
     // Step 1. Download .ngfp file to temporary dir.
 
     NgwGdalIo *ngw_io = dialog.getNgwIo();
-    ok = ngw_io->downloadForm(res_info.base_url, res_info.resource_id, ngfp_file_path);
+    bool ok = ngw_io->downloadForm(res_info.base_url, res_info.resource_id, ngfp_file_path);
     if (!ok)
     {
         g_showWarningDet(this, tr("Unable to download NextGIS Web form"),
@@ -1312,6 +1262,31 @@ bool FbWindow::u_canUseSupportedFeature ()
     }
 
     return true;
+}
+
+bool FbWindow::u_okToReset ()
+{
+    bool ok_reset = true;
+
+    if (need_to_save)
+    {
+        int ret = g_showYesNoQuestion(this, tr("Do you want to save current project to a separate file?"));
+        if (ret == QMessageBox::Yes)
+        {
+            this->u_saveNgfp(cur_project.data()->getFilePath());
+            ok_reset = true;
+        }
+        else if (ret == QMessageBox::No)
+        {
+            ok_reset = true;
+        }
+        else
+        {
+            ok_reset = false;
+        }
+    }
+
+    return ok_reset;
 }
 
 void FbWindow::u_updateTitle ()

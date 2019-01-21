@@ -751,11 +751,11 @@
     </message>
     <message>
         <source>Do you want to save current project to file before creating a new one?</source>
-        <translation>Вы хотите сохранить текущий проект в файл прежде чем будет создан новый проект?</translation>
+        <translation type="vanished">Вы хотите сохранить текущий проект в файл прежде чем будет создан новый проект?</translation>
     </message>
     <message>
         <source>Do you want to save current project to file before opening another one?</source>
-        <translation>Вы хотите сохранить текущий проект в файл прежде чем будет открыт новый проект?</translation>
+        <translation type="vanished">Вы хотите сохранить текущий проект в файл прежде чем будет открыт новый проект?</translation>
     </message>
     <message>
         <source>Select project file</source>
@@ -775,7 +775,7 @@
     </message>
     <message>
         <source>Do you want to save current project to file before downloading another one?</source>
-        <translation>Вы хотите сохранить текущий проект в файл перед скачиванием нового?</translation>
+        <translation type="vanished">Вы хотите сохранить текущий проект в файл перед скачиванием нового?</translation>
     </message>
     <message>
         <source>Unable to download NextGIS Web form</source>
@@ -784,6 +784,10 @@
     <message>
         <source>new (loaded from %1)</source>
         <translation>Новый проект (загружено из %1)</translation>
+    </message>
+    <message>
+        <source>Do you want to save current project to a separate file?</source>
+        <translation>Сохранить проект в отдельный файл?</translation>
     </message>
 </context>
 <context>
