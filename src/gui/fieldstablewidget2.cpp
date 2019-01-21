@@ -66,13 +66,12 @@ void FieldsTableWidget2::updateSelf (const QList<Field*> &fields, const Elem *se
         QString icon_path;
         if (field->getElem() == nullptr)
         {
-            tooltip = tr("This field was not yet bound to an element. Bind it in the element's "
-                         "properties");
+            tooltip = tr("This field was not bound to an element");
             icon_path = ":/images/cancel.svg";
         }
         else
         {
-            tooltip = tr("This field is successfully bound to an element");
+            tooltip = tr("This field is bound to an element");
             icon_path = ":/images/ok.svg";
         }
         QWidget *widget_img = new QWidget();

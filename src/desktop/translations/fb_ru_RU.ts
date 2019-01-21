@@ -146,10 +146,18 @@
     <name>Fb::Gui::FieldsTableWidget2</name>
     <message>
         <source>This field was not yet bound to an element. Bind it in the element&apos;s properties</source>
-        <translation>Это поле пока не привязано к элементу. Установите связь в свойствах элемента</translation>
+        <translation type="vanished">Это поле пока не привязано к элементу. Установите связь в свойствах элемента</translation>
     </message>
     <message>
         <source>This field is successfully bound to an element</source>
+        <translation type="vanished">Это поле успешно привязано к элементу</translation>
+    </message>
+    <message>
+        <source>This field was not bound to an element</source>
+        <translation>Это поле не привязано к элементу</translation>
+    </message>
+    <message>
+        <source>This field is bound to an element</source>
         <translation>Это поле успешно привязано к элементу</translation>
     </message>
 </context>
@@ -775,7 +783,7 @@
     </message>
     <message>
         <source>new (loaded from %1)</source>
-        <translation type="unfinished"></translation>
+        <translation>Новый проект (загружено из %1)</translation>
     </message>
 </context>
 <context>
@@ -1380,11 +1388,11 @@
     </message>
     <message>
         <source>Unable to open NGW dataset to copy features from</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось открыть источник данных NGW для копирования объектов слоя</translation>
     </message>
     <message>
         <source>Unable to open NGW layer to copy features from</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось открыть слой NGW для копирования объектов слоя</translation>
     </message>
 </context>
 </TS>

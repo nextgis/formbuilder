@@ -264,6 +264,8 @@ void NgfpReader::elemViewFromJson (const QJsonObject &j_elemview, ElemView *elem
         attrFromJson(j_attr, attr);
     }
 
+    elem->behave(); // in order to bind fields correctly next
+
     auto field_slots = elem->getFieldSlots().keys();
     for (auto &field_slot: field_slots)
     {
