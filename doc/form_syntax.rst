@@ -10,54 +10,52 @@ specification rules and is encoded in UTF-8.
 Syntax
 ======
 
-.. http:options::
+Example of the "form.json" file which represents a form with two elements for
+entering person's name:
 
-   Example of the "form.json" file which represents a form with two elements for
-   entering person's name:
+.. sourcecode:: json
 
-   .. sourcecode:: json
+  [
+   {
+      "attributes" : {
+         "text" : "Person"
+      },
+      "type" : "text_label"
+   },
+   {
+      "attributes" : null,
+      "type" : "space"
+   },
+   {
+      "attributes" : {
+         "field" : "researcher",
+         "last" : true,
+         "max_string_count" : 1,
+         "ngid_login" : false,
+         "ngw_login" : false,
+         "only_figures" : false,
+         "text" : "John Smith"
+      },
+      "type" : "text_edit"
+   }
+  ]
 
-      [
-       {
-          "attributes" : {
-             "text" : "Person"
-          },
-          "type" : "text_label"
-       },
-       {
-          "attributes" : null,
-          "type" : "space"
-       },
-       {
-          "attributes" : {
-             "field" : "researcher",
-             "last" : true,
-             "max_string_count" : 1,
-             "ngid_login" : false,
-             "ngw_login" : false,
-             "only_figures" : false,
-             "text" : "John Smith"
-          },
-          "type" : "text_edit"
-       }
-      ]
+All elements are always arranged vertically on the form in a strict order, so
+the root of the file is an array of objects.
 
-   All elements are always arranged vertically on the form in a strict order, so
-   the root of the file is an array of objects.
-
-   :<json jsonobj attributes: Contains several pairs where each name can only be
-                              one of the reserved attribute's keynames. The set
-                              of pairs depends on the type of the element.
-                              ``Note:`` if the element has no attributes the *null*
-                              value is correct.
-   :<json string type: Can only be one of the reserved elem's keynames.
+:<json jsonobj attributes: Contains several pairs where each name can only be one of the reserved attribute's keynames. The set of pairs depends on the type of the element. ``Note:`` if the element has no attributes the *null* value is correct.
+:<json string type: Can only be one of the reserved elem's keynames.
 
 Elements
 ========
 
-.. http:options:: Checkbox
+.. Checkbox
 
-   **Keyname:** checkbox
+   **Keyname**
+
+   checkbox
+
+   **Attributes**
 
    :<json string field: The name of the layer's field to which this element saves its value. Can be *null* if there was no field selected.
    :<json bool init_value: Initial value: on/off.
@@ -78,9 +76,13 @@ Elements
         "type" : "checkbox"
       }
 
-.. http:options:: Combobox
+.. Combobox
 
-   **Keyname:** combobox
+   **Keyname**
+
+   combobox
+
+   **Attributes**
 
    :<json bool allow_adding_values: Whether to allow user to add own items to this combobox during data collection.
    :<json string field: The name of the layer's field to which this element saves its value. Can be *null* if there was no field selected.
@@ -122,9 +124,13 @@ Elements
          "type" : "combobox"
        }
 
-.. http:options:: Coordinates
+.. Coordinates
 
-   **Keyname:** coordinates
+   **Keyname**
+
+   coordinates
+
+   **Attributes**
 
    :<json int crs: Coordinate Reference System. Currently always = 0 which refers to "EPSG:4326" (WGS 84).
    :<json string field_lat: The name of the layer's field to which this element saves its latitude value. Can be *null* if there was no field selected.
@@ -147,9 +153,13 @@ Elements
          "type" : "coordinates"
        }
 
-.. http:options:: Counter
+.. Counter
 
-   **Keyname:** counter
+   **Keyname**
+
+   counter
+
+   **Attributes**
 
    :<json string field: The name of the layer's field to which this element saves its value. ``Note:`` can be *null* if there was no field selected.
    :<json int increment: The value which is added to the current value each session of data collection. Range: from 1 to 65535.
@@ -176,9 +186,13 @@ Elements
          "type" : "counter"
        }
 
-.. http:options:: Date and Time
+.. Date & Time
 
-   **Keyname:** date_time
+   **Keyname**
+
+   date_time
+
+   **Attributes**
 
    :<json int date_type: What to save for this date-time element. Possible types: 1) 1 for date, 2) 2 for time, 3) 3 for date and time.
    :<json string datetime: Initial value for this date-time element. The string with date is always written in the specific format. Possible formats (according to types): 1) yyyy-MM-dd, 2) HH:mm:ss, 3) yyyy-MM-dd HH:mm:ss. ``Note:`` can be *null* which means that the current date/time/date-time will be written on the mobile device.
@@ -199,9 +213,13 @@ Elements
          "type" : "date_time"
        }
 
-.. http:options:: Distance meter
+.. Distance meter
 
-  **Keyname:** distance
+  **Keyname**
+
+  distance
+
+  **Attributes**
 
   :<json string field: The name of the layer's field to which this element saves its value. Can be *null* if there was no field selected.
 
@@ -216,9 +234,13 @@ Elements
           "type": "distance"
       }
 
-.. http:options:: Double combobox
+.. Double combobox
 
-   **Keyname:** double_combobox
+   **Keyname**
+
+   double_combobox
+
+   **Attributes**
 
    :<json string field_level1: The name of the layer's field to which the first (main) combobox saves its value. Can be *null* if there was no field selected.
    :<json string field_level2: The name of the layer's field to which the second (dependant) combobox saves its value. Can be *null* if there was no field selected.
@@ -288,9 +310,34 @@ Elements
          "type" : "double_combobox"
        }
 
-.. http:options:: Photo
+.. Label
 
-   **Keyname:** photo
+  **Keyname**
+
+  text_label
+
+  **Attributes**
+
+  :<json string text: Text which displays in this text label. Can be a void string.
+
+  **Example**
+
+  .. sourcecode:: json
+
+      {
+        "attributes" : {
+           "text" : "Biotope"
+        },
+        "type" : "text_label"
+      }
+
+.. Photo
+
+   **Keyname**
+
+   photo
+
+   **Attributes**
 
    :<json int gallery_size: The maximum amount of photos user can make. Range: from 1 to 5.
 
@@ -305,9 +352,13 @@ Elements
          "type" : "photo"
        }
 
-.. http:options:: Radiogroup
+.. Radiogroup
 
-   **Keyname:** radio_group
+   **Keyname**
+
+   radio_group
+
+   **Attributes**
 
    :<json string field: The name of the layer's field to which this element saves its value. Can be *null* if there was no field selected.
    :<json bool last: Whether to keep value for further sessions of data collection.
@@ -339,9 +390,15 @@ Elements
          "type" : "radio_group"
        }
 
-.. http:options:: Signature
+.. Signature
 
-   **Keyname:** signature
+   **Keyname**
+
+   signature
+
+   **Attributes**
+
+   No attributes
 
    **Example**
 
@@ -352,9 +409,15 @@ Elements
          "type" : "signature"
        }
 
-.. http:options:: Space
+.. Space
 
-   **Keyname:** space
+   **Keyname**
+
+   space
+
+   **Attributes**
+
+   No attributes
 
    **Example**
 
@@ -365,9 +428,13 @@ Elements
          "type" : "space"
        }
 
-.. http:options:: Splitted combobox
+.. Splitted combobox
 
-  **Keyname:** split_combobox
+  **Keyname**
+
+  split_combobox
+
+  **Attributes**
 
   :<json string field: The name of the layer's field to which this element saves its value. Can be *null* if there was no field selected.
   :<json bool last: Whether to keep value for further sessions of data collection.
@@ -411,9 +478,17 @@ Elements
           "type": "split_combobox"
       }
 
-.. http:options:: Tabs
+.. Tabs
 
-  **Keyname:** tabs
+  **Keyname**
+
+  tabs
+
+  **Attributes**
+
+  No attributes
+
+  **Other keys**
 
   :<json array pages: An array of objects where each has the following keys: "caption", "elements" and optionally "default".
   :<json string caption: A text which is displayed in the header of the page.
@@ -469,26 +544,13 @@ Elements
           "type": "tabs"
       }
 
-.. http:options:: Text
+.. Text edit
 
-   **Keyname:** text_label
+   **Keyname**
 
-   :<json string text: Text which displays in this text label. Can be a void string.
+   text_edit
 
-   **Example**
-
-   .. sourcecode:: json
-
-       {
-         "attributes" : {
-            "text" : "Biotope"
-         },
-         "type" : "text_label"
-       }
-
-.. http:options:: Text edit
-
-   **Keyname:** text_edit
+   **Attributes**
 
    :<json string field: The name of the layer's field to which this element saves its value. Can be *null* if there was no field selected.
    :<json bool last: Whether to keep value for further sessions of data collection.
