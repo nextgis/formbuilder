@@ -667,7 +667,7 @@
     </message>
     <message>
         <source>Create</source>
-        <translation>Создать</translation>
+        <translation type="vanished">Создать</translation>
     </message>
     <message>
         <source>Project was not saved. Your data structure now differs from the remote. Please upload new layer to NextGIS Web before saving</source>
@@ -788,6 +788,10 @@
     <message>
         <source>Do you want to save current project to a separate file?</source>
         <translation>Сохранить проект в отдельный файл?</translation>
+    </message>
+    <message>
+        <source>Send</source>
+        <translation>Отправить</translation>
     </message>
 </context>
 <context>

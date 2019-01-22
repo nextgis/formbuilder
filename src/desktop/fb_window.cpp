@@ -474,7 +474,7 @@ void FbWindow::onUploadToNgw ()
     QString res_group_url = ngw_io->getUrlResourcePage(res_info.base_url, res_info.resource_id);
     QString res_group_name = res_info.name;
 
-    if (!this->u_showLayerMetaDialog(true, res_group_url, res_group_name, tr("Create")))
+    if (!this->u_showLayerMetaDialog(true, res_group_url, res_group_name, tr("Send")))
         return;
 
     const Layer *layer = cur_project.data()->layer0_get();
