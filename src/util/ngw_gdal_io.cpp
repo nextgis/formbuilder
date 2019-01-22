@@ -270,7 +270,7 @@ bool NgwGdalIo::downloadForm (QString base_url, int layer_id, QString file_path)
     bool ok = u_getChildResources(resources, base_url, layer_id, {NgwResourceType::FormbuilderForm});
     if (!ok || resources.size() != 1)
     {
-        error = "Unable to get form id for the passed layer via GDAL";
+        error = QObject::tr("Unable to get form id for the selected layer");
         return false;
     }
 

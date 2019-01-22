@@ -1402,5 +1402,9 @@
         <source>Unable to open NGW layer to copy features from</source>
         <translation>Не удалось открыть слой NGW для копирования объектов слоя</translation>
     </message>
+    <message>
+        <source>Unable to get form id for the selected layer</source>
+        <translation>Не удалось получить id формы для выбранного слоя</translation>
+    </message>
 </context>
 </TS>
