@@ -27,6 +27,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QDir>
+#include <QCoreApplication>
 
 using namespace Fb;
 using namespace Util;
@@ -47,6 +49,12 @@ NgwGdalIo::~NgwGdalIo ()
 void NgwGdalIo::reset ()
 {
     CPLSetConfigOption("GDAL_HTTP_USERPWD", NULL);
+
+#ifdef Q_OS_WIN
+    QString s_path = QCoreApplication::applicationDirPath() + QDir::separator() + QLatin1String("..\\share\\ssl\\certs");
+    QDir path(s_path);
+    CPLSetConfigOption("CURL_CA_BUNDLE", path.absoluteFilePath("cert.pem").toUtf8().data());
+#endif
 }
 
 
