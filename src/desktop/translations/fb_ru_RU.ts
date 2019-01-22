@@ -739,7 +739,7 @@
     </message>
     <message>
         <source>Upload to NextGIS</source>
-        <translation>Загрузить в NextGIS</translation>
+        <translation>Отправить в NextGIS</translation>
     </message>
     <message>
         <source>Form was successfully uploaded</source>
@@ -767,11 +767,11 @@
     </message>
     <message>
         <source>Download form and data from NextGIS Web</source>
-        <translation>Загрузить форму и данные из NextGIS Web</translation>
+        <translation>Скачать форму (и данные) из NextGIS Web</translation>
     </message>
     <message>
         <source>Upload new form to NextGIS Web</source>
-        <translation>Загрузить новую форму в NextGIS Web</translation>
+        <translation>Отправить форму в NextGIS Web</translation>
     </message>
     <message>
         <source>Do you want to save current project to file before downloading another one?</source>
