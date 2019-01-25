@@ -996,6 +996,8 @@ bool FbWindow::u_saveNgfp (QString file_path)
             return false;
 
         file_path = dialog.selectedFiles()[0];
+        if (!file_path.endsWith(".ngfp", Qt::CaseInsensitive))
+            file_path += ".ngfp";
         g_getSettings()->setValue(FB_STS_NGFP_FILE, file_path);
     }
 
