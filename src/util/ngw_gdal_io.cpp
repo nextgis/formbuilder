@@ -127,6 +127,7 @@ bool NgwGdalIo::createLayer (int &new_layer_id, const NgwLayerInfo &layer_info, 
     if (layer == NULL)
     {
         error = QObject::tr("Unable to create NGW layer via GDAL");
+        error += QString("\nGDAL error: %1").arg(CPLGetLastErrorMsg());
         return false;
     }
 
