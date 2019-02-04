@@ -319,8 +319,12 @@ bool NgwGdalIo::u_getChildResources (QList<NgwResourceData> &resources,
 {
     QString s_url = api->urlResources(base_url, resource_id);
 
+    char **papszOptions = NULL;
+    papszOptions = CSLAddString(papszOptions, "JSON_DEPTH=100"); // need for "webmap" resource cause a structure of all folders is returned
     CPLJSONDocument j_doc;
-    if (!j_doc.LoadUrl(s_url.toStdString(), NULL))
+    bool ok = j_doc.LoadUrl(s_url.toStdString(), papszOptions);
+    CSLDestroy(papszOptions);
+    if (!ok)
     {
         error = QObject::tr("Unable fetch JSON via CPLJSONDocument");
         return false;

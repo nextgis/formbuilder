@@ -140,6 +140,7 @@ int main (int argc, char *argv[])
     // Initialize GDAL.
     OGRRegisterAll();
     CPLSetConfigOption("CPL_VSIL_ZIP_ALLOWED_EXTENSIONS", "ngfp");
+    CPLSetConfigOption("CPL_CREATE_ZIP64", "OFF");
     #ifdef FB_GDALDATA_IN_SHARE
     QByteArray ba_gdal_data = QString("../share/gdal").toUtf8();
     CPLSetConfigOption("GDAL_DATA", ba_gdal_data.data());
