@@ -158,6 +158,8 @@ bool NgwGdalIo::createLayer (int &new_layer_id, const NgwLayerInfo &layer_info, 
 
     if (base_url_copy_features != "" && layer_id_copy_features != -1)
     {
+        // TODO (important): here we need own credentioals for dataset_p2 !
+
         GDALDatasetPtr dataset_p2;
         u_openDataset(dataset_p2, base_url_copy_features.toUtf8().data(), layer_id_copy_features, true);
         if (dataset_p2.data() == NULL)
@@ -166,24 +168,28 @@ bool NgwGdalIo::createLayer (int &new_layer_id, const NgwLayerInfo &layer_info, 
             error = QObject::tr("Unable to open NGW dataset to copy features from");
             //return false;
         }
-
-        OGRLayer *layer2 = dataset_p2.data()->GetLayer(0);
-        if (layer2 == NULL)
+        else
         {
-            // TODO: warning
-            error = QObject::tr("Unable to open NGW layer to copy features from");
-            //return false;
-        }
+            OGRLayer *layer2 = dataset_p2.data()->GetLayer(0);
+            if (layer2 == NULL)
+            {
+                // TODO: warning
+                error = QObject::tr("Unable to open NGW layer to copy features from");
+                //return false;
+            }
+            else
+            {
+                layer2->ResetReading();
+                OGRFeature *feature;
+                while ((feature = layer2->GetNextFeature()) != NULL)
+                {
+                    layer->CreateFeature(feature);
+                    OGRFeature::DestroyFeature(feature);
+                }
 
-        layer2->ResetReading();
-        OGRFeature *feature;
-        while ((feature = layer2->GetNextFeature()) != NULL)
-        {
-            layer->CreateFeature(feature);
-            OGRFeature::DestroyFeature(feature);
+                layer->SyncToDisk();
+            }
         }
-
-        layer->SyncToDisk();
     }
 
     return true;
