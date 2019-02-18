@@ -140,6 +140,43 @@ void ElemView::setDeselectStyle ()
     this->setStyleSheet(style);
 }
 
+void ElemView::createUnboundIcon ()
+{
+    removeUnboundIcon(); // delete previous icon if some
+    QWidget *w = new QWidget(this);
+    w->setObjectName("w_unbound");
+    w->setToolTip(tr("This element was not yet bound to a field(s). Bind it in the element's properties"));
+    w->move(2, 2);
+    w->show();
+}
+
+void ElemView::removeUnboundIcon ()
+{
+    QWidget *w = this->findChild<QWidget*>("w_unbound");
+    if (w != nullptr)
+    {
+        w->setParent(nullptr);
+        delete w;
+    }
+}
+
+void ElemView::updateBindingStyle (const QList<Core::Field*> fields)
+{
+    // Unbound style can only be set if this elem can theoretically be bound.
+    if (elem->getFieldSlots().size() == 0)
+        return;
+
+    int fs_count = 0;
+    for (int i = 0; i < fields.size(); i++)
+        if (fields[i]->getElem() == elem)
+            fs_count++;
+
+    if (fs_count == elem->getFieldSlots().size())
+        this->removeUnboundIcon();
+    else
+        this->createUnboundIcon();
+}
+
 
 // Grab mouse and fall to the parent. The parent is always a Container or a Screen widget. Thus the
 // chain of event ignoring is started where the final target is always Screen::<event>. We need to

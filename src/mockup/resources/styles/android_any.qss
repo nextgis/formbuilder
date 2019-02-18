@@ -236,8 +236,8 @@ QWidget#w_signfield_base
     background: white;
     border: 2px solid rgb(3,169,244);
     border-radius: 2px;
-    min-height: 100px;
-    max-height: 100px;
+    min-height: 90px;
+    max-height: 90px;
 }
 
 QWidget#lab_signfield_clear
@@ -321,8 +321,8 @@ QWidget#w_distancemeter_base
 {
     background: transparent;
     border: none;
-    min-height: 18px;
-    max-height: 18px;
+    min-height: 24px;
+    max-height: 24px;
 }
 
 QWidget#lab_distancemeter_text
@@ -423,6 +423,16 @@ QWidget#w_ngmform_dots
 
 /* Common decoration parts */
 
+QWidget#w_unbound
+{
+    image: url(:/images/unbound.svg);
+    min-height: 18px;
+    max-height: 18px;
+    min-width: 18px;
+    max-width: 18px;
+}
+
+
 QScrollArea#scr_main
 {
     background: transparent;
@@ -513,6 +523,3 @@ QWidget#lab_combo_caption2
     font-size: 13px;
     font: bold;
 }
-
-
-

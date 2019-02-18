@@ -69,9 +69,9 @@ PropsTableWidget::PropsTableWidget (QWidget *parent, MainWindow *window):
 
     // TODO: we need a way to resize columns not only by header but by cells too.
 
-        // TEMP:
-        //this->horizontalHeader()->setStretchLastSection(true);
-        this->stretchColumns();
+    // TEMP:
+    //this->horizontalHeader()->setStretchLastSection(true);
+    this->stretchColumns();
 }
 
 PropsTableWidget::~PropsTableWidget ()
@@ -144,8 +144,8 @@ void PropsTableWidget::fillSelf (const Core::Elem *elem, const QList<Core::Field
     // field slots for the elem.
 
     //TEMP:
-    //const auto field_slots = elem->getFieldSlots();
-    QMap<QString, std::set<Core::FieldType>> field_slots; // TEMP: void map
+    const auto field_slots = elem->getFieldSlots();
+    //QMap<QString, std::set<Core::FieldType>> field_slots; // TEMP: void map
 
     for (auto field_slot: field_slots.keys())
     {
@@ -285,8 +285,10 @@ FieldComboBox *PropsTableWidget::createFieldCombo (const Core::Elem *elem, QStri
         // Anyway add all fields to this combobox.
         combo->addItem(fields[i]->getAlias());
 
-        // Make item disabled if an elem cannot be bound to a field.
-        if (!fields[i]->canBind(elem, slot))
+        // Make item disabled if an elem cannot be bound to a field OR the field is already bound
+        // to some elem.
+        if (!fields[i]->canBind(elem, slot) ||
+            fields[i]->isBound())
         {
             QStandardItem *item = model->item(combo->count() - 1);
             item->setFlags(item->flags() & ~Qt::ItemIsEnabled);

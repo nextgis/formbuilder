@@ -236,6 +236,8 @@ void NgfpReader::containerFromJson (const QJsonArray &j_container, Container *co
         project->addElem(elem);
         screen->space_showed = container->getLastSpace();
         screen->endMoveNewElemView(elemview);
+
+        elemview->updateBindingStyle(project->temp_getLayer()->getFields());
     }
 }
 

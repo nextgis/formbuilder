@@ -42,6 +42,7 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <QTemporaryDir>
+#include <QDockWidget>
 
 #define FB_NGTOOLB_TEXT QObject::tr("Authentication & Updates")
 
@@ -57,7 +58,8 @@ FbWindow::FbWindow (Language last_language):
     MainWindow(),
     need_to_save(false), // a void project does not need to be saved
     cur_device(nullptr),
-    last_language(last_language)
+    last_language(last_language),
+    chain_elems(true)
 {
     this->resize(1024, 768);
 
@@ -76,6 +78,7 @@ FbWindow::FbWindow (Language last_language):
     toolb_project = this->addMainMenuToolBar(tr("Project"));
     toolb_ngw = this->addMainMenuToolBar(tr("NextGIS Web"));
     toolb_form = this->addMainMenuToolBar(tr("Form"));
+    toolb_elems = this->addMainMenuToolBar(tr("Elements"));
 
     // FILE menu.
 
@@ -122,15 +125,15 @@ FbWindow::FbWindow (Language last_language):
                             menu_edit, toolb_ngw,
                             &FbWindow::onDownloadFromNgw,
                             ":/images/theme_white/ngw_download2.svg",
-                            tr("Download from NextGIS"),
-                            tr("Download form and data from NextGIS Web"));
+                            tr("Download From NextGIS"),
+                            tr("Download layer (and form if it exists) from NextGIS Web"));
 
     act_upload_to_ngw = this->addMainMenuAction(
                             menu_edit, toolb_ngw,
                             &FbWindow::onUploadToNgw,
                             ":/images/theme_white/ngw_create2.svg",
-                            tr("Upload to NextGIS"),
-                            tr("Upload new form to NextGIS Web"));
+                            tr("Upload To NextGIS"),
+                            tr("Upload form to NextGIS Web with creating a new layer"));
 
     menu_edit->addSeparator();
 
@@ -147,6 +150,17 @@ FbWindow::FbWindow (Language last_language):
                             ":/images/theme_white/clear_screen2.svg",
                             tr("Clear Form"),
                             tr("Clear form from all elements"));
+
+    menu_edit->addSeparator();
+
+    act_chain_elems = this->addMainMenuAction(
+                            menu_edit, toolb_elems,
+                            &FbWindow::onChainElemsClicked,
+                            ":/images/theme_white/chain_to_fields.svg",
+                            tr("Bind Elements To Fields"),
+                            tr("Automatically create and bind fields of the layer when placing elements on the form"));
+    act_chain_elems->setCheckable(true);
+    act_chain_elems->setChecked(true);
 
     // VIEW menu.
 
@@ -409,8 +423,7 @@ void FbWindow::onDownloadFromNgw ()
 
     auto res_info = dialog.getSelectedResourceInfo();
 
-    // Create temp file.
-
+    // Create temp file for form.
     QTemporaryDir temp_dir;
     if (!temp_dir.isValid())
     {
@@ -421,27 +434,42 @@ void FbWindow::onDownloadFromNgw ()
     QString ngfp_file_path = temp_dir.path() + "/form.ngfp";
 
     // Reset current project.
-
     if (!this->u_okToReset())
         return;
 
-    // Step 1. Download .ngfp file to temporary dir.
-
+    // Try to download .ngfp file to temporary dir.
     NgwGdalIo *ngw_io = dialog.getNgwIo();
-    bool ok = ngw_io->downloadForm(res_info.base_url, res_info.resource_id, ngfp_file_path);
-    if (!ok)
+    NgwFormErr err_code = ngw_io->downloadForm(res_info.base_url, res_info.resource_id, ngfp_file_path);
+
+    if (err_code == NgwFormErr::NoForm)
+    {
+        this->u_resetProject();
+
+        // Make another request in order to receive layer's structure.
+        auto pair = qMakePair(res_info.base_url, res_info.resource_id);
+        bool ok = this->u_getNgwLayer(pair, {"", ""}, ngw_io);
+        if (!ok)
+        {
+            g_showWarningDet(this, tr("Unable to receive form or layer's structure"),
+                             ngw_io->getLastError());
+            return;
+        }
+    }
+
+    else if (err_code == NgwFormErr::Ok)
+    {
+        this->u_resetProject();
+        this->u_openNgfp(ngfp_file_path);
+    }
+
+    else // NgwFormErr::Err
     {
         g_showWarningDet(this, tr("Unable to download NextGIS Web form"),
                          ngw_io->getLastError());
         return;
     }
 
-    // Step 2. Load temporary form file as project.
-
-    this->u_resetProject();
-    this->u_openNgfp(ngfp_file_path);
-
-    // Save information about successfully loaded form+layer in order to copy features later.
+    // Save information about successfully loaded layer (+form) in order to copy features later.
     cur_project->copy_ngw_base_url = res_info.base_url;
     cur_project->copy_ngw_res_id = res_info.resource_id;
 
@@ -590,6 +618,11 @@ void FbWindow::onClearScreenClicked ()
     }
 }
 
+void FbWindow::onChainElemsClicked ()
+{
+    chain_elems = act_chain_elems->isChecked();
+}
+
 void FbWindow::onLanguageClicked (QAction *action)
 {
     Language new_language = action->data().value<Language>();
@@ -714,9 +747,12 @@ void FbWindow::onAfterElemViewAdded (ElemView *elemview)
     need_to_save = true;
     this->u_updateTitle();
 
-    // Create field(fields) and connect it(them) with new element. Note: we allow to add new fields
-    // only if the layer is editable.
-    this->u_createFieldsForNewElem(elemview);
+    // Create field(fields) and connect it(them) with new element.
+    if (chain_elems)
+        this->u_createFieldsForNewElem(elemview);
+
+    // Update binding style of added elemview.
+    elemview->updateBindingStyle(cur_project.data()->layer0_getFields());
 }
 
 void FbWindow::onAfterElemViewSelected (ElemView *elemview)
@@ -724,12 +760,13 @@ void FbWindow::onAfterElemViewSelected (ElemView *elemview)
     // Fill attributes table for the selected elemview.
     table_props->fillSelf(elemview->getElem(), cur_project.data()->layer0_getFields());
 
+    // Show type of the elem in Properties dock caption.
+//    QString disp_name = Core::ElemRegistrar::getAll().at(elemview->getElem()->getKeyName()).display_name;
+//    static_cast<QDockWidget*>(dock_props->parent())->setWindowTitle(tr("Properties: %1").arg(disp_name));
+
     // Highlight bound fields in the table.
     //table_fields->highlightElemFields(elemview->getElem());
     table_fields->updateSelf(cur_project.data()->layer0_getFields(), elemview->getElem());
-
-    // Change state.
-    // ...
 }
 
 void FbWindow::onAfterElemViewChanged (ElemView *elemview)
@@ -769,9 +806,6 @@ void FbWindow::onAfterElemViewDeleted ()
     // Set project unsaved and update window title.
     need_to_save = true;
     this->u_updateTitle();
-
-    // Change state.
-    // ...
 }
 
 
@@ -805,6 +839,10 @@ void FbWindow::onFieldSelected (int field_index, const Elem *elem, QString field
     table_fields->updateSelf(cur_project.data()->layer0_getFields(), elem);
     //table_fields->highlightElemFields(elem);
 
+    // Update binding style of elemview which is currently selected.
+    const ElemView *elemview = cur_device->getScreen()->getSelectedElemView();
+    const_cast<ElemView*>(elemview)->updateBindingStyle(cur_project.data()->layer0_getFields());
+
     // Set project unsaved and update window title.
     need_to_save = true;
     this->u_updateTitle();
@@ -813,12 +851,22 @@ void FbWindow::onFieldSelected (int field_index, const Elem *elem, QString field
 
 void FbWindow::onFieldAliasChangedInTable (const QString &text)
 {
+    // Update field combobox(es) in Properties if any elem is selected.
+    const ElemView *elemview = cur_device->getScreen()->getSelectedElemView();
+    if (elemview != nullptr)
+        table_props->updateSelf(elemview->getElem(), cur_project.data()->layer0_getFields());
+
     need_to_save = true;
     this->u_updateTitle();
 }
 
 void FbWindow::onFieldTypeChangedInTable (int index)
 {
+    // Update field combobox(es) in Properties if any elem is selected.
+    const ElemView *elemview = cur_device->getScreen()->getSelectedElemView();
+    if (elemview != nullptr)
+        table_props->updateSelf(elemview->getElem(), cur_project.data()->layer0_getFields());
+
     need_to_save = true;
     this->u_updateTitle();
 }

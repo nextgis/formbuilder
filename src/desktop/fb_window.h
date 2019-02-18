@@ -64,6 +64,7 @@ class FbWindow final: public MainWindow
      void onUploadToNgw ();
      void onEditFormPropsClicked ();
      void onClearScreenClicked ();
+     void onChainElemsClicked ();
      void onLanguageClicked (QAction *action);
      void onViewHelpClicked ();
      void onCommSupportClicked ();
@@ -131,6 +132,7 @@ class FbWindow final: public MainWindow
      QToolBar *toolb_project;
      QToolBar *toolb_ngw;
      QToolBar *toolb_form;
+     QToolBar *toolb_elems;
 
      NGSignInButton *but_ngauth;
      //QToolButton *but_updates;
@@ -145,6 +147,7 @@ class FbWindow final: public MainWindow
      QAction *act_upload_to_ngw;
      QAction *act_form_props;
      QAction *act_clear_screen;
+     QAction *act_chain_elems;
      QAction *act_view_help;
      QAction *act_comm_supp;
      QAction *act_about;
@@ -162,6 +165,8 @@ class FbWindow final: public MainWindow
      QScopedPointer<FbProject> cur_project;
 
      bool need_to_save;
+
+     bool chain_elems;
 
      Language last_language;
 

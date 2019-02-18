@@ -427,6 +427,13 @@
     </message>
 </context>
 <context>
+    <name>Fb::Mockup::ElemView</name>
+    <message>
+        <source>This element was not yet bound to a field(s). Bind it in the element&apos;s properties</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>Fb::Mockup::TextEditView</name>
     <message>
         <source>&lt;NextGIS ID login&gt;</source>
@@ -735,11 +742,11 @@
     </message>
     <message>
         <source>Download from NextGIS</source>
-        <translation>Скачать из NextGIS</translation>
+        <translation type="vanished">Скачать из NextGIS</translation>
     </message>
     <message>
         <source>Upload to NextGIS</source>
-        <translation>Отправить в NextGIS</translation>
+        <translation type="vanished">Отправить в NextGIS</translation>
     </message>
     <message>
         <source>Form was successfully uploaded</source>
@@ -767,11 +774,11 @@
     </message>
     <message>
         <source>Download form and data from NextGIS Web</source>
-        <translation>Скачать форму (и данные) из NextGIS Web</translation>
+        <translation type="vanished">Скачать форму (и данные) из NextGIS Web</translation>
     </message>
     <message>
         <source>Upload new form to NextGIS Web</source>
-        <translation>Отправить форму в NextGIS Web</translation>
+        <translation type="vanished">Отправить форму в NextGIS Web</translation>
     </message>
     <message>
         <source>Do you want to save current project to file before downloading another one?</source>
@@ -792,6 +799,38 @@
     <message>
         <source>Send</source>
         <translation>Отправить</translation>
+    </message>
+    <message>
+        <source>Unable to receive form or layer&apos;s structure</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Download From NextGIS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Download layer (and form if it exists) from NextGIS Web</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Upload To NextGIS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Upload form to NextGIS Web with creating a new layer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Automatically create and bind fields of the layer when placing elements on the form</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Bind Elements To Fields</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Properties: %1</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

@@ -18,6 +18,7 @@
         <file>images/black_smartphone/top.svg</file>
         <file>images/black_smartphone/top_left.svg</file>
         <file>images/black_smartphone/top_right.svg</file>
+        <file>images/unbound.svg</file>
         <file>styles/android_any.qss</file>
         <file>styles/black_smartphone.qss</file>
     </qresource>

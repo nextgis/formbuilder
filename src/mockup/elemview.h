@@ -21,6 +21,7 @@
 
 #include "custom_widget.h"
 #include "core/elem.h"
+#include "core/field.h"
 
 #include <QVBoxLayout>
 
@@ -92,6 +93,11 @@ class ElemView: public CustomWidget
 
      void setSelectStyle ();
      void setDeselectStyle ();
+     void createUnboundIcon ();
+     void removeUnboundIcon ();
+    public:
+     void updateBindingStyle (const QList<Core::Field*> fields);
+    protected:
 
      virtual void mousePressEvent (QMouseEvent *event) override;
      virtual void mouseMoveEvent (QMouseEvent *event) override;
