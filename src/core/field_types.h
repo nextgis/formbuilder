@@ -107,6 +107,16 @@ inline OGRFieldType g_findFieldTypeGdal (QString ngw_name)
     return OFTString; // TODO: ok?
 }
 
+inline QString g_findFieldTypeNgw (OGRFieldType gdal_type)
+{
+    for (auto &field_type: g_getFieldTypes())
+    {
+        if (gdal_type == field_type.gdal_type)
+            return field_type.ngw_name;
+    }
+    return "";
+}
+
 
 }
 }

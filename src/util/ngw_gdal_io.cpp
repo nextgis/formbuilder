@@ -81,9 +81,6 @@ bool NgwGdalIo::getResources (QList<NgwResourceData> &resources,
 
 bool NgwGdalIo::getLayerInfo (NgwLayerInfo &layer_info, QString base_url, int resource_id)
 {
-    return false;
-
-    /*
     GDALDatasetPtr dataset_p;
     u_openDataset(dataset_p, base_url, resource_id, true);
     if (dataset_p.data() == NULL)
@@ -92,12 +89,28 @@ bool NgwGdalIo::getLayerInfo (NgwLayerInfo &layer_info, QString base_url, int re
         return false;
     }
 
-    layer_info.name = ;
-    layer_info.fields = ;
-    layer_info.geom_type = ;
+    OGRLayer *layer = dataset_p.data()->GetLayer(0);
+    if (layer == NULL)
+    {
+        error = QObject::tr("Unable to open [0] layer of NGW dataset via GDAL");
+        return false;
+    }
+
+    OGRFeatureDefn *layer_defn = layer->GetLayerDefn();
+
+    layer_info.name = layer->GetName();
+    layer_info.geom_type = Core::g_findGeomTypeNgw(layer->GetGeomType());
+    for (int i = 0; i < layer_defn->GetFieldCount(); i++)
+    {
+        QString s_field_alias = QString("FIELD_%1_ALIAS").arg(i);
+        QString alias = layer->GetMetadataItem(s_field_alias.toUtf8().data());
+
+        OGRFieldDefn *field_defn = layer_defn->GetFieldDefn(i);
+        layer_info.fields.append({field_defn->GetNameRef(), alias,
+                                  Core::g_findFieldTypeNgw(field_defn->GetType())});
+    }
 
     return true;
-    */
 }
 
 bool NgwGdalIo::createLayer (int &new_layer_id, const NgwLayerInfo &layer_info, QString base_url,

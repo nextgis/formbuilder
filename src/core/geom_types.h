@@ -97,6 +97,16 @@ inline OGRwkbGeometryType g_findGeomTypeGdal (QString ngw_name)
     return wkbUnknown;
 }
 
+inline QString g_findGeomTypeNgw (OGRwkbGeometryType gdal_type)
+{
+    for (auto &geom_type: g_getGeomTypes())
+    {
+        if (gdal_type == geom_type.gdal_type)
+            return geom_type.ngw_name;
+    }
+    return "";
+}
+
 
 }
 }

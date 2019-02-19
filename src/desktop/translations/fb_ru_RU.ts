@@ -430,7 +430,7 @@
     <name>Fb::Mockup::ElemView</name>
     <message>
         <source>This element was not yet bound to a field(s). Bind it in the element&apos;s properties</source>
-        <translation type="unfinished"></translation>
+        <translation>Этот элемент не был привязан к полю (полям) слоя. Установите связь в свойствах элемента</translation>
     </message>
 </context>
 <context>
@@ -802,35 +802,31 @@
     </message>
     <message>
         <source>Unable to receive form or layer&apos;s structure</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось получить структуру слоя или формы</translation>
     </message>
     <message>
         <source>Download From NextGIS</source>
-        <translation type="unfinished"></translation>
+        <translation>Скачать из NextGIS</translation>
     </message>
     <message>
         <source>Download layer (and form if it exists) from NextGIS Web</source>
-        <translation type="unfinished"></translation>
+        <translation>Скачать слой (и форму, если присутствует) из NextGIS Web</translation>
     </message>
     <message>
         <source>Upload To NextGIS</source>
-        <translation type="unfinished"></translation>
+        <translation>Отправить в NextGIS</translation>
     </message>
     <message>
         <source>Upload form to NextGIS Web with creating a new layer</source>
-        <translation type="unfinished"></translation>
+        <translation>Отправить форму в NextGIS Web с созданием нового слоя</translation>
     </message>
     <message>
         <source>Automatically create and bind fields of the layer when placing elements on the form</source>
-        <translation type="unfinished"></translation>
+        <translation>Автоматически создавать и сразу связывать поля слоя при создании элементов на форме</translation>
     </message>
     <message>
         <source>Bind Elements To Fields</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Properties: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Связывать элементы с полями</translation>
     </message>
 </context>
 <context>
@@ -1444,6 +1440,10 @@
     <message>
         <source>Unable to get form id for the selected layer</source>
         <translation>Не удалось получить id формы для выбранного слоя</translation>
+    </message>
+    <message>
+        <source>Unable to open [0] layer of NGW dataset via GDAL</source>
+        <translation>Не удалось открыть [0] слой в источнике данных NGW при помощи GDAL</translation>
     </message>
 </context>
 </TS>
