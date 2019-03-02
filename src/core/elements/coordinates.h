@@ -40,7 +40,7 @@ class Coordinates: public Elem
 
     protected:
 
-     virtual void behave (Attr *attr) override { Q_UNUSED(attr) }
+     virtual void behave (Attr *attr) override;
 
      Enum *attr_srs;
      Enum *attr_srs_format;

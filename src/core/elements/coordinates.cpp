@@ -35,7 +35,9 @@ Coordinates::Coordinates (QString key_name):
     attr_is_hidden  = (Boolean*)  this->addAttr(new Boolean("coords_is_hidden", false));
 
     fslot_lat = this->addFieldSlot("field_lat");
-    fslot_lat = this->addFieldSlot("field_lon");
+    fslot_lon = this->addFieldSlot("field_lon");
+
+    this->behave(nullptr);
 }
 
 Coordinates::~Coordinates ()
@@ -43,4 +45,10 @@ Coordinates::~Coordinates ()
 }
 
 
+void Coordinates::behave (Attr *attr)
+{
+    Q_UNUSED(attr)
 
+    this->addTypeToFieldSlot(fslot_lat, {FieldType::Real});
+    this->addTypeToFieldSlot(fslot_lon, {FieldType::Real});
+}
