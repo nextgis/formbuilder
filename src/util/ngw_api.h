@@ -53,7 +53,7 @@ class NgwApi
 
      virtual QByteArray bodyAuth (QString login, QString password);
      virtual QByteArray bodyCreateLayer (const NgwLayerInfo &layer_info, int resource_group_id);
-     virtual QByteArray bodyCreateForm (const NgwFileInfo &file_info, int layer_id);
+     virtual QByteArray bodyCreateFile (const NgwFileInfo &file_info, int layer_id, QString res_type, QString disp_name);
      virtual QHttpMultiPart *bodyUploadNgfp (const QByteArray &file_contents);
 };
 

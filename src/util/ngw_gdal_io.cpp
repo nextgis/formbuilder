@@ -208,12 +208,10 @@ bool NgwGdalIo::createLayer (int &new_layer_id, const NgwLayerInfo &layer_info, 
     return true;
 }
 
-bool NgwGdalIo::createForm (int &new_form_id, QString ngfp_path, QString base_url,
-                            int layer_id)
+bool NgwGdalIo::createFile (int &new_form_id, QString upload_reply, QString base_url,
+                            int layer_id, QString res_type, QString disp_name)
 {
-    QString s_reply = ngfp_path; // a hack
-
-    QJsonDocument j_reply = QJsonDocument::fromJson(s_reply.toUtf8());
+    QJsonDocument j_reply = QJsonDocument::fromJson(upload_reply.toUtf8());
     if (!j_reply.isObject())
     {
         error = "Unable to upload file to NGW";
@@ -246,7 +244,8 @@ bool NgwGdalIo::createForm (int &new_form_id, QString ngfp_path, QString base_ur
 
     QString s_url = api->urlCreateResource(base_url);
 
-    QByteArray ba_body = api->bodyCreateForm(file_info, layer_id);
+    QByteArray ba_body = api->bodyCreateFile(file_info, layer_id, res_type, disp_name);
+
     std::string payload = ba_body.toStdString();
     std::string payload_int = "POSTFIELDS=" + payload;
 

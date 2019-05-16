@@ -107,12 +107,12 @@ QByteArray NgwApi::bodyCreateLayer (const NgwLayerInfo &layer_info, int resource
     return j_doc.toJson();
 }
 
-QByteArray NgwApi::bodyCreateForm (const NgwFileInfo &file_info, int layer_id)
+QByteArray NgwApi::bodyCreateFile (const NgwFileInfo &file_info, int layer_id, QString res_type, QString disp_name)
 {
     QJsonObject j_resource;
-    j_resource["cls"] = "formbuilder_form";
+    j_resource["cls"] = res_type;
     j_resource["parent"] = QJsonObject({{"id", layer_id}});
-    j_resource["display_name"] = "Form";
+    j_resource["display_name"] = disp_name;
     j_resource["keyname"] = QJsonValue();
     j_resource["description"] = QJsonValue();
 
@@ -124,13 +124,13 @@ QByteArray NgwApi::bodyCreateForm (const NgwFileInfo &file_info, int layer_id)
     j_file_upload["mime_type"] = file_info.mime_type;
     j_file_upload["name"] = file_info.name;
     j_file_upload["size"] = file_info.size;
-    QJsonObject j_fb_form;
-    j_fb_form["file_upload"] = j_file_upload;
+    QJsonObject j_fb_file;
+    j_fb_file["file_upload"] = j_file_upload;
 
     QJsonObject j_obj;
     j_obj["resource"] = j_resource;
     j_obj["resmeta"] = j_resmeta;
-    j_obj["formbuilder_form"] = j_fb_form;
+    j_obj[res_type] = j_fb_file;
 
     QJsonDocument j_doc(j_obj);
     return j_doc.toJson();

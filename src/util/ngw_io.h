@@ -61,8 +61,8 @@ class NgwIo
      virtual bool createLayer (int &new_layer_id, const NgwLayerInfo &layer_info, QString base_url,
                                int resource_group_id, QString base_url_copy_features = "",
                                int layer_id_copy_features = -1) = 0;
-     virtual bool createForm (int &new_form_id, QString ngfp_path, QString base_url,
-                              int layer_id) = 0;
+     virtual bool createFile (int &new_form_id, QString upload_reply, QString base_url,
+                              int layer_id, QString res_type, QString disp_name) = 0;
 };
 
 

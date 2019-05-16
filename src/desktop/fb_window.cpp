@@ -514,7 +514,7 @@ void FbWindow::onUploadToNgw ()
         layer_info.fields.append({field->getName(), field->getAlias(),
                                   g_getFieldTypeNgwName(field->getType())});
 
-    // Step 1 of 3: Create new layer.
+    // Step 1 of 4: Create new layer.
 
     this->setEnabled(false);
 
@@ -542,7 +542,7 @@ void FbWindow::onUploadToNgw ()
 //        return;
 //    }
 
-    // Step 2 of 3: Save form to file.
+    // Step 2 of 4: Save form to file.
 
     QTemporaryDir temp_dir;
     if (!temp_dir.isValid())
@@ -565,18 +565,76 @@ void FbWindow::onUploadToNgw ()
         return;
     }
 
-    // Step 3 of 3: Create form for the new layer.
+    // Step 3 of 4: Create form for the new layer.
 
     QString upload_url = QString("%1/api/component/file_upload/upload").arg(res_info.base_url);
     QString s_reply = NGRequest::uploadFile(upload_url, file_path, "file"); // required "file" keyword
 
     int new_form_id;
-    if (!ngw_io->createForm(new_form_id, s_reply, res_info.base_url, new_layer_id))
+    if (!ngw_io->createFile(new_form_id, s_reply, res_info.base_url, new_layer_id, "formbuilder_form", "Form"))
     {
         g_showWarningDet(this, tr("Unable to create form on NextGIS Web"),
                          ngw_io->getLastError());
         this->setEnabled(true);
         return;
+    }
+
+    // Step 4 of 4: Create style for the new layer.
+
+    /*
+    QString style_file_path;
+    auto geom_type = layer->getGeomType();
+    if (geom_type == GeomType::Point || geom_type == GeomType::Multipoint)
+        style_file_path = ":/data/pnt.qml";
+    else if (geom_type == GeomType::Line || geom_type == GeomType::Multiline)
+        style_file_path = ":/data/line.qml";
+    else if (geom_type == GeomType::Polygon || geom_type == GeomType::Multipolygon)
+        style_file_path = ":/data/poly.qml";
+
+    QString style_string;
+    QFile style_file(style_file_path);
+    if (style_file.open(QFile::ReadOnly | QFile::Text))
+    {
+        QTextStream in(&style_file);
+        style_string = in.readAll();
+
+        bool ok = ngw_io->createStyle(res_info.base_url, new_layer_id, style_string);
+        if (!ok)
+            qDebug() << "Unable to create style for layer";
+    }
+    style_file.close();
+    */
+
+    QString file_in_path;
+    auto geom_type = layer->getGeomType();
+    if (geom_type == GeomType::Point || geom_type == GeomType::Multipoint)
+        file_in_path = ":/data/pnt.qml";
+    else if (geom_type == GeomType::Line || geom_type == GeomType::Multiline)
+        file_in_path = ":/data/line.qml";
+    else if (geom_type == GeomType::Polygon || geom_type == GeomType::Multipolygon)
+        file_in_path = ":/data/poly.qml";
+
+    QString file_out_path = temp_dir.path() + "/style.qml";
+
+    QFile file_in(file_in_path); // NGRequest::uploadFile() cannot read from resources => create actual file
+    QFile file_out(file_out_path);
+    if (file_in.open(QFile::ReadOnly | QFile::Text) && file_out.open(QFile::WriteOnly))
+    {
+        QTextStream in(&file_in);
+        QTextStream out(&file_out);
+
+        QString s = in.readAll();
+        out << s;
+    }
+    file_in.close();
+    file_out.close();
+
+    s_reply = NGRequest::uploadFile(upload_url, file_out_path, "file"); // required "file" keyword
+
+    int stub_int;
+    if (!ngw_io->createFile(stub_int, s_reply, res_info.base_url, new_layer_id, "qgis_vector_style", "QGIS layer"))
+    {
+        qDebug() << "Unable to create style for layer";
     }
 
     // Show success.

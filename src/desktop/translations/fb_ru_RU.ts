@@ -1423,7 +1423,7 @@
     </message>
     <message>
         <source>Failed to open temporary form file</source>
-        <translation>Не удалось открыть временный файл формы</translation>
+        <translation type="vanished">Не удалось открыть временный файл формы</translation>
     </message>
     <message>
         <source>Formbuilder form</source>

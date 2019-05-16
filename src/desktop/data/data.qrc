@@ -5,5 +5,8 @@
         <file>fb.icns</file>
         <file>img_authors.txt</file>
         <file>VERSION</file>
+        <file>pnt.qml</file>
+        <file>line.qml</file>
+        <file>poly.qml</file>
     </qresource>
 </RCC>

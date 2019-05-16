@@ -117,6 +117,7 @@ bool NgwDefaultIo::createLayer (int &new_layer_id, const NgwLayerInfo &layer_inf
     return this->parseCreateResourceReply(j_reply, new_layer_id);
 }
 
+/*
 bool NgwDefaultIo::createForm (int &new_form_id, QString ngfp_path, QString base_url,
                                int layer_id)
 {
@@ -152,7 +153,7 @@ bool NgwDefaultIo::createForm (int &new_form_id, QString ngfp_path, QString base
     j_reply = ww->obtainJson();
     return this->parseCreateResourceReply(j_reply, new_form_id);
 }
-
+*/
 
 bool NgwDefaultIo::parseGetResourcesReply (QJsonDocument &j_reply, QList<NgwResourceData> &resources,
                                         const std::set<NgwResourceType> &allowed_types)
