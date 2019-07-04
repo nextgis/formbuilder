@@ -18,6 +18,7 @@ set(FB_CORE_LIB_SOURCES
     attributes/doubleitems.cpp
     attributes/tripleitems.cpp
     attributes/depdoubleitems.cpp
+    attributes/globaltextenum.cpp
 
     elements/label.cpp
     elements/voidspace.cpp
@@ -58,6 +59,7 @@ set(FB_CORE_LIB_HEADERS
     attributes/doubleitems.h
     attributes/tripleitems.h
     attributes/depdoubleitems.h
+    attributes/globaltextenum.h
 
     elements/label.h
     elements/voidspace.h

@@ -64,6 +64,7 @@ class FbWindow final: public MainWindow
      void onUploadToNgw ();
      void onEditFormPropsClicked ();
      void onClearScreenClicked ();
+     void onEditPrefixesClicked ();
      void onChainElemsClicked ();
      void onLanguageClicked (QAction *action);
      void onViewHelpClicked ();
@@ -119,6 +120,7 @@ class FbWindow final: public MainWindow
       void u_updateSupportedIcons (bool is_supported);
       bool u_canUseSupportedFeature ();
       bool u_okToReset ();
+      void u_updateCounterLists (const QList<QStringList> &lists);
       void u_updateTitle ();
 
      QMenu *menu_file;
@@ -147,6 +149,7 @@ class FbWindow final: public MainWindow
      QAction *act_upload_to_ngw;
      QAction *act_form_props;
      QAction *act_clear_screen;
+     QAction *act_edit_prefixes;
      QAction *act_chain_elems;
      QAction *act_view_help;
      QAction *act_comm_supp;

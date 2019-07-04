@@ -17,70 +17,79 @@
  *                                                                                                *
  **************************************************************************************************/
 
-#include "ngmform_view.h"
+#include "globaltextenum_watcher.h"
 
-#include "container.h"
+#include "core/attributes/enum.h"
+#include "core/attributes/globaltextenum.h"
 
-#include <QScrollArea>
-#include <QScrollBar>
+#include <QComboBox>
 
 using namespace Fb;
-using namespace Mockup;
+using namespace Gui;
 
 
-NgmFormView::NgmFormView (const Core::Elem *elem):
-    ElemView(elem),
-    can_scroll_to_bottom(false)
-{
-    scr_main = new QScrollArea(w_base);
-    scr_main->setObjectName("scr_main");
-    scr_main->setAlignment(Qt::AlignCenter);
-    scr_main->setAutoFillBackground(true);
-    scr_main->setWidgetResizable(true);
-
-    QScrollBar* scrollbar = scr_main->verticalScrollBar();
-    connect(scrollbar, &QScrollBar::rangeChanged, this, &NgmFormView::onScrollBarRangeChanged);
-
-    lay_base->addWidget(scr_main);
-
-    container = new Container(scr_main, ContainerType::Column, this);
-    scr_main->setWidget(container);
-
-    // TEMP.
-    scr_main->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    container->setMaximumWidth(267 - 8);
-}
-
-NgmFormView::~NgmFormView ()
+GlobalTextEnumWatcher::GlobalTextEnumWatcher (Core::Attr *attr):
+    AttrWatcher(attr)
 {
 }
 
-
-void NgmFormView::appendAllInnerElemviews (QList<ElemView*> &list)
+GlobalTextEnumWatcher::~GlobalTextEnumWatcher ()
 {
-    QLayout *lay = container->layout();
-    for (int i = 0; i < lay->count(); i++)
+}
+
+QWidget *GlobalTextEnumWatcher::createWidget (MainWindow *window) const
+{
+    Q_UNUSED(window)
+
+    Core::GlobalTextEnum *concr_attr = qobject_cast<Core::GlobalTextEnum*>(attr);
+    if (concr_attr == nullptr)
     {
-        QLayoutItem *item = lay->itemAt(i);
-        if (item == nullptr)
-            continue;
-        ElemView *elemview = qobject_cast<ElemView*>(item->widget());
-        if (elemview == nullptr)
-            continue;
-
-        list.append(elemview);
-        elemview->appendAllInnerElemviews(list);
+        //qDebug
+        return nullptr;
     }
-}
 
+    auto list_names = concr_attr->getValuesRange();
+    auto sel_list_name = concr_attr->getValue();
 
-void NgmFormView::onScrollBarRangeChanged (int min, int max)
-{
-    Q_UNUSED(min);
+    QComboBox *combobox = new QComboBox();
+    combobox->addItem("-"); // in order to allow not to select any list name
+    combobox->addItems(list_names);
 
-    if (can_scroll_to_bottom)
+    int sel_list_index = 0; // select "-" by default
+    for (int i = 0; i < list_names.size(); i++)
     {
-        scr_main->verticalScrollBar()->setValue(max);
-        can_scroll_to_bottom = false;
+        if (list_names[i] == sel_list_name) // we know that list names are unique
+        {
+            sel_list_index = i + 1;
+            break;
+        }
     }
+    combobox->setCurrentIndex(sel_list_index);
+
+    connect(combobox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &GlobalTextEnumWatcher::onComboBoxCurrentIndexChanged);
+    return combobox;
 }
+
+void GlobalTextEnumWatcher::onComboBoxCurrentIndexChanged (int index)
+{
+    Core::GlobalTextEnum *concr_attr = qobject_cast<Core::GlobalTextEnum*>(attr);
+    if (concr_attr == nullptr)
+    {
+        //qDebug
+        return;
+    }
+
+    auto list_names = concr_attr->getValuesRange();
+    int sel_list_index = index - 1;
+
+    if (sel_list_index == -1)
+        concr_attr->resetValue();
+    else
+        concr_attr->setValue(list_names[sel_list_index]);
+
+    emit attrChangedByWidget(attr);
+}
+
+
+

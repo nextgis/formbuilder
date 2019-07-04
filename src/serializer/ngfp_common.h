@@ -81,6 +81,8 @@ const QMap<QString, QString> NGFP_ATTR_KEYS =
     {{"count_incr"},       {"increment"}},
     {{"count_pref"},       {"prefix"}},
     {{"count_suff"},       {"suffix"}},
+    {{"count_pref_list"},  {"prefix_from_list"}},
+    {{"count_suff_list"},  {"suffix_from_list"}},
 
     // The following attributes will be skipped. See NgfpSerializer::modifySpecificElemView()
     //{{"date_is_cur"},      {""}},

@@ -40,6 +40,11 @@ QWidget *EnumWatcher::createWidget (MainWindow *window) const
 {
     Q_UNUSED(window)
 
+    // TODO: refactor. Here is an example where we need to use interfaces, not casting. Enum and
+    // GlobalEnum classes both have the same getValuesRange() and getValue() methods but they
+    // are different inside. So these two classes must implement common "Enum" interface and this
+    // watcher should work with it.
+
     Core::Enum *concr_attr = qobject_cast<Core::Enum*>(attr);
     if (concr_attr == nullptr)
     {

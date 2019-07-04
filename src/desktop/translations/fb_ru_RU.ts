@@ -135,11 +135,11 @@
     <name>Fb::Gui::FieldsTableWidget</name>
     <message>
         <source>This field was not yet bound to an element. Bind it in the element&apos;s properties</source>
-        <translation type="unfinished">Это поле пока не привязано к элементу. Установите связь в свойствах элемента</translation>
+        <translation>Это поле пока не привязано к элементу. Установите связь в свойствах элемента</translation>
     </message>
     <message>
         <source>This field is successfully bound to an element</source>
-        <translation type="unfinished">Это поле успешно привязано к элементу</translation>
+        <translation>Это поле успешно привязано к элементу</translation>
     </message>
 </context>
 <context>
@@ -338,6 +338,88 @@
     <message>
         <source>The amount of headers becomes less than it was. An according amount of pages must be removed starting from the end. Do you really want to remove last %1 page(s) with all its elements?</source>
         <translation>Число названий вкладок уменьшилось. Соответствующее число вкладок должно быть удалено начиная с конца. Вы точно хотите удалить %1 вкладки со всеми элементами?</translation>
+    </message>
+</context>
+<context>
+    <name>Fb::Gui::PrefixColumnDialog</name>
+    <message>
+        <source>Give a name to the new column</source>
+        <translation>Задайте имя нового списка</translation>
+    </message>
+    <message>
+        <source>OK</source>
+        <translation>ОК</translation>
+    </message>
+    <message>
+        <source>The name contains unsupported symbols. Select another one</source>
+        <translation>Имя содержит неподдерживаемые символы. Пожалуйста, выберите другое</translation>
+    </message>
+    <message>
+        <source>Warning</source>
+        <translation>Предупреждение</translation>
+    </message>
+    <message>
+        <source>There is already a column with this name. Select another one</source>
+        <translation>Список с этим именем уже существует. Пожалуйста, выберите другое имя</translation>
+    </message>
+</context>
+<context>
+    <name>Fb::Gui::PrefixDialog</name>
+    <message>
+        <source>Lists editor</source>
+        <translation>Редактор списков</translation>
+    </message>
+    <message>
+        <source>Add new column</source>
+        <translation>Добавить новый столбец</translation>
+    </message>
+    <message>
+        <source>Remove selected column</source>
+        <translation>Удалить выбранный столбец</translation>
+    </message>
+    <message>
+        <source>Append row</source>
+        <translation>Добавить строку</translation>
+    </message>
+    <message>
+        <source>Remove selected row</source>
+        <translation>Удалить выбранную строку</translation>
+    </message>
+    <message>
+        <source>Mark selected column as a key column</source>
+        <translation>Задать выбранный список в качестве столбца по умолчанию (значения данного списка будут отображаться на мобильном устройстве)</translation>
+    </message>
+    <message>
+        <source>Load items from a CSV file</source>
+        <translation>Загрузить значения из CSV файла</translation>
+    </message>
+    <message>
+        <source>OK</source>
+        <translation>ОК</translation>
+    </message>
+    <message>
+        <source>Do you really want to remove a column with the name &quot;</source>
+        <translation>Вы точно хотите удалить список с этим именем &quot;</translation>
+    </message>
+    <message>
+        <source>Warning</source>
+        <translation>Предупреждение</translation>
+    </message>
+    <message>
+        <source>Do you really want to remove the selected row?</source>
+        <translation>Вы точно хотите удалить выбранную строку?</translation>
+    </message>
+    <message>
+        <source>If you load items from a CSV file all current items in the table will be removed. Continue?</source>
+        <translation>Если вы загрузите значения из CSV файла все текущие значения будут удалены. Продолжить?</translation>
+    </message>
+    <message>
+        <source>Select a CSV file</source>
+        <translation>Выберите CSV файл</translation>
+    </message>
+    <message>
+        <source>No columns in CSV file</source>
+        <translation>В CSV файле отсутствуют столбцы</translation>
     </message>
 </context>
 <context>
@@ -827,6 +909,14 @@
     <message>
         <source>Bind Elements To Fields</source>
         <translation>Связывать элементы с полями</translation>
+    </message>
+    <message>
+        <source>Edit Prefixes</source>
+        <translation>Редактировать префиксы</translation>
+    </message>
+    <message>
+        <source>Edit prefixes/suffixes for Counter element</source>
+        <translation>Редактировать префиксы/суффиксы для элемента Счётчик</translation>
     </message>
 </context>
 <context>
@@ -1444,6 +1534,10 @@
     <message>
         <source>Unable to open [0] layer of NGW dataset via GDAL</source>
         <translation>Не удалось открыть [0] слой в источнике данных NGW при помощи GDAL</translation>
+    </message>
+    <message>
+        <source>Error</source>
+        <translation>Ошибка</translation>
     </message>
 </context>
 </TS>

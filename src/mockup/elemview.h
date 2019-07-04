@@ -82,6 +82,8 @@ class ElemView: public CustomWidget
      virtual const Container *getContainer () const = 0;
      virtual const QVariant getDataForDecor () const { return QVariant(); }
 
+     virtual void appendAllInnerElemviews (QList<ElemView*> &list) { }
+
     signals:
 
      void hasChanged (ElemView *elemview);
@@ -103,7 +105,8 @@ class ElemView: public CustomWidget
      virtual void mouseMoveEvent (QMouseEvent *event) override;
      virtual void mouseReleaseEvent (QMouseEvent *event) override;
 
-    protected slots:
+    //protected slots:
+     public slots:
 
      void onElemHasChanged (Core::Attr *attr);
 

@@ -26,6 +26,7 @@
 #include "attrwatchers/number_watcher.h"
 #include "attrwatchers/string_watcher.h"
 #include "attrwatchers/enum_watcher.h"
+#include "attrwatchers/globaltextenum_watcher.h"
 #include "attrwatchers/datetime_watcher.h"
 #include "attrwatchers/doubleitems_watcher.h"
 #include "attrwatchers/tripleitems_watcher.h"
@@ -44,6 +45,7 @@ inline void g_registerAttrWatchers ()
     AttrWatcherRegistrar::add(Core::AttrInputType::Number, new NumberWatcherFct());
     AttrWatcherRegistrar::add(Core::AttrInputType::String, new StringWatcherFct());
     AttrWatcherRegistrar::add(Core::AttrInputType::Enum, new EnumWatcherFct());
+    AttrWatcherRegistrar::add(Core::AttrInputType::GlobalTextEnum, new GlobalTextEnumWatcherFct());
     AttrWatcherRegistrar::add(Core::AttrInputType::DateTime, new DateTimeWatcherFct());
     AttrWatcherRegistrar::add(Core::AttrInputType::DoubleItems, new DoubleItemsWatcherFct());
     AttrWatcherRegistrar::add(Core::AttrInputType::TripleItems, new TripleItemsWatcherFct());

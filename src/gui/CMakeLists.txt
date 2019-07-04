@@ -12,6 +12,7 @@ set(FB_GUI_LIB_SOURCES
     attrwatchers/number_watcher.cpp
     attrwatchers/string_watcher.cpp
     attrwatchers/enum_watcher.cpp
+    attrwatchers/globaltextenum_watcher.cpp
     attrwatchers/datetime_watcher.cpp
     attrwatchers/doubleitems_watcher.cpp
     attrwatchers/tripleitems_watcher.cpp
@@ -27,6 +28,7 @@ set(FB_GUI_LIB_SOURCES
     dialogs/tripleitemsdialog.cpp
     dialogs/tabpagesdialog.cpp
     dialogs/ngwdialog.cpp
+    dialogs/prefixdialog.cpp
 
     attrwatcher.cpp
     attrwatcher_registrar.cpp
@@ -49,6 +51,7 @@ set(FB_GUI_LIB_HEADERS
     attrwatchers/number_watcher.h
     attrwatchers/string_watcher.h
     attrwatchers/enum_watcher.h
+    attrwatchers/globaltextenum_watcher.h
     attrwatchers/datetime_watcher.h
     attrwatchers/doubleitems_watcher.h
     attrwatchers/tripleitems_watcher.h
@@ -64,6 +67,7 @@ set(FB_GUI_LIB_HEADERS
     dialogs/tripleitemsdialog.h
     dialogs/tabpagesdialog.h
     dialogs/ngwdialog.h
+    dialogs/prefixdialog.h
 
     attrwatcher.h
     attrwatcher_registrar.h

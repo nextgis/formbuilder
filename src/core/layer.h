@@ -92,6 +92,8 @@ class Layer final
      inline void setNgwUrl (QString new_ngw_url) { ngw_url = new_ngw_url; }
      inline const NgwConnection &getNgwConnection () const { return ngw_con; }
      inline void setNgwConnection (NgwConnection new_ngw_con) { ngw_con = new_ngw_con; }
+     inline QPair<QList<QStringList>, QString> getLists () const { return {lists, key_list}; }
+     inline void setLists (QPair<QList<QStringList>, QString> pair) { lists = pair.first; key_list = pair.second; }
 
      inline const QList<Field*> &getFields () const { return fields; }
 
@@ -125,6 +127,10 @@ class Layer final
      // TEMP:
      QString ngw_url; // QString ngw_view_url;
      NgwConnection ngw_con; // TODO: should be moved to a specific project (e.g. FBProject)
+
+     // TEMP: this should be somewhere in the Project class.
+     QList<QStringList> lists;
+     QString key_list;
 
      // TODO: make a set/map of fields in order to supply uniqueness. The main problem: field names
      // must be unique case-insensitevely.

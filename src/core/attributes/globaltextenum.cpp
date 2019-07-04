@@ -17,70 +17,62 @@
  *                                                                                                *
  **************************************************************************************************/
 
-#include "ngmform_view.h"
-
-#include "container.h"
-
-#include <QScrollArea>
-#include <QScrollBar>
+#include "globaltextenum.h"
 
 using namespace Fb;
-using namespace Mockup;
+using namespace Core;
 
 
-NgmFormView::NgmFormView (const Core::Elem *elem):
-    ElemView(elem),
-    can_scroll_to_bottom(false)
+QStringList GlobalTextEnum::s_values_range;
+
+
+GlobalTextEnum::GlobalTextEnum (QString key_name, AttrInputType input_type):
+    Attr(key_name, input_type)
 {
-    scr_main = new QScrollArea(w_base);
-    scr_main->setObjectName("scr_main");
-    scr_main->setAlignment(Qt::AlignCenter);
-    scr_main->setAutoFillBackground(true);
-    scr_main->setWidgetResizable(true);
-
-    QScrollBar* scrollbar = scr_main->verticalScrollBar();
-    connect(scrollbar, &QScrollBar::rangeChanged, this, &NgmFormView::onScrollBarRangeChanged);
-
-    lay_base->addWidget(scr_main);
-
-    container = new Container(scr_main, ContainerType::Column, this);
-    scr_main->setWidget(container);
-
-    // TEMP.
-    scr_main->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    container->setMaximumWidth(267 - 8);
+    m_value_text = ""; // not set
 }
 
-NgmFormView::~NgmFormView ()
+GlobalTextEnum::~GlobalTextEnum ()
 {
 }
 
 
-void NgmFormView::appendAllInnerElemviews (QList<ElemView*> &list)
+QVariant GlobalTextEnum::getValueAsVar () const
 {
-    QLayout *lay = container->layout();
-    for (int i = 0; i < lay->count(); i++)
-    {
-        QLayoutItem *item = lay->itemAt(i);
-        if (item == nullptr)
-            continue;
-        ElemView *elemview = qobject_cast<ElemView*>(item->widget());
-        if (elemview == nullptr)
-            continue;
+    return getValue();
+}
 
-        list.append(elemview);
-        elemview->appendAllInnerElemviews(list);
-    }
+void GlobalTextEnum::setValueAsVar (const QVariant &value)
+{
+    setValue(value.toString());
 }
 
 
-void NgmFormView::onScrollBarRangeChanged (int min, int max)
+QString GlobalTextEnum::getValue () const
 {
-    Q_UNUSED(min);
-
-    if (can_scroll_to_bottom)
-    {
-        scr_main->verticalScrollBar()->setValue(max);
-        can_scroll_to_bottom = false;
-    }
+    return m_value_text;
 }
+
+void GlobalTextEnum::setValue (QString value_text)
+{
+//    if (findValueTextInRange(value_text) == -1)
+//        return;
+    m_value_text = value_text;
+}
+
+void GlobalTextEnum::resetValue ()
+{
+    m_value_text = "";
+}
+
+
+int GlobalTextEnum::findValueTextInRange (QString value_text) const
+{
+    for (int i = 0; i < s_values_range.size(); i++)
+        if (s_values_range[i] == value_text)
+            return i;
+    return -1;
+}
+
+
+

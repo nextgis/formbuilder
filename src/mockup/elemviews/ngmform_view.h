@@ -42,6 +42,8 @@ class NgmFormView: public ElemView
 
      void setCanScrollToBottom (bool can) { can_scroll_to_bottom = can; }
 
+     virtual void appendAllInnerElemviews (QList<ElemView*> &list) override;
+
     protected slots:
 
      void onScrollBarRangeChanged (int, int);

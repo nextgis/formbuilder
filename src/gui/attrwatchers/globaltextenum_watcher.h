@@ -17,70 +17,34 @@
  *                                                                                                *
  **************************************************************************************************/
 
-#include "ngmform_view.h"
+#pragma once
 
-#include "container.h"
+#include "gui/attrwatcher.h"
 
-#include <QScrollArea>
-#include <QScrollBar>
-
-using namespace Fb;
-using namespace Mockup;
-
-
-NgmFormView::NgmFormView (const Core::Elem *elem):
-    ElemView(elem),
-    can_scroll_to_bottom(false)
+namespace Fb
 {
-    scr_main = new QScrollArea(w_base);
-    scr_main->setObjectName("scr_main");
-    scr_main->setAlignment(Qt::AlignCenter);
-    scr_main->setAutoFillBackground(true);
-    scr_main->setWidgetResizable(true);
+namespace Gui
+{
 
-    QScrollBar* scrollbar = scr_main->verticalScrollBar();
-    connect(scrollbar, &QScrollBar::rangeChanged, this, &NgmFormView::onScrollBarRangeChanged);
 
-    lay_base->addWidget(scr_main);
+class GlobalTextEnumWatcher: public AttrWatcher
+{
+    Q_OBJECT
 
-    container = new Container(scr_main, ContainerType::Column, this);
-    scr_main->setWidget(container);
+    public:
 
-    // TEMP.
-    scr_main->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    container->setMaximumWidth(267 - 8);
+     explicit GlobalTextEnumWatcher (Core::Attr *attr);
+     virtual ~GlobalTextEnumWatcher ();
+
+     virtual QWidget *createWidget (MainWindow *window = nullptr) const override;
+
+    protected:
+
+     void onComboBoxCurrentIndexChanged (int index);
+};
+
+FB_ATTRWATCHER_FACTORY(GlobalTextEnumWatcher, GlobalTextEnumWatcherFct)
+
+
 }
-
-NgmFormView::~NgmFormView ()
-{
-}
-
-
-void NgmFormView::appendAllInnerElemviews (QList<ElemView*> &list)
-{
-    QLayout *lay = container->layout();
-    for (int i = 0; i < lay->count(); i++)
-    {
-        QLayoutItem *item = lay->itemAt(i);
-        if (item == nullptr)
-            continue;
-        ElemView *elemview = qobject_cast<ElemView*>(item->widget());
-        if (elemview == nullptr)
-            continue;
-
-        list.append(elemview);
-        elemview->appendAllInnerElemviews(list);
-    }
-}
-
-
-void NgmFormView::onScrollBarRangeChanged (int min, int max)
-{
-    Q_UNUSED(min);
-
-    if (can_scroll_to_bottom)
-    {
-        scr_main->verticalScrollBar()->setValue(max);
-        can_scroll_to_bottom = false;
-    }
 }

@@ -28,6 +28,7 @@
 #include "core/attributes/doubleitems.h"
 #include "core/attributes/tripleitems.h"
 #include "core/attributes/depdoubleitems.h"
+#include "core/attributes/globaltextenum.h"
 #include "mockup/elemviews/tabs_view.h"
 
 #include <QDateTime>
@@ -101,27 +102,44 @@ QJsonDocument NgfpWriter::metaToJson (const Layer *layer)
     }
 
     QJsonValue j_ngw_con; // null
-/*
-    auto &ngw_con = layer->getNgwConnection();
-    if (ngw_con.resource_id != -1)
-    {
-        QJsonObject j_obj;
-        j_obj["id"] = ngw_con.resource_id;
-        j_obj["login"] = ngw_con.login;
-        j_obj["password"] = "";//ngw_con.password;
-        j_obj["url"] = "";//ngw_con.base_url;
-        j_ngw_con = j_obj;
-    }
-*/
+//    auto &ngw_con = layer->getNgwConnection();
+//    if (ngw_con.resource_id != -1)
+//    {
+//        QJsonObject j_obj;
+//        j_obj["id"] = ngw_con.resource_id;
+//        j_obj["login"] = ngw_con.login;
+//        j_obj["password"] = "";//ngw_con.password;
+//        j_obj["url"] = "";//ngw_con.base_url;
+//        j_ngw_con = j_obj;
+//    }
 
     QJsonObject j_srs;
     j_srs["id"] = g_getSrsTypeNgwNumber(layer->getSrsType());
 
+    QJsonValue j_lists; // null by default
+    QJsonValue j_key_list;
+    auto lists_pair = layer->getLists();
+    auto lists = lists_pair.first;
+    auto key_list = lists_pair.second;
+    if (lists.size() != 0 && lists[0].size() != 0)
+    {
+        j_key_list = key_list;
+        QJsonObject j_lists_obj;
+        for (int i = 0; i < lists.size(); i++)
+        {
+            QJsonArray j_list_array;
+            for (int j = 1; j < lists[i].size(); j++)
+                j_list_array.append(lists[i][j]);
+            j_lists_obj[lists[i][0]] = j_list_array;
+        }
+        j_lists = j_lists_obj;
+    }
+
     j_root["fields"] = j_fields;
     j_root["name"] = layer->getName();
     j_root["geometry_type"] = g_getGeomTypeNgwName(layer->getGeomType());
-    j_root["key_list"] = QJsonValue();
-    j_root["lists"] = QJsonValue();
+    j_root["key_list"] = j_key_list;
+    j_root["lists"] = j_lists;
     j_root["ngw_connection"] = j_ngw_con;
     j_root["srs"] = j_srs;
     j_root["version"] = QString::number(FB_NGFP_VERSION, 'f', 1);
@@ -272,6 +290,11 @@ QJsonValue NgfpWriter::attrToJson (const Attr *attr)
     else if (input_type == AttrInputType::Enum)
     {
         return var.toInt();
+    }
+
+    else if (input_type == AttrInputType::GlobalTextEnum)
+    {
+        return var.toString();
     }
 
     else if (input_type == AttrInputType::DoubleItems)
@@ -473,11 +496,23 @@ void NgfpWriter::modifySpecificElemView (QJsonValue &j_elemview, const ElemView 
 
     auto modifyCounter = [&]()
     {
+        const Elem *elem = elemview->getElem();
+        auto attrs = elem->getAttrs();
+        QString sel_pref_list = attrs.value("count_pref_list")->getValueAsVar().toString();
+        QString sel_suff_list = attrs.value("count_suff_list")->getValueAsVar().toString();
+
         QJsonObject j_new_obj = j_elemview.toObject();
         QJsonObject j_attrs = j_new_obj["attributes"].toObject();
 
-        j_attrs["prefix_from_list"] = QJsonValue(); // null
-        j_attrs["suffix_from_list"] = QJsonValue(); // null
+        if (sel_pref_list != "")
+            j_attrs["prefix_from_list"] = sel_pref_list;
+        else
+            j_attrs["prefix_from_list"] = QJsonValue(); // null. Could be if no prefix from list was selected or the selection is incorrect (due to changes in list columns)
+
+        if (sel_suff_list != "")
+            j_attrs["suffix_from_list"] = sel_suff_list;
+        else
+            j_attrs["suffix_from_list"] = QJsonValue();
 
         j_new_obj["attributes"] = j_attrs;
         j_elemview = j_new_obj;

@@ -39,6 +39,7 @@ enum class AttrInputType
     String,
     Number,
     Enum,
+    GlobalTextEnum,
     DateTime,
     StringList,
     PageList,

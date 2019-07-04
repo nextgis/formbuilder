@@ -22,6 +22,7 @@
 #include "core/elem.h"
 #include "core/attributes/number.h"
 #include "core/attributes/string.h"
+#include "core/attributes/globaltextenum.h"
 
 namespace Fb
 {
@@ -46,7 +47,8 @@ class Counter: public Elem
      Number *attr_count_incr;
      String *attr_count_pref;
      String *attr_count_suff;
-
+     GlobalTextEnum *attr_pref_from_list;
+     GlobalTextEnum *attr_suff_from_list;
 
      QString fslot_common;
 };

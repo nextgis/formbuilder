@@ -71,6 +71,13 @@
         <file>data.svg</file>
         <file>no_data.svg</file>
 
+        <file>png/add_col.png</file>
+        <file>png/add_row.png</file>
+        <file>png/load_csv.png</file>
+        <file>png/make_key.png</file>
+        <file>png/rem_col.png</file>
+        <file>png/rem_row.png</file>
+
         <file>lock.svg</file>
     </qresource>
 </RCC>

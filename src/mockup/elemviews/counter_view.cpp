@@ -47,10 +47,23 @@ void CounterView::atElemChange (Core::Attr *attr)
     Core::Attr *attr_count_init = attrs.value("count_init");
     Core::Attr *attr_count_pref = attrs.value("count_pref");
     Core::Attr *attr_count_suff = attrs.value("count_suff");
+    Core::Attr *attr_pref_from_list = attrs.value("count_pref_list");
+    Core::Attr *attr_suff_from_list = attrs.value("count_suff_list");
 
-    decor_data = attr_count_pref->getValueAsVar().toString() +
-                 attr_count_init->getValueAsVar().toString() +
-                 attr_count_suff->getValueAsVar().toString();
+    QString pref;
+    QString suff;
+
+    if (attr_pref_from_list->getValueAsVar().toString() == "")
+        pref = attr_count_pref->getValueAsVar().toString();
+    else
+        pref = QString("<LIST>");
+
+    if (attr_suff_from_list->getValueAsVar().toString() == "")
+        suff = attr_count_suff->getValueAsVar().toString();
+    else
+        suff = QString("<LIST>");
+
+    decor_data = pref + attr_count_init->getValueAsVar().toString() + suff;
 }
 
 

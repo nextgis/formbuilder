@@ -35,6 +35,9 @@ Counter::Counter (QString key_name):
     attr_count_pref  = (String*) this->addAttr(new String("count_pref", ""));
     attr_count_suff  = (String*) this->addAttr(new String("count_suff", ""));
 
+    attr_pref_from_list  = (GlobalTextEnum*) this->addAttr(new GlobalTextEnum("count_pref_list"));
+    attr_suff_from_list  = (GlobalTextEnum*) this->addAttr(new GlobalTextEnum("count_suff_list"));
+
     fslot_common = this->addFieldSlot("field_common");
 
     this->behave(nullptr);
@@ -50,12 +53,35 @@ void Counter::behave (Attr *attr)
     // No (BIG)INTEGER or REAL fields support at the beginning.
     this->clearTypesForFieldSlot(fslot_common);
 
-    QString pref = attr_count_pref->getValue();
-    QString suff = attr_count_suff->getValue();
+    QString pref_list_name = attr_pref_from_list->getValue();
+    QString suff_list_name = attr_suff_from_list->getValue();
+
+    bool has_part_from_list = false;
+    if (pref_list_name != "")
+    {
+        has_part_from_list = true;
+        attr_count_pref->setEnabled(false);
+    }
+    else
+    {
+        attr_count_pref->setEnabled(true);
+    }
+
+    if (suff_list_name != "")
+    {
+        has_part_from_list = true;
+        attr_count_suff->setEnabled(false);
+    }
+    else
+    {
+        attr_count_suff->setEnabled(true);
+    }
 
     // Can write to (BIG)INTEGER and REAL fields only if "prefix" and "suffix" attrs are void
     // strings.
-    if (pref == "" && suff == "")
+    QString pref = attr_count_pref->getValue();
+    QString suff = attr_count_suff->getValue();
+    if (pref == "" && suff == "" && !has_part_from_list)
     {
         this->addTypeToFieldSlot(fslot_common, {FieldType::Integer});
         this->addTypeToFieldSlot(fslot_common, {FieldType::BigInteger});

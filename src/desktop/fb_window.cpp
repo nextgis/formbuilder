@@ -25,11 +25,13 @@
 #include "gui/dialogs/newvoidprojectdialog.h"
 #include "gui/dialogs/ngwdialog.h"
 #include "gui/dialogs/layerdialog2.h"
+#include "gui/dialogs/prefixdialog.h"
 #include "mockup/elemview_registrar.h"
 #include "serializer/ngfp_reader.h"
 #include "serializer/ngfp_writer.h"
 #include "util/settings.h"
 #include "gui/sizes.h"
+#include "core/attributes/globaltextenum.h"
 
 //#include "ngstd/core/request.h"
 #include "core/request.h" // lib_ngstd
@@ -150,6 +152,15 @@ FbWindow::FbWindow (Language last_language):
                             ":/images/theme_white/clear_screen2.svg",
                             tr("Clear Form"),
                             tr("Clear form from all elements"));
+
+    menu_edit->addSeparator();
+
+    act_edit_prefixes = this->addMainMenuAction(
+                            menu_edit, nullptr,
+                            &FbWindow::onEditPrefixesClicked,
+                            "",
+                            tr("Edit Prefixes"),
+                            tr("Edit prefixes/suffixes for Counter element"));
 
     menu_edit->addSeparator();
 
@@ -581,30 +592,6 @@ void FbWindow::onUploadToNgw ()
 
     // Step 4 of 4: Create style for the new layer.
 
-    /*
-    QString style_file_path;
-    auto geom_type = layer->getGeomType();
-    if (geom_type == GeomType::Point || geom_type == GeomType::Multipoint)
-        style_file_path = ":/data/pnt.qml";
-    else if (geom_type == GeomType::Line || geom_type == GeomType::Multiline)
-        style_file_path = ":/data/line.qml";
-    else if (geom_type == GeomType::Polygon || geom_type == GeomType::Multipolygon)
-        style_file_path = ":/data/poly.qml";
-
-    QString style_string;
-    QFile style_file(style_file_path);
-    if (style_file.open(QFile::ReadOnly | QFile::Text))
-    {
-        QTextStream in(&style_file);
-        style_string = in.readAll();
-
-        bool ok = ngw_io->createStyle(res_info.base_url, new_layer_id, style_string);
-        if (!ok)
-            qDebug() << "Unable to create style for layer";
-    }
-    style_file.close();
-    */
-
     QString file_in_path;
     auto geom_type = layer->getGeomType();
     if (geom_type == GeomType::Point || geom_type == GeomType::Multipoint)
@@ -674,6 +661,36 @@ void FbWindow::onClearScreenClicked ()
         need_to_save = true;
         this->u_updateTitle();
     }
+}
+
+void FbWindow::onEditPrefixesClicked ()
+{
+    auto cur_layer = cur_project.data()->layer0_get();
+    auto lists_pair = cur_layer->getLists();
+
+    PrefixDialog dialog(this);
+    dialog.loadLists(lists_pair.first, lists_pair.second);
+
+    if (!dialog.exec())
+        return;
+
+    auto lists = dialog.getLists();
+    auto key_list = dialog.getKeyList();
+    const_cast<Layer*>(cur_layer)->setLists({lists, key_list});
+
+    // Apply changes to counter elements:
+    u_updateCounterLists(lists);
+
+    // Update fields table.
+    const Elem *selected_elem = nullptr;
+    if (this->cur_device->getScreen()->isElemViewSelected())
+        selected_elem = this->cur_device->getScreen()->getSelectedElemView()->getElem();
+    table_fields->updateSelf(cur_project.data()->layer0_getFields(), selected_elem);
+
+    // Update properties table.
+    if (cur_device->getScreen()->isElemViewSelected())
+        table_props->updateSelf(cur_device->getScreen()->getSelectedElemView()->getElem(),
+                                cur_project.data()->layer0_getFields());
 }
 
 void FbWindow::onChainElemsClicked ()
@@ -1062,6 +1079,11 @@ void FbWindow::u_openNgfp (QString file_path)
         return;
     }
 
+    // Additionally: update global things for elems:
+    auto cur_layer = cur_project->layer0_get();
+    auto lists_pair = cur_layer->getLists();
+    u_updateCounterLists(lists_pair.first);
+
 //    if (NgfpReader::last_warnings.size() > 0)
 //    {
 //        g_showMessageDet(this, tr("Project is opened but there are some warnings"),
@@ -1396,6 +1418,53 @@ bool FbWindow::u_okToReset ()
 
     return ok_reset;
 }
+
+
+void FbWindow::u_updateCounterLists (const QList<QStringList> &lists)
+{
+    QStringList list_of_names;
+    for (int i = 0; i < lists.size(); i++)
+        list_of_names.append(lists[i][0]);
+
+    GlobalTextEnum::setValuesRange(list_of_names); // the first "-" value will be added to combobox in Properties table
+
+    // Look through all elements and find Counter ones. Update their prefix- und suffix- selected
+    // list names accordingly.
+    QList<ElemView*> elemviews;
+    cur_device->getScreen()->getTopLevelElemView()->appendAllInnerElemviews(elemviews);
+    for (int i = 0; i < elemviews.size(); i++)
+    {
+        auto elem = elemviews[i]->getElem();
+        if (elem->getKeyName() != "counter")
+            continue;
+
+        auto attrs = elem->getAttrs();
+        auto attr_pref_list = attrs.value("count_pref_list");
+        auto attr_suff_list = attrs.value("count_suff_list");
+
+        QString sel_pref_name = attr_pref_list->getValueAsVar().toString();
+        QString sel_suff_name = attr_suff_list->getValueAsVar().toString();
+
+        bool pref_name_found = false;
+        bool suff_name_found = false;
+        for (int j = 0; j < list_of_names.size(); j++)
+        {
+            if (sel_pref_name == list_of_names[j])
+                pref_name_found = true;
+            if (sel_suff_name == list_of_names[j])
+                suff_name_found = true;
+        }
+
+        if (!pref_name_found)
+            attr_pref_list->setValueAsVar("");
+        if (!suff_name_found)
+            attr_suff_list->setValueAsVar("");
+
+        const_cast<Elem*>(elem)->behave(); // apply changes to elem
+        elemviews[i]->onElemHasChanged(nullptr); // update look of elem
+    }
+}
+
 
 void FbWindow::u_updateTitle ()
 {

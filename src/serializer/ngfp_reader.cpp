@@ -146,24 +146,24 @@ void NgfpReader::metaFromJson (const QJsonDocument &j_layer, Project *project)
     }
 
     QJsonValue j_ngw_con = j_root["ngw_connection"];
-/*    if (j_ngw_con.isObject())
-    {
-        QJsonValue j_id = j_ngw_con["id"];
-        if (!j_id.isDouble())
-            throw "Not found proper \"id\" key for ngw connection in .ngfp";
-        QJsonValue j_login = j_ngw_con["login"];
-        if (!j_login.isString())
-            throw "Not found proper \"login\" key for ngw connection in .ngfp";
-        QJsonValue j_pass = j_ngw_con["password"];
-        if (!j_pass.isString())
-            throw "Not found proper \"password\" key for ngw connection in .ngfp";
-        QJsonValue j_url = j_ngw_con["url"];
-        if (!j_url.isString())
-            throw "Not found proper \"url\" key for ngw connection in .ngfp";
+//    if (j_ngw_con.isObject())
+//    {
+//        QJsonValue j_id = j_ngw_con["id"];
+//        if (!j_id.isDouble())
+//            throw "Not found proper \"id\" key for ngw connection in .ngfp";
+//        QJsonValue j_login = j_ngw_con["login"];
+//        if (!j_login.isString())
+//            throw "Not found proper \"login\" key for ngw connection in .ngfp";
+//        QJsonValue j_pass = j_ngw_con["password"];
+//        if (!j_pass.isString())
+//            throw "Not found proper \"password\" key for ngw connection in .ngfp";
+//        QJsonValue j_url = j_ngw_con["url"];
+//        if (!j_url.isString())
+//            throw "Not found proper \"url\" key for ngw connection in .ngfp";
 
-        layer->setNgwConnection({j_id.toInt(), j_login.toString(), j_pass.toString(), j_url.toString()});
-    }
-    else */
+//        layer->setNgwConnection({j_id.toInt(), j_login.toString(), j_pass.toString(), j_url.toString()});
+//    }
+//    else
     if (!j_ngw_con.isNull())
     {
         qDebug() << "A key \"ngw_connection\" must have null value in meta.json (temporary)";
@@ -182,6 +182,32 @@ void NgfpReader::metaFromJson (const QJsonDocument &j_layer, Project *project)
         layer->setGeomType(g_findGeomType(j_geom_type.toString()));
 
     layer->setSrsType(g_findSrsType("4326"));
+
+    QJsonValue j_key_list = j_root["key_list"];
+    QJsonValue j_lists = j_root["lists"];
+    if (!(j_key_list.isNull() && j_lists.isNull()))
+    {
+        QList<QStringList> lists;
+        if (!j_key_list.isString())
+            qDebug() << "Not found proper \"key_list\" key in meta.json";
+        if (!j_lists.isObject())
+            qDebug() << "Not found proper \"lists\" key in meta.json";
+        auto j_lists_obj = j_lists.toObject();
+        auto list_keys = j_lists_obj.keys();
+        for (auto list_key: list_keys)
+        {
+            auto j_arr_v = j_lists_obj[list_key];
+            if (!j_arr_v.isArray())
+                continue;
+            auto j_arr = j_arr_v.toArray();
+            QStringList list;
+            list.append(list_key);
+            for (auto j_arr_str: j_arr)
+                list.append(j_arr_str.toString());
+            lists.append(list);
+        }
+        layer->setLists({lists, j_key_list.toString()});
+    }
 }
 
 
@@ -324,6 +350,14 @@ void NgfpReader::attrFromJson (const QJsonValue &j_attr, Attr *attr)
     else if (input_type == AttrInputType::Enum)
     {
         var = j_attr.toInt();
+    }
+
+    else if (input_type == AttrInputType::GlobalTextEnum)
+    {
+        if (j_attr.isNull())
+            var = "";
+        else
+            var = j_attr.toString();
     }
 
     else if (input_type == AttrInputType::DoubleItems)

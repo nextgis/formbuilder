@@ -55,6 +55,27 @@ TabsView::~TabsView ()
 }
 
 
+void TabsView::appendAllInnerElemviews (QList<ElemView*> &list)
+{
+    for (int j = 0; j < containers.size(); j++)
+    {
+        QLayout *lay = containers[j]->layout();
+        for (int i = 0; i < lay->count(); i++)
+        {
+            QLayoutItem *item = lay->itemAt(i);
+            if (item == nullptr)
+                continue;
+            ElemView *elemview = qobject_cast<ElemView*>(item->widget());
+            if (elemview == nullptr)
+                continue;
+
+            list.append(elemview);
+            elemview->appendAllInnerElemviews(list);
+        }
+    }
+}
+
+
 const Container *TabsView::getContainer () const
 {
     return containers[cur_container_index]; // we see and operate only one container at a time
