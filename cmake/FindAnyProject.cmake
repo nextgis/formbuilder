@@ -3,8 +3,8 @@
 # Purpose:  CMake build scripts
 # Author:   Dmitry Baryshnikov, polimax@mail.ru
 ################################################################################
-# Copyright (C) 2015-2018, NextGIS <info@nextgis.com>
-# Copyright (C) 2015-2018 Dmitry Baryshnikov
+# Copyright (C) 2015-2019, NextGIS <info@nextgis.com>
+# Copyright (C) 2015-2019 Dmitry Baryshnikov
 #
 # This script is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,6 +23,11 @@
 set(TARGET_LINK_LIB)
 set(WITHOPT ${WITHOPT} "")
 set(EXPORTS_PATHS)
+
+if(ANDROID)
+    # Workaround for Android studio android.toolchain.cmake
+    set(CMAKE_FIND_ROOT_PATH "${ANDROID_TOOLCHAIN_ROOT}/bin" "${ANDROID_TOOLCHAIN_ROOT}/${ANDROID_TOOLCHAIN_MACHINE_NAME}" "${ANDROID_SYSROOT}" "${CMAKE_INSTALL_PREFIX}" "${CMAKE_INSTALL_PREFIX}/share")
+endif()
 
 include(CMakeParseArguments)
 
@@ -159,7 +164,6 @@ function(find_anyproject name)
             set(Qt5_LUPDATE_EXECUTABLE Qt5::lupdate PARENT_SCOPE)
             set(Qt5Widgets_UIC_EXECUTABLE Qt5::uic PARENT_SCOPE)
             set(Qt5Core_RCC_EXECUTABLE Qt5::rcc PARENT_SCOPE)
-            set(Qt5Core_MOC_EXECUTABLE Qt5::moc PARENT_SCOPE)
 
             if(${UPPER_NAME}_LIBRARIES)
                 set(${UPPER_NAME}_LIBRARIES ${${UPPER_NAME}_LIBRARIES} CACHE INTERNAL "library ${name}")
@@ -188,6 +192,21 @@ function(find_anyproject name)
             message(WARNING "${name} not found and will be disabled in ${PROJECT_NAME}!")
         endif()
     endif()
+
+    # For Qt
+    if(find_anyproject_COMPONENTS)
+        foreach(_component ${find_anyproject_COMPONENTS})
+            if(TARGET ${name}::${_component})
+                set(${UPPER_NAME}_LIBRARIES ${${UPPER_NAME}_LIBRARIES} ${name}::${_component})
+            endif()
+        endforeach()
+    endif()
+
+    set(Qt5_LRELEASE_EXECUTABLE Qt5::lrelease PARENT_SCOPE)
+    set(Qt5_LUPDATE_EXECUTABLE Qt5::lupdate PARENT_SCOPE)
+    set(Qt5Widgets_UIC_EXECUTABLE Qt5::uic PARENT_SCOPE)
+    set(Qt5Core_RCC_EXECUTABLE Qt5::rcc PARENT_SCOPE)
+    set(Qt5Core_MOC_EXECUTABLE Qt5::moc PARENT_SCOPE)    
 
     if(${UPPER_NAME}_INCLUDE_DIRS)
         include_directories(${${UPPER_NAME}_INCLUDE_DIRS})

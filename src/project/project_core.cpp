@@ -95,7 +95,7 @@ void FBProject::initEnv () // STATIC
     // WARNING. The 0 list value (WGS84 SRS) is default for the program.
     // WARNING. All values must be unique, because they are searched and returned by
     // their first appearance in the list.
-    SRS_TYPES.append(new FbSrsType(4326, SRS_WKT_WGS84));
+    SRS_TYPES.append(new FbSrsType(4326, SRS_WKT_WGS84_LAT_LONG));
 }
 
 
@@ -806,6 +806,7 @@ FBErr FBProject::writeDataFileFirst (QString strPath)
     QByteArray baSrs;
     baSrs = srs->strFullGdal.toUtf8(); // this metadata quaranteed inited
     OGRSpatialReference spaRef(baSrs.data());
+    spaRef.SetAxisMappingStrategy(OAMS_TRADITIONAL_GIS_ORDER);
     OGRwkbGeometryType geomType = geometry_type->aliasGdal; // quaranteed inited
     // Create layer without fields for default. New fields (particulary default fields)
     // will be created in the copyDataFile() method.
@@ -1176,6 +1177,7 @@ FBErr FBProject::reprojectLayer (OGRLayer *layer)
     QByteArray baSrs;
     baSrs = srs->strFullGdal.toUtf8(); // metadata is quaranteed inited
     OGRSpatialReference *srsNew = new OGRSpatialReference(baSrs.data());
+    srsNew->SetAxisMappingStrategy(OAMS_TRADITIONAL_GIS_ORDER);
 
     OGRSpatialReference *srsOld = layer->GetSpatialRef();
 
