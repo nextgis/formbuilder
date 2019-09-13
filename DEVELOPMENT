@@ -1,0 +1,29 @@
+NOTES FOR DEVELOPERS
+====================
+
+BUILD & INSTALL
+---------------
+
+...
+
+
+CODING GUIDELINES
+-----------------
+
+C++/Qt coding style:
+
+    * The extensions for C++ files are: .h and .cpp;
+    * Use "#pragma once" instead of classical header guards;
+    * Tabs = 4 whitespaces;
+    * The length of a line in .h/.cpp files = 100 symbols;
+    * Place curly braces on new lines always (except brace initialization);
+    * Classes, enums, structs, namespaces naming: start from capital letter. Example:
+        class MyCoolClass;
+    * Methods naming: start from lowercase letter. Example:
+        void myCoolMethod ();
+    * Global functions naming: start from 'g_' prefix. Example:
+        void g_myCoolFunction ();
+    * Variables, parameters naming: use only lowercase letters. Example:
+        float my_cool_variable;
+    * Constants naming: use only capital letters. Example:
+        const float MY_COOL_CONSTANT = 3.14f;

@@ -1,0 +1,25 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/android_any/checkbox_off.svg</file>
+        <file>images/android_any/checkbox_on.svg</file>
+        <file>images/android_any/combobox_triangle.svg</file>
+        <file>images/android_any/datetime_calendar.svg</file>
+        <file>images/android_any/ngmform_back.svg</file>
+        <file>images/android_any/ngmform_dots.svg</file>
+        <file>images/android_any/ngmform_ok.svg</file>
+        <file>images/android_any/photo_camera.svg</file>
+        <file>images/android_any/radiogroup_off.svg</file>
+        <file>images/android_any/radiogroup_on.svg</file>
+        <file>images/android_any/signfield_clear.svg</file>
+        <file>images/android_any/textedit_cross.svg</file>
+        <file>images/black_smartphone/bot.svg</file>
+        <file>images/black_smartphone/bot_left.svg</file>
+        <file>images/black_smartphone/bot_right.svg</file>
+        <file>images/black_smartphone/top.svg</file>
+        <file>images/black_smartphone/top_left.svg</file>
+        <file>images/black_smartphone/top_right.svg</file>
+        <file>images/unbound.svg</file>
+        <file>styles/android_any.qss</file>
+        <file>styles/black_smartphone.qss</file>
+    </qresource>
+</RCC>
