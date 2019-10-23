@@ -130,7 +130,9 @@ bool NgwGdalIo::createLayer (int &new_layer_id, const NgwLayerInfo &layer_info, 
 
     OGRSpatialReference *srs = new OGRSpatialReference();
     srs->importFromEPSG(3857);
+    #if GDAL_VERSION_MAJOR >= 3
     srs->SetAxisMappingStrategy(OAMS_TRADITIONAL_GIS_ORDER);
+    #endif
 
     char **papszOptions = NULL;
     papszOptions = CSLAddString(papszOptions, "OVERWRITE=NO");

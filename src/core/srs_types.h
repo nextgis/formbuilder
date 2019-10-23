@@ -49,8 +49,11 @@ inline const QMap<SrsType, SrsTypeData> &g_getSrsTypes ()
 {
     static const QMap<SrsType, SrsTypeData> SRS_TYPES =
     {
-        {{SrsType::Epsg4326}, {QObject::tr("WGS 84"), "EPSG:4326", "4326", {SRS_WKT_WGS84_LAT_LONG}}},
-
+        #if GDAL_VERSION_MAJOR < 3
+        {{SrsType::Epsg4326}, {QObject::tr("WGS 84"), "EPSG:4326", "4326", {SRS_WKT_WGS84}}}
+        #else
+        {{SrsType::Epsg4326}, {QObject::tr("WGS 84"), "EPSG:4326", "4326", {SRS_WKT_WGS84_LAT_LONG}}}
+        #endif
     };
     return SRS_TYPES;
 }
