@@ -97,6 +97,11 @@ void installTranslators (const QApplication &app, const QStringList &tr_names)
 
 int main (int argc, char *argv[])
 {
+    #if GDAL_VERSION_MAJOR >= 3
+    QByteArray ba_proj_db = QString("../share/proj").toUtf8();
+    qputenv("PROJ_LIB", ba_proj_db.data());
+    #endif
+    
     QApplication app(argc, argv);
     QCoreApplication::setOrganizationName("NextGIS");
     QCoreApplication::setApplicationName("Formbuilder");
