@@ -163,7 +163,7 @@ else()
 
     # TODO: for Windows also add copying of the following files:
     # <bin folder>/Qt5Svg.dll # though the app is not linked directly with this lib
-    # <bin folder>/styles/qwindowsvistastyle.dll
+    # <bin folder>/styles/qwindowsvistastyle.dll    # for Qt >= 5.12.0 (on lesser versions qwindowsvistastyle is applied automatically)
     # <bin folder>/: msvcr100.dll, msvcr120.dll, msvcp140.dll (for 32bit build dlls must be 32 bit from C:\Windows\SysWOW64, not 64 bit from C:\Windows\System32)
     # ? <bin folder>/libEGL.dll & <bin folder>/libGLESv2.dll
     # ? <bin folder>/platforms/qwindows.dll
