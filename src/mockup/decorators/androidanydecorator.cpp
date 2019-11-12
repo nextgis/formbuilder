@@ -117,18 +117,21 @@ void AndroidAnyDecorator::decorate (ElemView *elemview)
         lay_all->setContentsMargins(0, 0, 0, 0);
         lay_all->setSpacing(0);
 
-        QLabel *lab_on = new QLabel(w_base);
-        lab_on->setObjectName("lab_checkbox_on");
+        // QLabel *lab_on = new QLabel(w_base);
+        // lab_on->setObjectName("lab_checkbox_on");
+        // QLabel *lab_off = new QLabel(w_base);
+        // lab_off->setObjectName("lab_checkbox_off");
 
-        QLabel *lab_off = new QLabel(w_base);
-        lab_off->setObjectName("lab_checkbox_off");
-
+        QLabel *lab_img = new QLabel(w_base); 
+        lab_img->setObjectName("lab_checkbox_img");
+        
         QLabel *lab_text = new QLabel(w_base);
         lab_text->setObjectName("lab_checkbox_text");
         lab_text->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-        lay_all->addWidget(lab_on);
-        lay_all->addWidget(lab_off);
+        // lay_all->addWidget(lab_on);
+        // lay_all->addWidget(lab_off);
+        lay_all->addWidget(lab_img);
         lay_all->addWidget(lab_text);
 
         lay_base->addLayout(lay_all);
@@ -449,18 +452,27 @@ void AndroidAnyDecorator::update (ElemView *elemview)
         bool is_checked = decor_data.value<CheckBoxViewDecorData>().first;
         QString text = decor_data.value<CheckBoxViewDecorData>().second;
 
-        QLabel *lab_on = elemview->findChild<QLabel*>("lab_checkbox_on");
-        QLabel *lab_off = elemview->findChild<QLabel*>("lab_checkbox_off");
+        // QLabel *lab_on = elemview->findChild<QLabel*>("lab_checkbox_on");
+        // QLabel *lab_off = elemview->findChild<QLabel*>("lab_checkbox_off");
+        // if (is_checked)
+        // {
+            // lab_on->show();
+            // lab_off->hide();
+        // }
+        // else
+        // {
+            // lab_off->show();
+            // lab_on->hide();
+        // }
+        
+        QString path;
+        QLabel *lab_img = elemview->findChild<QLabel*>("lab_checkbox_img");
         if (is_checked)
-        {
-            lab_on->show();
-            lab_off->hide();
-        }
+            path = ":/images/android_any/checkbox_on.svg";
         else
-        {
-            lab_off->show();
-            lab_on->hide();
-        }
+            path = ":/images/android_any/checkbox_off.svg";
+        QPixmap pixmap(path);
+        lab_img->setPixmap(pixmap.scaled(28, 28));
 
         QLabel *lab_text = elemview->findChild<QLabel*>("lab_checkbox_text");
         //lab_text->setText(QString(" %1").arg(text));
@@ -615,6 +627,8 @@ void AndroidAnyDecorator::update (ElemView *elemview)
     // Add update steps for different elements here.
     // ...
 }
+
+
 
 
 
