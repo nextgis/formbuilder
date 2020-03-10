@@ -1288,12 +1288,13 @@ void FbWindow::u_createFieldsForNewElem (ElemView *elemview)
     Layer *layer = const_cast<Layer*>(cur_project.data()->layer0_get());
     const Elem *elem = elemview->getElem();
     auto field_slots = elem->getFieldSlots();
+    auto def_field_type = elem->getDefaultFieldType();
 
     // Do it for all field slots of the elem.
     for (auto field_slot_name: field_slots.keys())
     {
         const auto &pair = layer->createUniqueFieldName();
-        bool ok = layer->addField(pair.first, pair.second, FieldType::String);
+        bool ok = layer->addField(pair.first, pair.second, def_field_type);
         if (ok)
         {
             Field *field = layer->getField(pair.first);

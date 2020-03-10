@@ -42,6 +42,8 @@ class DateTimePicker: public Elem
      static QString getFormat (int date_type);
      static FieldType getFieldType (int date_type);
 
+     inline virtual FieldType getDefaultFieldType () const override { return FieldType::DateTime; }
+
     protected:
 
      virtual void behave (Attr *attr) override;
