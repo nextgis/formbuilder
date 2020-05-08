@@ -195,8 +195,8 @@ inline void g_registerAttributes ()
 
     AttrRegistrar::add("comment",
     {
-       QObject::tr("Comment"),
-       QObject::tr("A text which a collector can add to photo(s)")
+       QObject::tr("Initial comment"),
+       QObject::tr("Initial comment under photo(s). A collector can change this text any time")
     });
 
     AttrRegistrar::add("count_init",

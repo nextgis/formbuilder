@@ -487,7 +487,7 @@
     </message>
     <message>
         <source>Count</source>
-        <translation type="unfinished"></translation>
+        <translation>Посчитать</translation>
     </message>
 </context>
 <context>
@@ -1545,35 +1545,43 @@
     </message>
     <message>
         <source>Comment</source>
-        <translation type="unfinished"></translation>
+        <translation type="vanished">Комментарий</translation>
     </message>
     <message>
         <source>A text which a collector can add to photo(s)</source>
-        <translation type="unfinished"></translation>
+        <translation type="vanished">Текст, который сборщик данных может добавить к фотографиям</translation>
     </message>
     <message>
         <source>Field for comment</source>
-        <translation type="unfinished"></translation>
+        <translation>Поле слоя</translation>
     </message>
     <message>
         <source>Number of values</source>
-        <translation type="unfinished"></translation>
+        <translation>Количество значений</translation>
     </message>
     <message>
         <source>How many values a collector can enter to count an average value</source>
-        <translation type="unfinished"></translation>
+        <translation>Сколько значений сборщик данных должен внести для того чтобы посчиталось среднее значение</translation>
     </message>
     <message>
         <source>Layer&apos;s field where this photo element puts comment&apos;s string</source>
-        <translation type="unfinished"></translation>
+        <translation>Поле слоя для сохранения строки комментария</translation>
     </message>
     <message>
         <source>Average counter</source>
-        <translation type="unfinished"></translation>
+        <translation>Счётчик среднего</translation>
     </message>
     <message>
         <source>An element which counts an average value from some amount of entered values</source>
-        <translation type="unfinished"></translation>
+        <translation>Элемент, вычисляющий среднее значение от введённых значений</translation>
+    </message>
+    <message>
+        <source>Initial comment</source>
+        <translation>Комментарий</translation>
+    </message>
+    <message>
+        <source>Initial comment under photo(s). A collector can change this text any time</source>
+        <translation>Изначальный комментарий под фотографиями. Сборщик данных сможет поменять этот текст в любое время</translation>
     </message>
 </context>
 </TS>
