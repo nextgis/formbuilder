@@ -315,6 +315,33 @@ QWidget#w_counter_line
 }
 
 
+/* Average counter */
+
+QWidget#w_av_counter_base
+{
+    background: transparent;
+}
+
+QWidget#lab_av_counter_button
+{
+    min-height: 28px;
+    max-height: 28px;
+    background: rgb(0,87,156);
+    border-radius: 2px;
+    color: white;
+}
+
+QWidget#lab_av_counter_text
+{
+    min-height: 28px;
+    max-height: 28px;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: 1px solid black;
+}
+
+
 /* DistanceMeter */
 
 QWidget#w_distancemeter_base

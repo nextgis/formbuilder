@@ -353,6 +353,30 @@ void AndroidAnyDecorator::decorate (ElemView *elemview)
         lay_base->addWidget(w_line);
     }
 
+    // AVERAGE COUNTER
+    else if (elem_name == "average_counter")
+    {
+        elemview->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        w_base->setObjectName("w_av_counter_base");
+
+        QHBoxLayout *lay_counter = new QHBoxLayout();
+        lay_counter->setContentsMargins(0, 0, 0, 0);
+        lay_counter->setSpacing(6);
+
+        QLabel *lab_av_counter_button = new QLabel(w_base);
+        lab_av_counter_button->setObjectName("lab_av_counter_button");
+        lab_av_counter_button->setAlignment(Qt::AlignCenter);
+        lab_av_counter_button->setText(tr("Count"));
+
+        QLabel *lab_av_counter_text = new QLabel(w_base);
+        lab_av_counter_text->setObjectName("lab_av_counter_text");
+
+        lay_counter->addWidget(lab_av_counter_button);
+        lay_counter->addWidget(lab_av_counter_text);
+
+        lay_base->addLayout(lay_counter);
+    }
+
     // DISTANCEMETER
     else if (elem_name == "dmeter")
     {

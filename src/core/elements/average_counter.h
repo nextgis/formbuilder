@@ -21,7 +21,6 @@
 
 #include "core/elem.h"
 #include "core/attributes/number.h"
-#include "core/attributes/string.h"
 
 namespace Fb
 {
@@ -29,26 +28,27 @@ namespace Core
 {
 
 
-class Photo: public Elem
+class AverageCounter: public Elem
 {
     Q_OBJECT
 
     public:
 
-     explicit Photo (QString key_name);
-     virtual ~Photo ();
+     explicit AverageCounter (QString key_name);
+     virtual ~AverageCounter ();
+
+     inline virtual FieldType getDefaultFieldType () const override { return FieldType::Integer; }
 
     protected:
 
-     virtual void behave (Attr *attr) { Q_UNUSED(attr) }
+     virtual void behave (Attr *attr) override;
 
-     Number *attr_max_photos;
-     String *attr_comment;
+     Number *attr_num_values;
 
-     QString fslot_comment;
+     QString fslot_common;
 };
 
-FB_ELEM_FACTORY(Photo, PhotoFct)
+FB_ELEM_FACTORY(AverageCounter, AverageCounterFct)
 
 
 }

@@ -31,6 +31,7 @@ set(FB_CORE_LIB_SOURCES
     elements/datetimepicker.cpp
     elements/coordinates.cpp
     elements/counter.cpp
+    elements/average_counter.cpp
     elements/dmeter.cpp
     elements/photo.cpp
     elements/signfield.cpp
@@ -72,6 +73,7 @@ set(FB_CORE_LIB_HEADERS
     elements/datetimepicker.h
     elements/coordinates.h
     elements/counter.h
+    elements/average_counter.h
     elements/dmeter.h
     elements/photo.h
     elements/signfield.h

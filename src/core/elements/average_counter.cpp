@@ -17,42 +17,36 @@
  *                                                                                                *
  **************************************************************************************************/
 
-#pragma once
+#include "average_counter.h"
 
-#include "core/elem.h"
-#include "core/attributes/number.h"
-#include "core/attributes/string.h"
+#include "attr_registrar.h"
 
-namespace Fb
+using namespace Fb;
+using namespace Core;
+
+
+AverageCounter::AverageCounter (QString key_name):
+    Elem(key_name)
 {
-namespace Core
-{
+    attr_num_values  = (Number*) this->addAttr(new Number("num_values", 2, 2, 10));
 
+    fslot_common = this->addFieldSlot("field_common");
 
-class Photo: public Elem
-{
-    Q_OBJECT
-
-    public:
-
-     explicit Photo (QString key_name);
-     virtual ~Photo ();
-
-    protected:
-
-     virtual void behave (Attr *attr) { Q_UNUSED(attr) }
-
-     Number *attr_max_photos;
-     String *attr_comment;
-
-     QString fslot_comment;
-};
-
-FB_ELEM_FACTORY(Photo, PhotoFct)
-
-
+    this->behave(nullptr);
 }
+
+AverageCounter::~AverageCounter ()
+{
 }
 
 
+void AverageCounter::behave (Attr *attr)
+{
+    Q_UNUSED(attr)
 
+    this->clearTypesForFieldSlot(fslot_common);
+
+    this->addTypeToFieldSlot(fslot_common, FieldType::Integer);
+    this->addTypeToFieldSlot(fslot_common, FieldType::BigInteger);
+    this->addTypeToFieldSlot(fslot_common, FieldType::Real);
+}

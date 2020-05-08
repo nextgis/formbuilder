@@ -42,7 +42,8 @@ const QMap<QString, QString> NGFP_FIELD_KEYS =
     {{"field_top_combo"},  {"field_level1"}},
     {{"field_bot_combo"},  {"field_level2"}},
     {{"field_lat"},        {"field_lat"}},
-    {{"field_lon"},        {"field_long"}}
+    {{"field_lon"},        {"field_long"}},
+    {{"field_comment"},    {"field"}}
 };
 
 //inline QString g_ngfpFindFieldSlotName (QString ngfp_key)
@@ -76,6 +77,7 @@ const QMap<QString, QString> NGFP_ATTR_KEYS =
     {{"own_items"},        {"allow_adding_values"}},
     {{"radio_items"},      {"values"}},
     {{"max_photos"},       {"gallery_size"}},
+    {{"comment"},          {"comment"}},
     {{"coords_is_hidden"}, {"hidden"}},
     {{"count_init"},       {"init_value"}},
     {{"count_incr"},       {"increment"}},
@@ -83,6 +85,7 @@ const QMap<QString, QString> NGFP_ATTR_KEYS =
     {{"count_suff"},       {"suffix"}},
     {{"count_pref_list"},  {"prefix_from_list"}},
     {{"count_suff_list"},  {"suffix_from_list"}},
+    {{"num_values"},       {"num_values"}},
 
     // The following attributes will be skipped. See NgfpSerializer::modifySpecificElemView()
     //{{"date_is_cur"},      {""}},
@@ -112,6 +115,7 @@ const QMap<QString, QString> NGFP_ELEM_KEYS =
     {{"datetimepicker"},   {"date_time"}},
     {{"coords"},           {"coordinates"}},
     {{"counter"},          {"counter"}},
+    {{"average_counter"},  {"average_counter"}},
     {{"signfield"},        {"signature"}},
     {{"photo"},            {"photo"}},
     {{"dmeter"},           {"distance"}},
