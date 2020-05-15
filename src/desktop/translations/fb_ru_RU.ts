@@ -1545,7 +1545,7 @@
     </message>
     <message>
         <source>Comment</source>
-        <translation type="vanished">Комментарий</translation>
+        <translation>Комментарий</translation>
     </message>
     <message>
         <source>A text which a collector can add to photo(s)</source>
@@ -1577,11 +1577,15 @@
     </message>
     <message>
         <source>Initial comment</source>
-        <translation>Комментарий</translation>
+        <translation type="vanished">Комментарий</translation>
     </message>
     <message>
         <source>Initial comment under photo(s). A collector can change this text any time</source>
-        <translation>Изначальный комментарий под фотографиями. Сборщик данных сможет поменять этот текст в любое время</translation>
+        <translation type="vanished">Изначальный комментарий под фотографиями. Сборщик данных сможет поменять этот текст в любое время</translation>
+    </message>
+    <message>
+        <source>Comment under photo(s)</source>
+        <translation>Комментарий под фотографиями</translation>
     </message>
 </context>
 </TS>
