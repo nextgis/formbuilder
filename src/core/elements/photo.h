@@ -44,8 +44,6 @@ class Photo: public Elem
 
      Number *attr_max_photos;
      String *attr_comment;
-
-     QString fslot_comment;
 };
 
 FB_ELEM_FACTORY(Photo, PhotoFct)

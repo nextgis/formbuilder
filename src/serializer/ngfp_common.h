@@ -42,8 +42,7 @@ const QMap<QString, QString> NGFP_FIELD_KEYS =
     {{"field_top_combo"},  {"field_level1"}},
     {{"field_bot_combo"},  {"field_level2"}},
     {{"field_lat"},        {"field_lat"}},
-    {{"field_lon"},        {"field_long"}},
-    {{"field_comment"},    {"field"}}
+    {{"field_lon"},        {"field_long"}}
 };
 
 //inline QString g_ngfpFindFieldSlotName (QString ngfp_key)

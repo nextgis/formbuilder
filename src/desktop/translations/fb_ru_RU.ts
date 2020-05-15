@@ -1553,7 +1553,7 @@
     </message>
     <message>
         <source>Field for comment</source>
-        <translation>Поле слоя</translation>
+        <translation type="vanished">Поле слоя</translation>
     </message>
     <message>
         <source>Number of values</source>
@@ -1565,7 +1565,7 @@
     </message>
     <message>
         <source>Layer&apos;s field where this photo element puts comment&apos;s string</source>
-        <translation>Поле слоя для сохранения строки комментария</translation>
+        <translation type="vanished">Поле слоя для сохранения строки комментария</translation>
     </message>
     <message>
         <source>Average counter</source>

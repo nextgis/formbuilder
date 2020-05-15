@@ -301,12 +301,6 @@ inline void g_registerFieldSlots ()
         QObject::tr("Field (longitude)"),
         QObject::tr("Layer's field where this element puts its longitude (string)")
     });
-
-    FieldSlotRegistrar::add("field_comment",
-    {
-       QObject::tr("Field for comment"),
-       QObject::tr("Layer's field where this photo element puts comment's string")
-    });
 }
 
 
