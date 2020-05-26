@@ -44,4 +44,8 @@ CheckBox::~CheckBox ()
 }
 
 
+QStringList CheckBox::getStringsToTranslate () const
+{
+    return {attr_text->getValue()};
+}
 

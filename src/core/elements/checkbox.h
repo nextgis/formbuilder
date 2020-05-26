@@ -38,6 +38,8 @@ class CheckBox: public Elem
      explicit CheckBox (QString key_name);
      virtual ~CheckBox ();
 
+     virtual QStringList getStringsToTranslate () const override;
+
     protected:
 
      virtual void behave (Attr *attr) override { Q_UNUSED(attr) }

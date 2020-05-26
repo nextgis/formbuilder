@@ -53,13 +53,15 @@ class NgfpReader
 {
     public:
 
-     static void loadNgfp (QString file_path, Project *project, Screen *screen, NgmFormView *form);
+     static void loadNgfp (QString file_path, Project *project, Screen *screen, NgmFormView *form,
+                           QStringList &tr_lang_keys, QMap<QString, QStringList> &tr_values);
 
      static QStringList last_warnings;
 
     protected:
 
-     static void metaFromJson (const QJsonDocument &j_layer, Project *project);
+     static void metaFromJson (const QJsonDocument &j_layer, Project *project,
+                               QStringList &tr_lang_keys, QMap<QString, QStringList> &tr_values);
      static void formFromJson (const QJsonDocument &j_form, NgmFormView *form, Project *project, Screen *screen);
      static void containerFromJson (const QJsonArray &j_container, Container *container, Project *project, Screen *screen);
      static void elemViewFromJson (const QJsonObject &j_elemview, ElemView *elemview, Project *project);

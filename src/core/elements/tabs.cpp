@@ -49,4 +49,8 @@ void Tabs::behave (Attr *attr)
 }
 
 
+QStringList Tabs::getStringsToTranslate () const
+{
+    return attr_page_hdrs->getValue();
+}
 

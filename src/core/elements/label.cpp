@@ -36,4 +36,8 @@ Label::~Label ()
 }
 
 
+QStringList Label::getStringsToTranslate () const
+{
+    return {attr_text->getValue()};
+}
 

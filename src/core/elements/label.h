@@ -37,6 +37,8 @@ class Label: public Elem
      explicit Label (QString key_name);
      virtual ~Label ();
 
+     virtual QStringList getStringsToTranslate () const override;
+
     protected:
 
      virtual void behave (Attr *attr) { Q_UNUSED(attr) }

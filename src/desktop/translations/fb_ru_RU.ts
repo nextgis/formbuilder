@@ -217,6 +217,21 @@
     </message>
 </context>
 <context>
+    <name>Fb::Gui::LanguageSelectDialog</name>
+    <message>
+        <source>OK</source>
+        <translation>ОК</translation>
+    </message>
+    <message>
+        <source>New language</source>
+        <translation>Новый язык</translation>
+    </message>
+    <message>
+        <source>Select language to add:</source>
+        <translation>Выберите язык:</translation>
+    </message>
+</context>
+<context>
     <name>Fb::Gui::LayerDialog</name>
     <message>
         <source>Edit layer</source>
@@ -443,6 +458,33 @@
     <message>
         <source>Remove selected header</source>
         <translation>Удалить выбранное название</translation>
+    </message>
+</context>
+<context>
+    <name>Fb::Gui::TranslationsDialog</name>
+    <message>
+        <source>Edit translations</source>
+        <translation>Редактировать переводы</translation>
+    </message>
+    <message>
+        <source>OK</source>
+        <translation>ОК</translation>
+    </message>
+    <message>
+        <source>English (United States)</source>
+        <translation>Английский (США)</translation>
+    </message>
+    <message>
+        <source>Russian</source>
+        <translation>Русский</translation>
+    </message>
+    <message>
+        <source>Tajik</source>
+        <translation>Таджикский</translation>
+    </message>
+    <message>
+        <source>Key phrase</source>
+        <translation>Ключевая фраза</translation>
     </message>
 </context>
 <context>
@@ -921,6 +963,14 @@
     <message>
         <source>Edit prefixes/suffixes for Counter element</source>
         <translation>Редактировать префиксы/суффиксы для элемента Счётчик</translation>
+    </message>
+    <message>
+        <source>Edit Translations</source>
+        <translation>Редактировать переводы</translation>
+    </message>
+    <message>
+        <source>Edit translations of displayed text in the form</source>
+        <translation>Редактировать переводы отображаемого текста на форме</translation>
     </message>
 </context>
 <context>
