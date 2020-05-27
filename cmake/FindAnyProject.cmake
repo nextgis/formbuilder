@@ -3,8 +3,8 @@
 # Purpose:  CMake build scripts
 # Author:   Dmitry Baryshnikov, polimax@mail.ru
 ################################################################################
-# Copyright (C) 2015-2019, NextGIS <info@nextgis.com>
-# Copyright (C) 2015-2019 Dmitry Baryshnikov
+# Copyright (C) 2015-2018, NextGIS <info@nextgis.com>
+# Copyright (C) 2015-2018 Dmitry Baryshnikov
 #
 # This script is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -193,21 +193,6 @@ function(find_anyproject name)
         endif()
     endif()
 
-    # For Qt
-    if(find_anyproject_COMPONENTS)
-        foreach(_component ${find_anyproject_COMPONENTS})
-            if(TARGET ${name}::${_component})
-                set(${UPPER_NAME}_LIBRARIES ${${UPPER_NAME}_LIBRARIES} ${name}::${_component})
-            endif()
-        endforeach()
-    endif()
-
-    set(Qt5_LRELEASE_EXECUTABLE Qt5::lrelease PARENT_SCOPE)
-    set(Qt5_LUPDATE_EXECUTABLE Qt5::lupdate PARENT_SCOPE)
-    set(Qt5Widgets_UIC_EXECUTABLE Qt5::uic PARENT_SCOPE)
-    set(Qt5Core_RCC_EXECUTABLE Qt5::rcc PARENT_SCOPE)
-    set(Qt5Core_MOC_EXECUTABLE Qt5::moc PARENT_SCOPE)    
-
     if(${UPPER_NAME}_INCLUDE_DIRS)
         include_directories(${${UPPER_NAME}_INCLUDE_DIRS})
     elseif(${UPPER_NAME}_INCLUDE_DIR)
@@ -218,6 +203,9 @@ function(find_anyproject name)
         include_directories(${${name}_INCLUDE_DIR})
     endif()
 
+    if(${UPPER_NAME} STREQUAL ZLIB AND BUILD_STATIC_LIBS AND UNIX)
+        set(TARGET_LINK_LIB ${TARGET_LINK_LIB} z)
+    else()
     if(${UPPER_NAME}_LIBRARIES)
         set(TARGET_LINK_LIB ${TARGET_LINK_LIB} ${${UPPER_NAME}_LIBRARIES})
     elseif(${UPPER_NAME}_LIBRARY)
@@ -226,6 +214,7 @@ function(find_anyproject name)
         set(TARGET_LINK_LIB ${TARGET_LINK_LIB} ${${name}_LIBRARIES})
     elseif(${name}_LIBRARY)
         set(TARGET_LINK_LIB ${TARGET_LINK_LIB} ${${name}_LIBRARY})
+    endif()
     endif()
 
     set(TARGET_LINK_LIB ${TARGET_LINK_LIB} PARENT_SCOPE)
