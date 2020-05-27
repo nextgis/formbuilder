@@ -87,6 +87,7 @@ TranslationsDialog::TranslationsDialog (QWidget *parent):
 
     m_btn_add = new QToolButton(this);
     m_btn_add->setIcon(QIcon(":/images/add.svg"));
+    m_btn_add->setToolTip(tr("Add new language"));
     QObject::connect(m_btn_add, SIGNAL(clicked()), this, SLOT(onLanguageSelectBtnClicked()));
 
     m_tbl = new QTableWidget(this);

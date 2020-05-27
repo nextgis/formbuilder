@@ -1298,6 +1298,9 @@ void FbWindow::u_resetProject ()
 
     need_to_save = false;
     this->u_updateTitle();
+
+    tr_language_keys.clear();
+    tr_values.clear();
 }
 
 /*

@@ -486,6 +486,10 @@
         <source>Key phrase</source>
         <translation>Ключевая фраза</translation>
     </message>
+    <message>
+        <source>Add new language</source>
+        <translation>Добавить новый язык</translation>
+    </message>
 </context>
 <context>
     <name>Fb::Gui::TripleItemsDialog</name>
