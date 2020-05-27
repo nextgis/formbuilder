@@ -705,6 +705,9 @@ void FbWindow::onEditPrefixesClicked ()
 
 void FbWindow::onEditTranslationsClicked ()
 {
+    if (!this->u_canUseSupportedFeature())
+        return;
+
     // Update translation keys. Search through all form controls and find each piece of text that
     // could be translated.
     // Note: here we retain old translations which are not contained in a form anymore.

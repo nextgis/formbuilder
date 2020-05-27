@@ -818,7 +818,7 @@
     </message>
     <message>
         <location filename="../fb_window.cpp" line="107"/>
-        <location filename="../fb_window.cpp" line="1150"/>
+        <location filename="../fb_window.cpp" line="1153"/>
         <source>Save project</source>
         <translation type="unfinished"></translation>
     </message>
@@ -964,7 +964,7 @@
     </message>
     <message>
         <location filename="../fb_window.cpp" line="277"/>
-        <location filename="../fb_window.cpp" line="782"/>
+        <location filename="../fb_window.cpp" line="785"/>
         <source>Sign in to your account</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1020,7 +1020,7 @@
     </message>
     <message>
         <location filename="../fb_window.cpp" line="583"/>
-        <location filename="../fb_window.cpp" line="1179"/>
+        <location filename="../fb_window.cpp" line="1182"/>
         <source>Failed to save project</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1045,47 +1045,47 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../fb_window.cpp" line="778"/>
+        <location filename="../fb_window.cpp" line="781"/>
         <source>Your account</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../fb_window.cpp" line="1076"/>
+        <location filename="../fb_window.cpp" line="1079"/>
         <source>This element may contain other elements. Do you really want to delete them too?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../fb_window.cpp" line="1109"/>
+        <location filename="../fb_window.cpp" line="1112"/>
         <source>Unable to open project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../fb_window.cpp" line="1137"/>
+        <location filename="../fb_window.cpp" line="1140"/>
         <source>Project was not saved. Your data structure now differs from the remote. Please upload new layer to NextGIS Web before saving</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../fb_window.cpp" line="1417"/>
+        <location filename="../fb_window.cpp" line="1420"/>
         <source>Please upgrade and sign in to use this feature.&lt;br&gt;&lt;a href=&quot;%1&quot;&gt;Learn more ...&lt;/a&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../fb_window.cpp" line="1425"/>
+        <location filename="../fb_window.cpp" line="1428"/>
         <source>Please upgrade to use this feature.&lt;br&gt;&lt;a href=&quot;%1&quot;&gt;Learn more ...&lt;/a&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../fb_window.cpp" line="1440"/>
+        <location filename="../fb_window.cpp" line="1443"/>
         <source>Do you want to save current project to a separate file?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../fb_window.cpp" line="1469"/>
+        <location filename="../fb_window.cpp" line="1472"/>
         <source>new</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../fb_window.cpp" line="1471"/>
+        <location filename="../fb_window.cpp" line="1474"/>
         <source>new (loaded from %1)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1901,8 +1901,8 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../fb_window.cpp" line="1245"/>
-        <location filename="../fb_window.cpp" line="1246"/>
+        <location filename="../fb_window.cpp" line="1248"/>
+        <location filename="../fb_window.cpp" line="1249"/>
         <source>Default device</source>
         <translation type="unfinished"></translation>
     </message>
