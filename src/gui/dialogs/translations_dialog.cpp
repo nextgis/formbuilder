@@ -68,9 +68,9 @@ QString LanguageSelectDialog::getSelectedLanguageKey () const
 QMap<QString, LangInfo> TranslationsDialog::getAllLanguages ()
 {
     QMap<QString, LangInfo> languages;
-    languages.insert("en_US", {tr("English (United States)"), ""});
-    languages.insert("ru_RU", {tr("Russian"), ""});
-    languages.insert("tg_Tj", {tr("Tajik"), ""});
+    languages.insert("en", {tr("English (United States)"), ""});
+    languages.insert("ru", {tr("Russian"), ""});
+    languages.insert("tg", {tr("Tajik"), ""});
     return languages;
 }
 
