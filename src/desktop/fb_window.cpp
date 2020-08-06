@@ -596,7 +596,8 @@ void FbWindow::onUploadToNgw ()
     if (!ngw_io->createFile(new_form_id, s_reply, res_info.base_url, new_layer_id, "formbuilder_form", "Form"))
     {
         QString detailed_error = ngw_io->getLastDeatiledError();
-        detailed_error += QString("\nupload_url = %1 \nfile_path = %2").arg(upload_url).arg(file_path);
+        detailed_error += QString("\nupload_url = %1 \nfile_path = %2 \n").arg(upload_url).arg(file_path);
+        detailed_error += QString("NGRequest error: \n") + NGRequest::getLastDetailedError();
         sendToSentry(detailed_error, NGAccess::LogLevel::Error);
 
         g_showWarningDet(this, tr("Unable to create form on NextGIS Web"), ngw_io->getLastError());
