@@ -123,6 +123,8 @@ class FbWindow final: public MainWindow
       void u_updateCounterLists (const QList<QStringList> &lists);
       void u_updateTitle ();
 
+      void sendToSentry (QString str, NGAccess::LogLevel log_level);
+
      QMenu *menu_file;
      QMenu *menu_edit;
      QMenu *menu_view;

@@ -45,6 +45,7 @@
 #include <QUrl>
 #include <QTemporaryDir>
 #include <QDockWidget>
+#include <QIODevice>
 
 #define FB_NGTOOLB_TEXT QObject::tr("Authentication & Updates")
 
@@ -311,6 +312,8 @@ FbWindow::FbWindow (Language last_language):
 
     // Initialize project.
     this->u_resetProject();
+
+    NGAccess::instance().initSentry(true, "https://44589ffc232d4c35b50c6afabc9fd87d@sentry.nextgis.com/20");
 }
 
 FbWindow::~FbWindow ()
@@ -538,8 +541,7 @@ void FbWindow::onUploadToNgw ()
     cur_project->copy_ngw_res_id = -1;
     if (!ok)
     {
-        g_showWarningDet(this, tr("Unable to create NextGIS Web layer"),
-                         ngw_io->getLastError());
+        g_showWarningDet(this, tr("Unable to create NextGIS Web layer"), ngw_io->getLastError());
         this->setEnabled(true);
         return;
     }
@@ -584,8 +586,8 @@ void FbWindow::onUploadToNgw ()
     int new_form_id;
     if (!ngw_io->createFile(new_form_id, s_reply, res_info.base_url, new_layer_id, "formbuilder_form", "Form"))
     {
-        g_showWarningDet(this, tr("Unable to create form on NextGIS Web"),
-                         ngw_io->getLastError());
+        g_showWarningDet(this, tr("Unable to create form on NextGIS Web"), ngw_io->getLastError());
+        sendToSentry(ngw_io->getLastDeatiledError(), NGAccess::LogLevel::Error);
         this->setEnabled(true);
         return;
     }
@@ -628,6 +630,9 @@ void FbWindow::onUploadToNgw ()
 
     g_showMessage(this, tr("Form was successfully uploaded"));
     this->setEnabled(true);
+
+    sendToSentry(QString("Form uploaded. Url: %1. Created layer id: %2")
+                 .arg(res_info.base_url).arg(new_layer_id), NGAccess::LogLevel::Info);
 
     need_to_save = true;
     this->u_updateTitle();
@@ -1486,4 +1491,15 @@ void FbWindow::u_updateTitle ()
 }
 
 
+void FbWindow::sendToSentry (QString str, NGAccess::LogLevel log_level)
+{
+    /*
+    QFile file("formbuilder.log");
+    file.open(QIODevice::WriteOnly);
+    QTextStream out(&file);
+    out << str << endl;
+    file.close();
+    */
 
+    NGAccess::instance().logMessage(str, log_level);
+}

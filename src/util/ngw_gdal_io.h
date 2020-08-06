@@ -48,6 +48,7 @@ class NgwGdalIo: public NgwIo
 
      virtual void reset () override;
      virtual QString getLastError () override { return error; }
+     virtual QString getLastDeatiledError () override { return detailed_error; }
 
      virtual bool getRootResources (QList<NgwResourceData> &resources,
                                     QString base_url, QString login, QString password,
@@ -78,6 +79,7 @@ class NgwGdalIo: public NgwIo
      NgwApi *api;
 
      QString error;
+     QString detailed_error;
 };
 
 

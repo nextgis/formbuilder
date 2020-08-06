@@ -49,6 +49,7 @@ class NgwIo
 
      virtual void reset () { }
      virtual QString getLastError () { return QString(); }
+     virtual QString getLastDeatiledError () { return QString(); }
 
      virtual bool getRootResources (QList<NgwResourceData> &resources,
                                     QString base_url, QString login, QString password,

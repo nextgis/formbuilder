@@ -214,28 +214,35 @@ bool NgwGdalIo::createLayer (int &new_layer_id, const NgwLayerInfo &layer_info, 
 bool NgwGdalIo::createFile (int &new_form_id, QString upload_reply, QString base_url,
                             int layer_id, QString res_type, QString disp_name)
 {
+    QString debug_info = QString("\nupload_reply = %1 \nbase_url = %2 \nlayer_id = %3 \nres_type = %4 \ndisp_name = %5")
+            .arg(upload_reply).arg(base_url).arg(layer_id).arg(res_type).arg(disp_name);
+
     QJsonDocument j_reply = QJsonDocument::fromJson(upload_reply.toUtf8());
     if (!j_reply.isObject())
     {
         error = "Unable to upload file to NGW";
+        detailed_error = QString("!j_reply.isObject(). ") + debug_info;
         return false;
     }
     QJsonValue j_up_meta = j_reply.object()["upload_meta"];
     if (!j_up_meta.isArray() || j_up_meta.toArray().size() == 0)
     {
         error = "Unable to upload file to NGW";
+        detailed_error = QString("!j_up_meta.isArray() || j_up_meta.toArray().size() == 0. ") + debug_info;
         return false;
     }
     QJsonValue j_arr_item = j_up_meta.toArray()[0];
     if (!j_arr_item.isObject())
     {
         error = "Unable to upload file to NGW";
+        detailed_error = QString("!j_arr_item.isObject(). ") + debug_info;
         return false;
     }
     QJsonValue j_id = j_arr_item.toObject()["id"];
     if (!j_id.isString())
     {
         error = "Unable to upload file to NGW";
+        detailed_error = QString("!j_id.isString(). ") + debug_info;
         return false;
     }
 
