@@ -21,6 +21,7 @@
 
 #include "core/elem.h"
 #include "core/attributes/number.h"
+#include "core/attributes/string.h"
 
 namespace Fb
 {
@@ -42,6 +43,7 @@ class Photo: public Elem
      virtual void behave (Attr *attr) { Q_UNUSED(attr) }
 
      Number *attr_max_photos;
+     String *attr_comment;
 };
 
 FB_ELEM_FACTORY(Photo, PhotoFct)

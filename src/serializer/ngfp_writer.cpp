@@ -44,7 +44,8 @@ using namespace Mockup;
 using namespace Util;
 
 
-void NgfpWriter::saveNgfp (QString file_path, const Layer *layer, const NgmFormView *form)
+void NgfpWriter::saveNgfp (QString file_path, const Layer *layer, const NgmFormView *form,
+                           const QStringList &tr_lang_keys, const QMap<QString, QStringList> &tr_values)
 {
     QTemporaryDir temp_dir;
     if (!temp_dir.isValid())
@@ -59,7 +60,7 @@ void NgfpWriter::saveNgfp (QString file_path, const Layer *layer, const NgmFormV
     QString data_file_name = "data.geojson";
     QString data_file_path = temp_dir.path() + "/" + data_file_name;
 
-    QJsonDocument j_doc_meta = metaToJson(layer);
+    QJsonDocument j_doc_meta = metaToJson(layer, tr_lang_keys, tr_values);
     QJsonDocument j_doc_form = formToJson(form, layer);
     QJsonDocument j_doc_data;
 
@@ -86,7 +87,8 @@ void NgfpWriter::saveNgfp (QString file_path, const Layer *layer, const NgmFormV
 }
 
 
-QJsonDocument NgfpWriter::metaToJson (const Layer *layer)
+QJsonDocument NgfpWriter::metaToJson (const Layer *layer, const QStringList &tr_lang_keys,
+                                      const QMap<QString, QStringList> &tr_values)
 {
     QJsonObject j_root;
 
@@ -116,6 +118,20 @@ QJsonDocument NgfpWriter::metaToJson (const Layer *layer)
     QJsonObject j_srs;
     j_srs["id"] = g_getSrsTypeNgwNumber(layer->getSrsType());
 
+    QJsonArray j_translations;
+    if (tr_lang_keys.size() > 0)
+    {
+        auto phrase_keys = tr_values.keys();
+        for (auto &phrase_key: phrase_keys)
+        {
+            QJsonObject j_translation;
+            j_translation["key"] = phrase_key;
+            for (int i = 0; i < tr_lang_keys.size(); i++)
+                j_translation[tr_lang_keys[i]] = tr_values[phrase_key][i];
+            j_translations.append(j_translation);
+        }
+    }
+
     QJsonValue j_lists; // null by default
     QJsonValue j_key_list;
     auto lists_pair = layer->getLists();
@@ -142,6 +158,7 @@ QJsonDocument NgfpWriter::metaToJson (const Layer *layer)
     j_root["lists"] = j_lists;
     j_root["ngw_connection"] = j_ngw_con;
     j_root["srs"] = j_srs;
+    j_root["translations"] = j_translations;
     j_root["version"] = QString::number(FB_NGFP_VERSION, 'f', 1);
 
     QJsonDocument j_doc(j_root);

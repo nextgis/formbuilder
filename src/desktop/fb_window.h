@@ -65,6 +65,7 @@ class FbWindow final: public MainWindow
      void onEditFormPropsClicked ();
      void onClearScreenClicked ();
      void onEditPrefixesClicked ();
+     void onEditTranslationsClicked ();
      void onChainElemsClicked ();
      void onLanguageClicked (QAction *action);
      void onViewHelpClicked ();
@@ -120,8 +121,9 @@ class FbWindow final: public MainWindow
       void u_updateSupportedIcons (bool is_supported);
       bool u_canUseSupportedFeature ();
       bool u_okToReset ();
-      void u_updateCounterLists (const QList<QStringList> &lists);
       void u_updateTitle ();
+      void u_updateCounterLists (const QList<QStringList> &lists);
+      QStringList u_getStringsToTranslate ();
 
       void sendToSentry (QString str, NGAccess::LogLevel log_level);
 
@@ -152,6 +154,7 @@ class FbWindow final: public MainWindow
      QAction *act_form_props;
      QAction *act_clear_screen;
      QAction *act_edit_prefixes;
+     QAction *act_edit_translations;
      QAction *act_chain_elems;
      QAction *act_view_help;
      QAction *act_comm_supp;
@@ -178,6 +181,9 @@ class FbWindow final: public MainWindow
 //     QSet<FieldInfo> initial_fields_info;
 
      FbUpdater *fb_updater;
+
+     QStringList tr_language_keys;
+     QMap<QString, QStringList> tr_values;
 };
 
 

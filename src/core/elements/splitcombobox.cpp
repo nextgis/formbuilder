@@ -41,5 +41,13 @@ SplitComboBox::~SplitComboBox ()
 }
 
 
+QStringList SplitComboBox::getStringsToTranslate () const
+{
+    QStringList strs;
+    strs.append(attr_caption_left->getValue());
+    strs.append(attr_caption_right->getValue());
+    return strs;
+}
+
 
 

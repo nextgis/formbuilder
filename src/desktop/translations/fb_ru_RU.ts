@@ -217,6 +217,21 @@
     </message>
 </context>
 <context>
+    <name>Fb::Gui::LanguageSelectDialog</name>
+    <message>
+        <source>OK</source>
+        <translation>ОК</translation>
+    </message>
+    <message>
+        <source>New language</source>
+        <translation>Новый язык</translation>
+    </message>
+    <message>
+        <source>Select language to add:</source>
+        <translation>Выберите язык:</translation>
+    </message>
+</context>
+<context>
     <name>Fb::Gui::LayerDialog</name>
     <message>
         <source>Edit layer</source>
@@ -446,6 +461,37 @@
     </message>
 </context>
 <context>
+    <name>Fb::Gui::TranslationsDialog</name>
+    <message>
+        <source>Edit translations</source>
+        <translation>Редактировать переводы</translation>
+    </message>
+    <message>
+        <source>OK</source>
+        <translation>ОК</translation>
+    </message>
+    <message>
+        <source>English (United States)</source>
+        <translation>Английский (США)</translation>
+    </message>
+    <message>
+        <source>Russian</source>
+        <translation>Русский</translation>
+    </message>
+    <message>
+        <source>Tajik</source>
+        <translation>Таджикский</translation>
+    </message>
+    <message>
+        <source>Key phrase</source>
+        <translation>Ключевая фраза</translation>
+    </message>
+    <message>
+        <source>Add new language</source>
+        <translation>Добавить новый язык</translation>
+    </message>
+</context>
+<context>
     <name>Fb::Gui::TripleItemsDialog</name>
     <message>
         <source>Modify items</source>
@@ -484,6 +530,10 @@
     <message>
         <source>0 m</source>
         <translation>0 м</translation>
+    </message>
+    <message>
+        <source>Count</source>
+        <translation>Посчитать</translation>
     </message>
 </context>
 <context>
@@ -917,6 +967,14 @@
     <message>
         <source>Edit prefixes/suffixes for Counter element</source>
         <translation>Редактировать префиксы/суффиксы для элемента Счётчик</translation>
+    </message>
+    <message>
+        <source>Edit Translations</source>
+        <translation>Редактировать переводы</translation>
+    </message>
+    <message>
+        <source>Edit translations of displayed text in the form</source>
+        <translation>Редактировать переводы отображаемого текста на форме</translation>
     </message>
 </context>
 <context>
@@ -1538,6 +1596,50 @@
     <message>
         <source>Error</source>
         <translation>Ошибка</translation>
+    </message>
+    <message>
+        <source>Comment</source>
+        <translation>Комментарий</translation>
+    </message>
+    <message>
+        <source>A text which a collector can add to photo(s)</source>
+        <translation type="vanished">Текст, который сборщик данных может добавить к фотографиям</translation>
+    </message>
+    <message>
+        <source>Field for comment</source>
+        <translation type="vanished">Поле слоя</translation>
+    </message>
+    <message>
+        <source>Number of values</source>
+        <translation>Количество значений</translation>
+    </message>
+    <message>
+        <source>How many values a collector can enter to count an average value</source>
+        <translation>Сколько значений сборщик данных должен внести для того чтобы посчиталось среднее значение</translation>
+    </message>
+    <message>
+        <source>Layer&apos;s field where this photo element puts comment&apos;s string</source>
+        <translation type="vanished">Поле слоя для сохранения строки комментария</translation>
+    </message>
+    <message>
+        <source>Average counter</source>
+        <translation>Счётчик среднего</translation>
+    </message>
+    <message>
+        <source>An element which counts an average value from some amount of entered values</source>
+        <translation>Элемент, вычисляющий среднее значение от введённых значений</translation>
+    </message>
+    <message>
+        <source>Initial comment</source>
+        <translation type="vanished">Комментарий</translation>
+    </message>
+    <message>
+        <source>Initial comment under photo(s). A collector can change this text any time</source>
+        <translation type="vanished">Изначальный комментарий под фотографиями. Сборщик данных сможет поменять этот текст в любое время</translation>
+    </message>
+    <message>
+        <source>Comment under photo(s)</source>
+        <translation>Комментарий под фотографиями</translation>
     </message>
 </context>
 </TS>

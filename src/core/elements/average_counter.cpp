@@ -17,50 +17,36 @@
  *                                                                                                *
  **************************************************************************************************/
 
-#pragma once
+#include "average_counter.h"
 
-#include "core/elem.h"
-#include "core/attributes/boolean.h"
-#include "core/attributes/datetime.h"
-#include "core/attributes/datetimeenum.h"
+#include "attr_registrar.h"
 
-namespace Fb
+using namespace Fb;
+using namespace Core;
+
+
+AverageCounter::AverageCounter (QString key_name):
+    Elem(key_name)
 {
-namespace Core
-{
+    attr_num_values  = (Number*) this->addAttr(new Number("num_values", 2, 2, 10));
 
+    fslot_common = this->addFieldSlot("field_common");
 
-class DateTimePicker: public Elem
-{
-    Q_OBJECT
-
-    public:
-
-     explicit DateTimePicker (QString key_name);
-     virtual ~DateTimePicker ();
-
-     static QString getFormat (int date_type);
-     static FieldType getFieldType (int date_type);
-
-     inline virtual FieldType getDefaultFieldType () const override { return FieldType::DateTime; }
-
-    protected:
-
-     virtual void behave (Attr *attr) override;
-
-     Boolean *attr_keep_last;
-     DateTime *attr_init_date;
-     Boolean *attr_date_is_cur;
-     DateTimeEnum *attr_date_type;
-
-     QString fslot_timestamp;
-};
-
-FB_ELEM_FACTORY(DateTimePicker, DateTimePickerFct)
-
-
+    this->behave(nullptr);
 }
+
+AverageCounter::~AverageCounter ()
+{
 }
 
 
+void AverageCounter::behave (Attr *attr)
+{
+    Q_UNUSED(attr)
 
+    this->clearTypesForFieldSlot(fslot_common);
+
+    this->addTypeToFieldSlot(fslot_common, FieldType::Integer);
+    this->addTypeToFieldSlot(fslot_common, FieldType::BigInteger);
+    this->addTypeToFieldSlot(fslot_common, FieldType::Real);
+}

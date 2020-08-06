@@ -49,7 +49,8 @@ using namespace Util;
 
 QStringList NgfpReader::last_warnings;
 
-void NgfpReader::loadNgfp (QString file_path, Project *project, Screen *screen, NgmFormView *form)
+void NgfpReader::loadNgfp (QString file_path, Project *project, Screen *screen, NgmFormView *form,
+                           QStringList &tr_lang_keys, QMap<QString, QStringList> &tr_values)
 {
     if (form == nullptr || project == nullptr)
         return;
@@ -83,7 +84,7 @@ void NgfpReader::loadNgfp (QString file_path, Project *project, Screen *screen, 
 
     try
     {
-        metaFromJson(j_meta_doc, project);
+        metaFromJson(j_meta_doc, project, tr_lang_keys, tr_values);
         formFromJson(j_form_doc, form, project, screen);
     }
     catch (QString &s)
@@ -93,7 +94,8 @@ void NgfpReader::loadNgfp (QString file_path, Project *project, Screen *screen, 
 }
 
 
-void NgfpReader::metaFromJson (const QJsonDocument &j_layer, Project *project)
+void NgfpReader::metaFromJson (const QJsonDocument &j_layer, Project *project,
+                               QStringList &tr_lang_keys, QMap<QString, QStringList> &tr_values)
 {
     if (!j_layer.isObject())
         throw "Meta: not a proper JSON object";
@@ -207,6 +209,38 @@ void NgfpReader::metaFromJson (const QJsonDocument &j_layer, Project *project)
             lists.append(list);
         }
         layer->setLists({lists, j_key_list.toString()});
+    }
+
+    QJsonValue j_translations = j_root["translations"];
+    if (j_translations.isArray())
+    {
+        auto j_tr_arr = j_translations.toArray();
+        for (int i = 0; i < j_tr_arr.size(); i++)
+        {
+            auto j_tr = j_tr_arr[i];
+            if (j_tr.isObject())
+            {
+                auto j_tr_obj = j_tr.toObject();
+
+                // Firstly gather languages.
+                if (i == 0)
+                {
+                    for (auto jkey: j_tr_obj.keys())
+                    {
+                        if (jkey == "key")
+                            continue;
+                        tr_lang_keys.append(jkey);
+                    }
+                }
+
+                // And than gather translations.
+                auto phrase_key = j_tr_obj["key"].toString();
+                QStringList values;
+                for (auto lang_key: tr_lang_keys)
+                    values.append(j_tr_obj[lang_key].toString());
+                tr_values[phrase_key] = values;
+            }
+        }
     }
 }
 

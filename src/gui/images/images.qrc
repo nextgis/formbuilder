@@ -11,6 +11,7 @@
         <file>theme_white/sign_field.svg</file>
         <file>theme_white/check_box.svg</file>
         <file>theme_white/counter.svg</file>
+        <file>theme_white/average_counter.svg</file>
         <file>theme_white/dep_combo_boxes.svg</file>
         <file>theme_white/split_combo_box.svg</file>
         <file>theme_white/tabs.svg</file>
@@ -38,6 +39,7 @@
         <file>theme_white/split_combo_box_dis.svg</file>
         <file>theme_white/tabs_dis.svg</file>
         <file>theme_white/counter_dis.svg</file>
+        <file>theme_white/average_counter_dis.svg</file>
         <file>theme_white/distance_meter_dis.svg</file>
 
         <file>theme_white/form_props.svg</file>

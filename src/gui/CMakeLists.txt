@@ -29,6 +29,7 @@ set(FB_GUI_LIB_SOURCES
     dialogs/tabpagesdialog.cpp
     dialogs/ngwdialog.cpp
     dialogs/prefixdialog.cpp
+    dialogs/translations_dialog.cpp
 
     attrwatcher.cpp
     attrwatcher_registrar.cpp
@@ -68,6 +69,7 @@ set(FB_GUI_LIB_HEADERS
     dialogs/tabpagesdialog.h
     dialogs/ngwdialog.h
     dialogs/prefixdialog.h
+    dialogs/translations_dialog.h
 
     attrwatcher.h
     attrwatcher_registrar.h

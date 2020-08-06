@@ -26,6 +26,7 @@
 #include "gui/dialogs/ngwdialog.h"
 #include "gui/dialogs/layerdialog2.h"
 #include "gui/dialogs/prefixdialog.h"
+#include "gui/dialogs/translations_dialog.h"
 #include "mockup/elemview_registrar.h"
 #include "serializer/ngfp_reader.h"
 #include "serializer/ngfp_writer.h"
@@ -162,6 +163,13 @@ FbWindow::FbWindow (Language last_language):
                             "",
                             tr("Edit Prefixes"),
                             tr("Edit prefixes/suffixes for Counter element"));
+
+    act_edit_translations = this->addMainMenuAction(
+                            menu_edit, nullptr,
+                            &FbWindow::onEditTranslationsClicked,
+                            "",
+                            tr("Edit Translations"),
+                            tr("Edit translations of displayed text in the form"));
 
     menu_edit->addSeparator();
 
@@ -569,7 +577,8 @@ void FbWindow::onUploadToNgw ()
     try
     {
         NgfpWriter::saveNgfp(file_path, cur_project.data()->layer0_get(),
-                             (NgmFormView*)cur_device->getScreen()->getTopLevelElemView());
+                             (NgmFormView*)cur_device->getScreen()->getTopLevelElemView(),
+                             tr_language_keys, tr_values);
     }
     catch (QString &msg)
     {
@@ -697,6 +706,31 @@ void FbWindow::onEditPrefixesClicked ()
         table_props->updateSelf(cur_device->getScreen()->getSelectedElemView()->getElem(),
                                 cur_project.data()->layer0_getFields());
 }
+
+
+void FbWindow::onEditTranslationsClicked ()
+{
+    if (!this->u_canUseSupportedFeature())
+        return;
+
+    // Update translation keys. Search through all form controls and find each piece of text that
+    // could be translated.
+    // Note: here we retain old translations which are not contained in a form anymore.
+    QStringList sources = u_getStringsToTranslate();
+    for (auto source: sources)
+        if (!tr_values.contains(source))
+            tr_values.insert(source, QStringList());
+
+    // Allow user to edit translations in a dialog.
+    TranslationsDialog dialog(this);
+    dialog.loadTranslations(tr_language_keys, tr_values);
+    if (!dialog.exec())
+        return;
+
+    tr_language_keys = dialog.getLanguageKeys();
+    tr_values = dialog.getValues();
+}
+
 
 void FbWindow::onChainElemsClicked ()
 {
@@ -1075,7 +1109,8 @@ void FbWindow::u_openNgfp (QString file_path)
     try
     {
         NgfpReader::loadNgfp(file_path, static_cast<Project*>(cur_project.data()), cur_device->getScreen(),
-                             static_cast<NgmFormView*>(cur_device->getScreen()->getTopLevelElemView()));
+                             static_cast<NgmFormView*>(cur_device->getScreen()->getTopLevelElemView()),
+                             tr_language_keys, tr_values);
     }
     catch (QString &s)
     {
@@ -1137,7 +1172,8 @@ bool FbWindow::u_saveNgfp (QString file_path)
     try
     {
         NgfpWriter::saveNgfp(file_path, cur_project.data()->layer0_get(),
-                             (NgmFormView*)cur_device->getScreen()->getTopLevelElemView());
+                             (NgmFormView*)cur_device->getScreen()->getTopLevelElemView(),
+                             tr_language_keys, tr_values);
 
         // Set new file path in project.
         cur_project.data()->setFilePath(file_path);
@@ -1270,6 +1306,9 @@ void FbWindow::u_resetProject ()
 
     need_to_save = false;
     this->u_updateTitle();
+
+    tr_language_keys.clear();
+    tr_values.clear();
 }
 
 /*
@@ -1293,12 +1332,13 @@ void FbWindow::u_createFieldsForNewElem (ElemView *elemview)
     Layer *layer = const_cast<Layer*>(cur_project.data()->layer0_get());
     const Elem *elem = elemview->getElem();
     auto field_slots = elem->getFieldSlots();
+    auto def_field_type = elem->getDefaultFieldType();
 
     // Do it for all field slots of the elem.
     for (auto field_slot_name: field_slots.keys())
     {
         const auto &pair = layer->createUniqueFieldName();
-        bool ok = layer->addField(pair.first, pair.second, FieldType::String);
+        bool ok = layer->addField(pair.first, pair.second, def_field_type);
         if (ok)
         {
             Field *field = layer->getField(pair.first);
@@ -1425,6 +1465,26 @@ bool FbWindow::u_okToReset ()
 }
 
 
+void FbWindow::u_updateTitle ()
+{
+    QString title = "%1 - NextGIS Formbuilder";
+
+    QString file;
+    if (!cur_project.isNull())
+        file = cur_project.data()->getFilePath();
+
+    if (file.isEmpty())
+        file = tr("new");
+    if (cur_project.data()->copy_ngw_res_id != -1)
+        file = tr("new (loaded from %1)").arg(cur_project.data()->copy_ngw_base_url);
+
+    if (need_to_save)
+        title.prepend("* ");
+
+    this->setWindowTitle(title.arg(file));
+}
+
+
 void FbWindow::u_updateCounterLists (const QList<QStringList> &lists)
 {
     QStringList list_of_names;
@@ -1471,23 +1531,22 @@ void FbWindow::u_updateCounterLists (const QList<QStringList> &lists)
 }
 
 
-void FbWindow::u_updateTitle ()
+QStringList FbWindow::u_getStringsToTranslate ()
 {
-    QString title = "%1 - NextGIS Formbuilder";
+    QStringList strs;
 
-    QString file;
-    if (!cur_project.isNull())
-        file = cur_project.data()->getFilePath();
+    // Look through all elements and gather their strings to translate.
+    QList<ElemView*> elemviews;
+    cur_device->getScreen()->getTopLevelElemView()->appendAllInnerElemviews(elemviews);
+    for (int i = 0; i < elemviews.size(); i++)
+    {
+        auto elem = elemviews[i]->getElem();
+        strs += elem->getStringsToTranslate();
+    }
 
-    if (file.isEmpty())
-        file = tr("new");
-    if (cur_project.data()->copy_ngw_res_id != -1)
-        file = tr("new (loaded from %1)").arg(cur_project.data()->copy_ngw_base_url);
+    strs.removeAll("");
 
-    if (need_to_save)
-        title.prepend("* ");
-
-    this->setWindowTitle(title.arg(file));
+    return strs;
 }
 
 
@@ -1503,3 +1562,6 @@ void FbWindow::sendToSentry (QString str, NGAccess::LogLevel log_level)
 
     NGAccess::instance().logMessage(str, log_level);
 }
+
+
+

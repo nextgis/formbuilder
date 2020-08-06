@@ -38,6 +38,8 @@ class Tabs: public Elem
      explicit Tabs (QString key_name);
      virtual ~Tabs ();
 
+     virtual QStringList getStringsToTranslate () const override;
+
     protected:
 
      virtual void behave (Attr *attr) override;

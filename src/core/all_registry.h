@@ -35,6 +35,7 @@
 #include "elements/datetimepicker.h"
 #include "elements/coordinates.h"
 #include "elements/counter.h"
+#include "elements/average_counter.h"
 #include "elements/dmeter.h"
 #include "elements/photo.h"
 #include "elements/signfield.h"
@@ -192,6 +193,12 @@ inline void g_registerAttributes ()
        QObject::tr("Maximum number of photos")
     });
 
+    AttrRegistrar::add("comment",
+    {
+       QObject::tr("Comment"),
+       QObject::tr("Comment under photo(s)")
+    });
+
     AttrRegistrar::add("count_init",
     {
        QObject::tr("Initial value"),
@@ -229,6 +236,12 @@ inline void g_registerAttributes ()
     {
        QObject::tr("Suffix from list"),
        QObject::tr("Suffix from list")
+    });
+
+    AttrRegistrar::add("num_values",
+    {
+       QObject::tr("Number of values"),
+       QObject::tr("How many values a collector can enter to count an average value")
     });
 
     AttrRegistrar::add("cur_page",
@@ -419,6 +432,17 @@ inline void g_registerElements ()
        "counter.svg", "counter_dis.svg",
        QObject::tr("Counter"),
        QObject::tr("An element which automatically adds values based on some predefined format")
+    });
+
+    key_name = "average_counter";
+    ElemRegistrar::add(key_name,
+    {
+       ElemCategory::Specific,
+       false, true,
+       new AverageCounterFct(key_name),
+       "average_counter.svg", "average_counter_dis.svg",
+       QObject::tr("Average counter"),
+       QObject::tr("An element which counts an average value from some amount of entered values")
     });
 
     key_name = "dmeter";

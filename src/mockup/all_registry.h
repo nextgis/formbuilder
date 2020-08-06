@@ -54,6 +54,7 @@ inline void g_registerElemViews ()
     ElemViewRegistrar::add("datetimepicker", new DateTimePickerViewFct());
     ElemViewRegistrar::add("coords", new BoxViewFct());
     ElemViewRegistrar::add("counter", new CounterViewFct());
+    ElemViewRegistrar::add("average_counter", new BoxViewFct());
     ElemViewRegistrar::add("dmeter", new BoxViewFct());
     ElemViewRegistrar::add("photo", new BoxViewFct());
     ElemViewRegistrar::add("signfield", new BoxViewFct());

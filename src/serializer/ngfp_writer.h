@@ -40,11 +40,13 @@ class NgfpWriter
 {
     public:
 
-     static void saveNgfp (QString file_path, const Layer *layer, const NgmFormView *form);
+     static void saveNgfp (QString file_path, const Layer *layer, const NgmFormView *form,
+                           const QStringList &tr_lang_keys, const QMap<QString, QStringList> &tr_values);
 
     protected:
 
-     static QJsonDocument metaToJson (const Layer *layer);
+     static QJsonDocument metaToJson (const Layer *layer, const QStringList &tr_lang_keys,
+                                      const QMap<QString, QStringList> &tr_values);
      static QJsonDocument formToJson (const NgmFormView *form, const Layer *layer);
      static QJsonArray containerToJson (const Container *container, const Layer *layer);
      static QJsonValue elemViewToJson (const ElemView *elemview, const Layer *layer);

@@ -20,9 +20,7 @@
 #pragma once
 
 #include "core/elem.h"
-#include "core/attributes/boolean.h"
-#include "core/attributes/datetime.h"
-#include "core/attributes/datetimeenum.h"
+#include "core/attributes/number.h"
 
 namespace Fb
 {
@@ -30,33 +28,27 @@ namespace Core
 {
 
 
-class DateTimePicker: public Elem
+class AverageCounter: public Elem
 {
     Q_OBJECT
 
     public:
 
-     explicit DateTimePicker (QString key_name);
-     virtual ~DateTimePicker ();
+     explicit AverageCounter (QString key_name);
+     virtual ~AverageCounter ();
 
-     static QString getFormat (int date_type);
-     static FieldType getFieldType (int date_type);
-
-     inline virtual FieldType getDefaultFieldType () const override { return FieldType::DateTime; }
+     inline virtual FieldType getDefaultFieldType () const override { return FieldType::Integer; }
 
     protected:
 
      virtual void behave (Attr *attr) override;
 
-     Boolean *attr_keep_last;
-     DateTime *attr_init_date;
-     Boolean *attr_date_is_cur;
-     DateTimeEnum *attr_date_type;
+     Number *attr_num_values;
 
-     QString fslot_timestamp;
+     QString fslot_common;
 };
 
-FB_ELEM_FACTORY(DateTimePicker, DateTimePickerFct)
+FB_ELEM_FACTORY(AverageCounter, AverageCounterFct)
 
 
 }

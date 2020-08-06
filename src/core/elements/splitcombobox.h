@@ -39,6 +39,8 @@ class SplitComboBox: public Elem
      explicit SplitComboBox (QString key_name);
      virtual ~SplitComboBox ();
 
+     virtual QStringList getStringsToTranslate () const override;
+
     protected:
 
      virtual void behave (Attr *attr) override { Q_UNUSED(attr) }

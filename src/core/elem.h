@@ -58,6 +58,9 @@ class Elem: public QObject
      inline const QString &getKeyName () const { return key_name; }
      inline const QMap<QString, Attr*> &getAttrs () const { return attrs; }
      inline const QMap<QString, std::set<FieldType>> &getFieldSlots () const { return field_slots; }
+     inline virtual FieldType getDefaultFieldType () const { return FieldType::String; } // TODO: do it for each field slot
+
+     virtual QStringList getStringsToTranslate () const { return {}; }
 
     public slots:
 

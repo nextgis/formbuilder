@@ -48,6 +48,8 @@
 #define FB_STS_PREFIXDLG_H "prefixdlg_h"
 #define FB_STS_PREFIXCOLUMNDLG_W "prefixcolumndlg_w"
 #define FB_STS_PREFIXCOLUMNDLG_H "prefixcolumndlg_h"
+#define FB_STS_TRANSLATIONSDLG_W "translationsdlg_w"
+#define FB_STS_TRANSLATIONSDLG_H "translationsdlg_h"
 #define FB_STS_NGW_URL "ngw_url"
 #define FB_STS_NGW_GUEST "ngw_guest"
 #define FB_STS_NGW_LOGIN "ngw_login"
