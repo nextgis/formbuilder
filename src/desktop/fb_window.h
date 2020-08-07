@@ -125,6 +125,7 @@ class FbWindow final: public MainWindow
       void u_updateCounterLists (const QList<QStringList> &lists);
       QStringList u_getStringsToTranslate ();
 
+      void writeToLog (QString str);
       void sendToSentry (QString str, NGAccess::LogLevel log_level);
 
      QMenu *menu_file;

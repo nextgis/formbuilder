@@ -47,6 +47,7 @@
 #include <QTemporaryDir>
 #include <QDockWidget>
 #include <QIODevice>
+#include <QStandardPaths>
 
 #define FB_NGTOOLB_TEXT QObject::tr("Authentication & Updates")
 
@@ -599,6 +600,7 @@ void FbWindow::onUploadToNgw ()
         detailed_error += QString("\nupload_url = %1 \nfile_path = %2 \n").arg(upload_url).arg(file_path);
         detailed_error += QString("NGRequest error: \n") + NGRequest::getLastDetailedError();
         sendToSentry(detailed_error, NGAccess::LogLevel::Error);
+        writeToLog(detailed_error);
 
         g_showWarningDet(this, tr("Unable to create form on NextGIS Web"), ngw_io->getLastError());
         this->setEnabled(true);
@@ -1554,16 +1556,18 @@ QStringList FbWindow::u_getStringsToTranslate ()
 }
 
 
-void FbWindow::sendToSentry (QString str, NGAccess::LogLevel log_level)
+void FbWindow::writeToLog (QString str)
 {
-    /*
-    QFile file("formbuilder.log");
+    QFile file(QStandardPaths::writableLocation(QStandardPaths::HomeLocation)
+               + "\\AppData\\Roaming\\NextGIS\\formbuilder.log");
     file.open(QIODevice::WriteOnly);
     QTextStream out(&file);
     out << str << endl;
     file.close();
-    */
+}
 
+void FbWindow::sendToSentry (QString str, NGAccess::LogLevel log_level)
+{
     NGAccess::instance().logMessage(str, log_level);
 }
 
