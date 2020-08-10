@@ -214,6 +214,7 @@ bool NgwGdalIo::createLayer (int &new_layer_id, const NgwLayerInfo &layer_info, 
 bool NgwGdalIo::createFile (int &new_form_id, QString upload_reply, QString base_url,
                             int layer_id, QString res_type, QString disp_name)
 {
+    detailed_error = "";
     QString debug_info = QString("\nupload_reply = %1 \nbase_url = %2 \nlayer_id = %3 \nres_type = %4 \ndisp_name = %5")
             .arg(upload_reply).arg(base_url).arg(layer_id).arg(res_type).arg(disp_name);
 
@@ -270,12 +271,14 @@ bool NgwGdalIo::createFile (int &new_form_id, QString upload_reply, QString base
     if (!ok)
     {
         error = "Unable to create form for layer in NGW";
+        detailed_error = QString("!cplj_reply.LoadUrl(). ") + debug_info;
         return false;
     }
     CPLJSONObject cplj_root = cplj_reply.GetRoot();
     if (!cplj_root.IsValid())
     {
         error = "Unable to create form for layer in NGW";
+        detailed_error = QString("!cplj_root.IsValid(). ") + debug_info;
         return false;
     }
 
@@ -283,6 +286,7 @@ bool NgwGdalIo::createFile (int &new_form_id, QString upload_reply, QString base
     if (!cplj_id.IsValid())
     {
         error = "Unable to create form for layer in NGW";
+        detailed_error = QString("!cplj_id.IsValid(). ") + debug_info;
         return false;
     }
 
