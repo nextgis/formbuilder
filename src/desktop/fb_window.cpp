@@ -598,7 +598,7 @@ void FbWindow::onUploadToNgw ()
     {
         QString detailed_error = ngw_io->getLastDeatiledError();
         detailed_error += QString("\nupload_url = %1 \nfile_path = %2 \n").arg(upload_url).arg(file_path);
-        detailed_error += QString("NGRequest error: \n") + NGRequest::getLastDetailedError();
+        detailed_error += QString("NGRequest error: \n") + NGRequest::instance().lastError();
         sendToSentry(detailed_error, NGAccess::LogLevel::Error);
         writeToLog(detailed_error);
 

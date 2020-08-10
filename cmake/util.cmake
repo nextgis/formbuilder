@@ -152,6 +152,7 @@ function(get_compiler_version ver)
 
     # Debug
     # set(COMPILER Clang-9.0)
+    # set(COMPILER "MSVC-19.12-64bit")
 
     set(${ver} ${COMPILER} PARENT_SCOPE)
 endfunction()
