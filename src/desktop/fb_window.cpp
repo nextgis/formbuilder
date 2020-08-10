@@ -1558,12 +1558,14 @@ QStringList FbWindow::u_getStringsToTranslate ()
 
 void FbWindow::writeToLog (QString str)
 {
+    /*
     QFile file(QStandardPaths::writableLocation(QStandardPaths::HomeLocation)
                + "\\AppData\\Roaming\\NextGIS\\formbuilder.log");
     file.open(QIODevice::WriteOnly);
     QTextStream out(&file);
     out << str << endl;
     file.close();
+    */
 }
 
 void FbWindow::sendToSentry (QString str, NGAccess::LogLevel log_level)

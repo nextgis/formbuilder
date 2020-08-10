@@ -97,7 +97,7 @@ void installTranslators (const QApplication &app, const QStringList &tr_names)
 
 int main (int argc, char *argv[])
 {
-    #ifdef Q_OS_WIN
+    #ifndef Q_OS_MAC
     #if GDAL_VERSION_MAJOR >= 3
     QByteArray ba_proj_db = QString("../share/proj").toUtf8();
     qputenv("PROJ_LIB", ba_proj_db.data());
