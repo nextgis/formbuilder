@@ -28,7 +28,7 @@ using namespace Core;
 Photo::Photo (QString key_name):
     Elem(key_name)
 {
-    attr_max_photos = (Number*) this->addAttr(new Number("max_photos", 1, 1, 5));
+    attr_max_photos = (Number*) this->addAttr(new Number("max_photos", 1, 1, 20));
     attr_comment = (String*)    this->addAttr(new String("comment", ""));
 }
 
