@@ -519,6 +519,15 @@ void FbWindow::onUploadToNgw ()
 
     auto res_info = dialog.getSelectedResourceInfo();
 
+    // Check webgis capabilities and find whether user can create forms.
+    /*
+    bool can_create_forms = canCreateForms(res_info.base_url);
+    if ()
+    {
+
+    }
+    */
+
     NgwGdalIo *ngw_io = dialog.getNgwIo();
 
     //QString res_group_url = ngw_io->getNgwApi()->urlResourcePage(res_info.base_url, res_info.resource_id);
@@ -1574,5 +1583,33 @@ void FbWindow::sendToSentry (QString str, NGAccess::LogLevel log_level)
     NGAccess::instance().logMessage(str, log_level);
 }
 
+/*
+bool FbWindow::canCreateForms (QString base_url)
+{
+    // https://docs.nextgis.ru/docs_ngweb_dev/doc/developer/resource.html
+
+    CPLJSONDocument j_schema;
+
+    // https://github.com/nextgis/nextgis_datastore/blob/master/src/catalog/ngw_api.cpp#L57
+    std::string schema_url = QString(base_url + "/resource/schema").toStdString();
+
+    // https://github.com/nextgis/nextgis_datastore/blob/master/src/util/url.cpp#L172
+    ...
+
+    if(j_schema.LoadUrl(schema_url, gdal_headers))
+    {
+        CPLJSONObject j_root = j_schema.GetRoot();
+        if(j_root.IsValid())
+        {
+            CPLJSONObject j_resources = j_root.GetObj("resources");
+            for(auto &j_resource: j_resources.GetChildren())
+            {
+                std::string type = j_resource.GetName();
+                m_availableCls.push_back(type);
+            }
+        }
+    }
+}
+*/
 
 

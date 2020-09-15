@@ -127,6 +127,7 @@ class FbWindow final: public MainWindow
 
       void writeToLog (QString str);
       void sendToSentry (QString str, NGAccess::LogLevel log_level);
+      //bool canCreateForms (QString base_url);
 
      QMenu *menu_file;
      QMenu *menu_edit;
