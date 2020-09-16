@@ -68,6 +68,7 @@ class FbWindow final: public MainWindow
      void onEditTranslationsClicked ();
      void onChainElemsClicked ();
      void onLanguageClicked (QAction *action);
+     void onAuthSettingsClicked ();
      void onViewHelpClicked ();
      void onCommSupportClicked ();
      void onAboutClicked ();
@@ -158,6 +159,7 @@ class FbWindow final: public MainWindow
      QAction *act_edit_prefixes;
      QAction *act_edit_translations;
      QAction *act_chain_elems;
+     QAction *act_auth_settings;
      QAction *act_view_help;
      QAction *act_comm_supp;
      QAction *act_about;

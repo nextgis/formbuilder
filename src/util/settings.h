@@ -57,6 +57,8 @@
 #define FB_STS_CSV_FILE "csv_file"
 #define FB_STS_SHAPE_FILE "shape_file"
 #define FB_STS_NGFP_FILE "ngfp_file"
+#define FB_STS_ALTER_AUTH "alter_auth"
+#define FB_STS_ALTER_AUTH_ENDPOINT "alter_auth_endpoint"
 
 namespace Fb
 {

@@ -30,6 +30,7 @@ set(FB_SOURCES
     fb_project.cpp
     fb_updater.cpp
     fb_aboutdialog.cpp
+    fb_authdialog.cpp
     fb_window.cpp
 
     main.cpp
@@ -40,6 +41,7 @@ set(FB_HEADERS
     fb_project.h
     fb_updater.h
     fb_aboutdialog.h
+    fb_authdialog.h
     fb_window.h
 
     languages.h
@@ -48,6 +50,7 @@ set(FB_HEADERS
 set(FB_UIS
 
     fb_aboutdialog.ui
+    fb_authdialog.ui
 )
 
 set(FB_RESOURCES

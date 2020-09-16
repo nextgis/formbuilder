@@ -2,7 +2,7 @@
  *                                                                                                *
  *    Project:  NextGIS Formbuilder                                                               *
  *    Authors:  Mikhail Gusev, gusevmihs@gmail.com                                                *
- *              Copyright (C) 2014-2019 NextGIS                                                   *
+ *              Copyright (C) 2014-2020 NextGIS                                                   *
  *                                                                                                *
  *    This program is free software: you can redistribute it and/or modify it under the terms     *
  *    of the GNU General Public License as published by the Free Software Foundation, either      *
@@ -20,23 +20,44 @@
 #pragma once
 
 #include "gui/custom_dialog.h"
-#include "languages.h"
 
-namespace Ui { class FbAboutDialog; }
+#include "framework/access/access.h"
+#include "framework/access/signdialog.h"
+
+#define FB_DEFAULT_SCOPE "user_info.read" // see constructor in signbutton.h
+#define FB_DEFAULT_AUTH_ENDPOINT "https://my.nextgis.com"
+
+namespace Ui { class FbAuthDialog; }
 
 
-class FbAboutDialog: public Fb::Gui::CustomDialog
+class FbAuthDialog: public Fb::Gui::CustomDialog
 {
     Q_OBJECT
 
     public:
 
-     explicit FbAboutDialog (QWidget *parent, Language language);
-     virtual ~FbAboutDialog ();
+     explicit FbAuthDialog (QWidget *parent);
+     virtual ~FbAuthDialog ();
+
+     void setNgAccountWidget (NGSignDialog *new_ng_dialog);
+     void removeNgAccountWidget ();
+
+    private slots:
+
+     void onNeedToUpdateAccountInfo ();
+     void onSignButtonClick ();
+     void onEndpointEditFinished ();
+     void onGroupSettingsToggled (bool checked);
 
     private:
 
-     Ui::FbAboutDialog *ui;
+     QString getEndpoint ();
+
+     Ui::FbAuthDialog *ui;
+
+     NGSignDialog *ng_dialog;
+     QSize old_ng_dialog_size;
+     Qt::WindowFlags old_ng_dialog_w_flags;
 };
 
 

@@ -608,7 +608,34 @@
     </message>
     <message>
         <source>Your account</source>
-        <translation>Ваш аккаунт</translation>
+        <translation type="vanished">Ваш аккаунт</translation>
+    </message>
+</context>
+<context>
+    <name>FbAuthDialog</name>
+    <message>
+        <source>User info</source>
+        <translation>Информация о пользователе</translation>
+    </message>
+    <message>
+        <source>Alternate authorization</source>
+        <translation>Альтернативные варианты авторизации</translation>
+    </message>
+    <message>
+        <source>Type:</source>
+        <translation>Тип:</translation>
+    </message>
+    <message>
+        <source>Endpoint:</source>
+        <translation>Endpoint:</translation>
+    </message>
+    <message>
+        <source>Authorization options</source>
+        <translation>Настройки авторизации</translation>
+    </message>
+    <message>
+        <source>NextGIS ID on-premise</source>
+        <translation>NextGIS ID on-premise</translation>
     </message>
 </context>
 <context>
@@ -975,6 +1002,14 @@
     <message>
         <source>Edit translations of displayed text in the form</source>
         <translation>Редактировать переводы отображаемого текста на форме</translation>
+    </message>
+    <message>
+        <source>Authorization</source>
+        <translation>Авторизация</translation>
+    </message>
+    <message>
+        <source>Authorization options</source>
+        <translation>Настройки авторизации</translation>
     </message>
 </context>
 <context>

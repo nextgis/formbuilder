@@ -20,6 +20,7 @@
 #include "fb_window.h"
 
 #include "fb_aboutdialog.h"
+#include "fb_authdialog.h"
 #include "gui/gui_common.h"
 #include "util/common.h"
 #include "gui/dialogs/newvoidprojectdialog.h"
@@ -203,6 +204,13 @@ FbWindow::FbWindow (Language last_language):
     }
     connect(actgr_langs, &QActionGroup::triggered, this, &FbWindow::onLanguageClicked);
 
+    act_auth_settings = this->addMainMenuAction(
+                            menu_settings, nullptr,
+                            &FbWindow::onAuthSettingsClicked,
+                            "",
+                            tr("Authorization"),
+                            tr("Authorization options"));
+
     // HELP menu.
 
     act_view_help = this->addMainMenuAction(
@@ -272,8 +280,16 @@ FbWindow::FbWindow (Language last_language):
     menu_toolbs->setTitle(tr("Toolbars"));
     menu_view->addMenu(menu_toolbs);
 
+    bool alter_auth = g_getSettings()->value(FB_STS_ALTER_AUTH, false).toBool();
+    QString endpoint = g_getSettings()->value(FB_STS_ALTER_AUTH_ENDPOINT, "").toString();
+    if (alter_auth)
+        NGAccess::instance().setEndPoint(endpoint);
+    else
+        NGAccess::instance().setEndPoint(FB_DEFAULT_AUTH_ENDPOINT);
+
     // NextGIS Authentication button.
-    but_ngauth = new NGSignInButton(QString("40ONLYJYYQFLBD6btOpQnJNO9DHfuejUt4FPSUJ3"));
+    but_ngauth = new NGSignInButton(QString("40ONLYJYYQFLBD6btOpQnJNO9DHfuejUt4FPSUJ3"),
+                                    FB_DEFAULT_SCOPE, endpoint, NGAccess::AuthSourceType::NGID);
     but_ngauth->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     but_ngauth->setCursor(Qt::PointingHandCursor);
     but_ngauth->setToolTip(tr("Sign in to your account"));
@@ -765,6 +781,20 @@ void FbWindow::onLanguageClicked (QAction *action)
     g_showMessage(this, LANGUAGES.value(last_language).restart_message);
 }
 
+
+void FbWindow::onAuthSettingsClicked ()
+{
+    NGSignDialog *ng_dialog = (NGSignDialog*)but_ngauth->getDialog();
+
+    FbAuthDialog dialog(this);
+    dialog.setNgAccountWidget(ng_dialog);
+    dialog.exec();
+    dialog.removeNgAccountWidget();
+
+    //ng_dialog->setParent(but_ngauth); // set back initial parent
+}
+
+
 void FbWindow::onViewHelpClicked ()
 {
     QString url = LANGUAGES.value(last_language).help_link;
@@ -782,15 +812,8 @@ void FbWindow::onCommSupportClicked ()
 
 void FbWindow::onAboutClicked ()
 {
-    NGSignDialog *ng_dialog = (NGSignDialog*)but_ngauth->getDialog();
-
     FbAboutDialog dialog(this, last_language);
-    dialog.setNgAccountWidget(ng_dialog);
-
     dialog.exec();
-
-    dialog.removeNgAccountWidget();
-    dialog.setParent(but_ngauth); // set back initial parent
 }
 
 

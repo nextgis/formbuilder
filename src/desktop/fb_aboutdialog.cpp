@@ -34,8 +34,7 @@ using namespace Gui;
 
 FbAboutDialog::FbAboutDialog (QWidget *parent, Language language):
     CustomDialog(parent),
-    ui(new Ui::FbAboutDialog),
-    ng_dialog(nullptr)
+    ui(new Ui::FbAboutDialog)
 {
     ui->setupUi(this);
 
@@ -44,9 +43,8 @@ FbAboutDialog::FbAboutDialog (QWidget *parent, Language language):
     if (w != 0 && h != 0)
         this->resize({w, h});
 
-    ui->list_about->addItem(tr("Your account"));
-    ui->list_about->addItem(tr("Authors of images"));
     ui->list_about->addItem(tr("About program"));
+    ui->list_about->addItem(tr("Authors of images"));
 
     ui->list_about->setCurrentRow(0);
     ui->stw_about->setCurrentIndex(0);
@@ -91,45 +89,4 @@ FbAboutDialog::~FbAboutDialog ()
 }
 
 
-void FbAboutDialog::setNgAccountWidget (NGSignDialog *new_ng_dialog)
-{
-    if (new_ng_dialog == nullptr)
-        return;
-    ng_dialog = new_ng_dialog;
 
-    old_ng_dialog_size = ng_dialog->size();
-    old_ng_dialog_w_flags = ng_dialog->windowFlags();
-
-    ng_dialog->setParent(ui->page_acc);
-    static_cast<QVBoxLayout*>(ui->page_acc->layout())
-            ->addWidget(static_cast<QWidget*>(ng_dialog));
-
-    this->onNeedToUpdateAccountInfo();
-
-    QPushButton *ng_button = ng_dialog->getSignButton(); // needed for Exit action
-    connect(ng_button, &QPushButton::clicked,
-            this, &FbAboutDialog::onNeedToUpdateAccountInfo);
-
-    connect(&NGAccess::instance(), SIGNAL(userInfoUpdated()),
-            this, SLOT(onNeedToUpdateAccountInfo()));
-    connect(&NGAccess::instance(), SIGNAL(supportInfoUpdated()),
-            this, SLOT(onNeedToUpdateAccountInfo()));
-}
-
-void FbAboutDialog::removeNgAccountWidget ()
-{
-    static_cast<QVBoxLayout*>(ui->page_acc->layout())->takeAt(0);
-    ng_dialog->setParent(nullptr);
-
-    ng_dialog->setWindowFlags(old_ng_dialog_w_flags);
-    ng_dialog->resize(old_ng_dialog_size);
-}
-
-
-void FbAboutDialog::onNeedToUpdateAccountInfo ()
-{
-    if (ng_dialog == nullptr)
-        return;
-    ng_dialog->updateContent();
-    ng_dialog->show();
-}
