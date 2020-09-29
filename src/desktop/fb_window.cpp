@@ -836,6 +836,9 @@ void FbWindow::onSupportInfoUpdated ()
         // 2. Change element icons in elem's tree.
         tree_elems->setBlockUnsupported(!is_supported);
         tree_elems->fillSelf();
+
+        // 3. Update title.
+        u_updateTitle(is_supported);
     }
 }
 
@@ -1502,7 +1505,7 @@ bool FbWindow::u_okToReset ()
 }
 
 
-void FbWindow::u_updateTitle ()
+void FbWindow::u_updateTitle (bool is_supported)
 {
     QString title = "%1 - NextGIS Formbuilder";
 
@@ -1517,6 +1520,9 @@ void FbWindow::u_updateTitle ()
 
     if (need_to_save)
         title.prepend("* ");
+
+    if (is_supported)
+        title.append(" PRO");
 
     this->setWindowTitle(title.arg(file));
 }

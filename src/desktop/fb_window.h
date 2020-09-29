@@ -122,7 +122,7 @@ class FbWindow final: public MainWindow
       void u_updateSupportedIcons (bool is_supported);
       bool u_canUseSupportedFeature ();
       bool u_okToReset ();
-      void u_updateTitle ();
+      void u_updateTitle (bool is_supported = false);
       void u_updateCounterLists (const QList<QStringList> &lists);
       QStringList u_getStringsToTranslate ();
 
