@@ -43,7 +43,7 @@
       </sizepolicy>
      </property>
      <property name="title">
-      <string>Alternate authorization</string>
+      <string>Change authorization server</string>
      </property>
      <property name="checkable">
       <bool>true</bool>

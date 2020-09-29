@@ -281,11 +281,9 @@ FbWindow::FbWindow (Language last_language):
     menu_view->addMenu(menu_toolbs);
 
     bool alter_auth = g_getSettings()->value(FB_STS_ALTER_AUTH, false).toBool();
-    QString endpoint = g_getSettings()->value(FB_STS_ALTER_AUTH_ENDPOINT, "").toString();
+    QString endpoint = FB_DEFAULT_AUTH_ENDPOINT;
     if (alter_auth)
-        NGAccess::instance().setEndPoint(endpoint);
-    else
-        NGAccess::instance().setEndPoint(FB_DEFAULT_AUTH_ENDPOINT);
+        endpoint = g_getSettings()->value(FB_STS_ALTER_AUTH_ENDPOINT, "").toString();
 
     // NextGIS Authentication button.
     but_ngauth = new NGSignInButton(QString("40ONLYJYYQFLBD6btOpQnJNO9DHfuejUt4FPSUJ3"),

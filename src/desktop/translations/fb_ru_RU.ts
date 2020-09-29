@@ -619,7 +619,7 @@
     </message>
     <message>
         <source>Alternate authorization</source>
-        <translation>Альтернативные варианты авторизации</translation>
+        <translation type="vanished">Альтернативные варианты авторизации</translation>
     </message>
     <message>
         <source>Type:</source>
@@ -635,7 +635,15 @@
     </message>
     <message>
         <source>NextGIS ID on-premise</source>
-        <translation>NextGIS ID on-premise</translation>
+        <translation type="vanished">NextGIS ID on-premise</translation>
+    </message>
+    <message>
+        <source>Change authorization server</source>
+        <translation>Изменить сервер авторизации</translation>
+    </message>
+    <message>
+        <source>NextGIS ID</source>
+        <translation>NextGIS ID</translation>
     </message>
 </context>
 <context>

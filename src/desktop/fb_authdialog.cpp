@@ -39,18 +39,18 @@ FbAuthDialog::FbAuthDialog (QWidget *parent):
 {
     ui->setupUi(this);
 
-    ui->cmbType->addItem(tr("NextGIS ID on-premise"));
+    ui->cmbType->addItem(tr("NextGIS ID"));
+
+    bool alter_auth = g_getSettings()->value(FB_STS_ALTER_AUTH, false).toBool();
+    QString endpoint = g_getSettings()->value(FB_STS_ALTER_AUTH_ENDPOINT, "").toString();
+
+    ui->grSettings->setChecked(alter_auth);
+    ui->editEndpoint->setText(endpoint);
 
     connect(ui->editEndpoint, &QLineEdit::editingFinished,
             this, &FbAuthDialog::onEndpointEditFinished);
     connect(ui->grSettings, &QGroupBox::toggled,
             this, &FbAuthDialog::onGroupSettingsToggled);
-
-    bool alter_auth = g_getSettings()->value(FB_STS_ALTER_AUTH, false).toBool();
-    QString endpoint = g_getSettings()->value(FB_STS_ALTER_AUTH_ENDPOINT, "").toString();
-
-    ui->editEndpoint->setText(endpoint);
-    ui->grSettings->setChecked(alter_auth);
 
     setMinimumHeight(350); // temporary for full showing of the sign-in dialog
 }
@@ -131,6 +131,8 @@ void FbAuthDialog::onEndpointEditFinished ()
 {
     QString enpoint = getEndpoint();
     NGAccess::instance().setEndPoint(enpoint);
+
+    qDebug() << "onEndpointEditFinished()";
 }
 
 void FbAuthDialog::onGroupSettingsToggled (bool checked)
@@ -139,6 +141,8 @@ void FbAuthDialog::onGroupSettingsToggled (bool checked)
         onEndpointEditFinished();
     else
         NGAccess::instance().setEndPoint(FB_DEFAULT_AUTH_ENDPOINT);
+
+    qDebug() << "onGroupSettingsToggled()";
 }
 
 
@@ -149,6 +153,9 @@ QString FbAuthDialog::getEndpoint ()
     // Some adjustments of given url.
     while (endpoint.endsWith("/"))
         endpoint.chop(1);
+
+    if (endpoint == "")
+        endpoint = " "; // otherwise lib_ngstd uses my.nextgis.com
 
     return endpoint;
 }
