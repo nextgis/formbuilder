@@ -1522,7 +1522,7 @@ void FbWindow::u_updateTitle (bool is_supported)
         title.prepend("* ");
 
     if (is_supported)
-        title.append(" PRO");
+        title.append(" Pro");
 
     this->setWindowTitle(title.arg(file));
 }
