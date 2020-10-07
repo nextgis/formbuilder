@@ -403,12 +403,12 @@ bool NgwGdalIo::u_getChildResources (QList<NgwResourceData> &resources,
 
         CPLJSONObject j_children = j_res_obj["children"];
         bool children = j_children.ToBool();
-        if (j_children.GetType() != CPLJSONObject::Boolean)
+        if (j_children.GetType() != CPLJSONObject::Type::Boolean)
             continue;
 
         CPLJSONObject j_disp_name = j_res_obj["display_name"];
         std::string disp_name = j_disp_name.ToString();
-        if (j_disp_name.GetType() != CPLJSONObject::String)
+        if (j_disp_name.GetType() != CPLJSONObject::Type::String)
             continue;
 
         // Make another request in order to check that vector layer has a form
