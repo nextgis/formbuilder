@@ -673,10 +673,10 @@ void FbWindow::onUploadToNgw ()
     QString collector_user = res_info.login;
     QString collector_password = res_info.password;
     QString user_email = NGAccess::instance().email();
-    QString proj_name = layer_info.name + tr(" (Collector project)"); // should differ from layer name!
+    QString proj_name = layer_info.name + tr(" (data collection)"); // should differ from layer name!
     QString proj_descr = proj_name;
-    QString basemap_name = layer_info.name + tr(" (Basemap)");
-    QString webmap_name = layer_info.name + tr(" (Web map)");
+    QString basemap_name = layer_info.name + tr(" (basemap)");
+    QString webmap_name = layer_info.name + tr(" (web map)");
 
     QString ret_msg_det;
     int collector_proj_id = -1;
