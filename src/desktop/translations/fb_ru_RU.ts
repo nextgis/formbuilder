@@ -1027,6 +1027,7 @@
         <source>Authorization options</source>
         <translation>Настройки авторизации</translation>
     </message>
+    
     <message>
         <source> (Collector project)</source>
         <translation> (Проект Коллектора)</translation>
@@ -1038,6 +1039,18 @@
     <message>
         <source> (Web map)</source>
         <translation> (Веб-карта)</translation>
+    </message>
+    <message>
+        <source> (data collection)</source>
+        <translation> (сбор данных)</translation>
+    </message>
+    <message>
+        <source> (basemap)</source>
+        <translation> (подложка)</translation>
+    </message>
+    <message>
+        <source> (web map)</source>
+        <translation> (веб-карта)</translation>
     </message>
     <message>
         <source>Collector project</source>
