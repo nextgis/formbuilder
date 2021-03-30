@@ -358,9 +358,9 @@ bool NgwGdalIo::createCollectorUser (QString base_url, QString email)
     options.AddNameValue("HEADERS", headers.toStdString().c_str());
     //options.AddNameValue("POSTFIELDS", payload.toStdString().c_str());
     options.AddNameValue("CUSTOMREQUEST", "PUT");
-    //options.AddNameValue("FORM_KEY_0", "collector_user");
-    //options.AddNameValue("FORM_VALUE_0", payload.toStdString().c_str());
-    //options.AddNameValue("FORM_ITEM_COUNT", "1");
+    options.AddNameValue("FORM_KEY_0", "collector_user");
+    options.AddNameValue("FORM_VALUE_0", payload.toStdString().c_str());
+    options.AddNameValue("FORM_ITEM_COUNT", "1");
 
     CPLHTTPResult *result = CPLHTTPFetch(url.toStdString().c_str(), options);
     if (result->nStatus != 0 || result->pszErrBuf != nullptr)
