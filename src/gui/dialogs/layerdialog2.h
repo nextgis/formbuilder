@@ -26,6 +26,7 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QComboBox>
+#include <QCheckBox>
 #include <QKeyEvent>
 
 namespace Fb
@@ -41,12 +42,14 @@ class LayerDialog2: public CustomDialog
     public:
 
      explicit LayerDialog2 (QWidget *parent, const Core::Layer *layer, bool is_editable,
-                            QString res_group_url, QString res_group_name);
+                            QString res_group_url, QString res_group_name, bool show_extended_settings);
      virtual ~LayerDialog2 ();
 
      void setOkButtonText (QString text) { but_ok->setText(text); }
 
      void getLayerMeta (QString &new_name, Core::GeomType &new_geom_type);
+     bool getNeedCollectorProject ();
+     bool getNeedWebmap ();
 
     protected slots:
 
@@ -56,7 +59,8 @@ class LayerDialog2: public CustomDialog
 
      QLineEdit *edit_name;
      QComboBox *combo_geom;
-
+     QCheckBox *chb_collector_proj;
+     QCheckBox *chb_webmap;
      QPushButton *but_ok;
 
      const Core::Layer *layer;

@@ -296,6 +296,255 @@ bool NgwGdalIo::createFile (int &new_form_id, QString upload_reply, QString base
 }
 
 
+QList<QPair<int, QString>> NgwGdalIo::getCollectorUsers (QString base_url)
+{
+    QList<QPair<int, QString>> users;
+
+    QString url = base_url + "/collector/user";
+    QString headers = "Content-Type: application/json\r\nAccept: */*";
+
+    CPLStringList options;
+    options.AddNameValue("HEADERS", headers.toStdString().c_str());
+    options.AddNameValue("CUSTOMREQUEST", "GET");
+
+    CPLHTTPResult *result = CPLHTTPFetch(url.toStdString().c_str(), options);
+    if (result->nStatus != 0 || result->pszErrBuf != nullptr)
+    {
+        error = QString("CPLHTTPFetch() failed. Info: \nnStatus = %1 \npszErrBuf = %2 \nGDAL error = %3")
+            .arg(result->nStatus).arg(result->pszErrBuf == nullptr ? "" : result->pszErrBuf).arg(CPLGetLastErrorMsg());
+
+        CPLHTTPDestroyResult(result);
+        return users;
+    }
+
+    try
+    {
+        QByteArray res_data(reinterpret_cast<const char*>(result->pabyData), result->nDataLen);
+        QJsonDocument res_doc = QJsonDocument::fromJson(res_data);
+        QJsonArray j_arr = res_doc.array();
+        for (int i = 0; i < j_arr.size(); i++)
+        {
+            QJsonValue j_val = j_arr[i];
+            QJsonObject j_obj = j_val.toObject();
+            users.append({j_obj["id"].toInt(), j_obj["email"].toString()});
+        }
+    }
+    catch (...)
+    {
+        error = "Failed to extract user infos from returned JSON object";
+    }
+
+    CPLHTTPDestroyResult(result);
+    return users;
+}
+
+bool NgwGdalIo::createCollectorUser (QString base_url, QString email)
+{
+//    QJsonObject j_user;
+//    j_user["email"] = email;
+//    j_user["descr"] = "";
+//    QJsonObject j_obj;
+//    j_obj["collector_user"] = j_user;
+    //QByteArray payload = QString("collector_user: {\"descr\":\"\",\"email\":\"%1\"}").arg(email).toUtf8();
+    QByteArray payload = QString("{\"descr\":\"\",\"email\":\"%1\"}").arg(email).toUtf8();
+
+//    QJsonDocument j_doc(j_obj);
+//    QByteArray payload = j_doc.toJson();
+    QString url = base_url + "/collector/user/new";
+    //QString headers = "Content-Type: application/x-www-form-urlencoded\r\nAccept: */*";
+    QString headers = "Content-Type: multipart/form-data\r\nAccept: */*";
+
+    CPLStringList options;
+    options.AddNameValue("HEADERS", headers.toStdString().c_str());
+    //options.AddNameValue("POSTFIELDS", payload.toStdString().c_str());
+    options.AddNameValue("CUSTOMREQUEST", "PUT");
+    //options.AddNameValue("FORM_KEY_0", "collector_user");
+    //options.AddNameValue("FORM_VALUE_0", payload.toStdString().c_str());
+    //options.AddNameValue("FORM_ITEM_COUNT", "1");
+
+    CPLHTTPResult *result = CPLHTTPFetch(url.toStdString().c_str(), options);
+    if (result->nStatus != 0 || result->pszErrBuf != nullptr)
+    {
+        error = QString("CPLHTTPFetch() failed. Info: \nnStatus = %1 \npszErrBuf = %2 \nGDAL error = %3")
+            .arg(result->nStatus).arg(result->pszErrBuf == nullptr ? "" : result->pszErrBuf).arg(CPLGetLastErrorMsg());
+
+        CPLHTTPDestroyResult(result);
+        return false;
+    }
+
+    bool ok = false;
+    try
+    {
+        QByteArray res_data(reinterpret_cast<const char*>(result->pabyData), result->nDataLen);
+        QJsonDocument res_doc = QJsonDocument::fromJson(res_data);
+        QJsonObject j_obj = res_doc.object();
+        ok = j_obj["result"].toBool();
+    }
+    catch (...)
+    {
+        error = "Failed to extract True status from returned JSON object";
+    }
+
+    CPLHTTPDestroyResult(result);
+    return ok;
+}
+
+int NgwGdalIo::createResource (QString base_url, const QJsonObject &body)
+{
+    QJsonDocument j_doc(body);
+    QByteArray payload = j_doc.toJson();
+    QString url = api->urlCreateResource(base_url);
+    QString headers = "Content-Type: application/json\r\nAccept: */*";
+
+    CPLStringList options;
+    options.AddNameValue("HEADERS", headers.toStdString().c_str());
+    options.AddNameValue("CUSTOMREQUEST", "POST");
+    options.AddNameValue("POSTFIELDS", payload.toStdString().c_str());
+
+    CPLHTTPResult *result = CPLHTTPFetch(url.toStdString().c_str(), options);
+    if (result->nStatus != 0 || result->pszErrBuf != nullptr)
+    {
+        error = QString("CPLHTTPFetch() failed. Info: \nnStatus = %1 \npszErrBuf = %2 \nGDAL error = %3")
+            .arg(result->nStatus).arg(result->pszErrBuf == nullptr ? "" : result->pszErrBuf).arg(CPLGetLastErrorMsg());
+
+        CPLHTTPDestroyResult(result);
+        return -1;
+    }
+
+    int id = -1;
+    try
+    {
+        QByteArray res_data(reinterpret_cast<const char*>(result->pabyData), result->nDataLen);
+        QJsonDocument res_doc = QJsonDocument::fromJson(res_data);
+        QJsonObject res_obj = res_doc.object();
+        id = res_obj["id"].toInt();
+    }
+    catch (...)
+    {
+        error = "Failed to extract id from returned JSON object";
+    }
+
+    CPLHTTPDestroyResult(result);
+    return id;
+}
+
+
+int NgwGdalIo::createSimpleBasemap (QString base_url, int group_id, QString basemap_name)
+{
+    QJsonObject j_resource;
+    j_resource["cls"] = "basemap_layer";
+    j_resource["parent"] = QJsonObject({{"id", group_id}});
+    j_resource["display_name"] = basemap_name;
+    j_resource["keyname"] = QJsonValue();
+    j_resource["description"] = QJsonValue();
+
+    QJsonObject j_basemap;
+    j_basemap["url"] = "http://c.tile.openstreetmap.org/{z}/{x}/{y}.png";
+    j_basemap["qms"] = QJsonValue();
+
+    QJsonObject j_resmeta;
+    j_resmeta["items"] = QJsonObject();
+
+    QJsonObject j_obj;
+    j_obj["resource"] = j_resource;
+    j_obj["basemap_layer"] = j_basemap;
+    j_obj["resmeta"] = j_resmeta;
+
+    return createResource(base_url, j_obj);
+}
+
+int NgwGdalIo::createSimpleCollectorProject (QString base_url, int group_id, int collector_user_id,
+                                             QString user, QString password,
+                                             QString proj_name, QString proj_description,
+                                             int layer_id, QString layer_name,
+                                             int basemap_id, QString basemap_name)
+{
+    QJsonObject j_resource;
+    j_resource["cls"] = "collector_project";
+    j_resource["parent"] = QJsonObject({{"id", group_id}});
+    j_resource["display_name"] = proj_name;
+    j_resource["keyname"] = QJsonValue();
+    j_resource["description"] = proj_description;
+
+    QJsonArray j_users;
+    j_users.append(collector_user_id);
+    QJsonObject j_basemap;
+    j_basemap["display_name"] = basemap_name;
+    j_basemap["editable"] = false;
+    j_basemap["item_type"] = "item";
+    j_basemap["lifetime"] = 1440;
+    j_basemap["max_zoom"] = 25;
+    j_basemap["min_zoom"] = 0;
+    j_basemap["resource_id"] = basemap_id;
+    j_basemap["syncable"] = false;
+    j_basemap["visible"] = true;
+    j_basemap["children"] = QJsonArray();
+    QJsonObject j_layer;
+    j_layer["display_name"] = layer_name;
+    j_layer["editable"] = true;
+    j_layer["item_type"] = "item";
+    j_layer["lifetime"] = 1440;
+    j_layer["max_zoom"] = 25;
+    j_layer["min_zoom"] = 0;
+    j_layer["resource_id"] = layer_id;
+    j_layer["syncable"] = true;
+    j_layer["visible"] = true;
+    j_layer["children"] = QJsonArray();
+    QJsonArray j_def_elems;
+    j_def_elems.append(j_basemap);
+    j_def_elems.append(j_layer);
+    QJsonObject j_elems;
+    j_elems["item_type"] = "root";
+    j_elems["children"] = j_def_elems;
+    QJsonObject j_collector;
+    j_collector["screen"] = "list";
+    j_collector["username"] = user;
+    j_collector["password"] = password;
+    j_collector["root_item"] = j_elems;
+    j_collector["collector_users"] = j_users;
+
+    QJsonObject j_resmeta;
+    j_resmeta["items"] = QJsonObject();
+
+    QJsonObject j_obj;
+    j_obj["resource"] = j_resource;
+    j_obj["collector_project"] = j_collector;
+    j_obj["resmeta"] = j_resmeta;
+
+    return createResource(base_url, j_obj);
+}
+
+int NgwGdalIo::createSimpleWebmap (QString base_url, int group_id, QString webmap_name, int style_id, QString layer_name)
+{
+    QJsonObject j_resource;
+    j_resource["cls"] = "webmap";
+    j_resource["parent"] = QJsonObject({{"id", group_id}});
+    j_resource["display_name"] = webmap_name;
+    j_resource["keyname"] = QJsonValue();
+    j_resource["description"] = QJsonValue();
+
+    QJsonObject j_item;
+    j_item["layer_enabled"] = true;
+    j_item["layer_adapter"] = "tile";
+    j_item["display_name"] = layer_name;
+    j_item["layer_style_id"] = style_id;
+    j_item["item_type"] = "layer";
+    QJsonArray j_items;
+    j_items.append(j_item);
+    QJsonObject j_rootitem;
+    j_rootitem["item_type"] = "root";
+    j_rootitem["children"] = j_items;
+    QJsonObject j_webmap;
+    j_webmap["root_item"] = j_rootitem;
+
+    QJsonObject j_obj;
+    j_obj["resource"] = j_resource;
+    j_obj["webmap"] = j_webmap;
+
+    return createResource(base_url, j_obj);
+}
+
+
 NgwFormErr NgwGdalIo::downloadForm (QString base_url, int layer_id, QString file_path)
 {
     // Get layer's child resources in order to get form id.

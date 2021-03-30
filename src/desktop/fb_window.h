@@ -117,7 +117,9 @@ class FbWindow final: public MainWindow
       void u_resetProject ();
 //      bool u_isLayerEditable ();
       void u_createFieldsForNewElem (Mockup::ElemView *elemview);
-      int u_showLayerMetaDialog (bool is_editable, QString res_group_url, QString res_group_name, QString but_ok_text);
+      int u_showLayerMetaDialog (bool is_editable, QString res_group_url, QString res_group_name,
+                                 QString but_ok_text, bool send_to_ngw, bool &need_collector_project,
+                                 bool &need_webmap);
       bool u_initialFieldStructureWasChanged ();
       void u_updateSupportedIcons (bool is_supported);
       bool u_canUseSupportedFeature ();

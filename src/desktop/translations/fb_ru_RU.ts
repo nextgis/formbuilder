@@ -320,6 +320,14 @@
         <source>Resource group:</source>
         <translation>Группа ресурсов:</translation>
     </message>
+    <message>
+        <source>Create new Collector project</source>
+        <translation>Создать проект Коллектора</translation>
+    </message>
+    <message>
+        <source>Create new Web map</source>
+        <translation>Создать Веб-карту</translation>
+    </message>
 </context>
 <context>
     <name>Fb::Gui::NgwDialog</name>
@@ -1018,6 +1026,42 @@
     <message>
         <source>Authorization options</source>
         <translation>Настройки авторизации</translation>
+    </message>
+    <message>
+        <source> (Collector project)</source>
+        <translation> (Проект Коллектора)</translation>
+    </message>
+    <message>
+        <source> (Basemap)</source>
+        <translation> (Подложка)</translation>
+    </message>
+    <message>
+        <source> (Web map)</source>
+        <translation> (Веб-карта)</translation>
+    </message>
+    <message>
+        <source>Collector project</source>
+        <translation>Проект Коллектора</translation>
+    </message>
+    <message>
+        <source>Web map</source>
+        <translation>Веб-карта</translation>
+    </message>
+    <message>
+        <source>Failed to create:</source>
+        <translation>Не удалось создать:</translation>
+    </message>
+    <message>
+        <source>Successfully created:</source>
+        <translation>Успешно создано:</translation>
+    </message>
+    <message>
+        <source>Unable to create Basemap for Collector project. Error: %1</source>
+        <translation>Не удалось создать подложку для проекта Коллектора. Ошибка: %1</translation>
+    </message>
+    <message>
+        <source>Unable to get or create user for Collector project. Error: %1</source>
+        <translation>Не удалось получить или создать пользователя для проекта Коллектора. Ошибка: %1</translation>
     </message>
 </context>
 <context>

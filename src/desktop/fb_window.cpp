@@ -548,7 +548,9 @@ void FbWindow::onUploadToNgw ()
     QString res_group_url = ngw_io->getUrlResourcePage(res_info.base_url, res_info.resource_id);
     QString res_group_name = res_info.name;
 
-    if (!this->u_showLayerMetaDialog(true, res_group_url, res_group_name, tr("Send")))
+    bool need_collector_project;
+    bool need_webmap;
+    if (!this->u_showLayerMetaDialog(true, res_group_url, res_group_name, tr("Send"), true, need_collector_project, need_webmap))
         return;
 
     const Layer *layer = cur_project.data()->layer0_get();
@@ -659,19 +661,122 @@ void FbWindow::onUploadToNgw ()
 
     s_reply = NGRequest::uploadFile(upload_url, file_out_path, "file"); // required "file" keyword
 
-    int stub_int;
-    if (!ngw_io->createFile(stub_int, s_reply, res_info.base_url, new_layer_id, "qgis_vector_style", "QGIS layer"))
+    int style_id = -1;
+    if (!ngw_io->createFile(style_id, s_reply, res_info.base_url, new_layer_id, "qgis_vector_style", "QGIS layer"))
     {
         qDebug() << "Unable to create style for layer";
     }
 
-    // Show success.
+    // Additional steps. Create Collector project and a web map which use new layer/form.
 
-    g_showMessage(this, tr("Form was successfully uploaded"));
+    int group_id = res_info.resource_id;
+    QString collector_user = res_info.login;
+    QString collector_password = res_info.password;
+    QString user_email = NGAccess::instance().email();
+    QString proj_name = layer_info.name + tr(" (Collector project)"); // should differ from layer name!
+    QString proj_descr = proj_name;
+    QString basemap_name = layer_info.name + tr(" (Basemap)");
+    QString webmap_name = layer_info.name + tr(" (Web map)");
+
+    QString ret_msg_det;
+    int collector_proj_id = -1;
+    int user_id = -1;
+    if (need_collector_project)
+    {
+        // Search current user in a list of collector's users.
+        QList<QPair<int, QString>> users = ngw_io->getCollectorUsers(res_info.base_url);
+        for (auto &pair: users)
+        {
+            if (pair.second == user_email)
+            {
+                user_id = pair.first;
+                break;
+            }
+        }
+
+        // Create user if not found.
+        if (user_id == -1 && ngw_io->createCollectorUser(res_info.base_url, user_email))
+        {
+            users = ngw_io->getCollectorUsers(res_info.base_url);
+            for (auto &pair: users)
+            {
+                if (pair.second == user_email)
+                {
+                    user_id = pair.first;
+                    break;
+                }
+            }
+        }
+
+        // Create basemap and finally collector project.
+        if (user_id != -1)
+        {
+            int basemap_id = ngw_io->createSimpleBasemap(res_info.base_url, group_id, basemap_name);
+            if (basemap_id != -1)
+                collector_proj_id = ngw_io->createSimpleCollectorProject(res_info.base_url, group_id, user_id,
+                            collector_user, collector_password, proj_name, proj_descr, new_layer_id, layer_info.name,
+                            basemap_id, basemap_name);
+            else
+                ret_msg_det = tr("Unable to create Basemap for Collector project. Error: %1").arg(ngw_io->getLastError());
+        }
+        else
+            ret_msg_det = tr("Unable to get or create user for Collector project. Error: %1").arg(ngw_io->getLastError());
+    }
+
+    int webmap_id = -1;
+    if (need_webmap)
+    {
+        webmap_id = ngw_io->createSimpleWebmap(res_info.base_url, group_id, webmap_name, style_id, layer_info.name);
+    }
+
+    // Show result.
+
+    if (!need_collector_project && !need_webmap)
+    {
+        g_showMessage(this, tr("Form was successfully uploaded"));
+        sendToSentry(QString("Form uploaded. Url: %1. Created layer id: %2")
+                     .arg(res_info.base_url).arg(new_layer_id), NGAccess::LogLevel::Info);
+    }
+
+    else
+    {
+        QStringList msg_ok;
+        QStringList msg_failed;
+
+        msg_ok.append(tr("Form"));
+
+        if (need_collector_project)
+        {
+            if (collector_proj_id == -1)
+                msg_failed.append(tr("Collector project"));
+            else
+                msg_ok.append(tr("Collector project"));
+        }
+
+        if (need_webmap)
+        {
+            if (webmap_id == -1)
+                msg_failed.append(tr("Web map"));
+            else
+                msg_ok.append(tr("Web map"));
+        }
+
+        QString ret_msg = tr("Successfully created:");
+        for (auto &msg: msg_ok)
+            ret_msg += "\n  * " + msg;
+
+        if (msg_failed.size() > 0)
+        {
+            ret_msg += "\n" + tr("Failed to create:");
+            for (auto &msg: msg_failed)
+                ret_msg += "\n  * " + msg;
+        }
+
+        g_showMessageDet(this, ret_msg, ret_msg_det);
+        sendToSentry(ret_msg, NGAccess::LogLevel::Info);
+    }
+
     this->setEnabled(true);
-
-    sendToSentry(QString("Form uploaded. Url: %1. Created layer id: %2")
-                 .arg(res_info.base_url).arg(new_layer_id), NGAccess::LogLevel::Info);
 
     need_to_save = true;
     this->u_updateTitle();
@@ -679,9 +784,10 @@ void FbWindow::onUploadToNgw ()
 
 void FbWindow::onEditFormPropsClicked ()
 {
+    bool stub;
     this->u_showLayerMetaDialog(
                 cur_project.data()->layer0_get()->getNgwUrl() == "" ? true : false,
-                "", "", tr("OK"));
+                "", "", tr("OK"), false, stub, stub);
 }
 
 void FbWindow::onClearScreenClicked ()
@@ -1394,9 +1500,11 @@ void FbWindow::u_createFieldsForNewElem (ElemView *elemview)
     table_fields->updateSelf(cur_project.data()->layer0_getFields(), selected_elem);
 }
 
-int FbWindow::u_showLayerMetaDialog (bool is_editable, QString res_group_url, QString res_group_name, QString but_ok_text)
+int FbWindow::u_showLayerMetaDialog (bool is_editable, QString res_group_url, QString res_group_name,
+                                     QString but_ok_text, bool send_to_ngw,
+                                     bool &need_collector_project, bool &need_webmap)
 {
-    LayerDialog2 dialog(this, cur_project.data()->layer0_get(), is_editable, res_group_url, res_group_name);
+    LayerDialog2 dialog(this, cur_project.data()->layer0_get(), is_editable, res_group_url, res_group_name, send_to_ngw);
     dialog.setOkButtonText(but_ok_text);
 
     int ret = dialog.exec();
@@ -1415,6 +1523,12 @@ int FbWindow::u_showLayerMetaDialog (bool is_editable, QString res_group_url, QS
 
         need_to_save = true;
         this->u_updateTitle();
+    }
+
+    if (send_to_ngw)
+    {
+        need_collector_project = dialog.getNeedCollectorProject();
+        need_webmap = dialog.getNeedWebmap();
     }
 
     return QDialog::Accepted;

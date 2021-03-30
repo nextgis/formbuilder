@@ -64,6 +64,17 @@ class NgwGdalIo: public NgwIo
      virtual bool createFile (int &new_form_id, QString upload_reply, QString base_url,
                               int layer_id, QString res_type, QString disp_name) override;
 
+     virtual QList<QPair<int, QString>> getCollectorUsers (QString base_url);
+     virtual bool createCollectorUser (QString base_url, QString email);
+     virtual int createResource (QString base_url, const QJsonObject &body);
+     virtual int createSimpleBasemap (QString base_url, int group_id, QString basemap_name);
+     virtual int createSimpleCollectorProject (QString base_url, int group_id, int collector_user_id,
+                                               QString user, QString password,
+                                               QString proj_name, QString proj_description,
+                                                int layer_id, QString layer_name,
+                                                int basemap_id, QString basemap_name);
+     virtual int createSimpleWebmap (QString base_url, int group_id, QString webmap_name, int style_id, QString layer_name);
+
      virtual NgwFormErr downloadForm (QString base_url, int layer_id, QString file_path);
 
      QString getUrlResourcePage (QString base_url, int resource_id);

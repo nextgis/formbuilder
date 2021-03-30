@@ -36,7 +36,7 @@ using namespace Core;
 
 
 LayerDialog2::LayerDialog2 (QWidget *parent, const Layer *layer, bool is_editable,
-                            QString res_group_url, QString res_group_name):
+                            QString res_group_url, QString res_group_name, bool show_extended_settings):
     CustomDialog(parent),
     layer(layer)
 {
@@ -87,17 +87,26 @@ LayerDialog2::LayerDialog2 (QWidget *parent, const Layer *layer, bool is_editabl
 
     combo_geom = new QComboBox(this);
     int i = 0;
-    int cur_index;
+    int cur_index = -1;
     for (auto key: g_getGeomTypes().keys())
     {
         auto geom_type_data = g_getGeomTypes().value(key);
         combo_geom->addItem(geom_type_data.display_name, QVariant::fromValue(key));
-
         if (key == layer->getGeomType())
             cur_index = i;
         i++;
     }
     combo_geom->setCurrentIndex(cur_index);
+
+    // Collector project and webmap checkbox:
+
+    chb_collector_proj = new QCheckBox(this);
+    chb_collector_proj->setText(tr("Create new Collector project"));
+    chb_collector_proj->setChecked(false); // always off by default
+
+    chb_webmap = new QCheckBox(this);
+    chb_webmap->setText(tr("Create new Web map"));
+    chb_webmap->setChecked(false); // always off by default
 
     // Buttons:
 
@@ -152,7 +161,24 @@ LayerDialog2::LayerDialog2 (QWidget *parent, const Layer *layer, bool is_editabl
         lay_grid->addWidget(lab_geom_type2, 3, 1);
     }
 
-    lay_grid->addWidget(but_ok, 4, 0, 1, 2);
+    if (show_extended_settings)
+    {
+        chb_collector_proj->show();
+        chb_webmap->show();
+
+        QLabel *lab_stretch_gr = new QLabel(this);
+        lab_stretch_gr->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        lay_grid->addWidget(lab_stretch_gr, 4, 0, 1, 2);
+        lay_grid->addWidget(chb_collector_proj, 5, 0, 1, 2);
+        lay_grid->addWidget(chb_webmap, 6, 0, 1, 2);
+    }
+    else
+    {
+        chb_collector_proj->hide();
+        chb_webmap->hide();
+    }
+
+    lay_grid->addWidget(but_ok, 7, 0, 1, 2);
 }
 
 LayerDialog2::~LayerDialog2 ()
@@ -164,6 +190,17 @@ void LayerDialog2::getLayerMeta (QString &new_name, GeomType &new_geom_type)
 {
     new_name = edit_name->text();
     new_geom_type = combo_geom->currentData(Qt::UserRole).value<GeomType>();
+}
+
+
+bool LayerDialog2::getNeedCollectorProject ()
+{
+    return chb_collector_proj->isChecked();
+}
+
+bool LayerDialog2::getNeedWebmap ()
+{
+    return chb_webmap->isChecked();
 }
 
 
