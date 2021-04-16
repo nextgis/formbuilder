@@ -67,10 +67,24 @@ QString LanguageSelectDialog::getSelectedLanguageKey () const
 
 QMap<QString, LangInfo> TranslationsDialog::getAllLanguages ()
 {
+    /*
     QMap<QString, LangInfo> languages;
     languages.insert("en", {tr("English (United States)"), ""});
     languages.insert("ru", {tr("Russian"), ""});
     languages.insert("tg", {tr("Tajik"), ""});
+    return languages;
+    */
+
+    QList<QLocale> all_locales = QLocale::matchingLocales(
+                QLocale::AnyLanguage, QLocale::AnyScript, QLocale::AnyCountry);
+    QMap<QString, LangInfo> languages;
+    for (const QLocale &locale: all_locales)
+    {
+        auto code = locale.name().split('_').first(); // can be 3-letter and even 1-letter codes: do not add them
+        auto name = locale.nativeLanguageName(); // can be void langauge names: do not add them
+        if (code.size() == 2 && name != "")
+            languages.insert(code, {locale.nativeLanguageName(), ""});
+    }
     return languages;
 }
 

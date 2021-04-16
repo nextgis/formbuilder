@@ -480,15 +480,15 @@
     </message>
     <message>
         <source>English (United States)</source>
-        <translation>Английский (США)</translation>
+        <translation type="vanished">Английский (США)</translation>
     </message>
     <message>
         <source>Russian</source>
-        <translation>Русский</translation>
+        <translation type="vanished">Русский</translation>
     </message>
     <message>
         <source>Tajik</source>
-        <translation>Таджикский</translation>
+        <translation type="vanished">Таджикский</translation>
     </message>
     <message>
         <source>Key phrase</source>
