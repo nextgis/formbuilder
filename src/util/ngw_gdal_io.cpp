@@ -29,6 +29,7 @@
 #include <QJsonArray>
 #include <QDir>
 #include <QCoreApplication>
+#include <QDebug>
 
 using namespace Fb;
 using namespace Util;
@@ -352,7 +353,8 @@ bool NgwGdalIo::createCollectorUser (QString base_url, QString email)
 //    QByteArray payload = j_doc.toJson();
     QString url = base_url + "/collector/user/new";
     //QString headers = "Content-Type: application/x-www-form-urlencoded\r\nAccept: */*";
-    QString headers = "Content-Type: multipart/form-data\r\nAccept: */*";
+    //QString headers = "Content-Type: multipart/form-data\r\nAccept: */*";
+    QString headers = "Content-Type: multipart/form-data";
 
     CPLStringList options;
     options.AddNameValue("HEADERS", headers.toStdString().c_str());

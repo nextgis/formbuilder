@@ -1027,18 +1027,17 @@
         <source>Authorization options</source>
         <translation>Настройки авторизации</translation>
     </message>
-    
     <message>
         <source> (Collector project)</source>
-        <translation> (Проект Коллектора)</translation>
+        <translation type="vanished"> (Проект Коллектора)</translation>
     </message>
     <message>
         <source> (Basemap)</source>
-        <translation> (Подложка)</translation>
+        <translation type="vanished"> (Подложка)</translation>
     </message>
     <message>
         <source> (Web map)</source>
-        <translation> (Веб-карта)</translation>
+        <translation type="vanished"> (Веб-карта)</translation>
     </message>
     <message>
         <source> (data collection)</source>
@@ -1075,6 +1074,10 @@
     <message>
         <source>Unable to get or create user for Collector project. Error: %1</source>
         <translation>Не удалось получить или создать пользователя для проекта Коллектора. Ошибка: %1</translation>
+    </message>
+    <message>
+        <source>Unable to create NextGIS Web layer. The layer with the name %1 already exists in this resource group. Please choose another layer name</source>
+        <translation type="unfinished">Не удалось создать слой NextGIS Web. Слой с именем &quot;%1&quot; уже существует в выбранной группе ресурсов. Пожалуйста, выберите другое имя слоя</translation>
     </message>
 </context>
 <context>

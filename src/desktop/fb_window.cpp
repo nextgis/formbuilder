@@ -575,7 +575,14 @@ void FbWindow::onUploadToNgw ()
     cur_project->copy_ngw_res_id = -1;
     if (!ok)
     {
-        g_showWarningDet(this, tr("Unable to create NextGIS Web layer"), ngw_io->getLastError());
+        // TEMP: catch some specific errors and change error message.
+        QString err_msg = tr("Unable to create NextGIS Web layer");
+        QString err_det_msg = ngw_io->getLastError();
+        if (err_det_msg.contains("already exists")) // TODO: use error codes
+            err_msg = tr("Unable to create NextGIS Web layer. The layer with the name %1 already "
+                         "exists in this resource group. Please choose another layer name").arg(layer_info.name);
+
+        g_showWarningDet(this, err_msg, err_det_msg);
         this->setEnabled(true);
         return;
     }
