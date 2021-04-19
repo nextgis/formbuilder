@@ -341,25 +341,12 @@ QList<QPair<int, QString>> NgwGdalIo::getCollectorUsers (QString base_url)
 
 bool NgwGdalIo::createCollectorUser (QString base_url, QString email)
 {
-//    QJsonObject j_user;
-//    j_user["email"] = email;
-//    j_user["descr"] = "";
-//    QJsonObject j_obj;
-//    j_obj["collector_user"] = j_user;
-    //QByteArray payload = QString("collector_user: {\"descr\":\"\",\"email\":\"%1\"}").arg(email).toUtf8();
+    QString url = base_url + "/collector/user/new";
     QByteArray payload = QString("{\"descr\":\"\",\"email\":\"%1\"}").arg(email).toUtf8();
 
-//    QJsonDocument j_doc(j_obj);
-//    QByteArray payload = j_doc.toJson();
-    QString url = base_url + "/collector/user/new";
-    //QString headers = "Content-Type: application/x-www-form-urlencoded\r\nAccept: */*";
-    //QString headers = "Content-Type: multipart/form-data\r\nAccept: */*";
-    QString headers = "Content-Type: multipart/form-data";
-
     CPLStringList options;
-    options.AddNameValue("HEADERS", headers.toStdString().c_str());
-    //options.AddNameValue("POSTFIELDS", payload.toStdString().c_str());
     options.AddNameValue("CUSTOMREQUEST", "PUT");
+    options.AddNameValue("HEADERS", "Content-Type: multipart/form-data\r\nAccept: */*");
     options.AddNameValue("FORM_KEY_0", "collector_user");
     options.AddNameValue("FORM_VALUE_0", payload.toStdString().c_str());
     options.AddNameValue("FORM_ITEM_COUNT", "1");
