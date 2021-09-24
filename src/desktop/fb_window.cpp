@@ -342,6 +342,15 @@ FbWindow::FbWindow (Language last_language):
     this->u_resetProject();
 
     NGAccess::instance().initSentry(true, "https://44589ffc232d4c35b50c6afabc9fd87d@sentry.nextgis.com/20");
+
+    version = "";
+    QFile file_vers(":/data/VERSION");
+    if (file_vers.open(QIODevice::ReadOnly))
+    {
+        QTextStream in(&file_vers);
+        version = in.readLine();
+        file_vers.close();
+    }
 }
 
 FbWindow::~FbWindow ()
@@ -457,7 +466,7 @@ void FbWindow::onDownloadFromNgw ()
 
     std::set<NgwResourceType> allowed_types;
     allowed_types.insert(NgwResourceType::VectorLayer);
-    QScopedPointer<NgwGdalIo> ngw_io(new NgwGdalIo());
+    QScopedPointer<NgwGdalIo> ngw_io(new NgwGdalIo(version));
 
     NgwDialog *dialog = new NgwDialog(this, allowed_types, ngw_io.data());
     dialog->setWindowTitle(tr("Select resource"));
@@ -533,7 +542,7 @@ void FbWindow::onUploadToNgw ()
 
     std::set<NgwResourceType> allowed_types;
     allowed_types.insert(NgwResourceType::ResourceGroup); // allow to pick only "resource groups"
-    QScopedPointer<NgwGdalIo> ngw_io(new NgwGdalIo());
+    QScopedPointer<NgwGdalIo> ngw_io(new NgwGdalIo(version));
 
     NgwDialog *dialog = new NgwDialog(this, allowed_types, ngw_io.data());
     dialog->setWindowTitle(tr("Select resource group"));
@@ -945,7 +954,7 @@ void FbWindow::onCommSupportClicked ()
 
 void FbWindow::onAboutClicked ()
 {
-    FbAboutDialog dialog(this, last_language);
+    FbAboutDialog dialog(this, last_language, version);
     dialog.exec();
 }
 

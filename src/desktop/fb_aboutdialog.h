@@ -31,7 +31,7 @@ class FbAboutDialog: public Fb::Gui::CustomDialog
 
     public:
 
-     explicit FbAboutDialog (QWidget *parent, Language language);
+     explicit FbAboutDialog (QWidget *parent, Language language, QString version);
      virtual ~FbAboutDialog ();
 
     private:

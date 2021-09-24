@@ -191,6 +191,8 @@ class FbWindow final: public MainWindow
 
      QStringList tr_language_keys;
      QMap<QString, QStringList> tr_values;
+
+     QString version;
 };
 
 

@@ -35,10 +35,11 @@ using namespace Fb;
 using namespace Util;
 
 
-NgwGdalIo::NgwGdalIo ():
+NgwGdalIo::NgwGdalIo (const QString &app_version):
     NgwIo()
 {
-    api = new NgwApi();
+    this->api = new NgwApi();
+    this->app_version = app_version;
 }
 
 NgwGdalIo::~NgwGdalIo ()
@@ -50,6 +51,8 @@ NgwGdalIo::~NgwGdalIo ()
 void NgwGdalIo::reset ()
 {
     CPLSetConfigOption("GDAL_HTTP_USERPWD", NULL);
+
+    CPLSetConfigOption("GDAL_HTTP_USERAGENT", QString("formbuilder/%1").arg(app_version).toUtf8().data());
 
 #ifdef Q_OS_WIN
     QString s_path = QCoreApplication::applicationDirPath() + QDir::separator() + QLatin1String("..\\share\\ssl\\certs");

@@ -43,7 +43,7 @@ class NgwGdalIo: public NgwIo
 {
     public:
 
-     NgwGdalIo ();
+     NgwGdalIo (const QString &app_version = "");
      virtual ~NgwGdalIo () override;
 
      virtual void reset () override;
@@ -92,6 +92,8 @@ class NgwGdalIo: public NgwIo
 
      QString error;
      QString detailed_error;
+
+     QString app_version;
 };
 
 

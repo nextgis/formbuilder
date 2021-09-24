@@ -32,7 +32,7 @@ using namespace Fb;
 using namespace Gui;
 
 
-FbAboutDialog::FbAboutDialog (QWidget *parent, Language language):
+FbAboutDialog::FbAboutDialog (QWidget *parent, Language language, QString version):
     CustomDialog(parent),
     ui(new Ui::FbAboutDialog)
 {
@@ -67,14 +67,7 @@ FbAboutDialog::FbAboutDialog (QWidget *parent, Language language):
         file_authors.close();
     }
 
-    QFile file_vers(":/data/VERSION");
-    if (file_vers.open(QIODevice::ReadOnly))
-    {
-        QTextStream in(&file_vers);
-        QString str = in.readLine();
-        ui->lab_version->setText(str);
-        file_vers.close();
-    }
+    ui->lab_version->setText(version);
 
     ui->lab_offpage->setText(QString("<a href=\"%1\">%1</a>")
                              .arg(LANGUAGES.value(language).app_link));
