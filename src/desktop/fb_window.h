@@ -127,6 +127,7 @@ class FbWindow final: public MainWindow
       void u_updateTitle (bool is_supported = false);
       void u_updateCounterLists (const QList<QStringList> &lists);
       QStringList u_getStringsToTranslate ();
+      bool u_hasRedirect(QString url);
 
       void writeToLog (QString str);
       void sendToSentry (QString str, NGAccess::LogLevel log_level);

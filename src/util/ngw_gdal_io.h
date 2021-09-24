@@ -78,6 +78,7 @@ class NgwGdalIo: public NgwIo
      virtual NgwFormErr downloadForm (QString base_url, int layer_id, QString file_path);
 
      QString getUrlResourcePage (QString base_url, int resource_id);
+     QString getUrlVersion (QString base_url);
 
     protected:
 

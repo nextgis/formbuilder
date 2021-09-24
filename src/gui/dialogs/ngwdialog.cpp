@@ -34,7 +34,7 @@ using namespace Util;
 
 bool NgwDialog::was_success_connection = false;
 
-NgwDialog::NgwDialog (QWidget *parent, std::set<NgwResourceType> allowed_types):
+NgwDialog::NgwDialog (QWidget *parent, std::set<NgwResourceType> allowed_types, Util::NgwGdalIo *ngw_io):
     CustomDialog(parent),
     ui(new Ui::NgwDialog),
     allowed_types(allowed_types),
@@ -93,7 +93,7 @@ NgwDialog::NgwDialog (QWidget *parent, std::set<NgwResourceType> allowed_types):
     ui->but_select->setFocusPolicy(Qt::NoFocus); // so not to exit accidentally
     connect(ui->but_select, &QPushButton::clicked, this, &NgwDialog::accept);
 
-    ngw_io = new NgwGdalIo();
+    this->ngw_io = ngw_io;
 
     this->show();
     if (was_success_connection)
@@ -111,7 +111,6 @@ NgwDialog::~NgwDialog ()
     g_getSettings()->setValue(FB_STS_NGWDLG_H, this->height());
     g_getSettings()->setValue(FB_STS_NGWDLG_COL0_W, ui->tree_reses->header()->sectionSize(0));
 
-    delete ngw_io;
     delete movie_spinner;
     delete url_compl_model;
     delete ui;

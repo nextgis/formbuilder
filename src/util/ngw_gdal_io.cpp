@@ -582,6 +582,11 @@ QString NgwGdalIo::getUrlResourcePage (QString base_url, int resource_id)
     return QString("%1/resource/%2").arg(base_url).arg(resource_id);
 }
 
+QString NgwGdalIo::getUrlVersion (QString base_url)
+{
+    return QString("%1/api/component/pyramid/pkg_version").arg(base_url);
+}
+
 
 bool NgwGdalIo::u_getChildResources (QList<NgwResourceData> &resources,
                                      QString base_url, int resource_id,

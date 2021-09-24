@@ -63,14 +63,14 @@ class NgwDialog: public CustomDialog
 
     public:
 
-     explicit NgwDialog (QWidget *parent, std::set<Util::NgwResourceType> allowed_types);
+     explicit NgwDialog (QWidget *parent, std::set<Util::NgwResourceType> allowed_types, Util::NgwGdalIo *ngw_io);
      virtual ~NgwDialog ();
 
 //     QPair<QString, int> getResource ();
 //     QPair<QString, QString> getCreds ();
      NgwDialogResInfo getSelectedResourceInfo ();
 
-     Util::NgwGdalIo *getNgwIo () const { return ngw_io; }
+     //Util::NgwGdalIo *getNgwIo () const { return ngw_io; }
 
     protected slots:
 

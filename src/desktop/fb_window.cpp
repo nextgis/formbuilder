@@ -50,6 +50,11 @@
 #include <QIODevice>
 #include <QStandardPaths>
 
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QTimer>
+
 #define FB_NGTOOLB_TEXT QObject::tr("Authentication & Updates")
 
 using namespace Fb;
@@ -452,13 +457,17 @@ void FbWindow::onDownloadFromNgw ()
 
     std::set<NgwResourceType> allowed_types;
     allowed_types.insert(NgwResourceType::VectorLayer);
+    QScopedPointer<NgwGdalIo> ngw_io(new NgwGdalIo());
 
-    NgwDialog dialog(this, allowed_types);
-    dialog.setWindowTitle(tr("Select resource"));
-    if (!dialog.exec())
+    NgwDialog *dialog = new NgwDialog(this, allowed_types, ngw_io.data());
+    dialog->setWindowTitle(tr("Select resource"));
+    if (!dialog->exec())
+    {
+        delete dialog;
         return;
-
-    auto res_info = dialog.getSelectedResourceInfo();
+    }
+    auto res_info = dialog->getSelectedResourceInfo();
+    delete dialog;
 
     // Create temp file for form.
     QTemporaryDir temp_dir;
@@ -475,7 +484,6 @@ void FbWindow::onDownloadFromNgw ()
         return;
 
     // Try to download .ngfp file to temporary dir.
-    NgwGdalIo *ngw_io = dialog.getNgwIo();
     NgwFormErr err_code = ngw_io->downloadForm(res_info.base_url, res_info.resource_id, ngfp_file_path);
 
     if (err_code == NgwFormErr::NoForm)
@@ -484,7 +492,7 @@ void FbWindow::onDownloadFromNgw ()
 
         // Make another request in order to receive layer's structure.
         auto pair = qMakePair(res_info.base_url, res_info.resource_id);
-        bool ok = this->u_getNgwLayer(pair, {"", ""}, ngw_io);
+        bool ok = this->u_getNgwLayer(pair, {"", ""}, ngw_io.data());
         if (!ok)
         {
             g_showWarningDet(this, tr("Unable to receive form or layer's structure"),
@@ -525,13 +533,17 @@ void FbWindow::onUploadToNgw ()
 
     std::set<NgwResourceType> allowed_types;
     allowed_types.insert(NgwResourceType::ResourceGroup); // allow to pick only "resource groups"
+    QScopedPointer<NgwGdalIo> ngw_io(new NgwGdalIo());
 
-    NgwDialog dialog(this, allowed_types);
-    dialog.setWindowTitle(tr("Select resource group"));
-    if (!dialog.exec())
+    NgwDialog *dialog = new NgwDialog(this, allowed_types, ngw_io.data());
+    dialog->setWindowTitle(tr("Select resource group"));
+    if (!dialog->exec())
+    {
+        delete dialog;
         return;
-
-    auto res_info = dialog.getSelectedResourceInfo();
+    }
+    auto res_info = dialog->getSelectedResourceInfo();
+    delete dialog; // the defined in dialog settings will be written to disk
 
     // Check webgis capabilities and find whether user can create forms.
     /*
@@ -542,7 +554,17 @@ void FbWindow::onUploadToNgw ()
     }
     */
 
-    NgwGdalIo *ngw_io = dialog.getNgwIo();
+    // Check redirect http -> https and change protocol accordingly.
+    res_info.base_url = res_info.base_url.toLower();
+    if (!res_info.base_url.startsWith("https"))
+    {
+        auto version_url = ngw_io->getUrlVersion(res_info.base_url);
+        if (u_hasRedirect(version_url))
+        {
+            res_info.base_url = res_info.base_url.replace("http://", "https://");
+            g_getSettings()->setValue(FB_STS_NGW_URL, res_info.base_url);
+        }
+    }
 
     //QString res_group_url = ngw_io->getNgwApi()->urlResourcePage(res_info.base_url, res_info.resource_id);
     QString res_group_url = ngw_io->getUrlResourcePage(res_info.base_url, res_info.resource_id);
@@ -1711,6 +1733,36 @@ QStringList FbWindow::u_getStringsToTranslate ()
     strs.removeAll("");
 
     return strs;
+}
+
+
+bool FbWindow::u_hasRedirect(QString url)
+{
+    bool has_redirect = false;
+    QTimer timer;
+    timer.setSingleShot(true);
+    QEventLoop loop;
+    QNetworkAccessManager nm;
+    QNetworkRequest req(url);
+    req.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
+
+    auto reply = nm.get(req);
+    connect(reply, &QNetworkReply::redirected, [&](const QUrl &url)
+    {
+        has_redirect = true;
+    });
+    connect(reply, &QNetworkReply::finished, [&]()
+    {
+        reply->deleteLater();
+        loop.quit();
+    });
+
+    connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+    timer.start(30000);
+
+    loop.exec(); // wait here in GUI thread. TODO: this should be rewritten together with all async work in FbWindow class.
+
+    return has_redirect;
 }
 
 
