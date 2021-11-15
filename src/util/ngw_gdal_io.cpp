@@ -483,8 +483,8 @@ int NgwGdalIo::createSimpleCollectorProject (QString base_url, int group_id, int
     j_layer["visible"] = true;
     j_layer["children"] = QJsonArray();
     QJsonArray j_def_elems;
-    j_def_elems.append(j_basemap);
     j_def_elems.append(j_layer);
+    j_def_elems.append(j_basemap);
     QJsonObject j_elems;
     j_elems["item_type"] = "root";
     j_elems["children"] = j_def_elems;
