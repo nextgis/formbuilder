@@ -239,7 +239,7 @@ if(BUILD_NEXTGIS_PACKAGE)
 		endif()
 	endif()
 
-    find_anyproject(NGSTD REQUIRED COMPONENTS core5 framework5)
+    find_anyproject(NGSTD DEFAULT ON COMPONENTS core framework)
     include_directories(${NGSTD_INCLUDE_DIRS}/..)
 
 	set(PACKAGE_NAME ${PROJECT_NAME})
