@@ -48,13 +48,13 @@ const QMap<Language, LanguageData> LANGUAGES =
     {{Language::en_GB}, {"English", "English", "en_GB", "en", "",
                          "http://nextgis.com/nextgis-formbuilder",
                          "http://nextgis.com/pricing/",
-                         "http://docs.nextgis.com/docs_formbuilder/source/toc.html",
+                         "http://docs.nextgis.com/docs_formbuilder/source/index.html",
                          "Please restart application in order to change language"}},
 
     {{Language::ru_RU}, {"Russian", "Русский", "ru_RU", "ru", "",
                          "http://nextgis.ru/nextgis-formbuilder",
                          "http://nextgis.ru/pricing/",
-                         "http://docs.nextgis.ru/docs_formbuilder/source/toc.html",
+                         "http://docs.nextgis.ru/docs_formbuilder/source/index.html",
                          "Пожалуйста, перезагрузите приложение чтобы изменение языка вступило в силу"}}
 };
 
